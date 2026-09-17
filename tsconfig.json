@@ -20,5 +20,10 @@
     "pipeline/tests",
     "api/src",
     "api/tests"
+  ],
+  "exclude": [
+    "site",
+    "dist",
+    "node_modules"
   ]
 }

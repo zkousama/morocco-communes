@@ -73,16 +73,32 @@ is a 400. CORS is open.
 
 Full reference: [`api/README.md`](api/README.md).
 
+## The docs site
+
+`site/` is an Astro site in English, French and Arabic, with Arabic served RTL. It builds
+to static HTML — the only JavaScript is a Solid island for the playground, which issues
+live queries against whatever it is deployed beside and shows the request URL and the
+`X-Api-Tier` of the response.
+
+It is static on purpose: nothing in it needs a server, so the hand-written Worker stays
+the only Worker and the pages cost nothing to serve.
+
 ## Running it
 
 ```sh
 pnpm install
 pnpm dataset:build     # rebuilds data/v1 from the cached sources
-pnpm api:build         # emits dist/ and the search index
-pnpm api:dev           # wrangler dev on :8788
+pnpm build             # the docs site, then the API tree, into dist/
+pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
 pnpm api:smoke         # probes a running deployment
-pnpm test
+pnpm check             # typecheck both trees, then the tests
 ```
+
+The order inside `pnpm build` matters: Astro clears its output directory, so the site
+builds first and the API tree is emitted into the same `dist/` afterwards.
+
+`pnpm site:dev` runs Astro alone with hot reload, but the playground has no API to call
+that way — use `pnpm api:dev` to see both.
 
 Node 22 or newer. Deploying needs a Cloudflare account; see `api/README.md`.
 

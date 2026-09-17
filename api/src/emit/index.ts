@@ -47,9 +47,12 @@ const index = buildIndex(version, [
   { level: "cercle", rows: dataset.cercles as never[] },
 ]);
 await writeFile(INDEX_OUT, `${JSON.stringify(index)}\n`);
-// A stale file from a previous shape would be served as if it were current, so the
-// output directory is rebuilt rather than merged into.
-await rm(OUT, { recursive: true, force: true });
+// A stale file from a previous shape would be served as if it were current, so these are
+// rebuilt rather than merged into. Only these: the site builds into the same dist/ and
+// this step runs second, so clearing the whole directory would delete its output.
+for (const owned of ["api", "data", "_headers"]) {
+  await rm(join(OUT, owned), { recursive: true, force: true });
+}
 await writeTree(tree, OUT);
 await cp(DATA, join(OUT, "data", "v1"), { recursive: true });
 console.log(

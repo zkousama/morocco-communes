@@ -1,0 +1,80 @@
+---
+import Base from "../layouts/Base.astro";
+import Playground from "./Playground.tsx";
+import { RTL, t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+
+const counts = [
+  { n: "12", label: copy.regions },
+  { n: "83", label: copy.provinces },
+  { n: "213", label: copy.cercles },
+  { n: "1 503", label: copy.communes },
+  { n: "41", label: copy.arrondissements },
+];
+
+const tiers = [
+  { name: copy.tierPre, body: copy.tierPreBody },
+  { name: copy.tierAlias, body: copy.tierAliasBody },
+  { name: copy.tierComputed, body: copy.tierComputedBody },
+];
+
+const routes = `GET /api/regions.json
+GET /api/regions/01/provinces.json
+GET /api/provinces/01.511/communes/page/1.json
+GET /api/cercles/01.511.05.json
+GET /api/communes/01.511.01.0.json
+GET /api/communes/01.511.01.0/arrondissements.json
+GET /api/communes/type/urban/page/1.json
+GET /api/arrondissements/01.511.01.05.json
+GET /api/version.json
+
+GET /api/search?q=tanger&levels=commune&limit=10
+GET /api/communes/near?lat=33.5731&lng=-7.5898&radius=15
+GET /api/communes?province=01.511&type=urban`;
+---
+
+<Base locale={locale}>
+  <h1>{copy.tagline}</h1>
+  <p class="lede">{copy.intro}</p>
+
+  <h2>{copy.counts}</h2>
+  <ul class="counts">
+    {counts.map((c) => (
+      <li>
+        <b>{c.n}</b>
+        <span>{c.label}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>{copy.tryIt}</h2>
+  <p>{copy.tryItBody}</p>
+  <Playground copy={copy} rtl={RTL[locale]} client:load />
+
+  <h2>{copy.tiers}</h2>
+  <p>{copy.tiersBody}</p>
+  <div class="grid">
+    {tiers.map((tier) => (
+      <div class="card">
+        <h3>{tier.name}</h3>
+        <p>{tier.body}</p>
+      </div>
+    ))}
+  </div>
+
+  <h2>{copy.endpoints}</h2>
+  <pre class="routes">{routes}</pre>
+
+  <h2>{copy.dataset}</h2>
+  <p>{copy.datasetBody}</p>
+  <pre class="routes">{`GET /data/v1/attributes/communes.json
+GET /data/v1/attributes/communes.csv
+GET /data/v1/geometry/01.topojson
+GET /data/v1/crosswalk/crosswalk.json
+GET /data/v1/sources.json`}</pre>
+</Base>

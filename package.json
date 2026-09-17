@@ -12,14 +12,21 @@
     "api:build": "node --experimental-strip-types api/src/emit/index.ts",
     "api:dev": "wrangler dev --port 8788",
     "api:smoke": "node --experimental-strip-types api/smoke.ts",
-    "typecheck": "tsc --noEmit",
-    "check": "pnpm typecheck && pnpm test"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p site/tsconfig.json",
+    "check": "pnpm typecheck && pnpm test",
+    "site:dev": "astro dev --root site",
+    "site:build": "astro build --root site",
+    "build": "pnpm site:build && pnpm api:build"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/solid-js": "^7.0.2",
     "@cloudflare/workers-types": "^5.20260917.1",
     "@types/node": "^22.10.0",
     "@types/polylabel": "^2.0.0",
     "@types/topojson-server": "^3.0.4",
+    "astro": "^7.3.3",
+    "solid-js": "^1.9.15",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0",
     "wrangler": "^4.134.0"
