@@ -4,6 +4,9 @@ import { XMLParser } from "fast-xml-parser";
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "@",
+  // Without this, "001511" is coerced to the number 1511 and the leading zeros
+  // that every HCP code depends on are gone before this module sees the value.
+  parseTagValue: false,
   isArray: (name) => name === "row" || name === "c" || name === "si",
 });
 
@@ -22,6 +25,10 @@ function textOf(node: unknown): string {
   if (Array.isArray(node)) return node.map(textOf).join("");
   const record = node as Record<string, unknown>;
   if ("t" in record) return textOf(record["t"]);
+  // Rich text: <si><r><t>Préfecture d'</t></r><r><t>Arrondissements…</t></r></si>.
+  // The 2014 workbook stores seven strings this way, all of them Casablanca
+  // préfectures d'arrondissements. Without this branch they resolve to "".
+  if ("r" in record) return textOf(record["r"]);
   if ("#text" in record) return String(record["#text"]);
   return "";
 }
