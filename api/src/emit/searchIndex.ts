@@ -1,4 +1,5 @@
 import { normalise, trigrams } from "../lib/normalise.ts";
+import { EXONYMS, type Exonym } from "../lib/exonyms.ts";
 import type { IndexEntry, Level, SearchIndex } from "../lib/search.ts";
 
 interface Named {
@@ -56,5 +57,47 @@ export function buildIndex(
   const sorted: Record<string, number[]> = {};
   for (const g of Object.keys(postings).sort()) sorted[g] = postings[g]!;
 
-  return { datasetVersion, entries, postings: sorted };
+  return { datasetVersion, entries, postings: sorted, aliases: buildAliases(entries) };
+}
+
+/**
+ * Resolves the exonym list against the index, and refuses two things rather than
+ * shipping them: a code no unit has, and an alias that is already some unit's real
+ * name. The second matters more — an alias shadowing a real name would send a search
+ * for that place somewhere else entirely, so the real name always wins by the alias
+ * being rejected at build time.
+ */
+export function buildAliases(entries: IndexEntry[], list: Exonym[] = EXONYMS): Record<string, number> {
+  const positionByCode = new Map<string, number>();
+  const realNames = new Set<string>();
+  entries.forEach(([code, , , , slug, , , nFr, nAr], i) => {
+    positionByCode.set(code, i);
+    realNames.add(nFr);
+    realNames.add(nAr);
+    realNames.add(slug.replace(/-/g, " "));
+  });
+
+  const aliases: Record<string, number> = {};
+  const problems: string[] = [];
+  for (const { name, code } of list) {
+    const key = normalise(name);
+    const position = positionByCode.get(code);
+    if (position === undefined) {
+      problems.push(`exonym ${name} points at ${code}, which no unit has`);
+      continue;
+    }
+    if (realNames.has(key)) {
+      problems.push(`exonym ${name} is already a real name; it would shadow it`);
+      continue;
+    }
+    if (key in aliases && aliases[key] !== position) {
+      problems.push(`exonym ${name} is claimed by two different units`);
+      continue;
+    }
+    aliases[key] = position;
+  }
+  if (problems.length > 0) {
+    throw new Error(`the exonym list does not hold up:\n  ${problems.join("\n  ")}`);
+  }
+  return aliases;
 }

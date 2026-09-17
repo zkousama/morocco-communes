@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildIndex } from "../../src/emit/searchIndex.ts";
 import { haversine, near, search } from "../../src/lib/search.ts";
+import { buildAliases } from "../../src/emit/searchIndex.ts";
+import { EXONYMS } from "../../src/lib/exonyms.ts";
 
 const rd = (n: string) => JSON.parse(readFileSync(`data/v1/attributes/${n}.json`, "utf8")) as never[];
 const index = buildIndex("1.0.0", [
@@ -147,5 +149,56 @@ describe("near", () => {
     const small = near(index, 33.5731, -7.5898, 10, 100).length;
     const large = near(index, 33.5731, -7.5898, 100, 100).length;
     expect(large).toBeGreaterThan(small);
+  });
+});
+
+describe("exonyms", () => {
+  it("resolves every listed name to the unit it points at", () => {
+    expect(Object.keys(index.aliases).length).toBe(EXONYMS.length);
+    for (const { name } of EXONYMS) {
+      const top = search(index, name, { limit: 1 })[0];
+      expect(top, name).toBeDefined();
+      expect(top!.matched, name).toBe("alias");
+    }
+  });
+
+  it("finds the places trigram overlap cannot reach", () => {
+    const cases: [string, string][] = [
+      ["Fez", "Fès"],
+      ["Alhucemas", "Al Hoceima"],
+      ["Mogador", "Essaouira"],
+      ["Mazagan", "El Jadida"],
+      ["Villa Cisneros", "Dakhla"],
+      ["Port Lyautey", "Kénitra"],
+      ["El Aaiun", "Laâyoune"],
+      ["Dar el Beida", "Casablanca"],
+    ];
+    for (const [query, expected] of cases) {
+      expect(search(index, query, { limit: 1 })[0]!.name.fr, query).toBe(expected);
+    }
+  });
+
+  it("refuses an alias that is already a real name, so it cannot shadow one", () => {
+    // Anfa is an arrondissement of Casablanca as well as Casablanca's historical name.
+    // Listing it would have sent a search for the arrondissement to the commune.
+    expect(() =>
+      buildAliases([
+        ["06.141.01.0", "commune", "Casablanca", "الدار البيضاء", "casablanca", null, null, "casablanca", "الدار البيضا", 10, "061410100"],
+        ["06.141.01.09", "arrondissement", "Anfa", "أنفا", "anfa", null, null, "anfa", "انفا", 4, "061410109"],
+      ], [{ name: "Anfa", code: "06.141.01.0", origin: "test" }]),
+    ).toThrow(/already a real name/);
+    expect(search(index, "anfa", { limit: 1 })[0]!.level).toBe("arrondissement");
+  });
+
+  it("refuses an alias pointing at a code no unit has", () => {
+    expect(() =>
+      buildAliases(index.entries, [{ name: "Nowhere", code: "99.999.99.99", origin: "test" }]),
+    ).toThrow(/which no unit has/);
+  });
+
+  it("leaves a real name outranking everything", () => {
+    const top = search(index, "fes", { limit: 1 })[0]!;
+    expect(top.name.fr).toBe("Fès");
+    expect(top.matched).toBe("exact");
   });
 });

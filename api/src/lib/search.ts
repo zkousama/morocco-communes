@@ -45,6 +45,8 @@ export interface SearchIndex {
   entries: IndexEntry[];
   /** Trigram to the entry positions that contain it, in ascending order. */
   postings: Record<string, number[]>;
+  /** Normalised exonym to the entry position it names. */
+  aliases: Record<string, number>;
 }
 
 export interface Hit {
@@ -53,7 +55,7 @@ export interface Hit {
   name: { fr: string; ar: string };
   slug: string;
   score: number;
-  matched: "exact" | "prefix" | "trigram";
+  matched: "exact" | "alias" | "prefix" | "trigram";
 }
 
 const EXACT = 1000;
@@ -80,11 +82,17 @@ export function search(
 
   const grams = trigrams(q);
   const shared = new Map<number, number>();
+  // An exonym is a different word, not a spelling of the same one, so no amount of
+  // trigram overlap would surface it. Looked up before the walk, and seeded into it so
+  // the hit is scored and sorted like any other.
+  const alias = index.aliases[q];
   for (const g of new Set(grams)) {
     const posting = index.postings[g];
     if (!posting) continue;
     for (const i of posting) shared.set(i, (shared.get(i) ?? 0) + 1);
   }
+
+  if (alias !== undefined) shared.set(alias, Number.POSITIVE_INFINITY);
 
   const hits: Hit[] = [];
   for (const [i, overlap] of shared) {
@@ -99,6 +107,9 @@ export function search(
     if (nFr === q || nAr === q || nSlug === q) {
       score = EXACT;
       matched = "exact";
+    } else if (overlap === Number.POSITIVE_INFINITY) {
+      score = EXACT;
+      matched = "alias";
     } else if (nFr.startsWith(q) || nAr.startsWith(q) || nSlug.startsWith(q)) {
       // A longer name is a weaker prefix match: "tanger" ranks Tanger above
       // Tanger-Assilah rather than treating both as equally good.

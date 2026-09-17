@@ -99,17 +99,22 @@ Identifiers are accepted in four spellings, all resolving to one unit:
   "slug": "tanger", "score": 1000, "matched": "exact" }
 ```
 
-`matched` is `exact`, `prefix` or `trigram`. Ranking puts an exact match first, then the
-shortest prefix match, then trigram overlap; a tie breaks on the administrative level so
-a commune outranks the cercle of the same name, and then on the code, so two identical
-queries always rank identically.
+`matched` is `exact`, `alias`, `prefix` or `trigram`. Ranking puts an exact match first,
+then an exonym, then the shortest prefix match, then trigram overlap; a tie breaks on the
+administrative level so a commune outranks the cercle of the same name, and then on the
+code, so two identical queries always rank identically.
 
 The normaliser folds the Arabic alef variants, ta-marbuta and alef maqsura that the names
 carry, and the tatweel and vowel marks that none of them carry but people type. French
 accents fold too. Transliteration variants are found by trigram overlap rather than by
 substitution rules: `Shefshaouen` reaches Chefchaouen, `Ayt Qamra` reaches Ait Kamra. What
-this does not reach is exonyms — `Fez` does not find Fès, and `Alhucemas` does not find
-Al Hoceima.
+this cannot reach is a name built from different letters altogether: `Fez` shares no
+useful trigram with `Fès`, and `Mogador` shares none with `Essaouira`. Those come from a
+list of 17 exonyms and pre-1956 administrative names in `api/src/lib/exonyms.ts`, each
+carrying where the name comes from and each checked against the dataset when the index is
+built. An entry pointing at a code no unit has, or naming something that is already a real
+name, fails the build — `Anfa` is both Casablanca's historical name and one of its
+arrondissements, and the arrondissement keeps it.
 
 ### `GET /api/communes/near`
 
