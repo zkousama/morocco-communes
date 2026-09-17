@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toDigits, toDotted, formatRegion, formatProvince, regionOf, provinceOf } from "../../src/lib/codes.js";
+import { toDigits, toDotted, formatRegion, formatProvince, regionOf, provinceOf } from "../../src/lib/codes.ts";
 
 describe("toDigits", () => {
   it("strips punctuation and left-pads to nine", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SOURCES } from "../../src/sources/registry.js";
+import { SOURCES } from "../../src/sources/registry.ts";
 
 describe("SOURCES", () => {
   it("pins both HCP workbooks with their licence", () => {

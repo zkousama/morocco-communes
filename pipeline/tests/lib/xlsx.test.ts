@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { zipSync, strToU8 } from "fflate";
-import { readSheetRows } from "../../src/lib/xlsx.js";
+import { readSheetRows } from "../../src/lib/xlsx.ts";
 
 function buildWorkbook(): Uint8Array {
   const sharedStrings = `<?xml version="1.0"?>
