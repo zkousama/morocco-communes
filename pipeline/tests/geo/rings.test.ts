@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleRings } from "../../src/geo/rings.ts";
+import { assembleRings, isClosed, ringArea, type Ring } from "../../src/geo/rings.ts";
 
 const pt = (lon: number, lat: number) => ({ lat, lon });
 
@@ -54,5 +54,41 @@ describe("assembleRings", () => {
       { type: "way", role: "outer", geometry: [pt(0, 0), pt(2, 0), pt(2, 2), pt(0, 0)] },
     ]);
     expect(outer).toHaveLength(1);
+  });
+
+  it("returns a ring it could not close instead of dropping or throwing", () => {
+    const { outer } = assembleRings([
+      { type: "way", role: "outer", geometry: [pt(0, 0), pt(1, 0), pt(1, 1)] },
+    ]);
+    expect(outer).toHaveLength(1);
+    expect(isClosed(outer[0]!)).toBe(false);
+  });
+
+  it("returns both fragments, still open, when they cannot reach each other", () => {
+    const { outer } = assembleRings([
+      { type: "way", role: "outer", geometry: [pt(0, 0), pt(1, 0)] },
+      { type: "way", role: "outer", geometry: [pt(5, 5), pt(6, 5)] },
+    ]);
+    expect(outer).toHaveLength(2);
+    expect(outer.every((r) => !isClosed(r))).toBe(true);
+  });
+});
+
+describe("isClosed", () => {
+  it("needs a repeated endpoint and more than three positions", () => {
+    expect(isClosed([[0, 0], [1, 0], [1, 1], [0, 0]])).toBe(true);
+    expect(isClosed([[0, 0], [1, 0], [1, 1]])).toBe(false);
+    // Three positions can only encode two distinct points, never a triangle.
+    expect(isClosed([[0, 0], [1, 0], [0, 0]])).toBe(false);
+  });
+});
+
+describe("ringArea", () => {
+  it("orders rings by size and ignores winding direction", () => {
+    const unit: Ring = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]];
+    const larger: Ring = [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]];
+    expect(ringArea(unit)).toBeCloseTo(1);
+    expect(ringArea(larger)).toBeCloseTo(4);
+    expect(ringArea([...unit].reverse() as Ring)).toBeCloseTo(1);
   });
 });
