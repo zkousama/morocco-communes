@@ -10,6 +10,20 @@ export function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+/**
+ * Throws when a pinned digest and the digest just computed disagree. Kept
+ * separate from fetchAll so the guard can be tested without a network call and
+ * without writing over the real checksums.json.
+ */
+export function assertChecksum(id: string, digest: string, expected: string | undefined): void {
+  if (expected && expected !== digest) {
+    throw new Error(
+      `${id} changed upstream.\n  pinned:   ${expected}\n  fetched:  ${digest}\n` +
+        `Review the new file, then update pipeline/checksums.json deliberately.`,
+    );
+  }
+}
+
 export async function fetchAll(cacheDir: string): Promise<Map<string, Uint8Array>> {
   await mkdir(cacheDir, { recursive: true });
 
@@ -31,12 +45,7 @@ export async function fetchAll(cacheDir: string): Promise<Map<string, Uint8Array
 
     const digest = sha256(bytes);
     const expected = pinned[source.id];
-    if (expected && expected !== digest) {
-      throw new Error(
-        `${source.id} changed upstream.\n  pinned:   ${expected}\n  fetched:  ${digest}\n` +
-          `Review the new file, then update pipeline/checksums.json deliberately.`,
-      );
-    }
+    assertChecksum(source.id, digest, expected);
     if (!expected) pinned[source.id] = digest;
     out.set(source.id, bytes);
   }
