@@ -33,7 +33,7 @@ function polygons(f: OsmFeature): Ring[][] {
 
 export interface GeometryAnomaly {
   code: string;
-  kind: "orphan_hole" | "degenerate_ring";
+  kind: "orphan_hole";
   detail: string;
 }
 
@@ -43,12 +43,10 @@ export interface GeometryAnomaly {
  * A hole contained by no outer ring is dropped by `polygons()` without trace. That is
  * malformed OSM data rather than something to repair here, but it should be visible.
  *
- * A ring that quantises below four distinct points is NOT removed by topojson-server;
- * `prequantize` pads it by repeating its first point, so a collapsed island survives as
- * a degenerate zero-area ring with no error. Measured at quantisation 1e5 over the
- * cached régions: 486 rings emitted, none below 4 points and none even close. So this is
- * a guard, not a live problem — but a silently corrupt ring in a published boundary file
- * is exactly the failure this dataset exists not to have.
+ * Collapsed rings are NOT checked here. A ring can only collapse under quantisation, and
+ * quantisation happens inside `topology()`, so counting distinct points on the raw ring
+ * would guard the wrong side of the transform. `writeGeometry` checks the emitted topology
+ * instead.
  */
 export function findAnomalies(features: OsmFeature[]): GeometryAnomaly[] {
   const out: GeometryAnomaly[] = [];
@@ -63,14 +61,48 @@ export function findAnomalies(features: OsmFeature[]): GeometryAnomaly[] {
         });
       }
     }
-    for (const ring of [...f.outer, ...f.inner]) {
-      const distinct = new Set(ring.map((p) => `${p[0]},${p[1]}`)).size;
-      if (distinct < 3) {
-        out.push({
-          code: f.codeDigits,
-          kind: "degenerate_ring",
-          detail: `a ring has only ${distinct} distinct point(s)`,
-        });
+  }
+  return out;
+}
+
+interface Topology {
+  arcs: [number, number][][];
+  transform?: { scale: [number, number]; translate: [number, number] };
+  objects: Record<string, { geometries: { type: string; arcs: unknown; properties: { code: string } }[] }>;
+}
+
+/**
+ * Rings in the EMITTED topology holding fewer than three distinct positions. This must run
+ * after `topology()`: quantisation is what collapses a ring, and topojson-server's
+ * `prequantize` PADS a collapsed ring by repeating its first point rather than dropping
+ * it, so a vanished island would otherwise ship as a valid-looking zero-area ring.
+ *
+ * Arcs are delta-encoded after quantisation, so positions are recovered by cumulative sum.
+ */
+function degenerateRings(topo: Topology): string[] {
+  const positions = topo.arcs.map((arc) => {
+    let x = 0;
+    let y = 0;
+    return arc.map(([dx, dy]) => {
+      x += dx;
+      y += dy;
+      return `${x},${y}`;
+    });
+  });
+
+  const out: string[] = [];
+  for (const geometry of topo.objects["communes"]!.geometries) {
+    const polygons =
+      geometry.type === "Polygon"
+        ? [geometry.arcs as number[][]]
+        : (geometry.arcs as number[][][]);
+    for (const polygon of polygons) {
+      for (const ring of polygon) {
+        const seen = new Set<string>();
+        for (const index of ring) for (const p of positions[index < 0 ? ~index : index]!) seen.add(p);
+        if (seen.size < 3) {
+          out.push(`${geometry.properties.code}: a ring quantised to ${seen.size} distinct position(s)`);
+        }
       }
     }
   }
@@ -113,7 +145,23 @@ export async function writeGeometry(
     const fc = toFeatureCollection(features, nameByCode);
     // Quantisation trades a little precision for a much smaller file. 1e5 keeps
     // roughly metre-level detail, which is far finer than a commune boundary needs.
-    const topo = topology({ communes: fc as never }, 1e5);
-    await writeFile(join(dir, `${regionCode}.topojson`), `${JSON.stringify(topo)}\n`);
+    const topo = topology({ communes: fc as never }, 1e5) as unknown as Topology;
+
+    const collapsed = degenerateRings(topo);
+    if (collapsed.length > 0) {
+      throw new Error(
+        `région ${regionCode}: ${collapsed.length} ring(s) collapsed under quantisation:\n  ${collapsed.join("\n  ")}`,
+      );
+    }
+
+    // ODbL requires attribution to travel with the data. A single .topojson served on its
+    // own would otherwise name OpenStreetMap nowhere. TopoJSON permits foreign members.
+    const attributed = {
+      ...topo,
+      license: "ODbL-1.0",
+      attribution: "© OpenStreetMap contributors, opendatacommons.org/licenses/odbl/1-0/",
+      source: "OpenStreetMap admin_level=8 relations, matched to HCP communes on ref:MA:HCP",
+    };
+    await writeFile(join(dir, `${regionCode}.topojson`), `${JSON.stringify(attributed)}\n`);
   }
 }

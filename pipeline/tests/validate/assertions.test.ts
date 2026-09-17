@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseHcp2024 } from "../../src/sources/hcp2024.ts";
 import { parseHcp2014 } from "../../src/sources/hcp2014.ts";
 import { buildHierarchy } from "../../src/build/hierarchy.ts";
-import { assertDataset } from "../../src/validate/assertions.ts";
+import { assertDataset, checkGeometry } from "../../src/validate/assertions.ts";
 import { readCachedWorkbook } from "../support/workbooks.ts";
 
 const h = buildHierarchy(parseHcp2024(readCachedWorkbook(".cache/hcp-population-legale-2024.xlsx")));
@@ -40,5 +40,43 @@ describe("the real dataset", () => {
 
   it("passes every assertion", () => {
     expect(() => assertDataset(h, units2014)).not.toThrow();
+  });
+});
+
+describe("checkGeometry", () => {
+  const commune = { code: "01.511.05.19", nameFr: "Commune de Hjar Ennhal", codeDigits: "015110519" };
+  const square: [number, number][] = [[-6, 34], [-5, 34], [-5, 35], [-6, 35], [-6, 34]];
+  const good = {
+    codeDigits: "015110519",
+    relationId: 1,
+    wikidata: null,
+    centroid: { lat: 34.5, lng: -5.5 },
+    bbox: [-6, 34, -5, 35] as [number, number, number, number],
+    outer: [square],
+    inner: [],
+  };
+
+  it("passes a well-formed feature", () => {
+    expect(checkGeometry([commune], new Map([["015110519", good]]))).toEqual([]);
+  });
+
+  it("catches an interior point outside its own boundary", () => {
+    const off = { ...good, centroid: { lat: 20, lng: -17 } };
+    const fail = checkGeometry([commune], new Map([["015110519", off]]));
+    expect(fail).toHaveLength(1);
+    expect(fail[0]).toContain("outside its own boundary");
+  });
+
+  it("catches a bounding box outside Morocco", () => {
+    const off = { ...good, bbox: [2, 48, 3, 49] as [number, number, number, number] };
+    const fail = checkGeometry([commune], new Map([["015110519", off]]));
+    expect(fail[0]).toContain("bbox outside Morocco");
+  });
+
+  it("accepts a commune on the unmapped allowlist and rejects one that is not", () => {
+    const allowed = { code: "04.281.05.11", nameFr: "Commune de Sidi Mohamed Benmansour", codeDigits: "042810511" };
+    expect(checkGeometry([allowed], new Map())).toEqual([]);
+    const fail = checkGeometry([commune], new Map());
+    expect(fail[0]).toContain("not on the unmapped allowlist");
   });
 });

@@ -39,11 +39,3 @@ export function formatProvince(raw: string): string {
   const digits = raw.replace(/\D/g, "").padStart(5, "0");
   return `${digits.slice(0, 2)}.${digits.slice(2)}`;
 }
-
-export function regionOf(digits: string): string {
-  return digits.slice(0, 2);
-}
-
-export function provinceOf(digits: string): string {
-  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}`;
-}

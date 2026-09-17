@@ -71,7 +71,7 @@ describe("joinOsm", () => {
     };
     const { features, rejected } = joinOsm([mixed], known);
     expect(features.size).toBe(0);
-    expect(rejected[0]?.reason).toBe("1 unclosed outer ring");
+    expect(rejected[0]?.reason).toBe("1 unclosed ring");
   });
 
   it("keeps the first of two relations claiming the same commune and reports the second", () => {

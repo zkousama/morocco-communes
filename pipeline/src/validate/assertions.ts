@@ -3,6 +3,7 @@ import type { Hcp2014Unit } from "../sources/hcp2014.ts";
 import type { OsmFeature } from "../build/osmJoin.ts";
 import { pointInRing } from "../geo/point.ts";
 import { ringArea } from "../geo/rings.ts";
+import { findAnomalies } from "../emit/topojson.ts";
 
 const NATIONAL_POPULATION_2024 = 36_828_330;
 const ARRONDISSEMENTS_BY_COMMUNE: Record<string, number> = {
@@ -13,6 +14,40 @@ const ARRONDISSEMENTS_BY_COMMUNE: Record<string, number> = {
   "07.351.01.0": 5,  // Marrakech
   "01.511.01.0": 4,  // Tanger
 };
+
+export const KNOWN_UNMAPPED = new Set([
+  // relation 5962436 holds a single admin_centre node and no ways
+  "04.281.05.11", // Sidi Mohamed Benmansour
+]);
+
+export function checkGeometry(
+  communes: { code: string; nameFr: string; codeDigits: string }[],
+  osm: Map<string, OsmFeature>,
+): string[] {
+  const fail: string[] = [];
+  for (const c of communes) {
+    const f = osm.get(c.codeDigits);
+    if (!f) {
+      if (!KNOWN_UNMAPPED.has(c.code)) {
+        fail.push(`${c.nameFr} (${c.code}) has no geometry and is not on the unmapped allowlist`);
+      }
+      continue;
+    }
+    if (f.outer.length === 0) {
+      fail.push(`${c.nameFr} has no outer ring`);
+      continue;
+    }
+    const largest = f.outer.reduce((a, b) => (ringArea(a) >= ringArea(b) ? a : b));
+    if (!pointInRing([f.centroid.lng, f.centroid.lat], largest)) {
+      fail.push(`${c.nameFr} has an interior point outside its own boundary`);
+    }
+    const [w, s, e, n] = f.bbox;
+    if (!(w >= -18 && e <= 0 && s >= 20 && n <= 37)) {
+      fail.push(`${c.nameFr} has a bbox outside Morocco: ${f.bbox.join(", ")}`);
+    }
+  }
+  return fail;
+}
 
 export function assertDataset(
   h: Hierarchy,
@@ -106,34 +141,9 @@ export function assertDataset(
   // structurally true rather than how many communes currently carry a tag:
   // OSM changes daily and a tag count is not a build gate.
   if (osm.size > 0) {
-    // How many communes OSM covers is volatile: it improves as people map, and it
-    // would regress if a relation were deleted. Assert a floor, and REPORT the exact
-    // figure plus any names, rather than pinning a count that a good upstream
-    // contribution would break. Some relations exist but carry no boundary at all —
-    // Sidi Mohamed Benmansour (04.281.05.11) has a single admin_centre node and no
-    // ways, so it is reported as rejected and its commune keeps a null centroid.
-    const matched = h.communes.filter((c) => osm.has(c.codeDigits));
-    check(matched.length >= 1495,
-      `only ${matched.length} of ${h.communes.length} communes have geometry`);
-
-    const missing = h.communes.filter((c) => !osm.has(c.codeDigits));
-    if (missing.length > 0) {
-      console.warn(
-        `  ${missing.length} commune(s) without geometry: ${missing.map((c) => c.nameFr).join(", ")}`,
-      );
-    }
-    // A handful of unmapped relations is normal. A sudden jump means the stitching
-    // broke, not that OSM changed, so cap it.
-    check(missing.length <= 8, `${missing.length} communes without geometry is too many to be an upstream gap`);
-
-    for (const c of matched) {
-      const f = osm.get(c.codeDigits)!;
-      check(f.outer.length > 0, `${c.nameFr} has no outer ring`);
-      check(pointInRing([f.centroid.lng, f.centroid.lat], f.outer.reduce((a, b) => (ringArea(a) >= ringArea(b) ? a : b))),
-        `${c.nameFr} has an interior point outside its own boundary`);
-      const [w, s, e, n] = f.bbox;
-      check(w >= -18 && e <= 0 && s >= 20 && n <= 37,
-        `${c.nameFr} has a bbox outside Morocco: ${f.bbox.join(", ")}`);
+    for (const message of checkGeometry(h.communes, osm)) check(false, message);
+    for (const a of findAnomalies([...osm.values()])) {
+      check(false, `geometry anomaly ${a.kind} on ${a.code}: ${a.detail}`);
     }
   }
 

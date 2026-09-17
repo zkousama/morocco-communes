@@ -32,3 +32,12 @@ its parts.
 
 `urbanCentres` is a list. 160 communes have one, three have several, and 164 exist in
 total.
+
+## Three fields come from OpenStreetMap
+
+`centroid`, `bbox` and `osm` are derived from OpenStreetMap and are therefore **ODbL**,
+not HCP. `provenance.geometry` reads `osm-odbl` on every record carrying them, and `null`
+where OSM holds no boundary. Redistributing a modified version of those three fields takes
+on ODbL's share-alike obligation; nothing else in this directory does.
+
+The boundaries themselves are in `../geometry/`, which carries its own LICENSE.

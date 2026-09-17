@@ -47,12 +47,14 @@ export function joinOsm(
       rejected.push({ relationId: relation.id, ref, reason: "no outer ring" });
       continue;
     }
-    const unclosed = outer.filter((r) => !isClosed(r)).length;
+    // Inner rings as well as outer. An open hole is invalid geometry, and polygons()
+    // would write it straight into the TopoJSON with every gate still green.
+    const unclosed = [...outer, ...inner].filter((r) => !isClosed(r)).length;
     if (unclosed > 0) {
       rejected.push({
         relationId: relation.id,
         ref,
-        reason: unclosed === 1 ? "1 unclosed outer ring" : `${unclosed} unclosed outer rings`,
+        reason: unclosed === 1 ? "1 unclosed ring" : `${unclosed} unclosed rings`,
       });
       continue;
     }

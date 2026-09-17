@@ -8,7 +8,7 @@ import { writeJson } from "./emit/json.ts";
 import { writeCsv } from "./emit/csv.ts";
 import { fetchRegion } from "./sources/overpass.ts";
 import { joinOsm, type OsmFeature } from "./build/osmJoin.ts";
-import { findAnomalies, writeGeometry } from "./emit/topojson.ts";
+import { writeGeometry } from "./emit/topojson.ts";
 
 const OUT = "data/v1/attributes";
 const GEOMETRY_OUT = "data/v1/geometry";
@@ -29,15 +29,13 @@ for (const region of hierarchy.regions) {
   unmatchedTotal += unmatched.length;
   rejectedTotal += rejected.length;
   for (const r of rejected) console.warn(`  rejected relation ${r.relationId} (${r.ref}): ${r.reason}`);
+  for (const u of unmatched) console.warn(`  unmatched relation ${u.relationId} carries ref ${u.ref}`);
   byRegion.set(region.code, [...features.values()]);
   for (const [code, f] of features) osm.set(code, f);
 }
-const anomalies = findAnomalies([...osm.values()]);
-for (const a of anomalies) console.warn(`  anomaly ${a.kind} on ${a.code}: ${a.detail}`);
-if (anomalies.length > 0) {
-  throw new Error(`${anomalies.length} geometry anomalies; refusing to publish boundaries that are silently malformed`);
-}
-console.log(`geometry: ${osm.size} communes, ${unmatchedTotal} unmatched relations, ${rejectedTotal} rejected, 0 anomalies`);
+// Anomalies are checked inside assertDataset, so one malformed hole cannot hide every
+// attribute failure by throwing before the attribute checks run.
+console.log(`geometry: ${osm.size} communes, ${unmatchedTotal} unmatched relations, ${rejectedTotal} rejected`);
 
 assertDataset(hierarchy, units2014, osm);
 

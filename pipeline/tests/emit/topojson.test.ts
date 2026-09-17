@@ -79,12 +79,12 @@ describe("findAnomalies", () => {
     expect(found[0]!.code).toBe("015110519");
   });
 
-  it("reports a ring collapsed to fewer than three distinct points", () => {
-    const collapsed = {
+  it("reports nothing for a ring that would only collapse under quantisation", () => {
+    // Collapse is a post-quantisation property, so it is writeGeometry's job, not this one.
+    const tiny = {
       ...feature("015110519"),
-      outer: [[[1, 1], [1, 1], [1, 1], [1, 1]] as [number, number][]],
+      outer: [[[0, 0], [1e-9, 0], [1e-9, 1e-9], [0, 0]] as [number, number][]],
     };
-    const found = findAnomalies([collapsed]);
-    expect(found.some((a) => a.kind === "degenerate_ring")).toBe(true);
+    expect(findAnomalies([tiny])).toEqual([]);
   });
 });
