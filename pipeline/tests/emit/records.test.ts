@@ -19,8 +19,24 @@ describe("toRecords", () => {
   });
 
   it("attaches 2014 population by exact code where the code matches", () => {
-    const exact = records.communes.filter((c) => c.population.change?.basis === "exact_code");
+    const exact = records.communes.filter((c) => c.provenance.population2014 === "hcp-2014:exact_code");
     expect(exact.length).toBe(1290);
+  });
+
+  it("computes no change where the 2014 source published no figure", () => {
+    // Four communes in the Western Sahara provinces carry "pm" (pour mémoire) in the
+    // 2014 workbook's count columns instead of a number, so HCP published no figure for
+    // them. They join by code, keep a 2014 object, and have a null total and null change.
+    const noFigure = records.communes.filter(
+      (c) => c.provenance.population2014 === "hcp-2014:exact_code" && c.population.change === null,
+    );
+    expect(noFigure.map((c) => c.nameFrRaw).sort()).toEqual([
+      "Commune d'Aghouinite*",
+      "Commune de Lagouira*",
+      "Commune de Mijik*",
+      "Commune de Zoug*",
+    ]);
+    for (const c of noFigure) expect(c.population["2014"]?.total).toBeNull();
   });
 
   it("recovers the six big cities from their arrondissements, which 2014 has no commune row for", () => {
