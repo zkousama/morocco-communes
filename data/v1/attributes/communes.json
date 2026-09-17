@@ -177,14 +177,21 @@
       "cercle": "01.511.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9792,
+        "households": null
+      },
       "2024": {
         "total": 27204,
         "moroccan": 27166,
         "foreign": 38,
         "households": 6048
       },
-      "change": null
+      "change": {
+        "absolute": 17412,
+        "pct": 177.82,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -204,7 +211,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -224,14 +231,21 @@
       "cercle": "01.511.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4303,
+        "households": null
+      },
       "2024": {
         "total": 4471,
         "moroccan": 4469,
         "foreign": 2,
         "households": 1078
       },
-      "change": null
+      "change": {
+        "absolute": 168,
+        "pct": 3.9,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -256,7 +270,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -276,14 +290,21 @@
       "cercle": "01.511.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2650,
+        "households": null
+      },
       "2024": {
         "total": 2680,
         "moroccan": 2680,
         "foreign": 0,
         "households": 629
       },
-      "change": null
+      "change": {
+        "absolute": 30,
+        "pct": 1.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -303,7 +324,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -323,14 +344,21 @@
       "cercle": "01.511.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8013,
+        "households": null
+      },
       "2024": {
         "total": 19187,
         "moroccan": 19186,
         "foreign": 1,
         "households": 4618
       },
-      "change": null
+      "change": {
+        "absolute": 11174,
+        "pct": 139.45,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -350,7 +378,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -370,14 +398,21 @@
       "cercle": "01.511.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5153,
+        "households": null
+      },
       "2024": {
         "total": 7265,
         "moroccan": 7264,
         "foreign": 1,
         "households": 1729
       },
-      "change": null
+      "change": {
+        "absolute": 2112,
+        "pct": 40.99,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -397,7 +432,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -800,14 +835,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6583,
+        "households": null
+      },
       "2024": {
         "total": 8111,
         "moroccan": 8109,
         "foreign": 2,
         "households": 2131
       },
-      "change": null
+      "change": {
+        "absolute": 1528,
+        "pct": 23.21,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -827,7 +869,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -847,14 +889,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5296,
+        "households": null
+      },
       "2024": {
         "total": 5208,
         "moroccan": 5186,
         "foreign": 22,
         "households": 1221
       },
-      "change": null
+      "change": {
+        "absolute": -88,
+        "pct": -1.66,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -874,7 +923,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -3997,14 +4046,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4761,
+        "households": null
+      },
       "2024": {
         "total": 3306,
         "moroccan": 3306,
         "foreign": 0,
         "households": 773
       },
-      "change": null
+      "change": {
+        "absolute": -1455,
+        "pct": -30.56,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4024,7 +4080,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4044,14 +4100,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5187,
+        "households": null
+      },
       "2024": {
         "total": 3799,
         "moroccan": 3799,
         "foreign": 0,
         "households": 922
       },
-      "change": null
+      "change": {
+        "absolute": -1388,
+        "pct": -26.76,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4071,7 +4134,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4091,14 +4154,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4231,
+        "households": null
+      },
       "2024": {
         "total": 3318,
         "moroccan": 3318,
         "foreign": 0,
         "households": 800
       },
-      "change": null
+      "change": {
+        "absolute": -913,
+        "pct": -21.58,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4118,7 +4188,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4138,14 +4208,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8963,
+        "households": null
+      },
       "2024": {
         "total": 7721,
         "moroccan": 7720,
         "foreign": 1,
         "households": 1956
       },
-      "change": null
+      "change": {
+        "absolute": -1242,
+        "pct": -13.86,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4165,7 +4242,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4185,14 +4262,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12673,
+        "households": null
+      },
       "2024": {
         "total": 13830,
         "moroccan": 13823,
         "foreign": 7,
         "households": 3451
       },
-      "change": null
+      "change": {
+        "absolute": 1157,
+        "pct": 9.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -4217,7 +4301,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4237,14 +4321,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4428,
+        "households": null
+      },
       "2024": {
         "total": 4408,
         "moroccan": 4408,
         "foreign": 0,
         "households": 1050
       },
-      "change": null
+      "change": {
+        "absolute": -20,
+        "pct": -0.45,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4264,7 +4355,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4284,14 +4375,21 @@
       "cercle": "01.051.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8715,
+        "households": null
+      },
       "2024": {
         "total": 6983,
         "moroccan": 6983,
         "foreign": 0,
         "households": 1836
       },
-      "change": null
+      "change": {
+        "absolute": -1732,
+        "pct": -19.87,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -4316,7 +4414,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4336,14 +4434,21 @@
       "cercle": "01.051.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5452,
+        "households": null
+      },
       "2024": {
         "total": 4150,
         "moroccan": 4150,
         "foreign": 0,
         "households": 1009
       },
-      "change": null
+      "change": {
+        "absolute": -1302,
+        "pct": -23.88,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4363,7 +4468,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4383,14 +4488,21 @@
       "cercle": "01.051.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5594,
+        "households": null
+      },
       "2024": {
         "total": 4723,
         "moroccan": 4723,
         "foreign": 0,
         "households": 1236
       },
-      "change": null
+      "change": {
+        "absolute": -871,
+        "pct": -15.57,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -4415,7 +4527,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4435,14 +4547,21 @@
       "cercle": "01.051.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5983,
+        "households": null
+      },
       "2024": {
         "total": 4939,
         "moroccan": 4939,
         "foreign": 0,
         "households": 1283
       },
-      "change": null
+      "change": {
+        "absolute": -1044,
+        "pct": -17.45,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4462,7 +4581,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4482,14 +4601,21 @@
       "cercle": "01.051.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5153,
+        "households": null
+      },
       "2024": {
         "total": 6365,
         "moroccan": 6365,
         "foreign": 0,
         "households": 1682
       },
-      "change": null
+      "change": {
+        "absolute": 1212,
+        "pct": 23.52,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4509,7 +4635,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4529,14 +4655,21 @@
       "cercle": "01.051.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7685,
+        "households": null
+      },
       "2024": {
         "total": 8269,
         "moroccan": 8267,
         "foreign": 2,
         "households": 1957
       },
-      "change": null
+      "change": {
+        "absolute": 584,
+        "pct": 7.6,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -4561,7 +4694,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -4581,14 +4714,21 @@
       "cercle": "01.051.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7131,
+        "households": null
+      },
       "2024": {
         "total": 6858,
         "moroccan": 6858,
         "foreign": 0,
         "households": 1741
       },
-      "change": null
+      "change": {
+        "absolute": -273,
+        "pct": -3.83,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -4608,7 +4748,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -6538,14 +6678,21 @@
       "cercle": "01.151.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 24217,
+        "households": null
+      },
       "2024": {
         "total": 21413,
         "moroccan": 21413,
         "foreign": 0,
         "households": 3958
       },
-      "change": null
+      "change": {
+        "absolute": -2804,
+        "pct": -11.58,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -6565,7 +6712,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -6585,14 +6732,21 @@
       "cercle": "01.151.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 20811,
+        "households": null
+      },
       "2024": {
         "total": 16660,
         "moroccan": 16660,
         "foreign": 0,
         "households": 3154
       },
-      "change": null
+      "change": {
+        "absolute": -4151,
+        "pct": -19.95,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -6612,7 +6766,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -7177,14 +7331,21 @@
       "cercle": "01.405.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12621,
+        "households": null
+      },
       "2024": {
         "total": 11673,
         "moroccan": 11673,
         "foreign": 0,
         "households": 3322
       },
-      "change": null
+      "change": {
+        "absolute": -948,
+        "pct": -7.51,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -7204,7 +7365,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -7224,14 +7385,21 @@
       "cercle": "01.405.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15503,
+        "households": null
+      },
       "2024": {
         "total": 13415,
         "moroccan": 13411,
         "foreign": 4,
         "households": 3637
       },
-      "change": null
+      "change": {
+        "absolute": -2088,
+        "pct": -13.47,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -7251,7 +7419,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -7271,14 +7439,21 @@
       "cercle": "01.405.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12801,
+        "households": null
+      },
       "2024": {
         "total": 12123,
         "moroccan": 12123,
         "foreign": 0,
         "households": 3185
       },
-      "change": null
+      "change": {
+        "absolute": -678,
+        "pct": -5.3,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -7298,7 +7473,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -7318,14 +7493,21 @@
       "cercle": "01.405.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 18820,
+        "households": null
+      },
       "2024": {
         "total": 19162,
         "moroccan": 19162,
         "foreign": 0,
         "households": 4579
       },
-      "change": null
+      "change": {
+        "absolute": 342,
+        "pct": 1.82,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -7350,7 +7532,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -7370,14 +7552,21 @@
       "cercle": "01.405.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9576,
+        "households": null
+      },
       "2024": {
         "total": 7913,
         "moroccan": 7913,
         "foreign": 0,
         "households": 2171
       },
-      "change": null
+      "change": {
+        "absolute": -1663,
+        "pct": -17.37,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -7397,7 +7586,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -7417,14 +7606,21 @@
       "cercle": "01.405.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10528,
+        "households": null
+      },
       "2024": {
         "total": 9671,
         "moroccan": 9670,
         "foreign": 1,
         "households": 2696
       },
-      "change": null
+      "change": {
+        "absolute": -857,
+        "pct": -8.14,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -7444,7 +7640,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -9821,14 +10017,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5208,
+        "households": null
+      },
       "2024": {
         "total": 3881,
         "moroccan": 3881,
         "foreign": 0,
         "households": 1134
       },
-      "change": null
+      "change": {
+        "absolute": -1327,
+        "pct": -25.48,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -9848,7 +10051,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -9868,14 +10071,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7120,
+        "households": null
+      },
       "2024": {
         "total": 7032,
         "moroccan": 7031,
         "foreign": 1,
         "households": 1765
       },
-      "change": null
+      "change": {
+        "absolute": -88,
+        "pct": -1.24,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -9895,7 +10105,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -9915,14 +10125,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9386,
+        "households": null
+      },
       "2024": {
         "total": 8008,
         "moroccan": 8008,
         "foreign": 0,
         "households": 2062
       },
-      "change": null
+      "change": {
+        "absolute": -1378,
+        "pct": -14.68,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -9942,7 +10159,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -9962,14 +10179,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6365,
+        "households": null
+      },
       "2024": {
         "total": 4873,
         "moroccan": 4872,
         "foreign": 1,
         "households": 1311
       },
-      "change": null
+      "change": {
+        "absolute": -1492,
+        "pct": -23.44,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -9989,7 +10213,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10009,14 +10233,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4919,
+        "households": null
+      },
       "2024": {
         "total": 4132,
         "moroccan": 4132,
         "foreign": 0,
         "households": 1102
       },
-      "change": null
+      "change": {
+        "absolute": -787,
+        "pct": -16,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10036,7 +10267,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10056,14 +10287,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9578,
+        "households": null
+      },
       "2024": {
         "total": 8401,
         "moroccan": 8397,
         "foreign": 4,
         "households": 2168
       },
-      "change": null
+      "change": {
+        "absolute": -1177,
+        "pct": -12.29,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -10088,7 +10326,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10108,14 +10346,21 @@
       "cercle": "02.167.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9133,
+        "households": null
+      },
       "2024": {
         "total": 8202,
         "moroccan": 8202,
         "foreign": 0,
         "households": 2271
       },
-      "change": null
+      "change": {
+        "absolute": -931,
+        "pct": -10.19,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -10140,7 +10385,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10160,14 +10405,21 @@
       "cercle": "02.167.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7540,
+        "households": null
+      },
       "2024": {
         "total": 5303,
         "moroccan": 5303,
         "foreign": 0,
         "households": 1351
       },
-      "change": null
+      "change": {
+        "absolute": -2237,
+        "pct": -29.67,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10187,7 +10439,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10207,14 +10459,21 @@
       "cercle": "02.167.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13920,
+        "households": null
+      },
       "2024": {
         "total": 12198,
         "moroccan": 12197,
         "foreign": 1,
         "households": 3268
       },
-      "change": null
+      "change": {
+        "absolute": -1722,
+        "pct": -12.37,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -10239,7 +10498,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10259,14 +10518,21 @@
       "cercle": "02.167.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9863,
+        "households": null
+      },
       "2024": {
         "total": 7996,
         "moroccan": 7996,
         "foreign": 0,
         "households": 2161
       },
-      "change": null
+      "change": {
+        "absolute": -1867,
+        "pct": -18.93,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10286,7 +10552,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10306,14 +10572,21 @@
       "cercle": "02.167.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6263,
+        "households": null
+      },
       "2024": {
         "total": 4950,
         "moroccan": 4950,
         "foreign": 0,
         "households": 1410
       },
-      "change": null
+      "change": {
+        "absolute": -1313,
+        "pct": -20.96,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10333,7 +10606,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10353,14 +10626,21 @@
       "cercle": "02.167.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6010,
+        "households": null
+      },
       "2024": {
         "total": 5755,
         "moroccan": 5754,
         "foreign": 1,
         "households": 1422
       },
-      "change": null
+      "change": {
+        "absolute": -255,
+        "pct": -4.24,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10380,7 +10660,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10400,14 +10680,21 @@
       "cercle": "02.167.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 11458,
+        "households": null
+      },
       "2024": {
         "total": 11348,
         "moroccan": 11348,
         "foreign": 0,
         "households": 2754
       },
-      "change": null
+      "change": {
+        "absolute": -110,
+        "pct": -0.96,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10427,7 +10714,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10447,14 +10734,21 @@
       "cercle": "02.167.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 16787,
+        "households": null
+      },
       "2024": {
         "total": 16778,
         "moroccan": 16773,
         "foreign": 5,
         "households": 3960
       },
-      "change": null
+      "change": {
+        "absolute": -9,
+        "pct": -0.05,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10474,7 +10768,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10494,14 +10788,21 @@
       "cercle": "02.167.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10601,
+        "households": null
+      },
       "2024": {
         "total": 8705,
         "moroccan": 8703,
         "foreign": 2,
         "households": 2163
       },
-      "change": null
+      "change": {
+        "absolute": -1896,
+        "pct": -17.89,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10521,7 +10822,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10541,14 +10842,21 @@
       "cercle": "02.167.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8054,
+        "households": null
+      },
       "2024": {
         "total": 3703,
         "moroccan": 3684,
         "foreign": 19,
         "households": 932
       },
-      "change": null
+      "change": {
+        "absolute": -4351,
+        "pct": -54.02,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10568,7 +10876,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10588,14 +10896,21 @@
       "cercle": "02.167.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9911,
+        "households": null
+      },
       "2024": {
         "total": 8518,
         "moroccan": 8518,
         "foreign": 0,
         "households": 2327
       },
-      "change": null
+      "change": {
+        "absolute": -1393,
+        "pct": -14.06,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -10620,7 +10935,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10640,14 +10955,21 @@
       "cercle": "02.167.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5613,
+        "households": null
+      },
       "2024": {
         "total": 4721,
         "moroccan": 4721,
         "foreign": 0,
         "households": 1254
       },
-      "change": null
+      "change": {
+        "absolute": -892,
+        "pct": -15.89,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10667,7 +10989,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10687,14 +11009,21 @@
       "cercle": "02.167.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4323,
+        "households": null
+      },
       "2024": {
         "total": 3456,
         "moroccan": 3456,
         "foreign": 0,
         "households": 927
       },
-      "change": null
+      "change": {
+        "absolute": -867,
+        "pct": -20.06,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10714,7 +11043,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10734,14 +11063,21 @@
       "cercle": "02.167.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4988,
+        "households": null
+      },
       "2024": {
         "total": 4177,
         "moroccan": 4071,
         "foreign": 106,
         "households": 1087
       },
-      "change": null
+      "change": {
+        "absolute": -811,
+        "pct": -16.26,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10761,7 +11097,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10943,14 +11279,21 @@
       "cercle": "02.275.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5591,
+        "households": null
+      },
       "2024": {
         "total": 5712,
         "moroccan": 5711,
         "foreign": 1,
         "households": 1359
       },
-      "change": null
+      "change": {
+        "absolute": 121,
+        "pct": 2.16,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -10970,7 +11313,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -10990,14 +11333,21 @@
       "cercle": "02.275.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 1274,
+        "households": null
+      },
       "2024": {
         "total": 1275,
         "moroccan": 1275,
         "foreign": 0,
         "households": 312
       },
-      "change": null
+      "change": {
+        "absolute": 1,
+        "pct": 0.08,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -11017,7 +11367,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -11037,14 +11387,21 @@
       "cercle": "02.275.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2638,
+        "households": null
+      },
       "2024": {
         "total": 2354,
         "moroccan": 2354,
         "foreign": 0,
         "households": 594
       },
-      "change": null
+      "change": {
+        "absolute": -284,
+        "pct": -10.77,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -11069,7 +11426,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -11089,14 +11446,21 @@
       "cercle": "02.275.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5199,
+        "households": null
+      },
       "2024": {
         "total": 4305,
         "moroccan": 4304,
         "foreign": 1,
         "households": 975
       },
-      "change": null
+      "change": {
+        "absolute": -894,
+        "pct": -17.2,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -11121,7 +11485,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -11141,14 +11505,21 @@
       "cercle": "02.275.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 3867,
+        "households": null
+      },
       "2024": {
         "total": 5467,
         "moroccan": 5467,
         "foreign": 0,
         "households": 930
       },
-      "change": null
+      "change": {
+        "absolute": 1600,
+        "pct": 41.38,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -11168,7 +11539,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -11188,14 +11559,21 @@
       "cercle": "02.275.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2656,
+        "households": null
+      },
       "2024": {
         "total": 2604,
         "moroccan": 2604,
         "foreign": 0,
         "households": 621
       },
-      "change": null
+      "change": {
+        "absolute": -52,
+        "pct": -1.96,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -11215,7 +11593,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -11235,14 +11613,21 @@
       "cercle": "02.275.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2612,
+        "households": null
+      },
       "2024": {
         "total": 2541,
         "moroccan": 2541,
         "foreign": 0,
         "households": 592
       },
-      "change": null
+      "change": {
+        "absolute": -71,
+        "pct": -2.72,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -11262,7 +11647,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -13997,14 +14382,21 @@
       "cercle": "02.251.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8521,
+        "households": null
+      },
       "2024": {
         "total": 8067,
         "moroccan": 8067,
         "foreign": 0,
         "households": 2124
       },
-      "change": null
+      "change": {
+        "absolute": -454,
+        "pct": -5.33,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -14024,7 +14416,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -14044,14 +14436,21 @@
       "cercle": "02.251.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 16166,
+        "households": null
+      },
       "2024": {
         "total": 18806,
         "moroccan": 18805,
         "foreign": 1,
         "households": 5061
       },
-      "change": null
+      "change": {
+        "absolute": 2640,
+        "pct": 16.33,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -14076,7 +14475,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -14096,14 +14495,21 @@
       "cercle": "02.251.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13057,
+        "households": null
+      },
       "2024": {
         "total": 15242,
         "moroccan": 15242,
         "foreign": 0,
         "households": 3554
       },
-      "change": null
+      "change": {
+        "absolute": 2185,
+        "pct": 16.73,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -14123,7 +14529,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -14472,14 +14878,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 24594,
+        "households": null
+      },
       "2024": {
         "total": 56352,
         "moroccan": 56324,
         "foreign": 28,
         "households": 13554
       },
-      "change": null
+      "change": {
+        "absolute": 31758,
+        "pct": 129.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -14504,7 +14917,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -16798,14 +17211,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10693,
+        "households": null
+      },
       "2024": {
         "total": 12204,
         "moroccan": 12204,
         "foreign": 0,
         "households": 2763
       },
-      "change": null
+      "change": {
+        "absolute": 1511,
+        "pct": 14.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -16825,7 +17245,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -16845,14 +17265,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9854,
+        "households": null
+      },
       "2024": {
         "total": 12050,
         "moroccan": 12050,
         "foreign": 0,
         "households": 2818
       },
-      "change": null
+      "change": {
+        "absolute": 2196,
+        "pct": 22.29,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -16872,7 +17299,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -17290,14 +17717,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 54477,
+        "households": null
+      },
       "2024": {
         "total": 91541,
         "moroccan": 91449,
         "foreign": 92,
         "households": 19657
       },
-      "change": null
+      "change": {
+        "absolute": 37064,
+        "pct": 68.04,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -17326,7 +17760,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -19472,14 +19906,21 @@
       "cercle": "03.131.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2955,
+        "households": null
+      },
       "2024": {
         "total": 2397,
         "moroccan": 2397,
         "foreign": 0,
         "households": 637
       },
-      "change": null
+      "change": {
+        "absolute": -558,
+        "pct": -18.88,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -19499,7 +19940,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -19519,14 +19960,21 @@
       "cercle": "03.131.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2461,
+        "households": null
+      },
       "2024": {
         "total": 2292,
         "moroccan": 2292,
         "foreign": 0,
         "households": 560
       },
-      "change": null
+      "change": {
+        "absolute": -169,
+        "pct": -6.87,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -19546,7 +19994,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -19566,14 +20014,21 @@
       "cercle": "03.131.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 3160,
+        "households": null
+      },
       "2024": {
         "total": 2701,
         "moroccan": 2701,
         "foreign": 0,
         "households": 668
       },
-      "change": null
+      "change": {
+        "absolute": -459,
+        "pct": -14.53,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -19593,7 +20048,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -19613,14 +20068,21 @@
       "cercle": "03.131.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 1927,
+        "households": null
+      },
       "2024": {
         "total": 1694,
         "moroccan": 1694,
         "foreign": 0,
         "households": 486
       },
-      "change": null
+      "change": {
+        "absolute": -233,
+        "pct": -12.09,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -19640,7 +20102,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -19660,14 +20122,21 @@
       "cercle": "03.131.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 3746,
+        "households": null
+      },
       "2024": {
         "total": 3567,
         "moroccan": 3566,
         "foreign": 1,
         "households": 1040
       },
-      "change": null
+      "change": {
+        "absolute": -179,
+        "pct": -4.78,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -19687,7 +20156,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -19707,14 +20176,21 @@
       "cercle": "03.131.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5152,
+        "households": null
+      },
       "2024": {
         "total": 4887,
         "moroccan": 4887,
         "foreign": 0,
         "households": 1360
       },
-      "change": null
+      "change": {
+        "absolute": -265,
+        "pct": -5.14,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -19734,7 +20210,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -25145,14 +25621,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 46590,
+        "households": null
+      },
       "2024": {
         "total": 75942,
         "moroccan": 75896,
         "foreign": 46,
         "households": 18540
       },
-      "change": null
+      "change": {
+        "absolute": 29352,
+        "pct": 63,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -25177,7 +25660,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -25197,14 +25680,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 19915,
+        "households": null
+      },
       "2024": {
         "total": 24913,
         "moroccan": 24863,
         "foreign": 50,
         "households": 5188
       },
-      "change": null
+      "change": {
+        "absolute": 4998,
+        "pct": 25.1,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -25224,7 +25714,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -25960,14 +26450,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 53449,
+        "households": null
+      },
       "2024": {
         "total": 76227,
         "moroccan": 76212,
         "foreign": 15,
         "households": 18599
       },
-      "change": null
+      "change": {
+        "absolute": 22778,
+        "pct": 42.62,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -25992,7 +26489,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -38748,14 +39245,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 48338,
+        "households": null
+      },
       "2024": {
         "total": 117653,
         "moroccan": 117440,
         "foreign": 213,
         "households": 31669
       },
-      "change": null
+      "change": {
+        "absolute": 69315,
+        "pct": 143.4,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -38780,7 +39284,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -38800,14 +39304,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 53503,
+        "households": null
+      },
       "2024": {
         "total": 98015,
         "moroccan": 97975,
         "foreign": 40,
         "households": 24562
       },
-      "change": null
+      "change": {
+        "absolute": 44512,
+        "pct": 83.2,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -38832,7 +39343,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -40608,14 +41119,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 40372,
+        "households": null
+      },
       "2024": {
         "total": 81048,
         "moroccan": 80760,
         "foreign": 288,
         "households": 22682
       },
-      "change": null
+      "change": {
+        "absolute": 40676,
+        "pct": 100.75,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -40635,7 +41153,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -40655,14 +41173,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15031,
+        "households": null
+      },
       "2024": {
         "total": 51621,
         "moroccan": 51470,
         "foreign": 151,
         "households": 13524
       },
-      "change": null
+      "change": {
+        "absolute": 36590,
+        "pct": 243.43,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -40687,7 +41212,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -40869,14 +41394,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 20349,
+        "households": null
+      },
       "2024": {
         "total": 76362,
         "moroccan": 76281,
         "foreign": 81,
         "households": 19027
       },
-      "change": null
+      "change": {
+        "absolute": 56013,
+        "pct": 275.26,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -40896,7 +41428,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -40916,14 +41448,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 32286,
+        "households": null
+      },
       "2024": {
         "total": 95457,
         "moroccan": 95394,
         "foreign": 63,
         "households": 24555
       },
-      "change": null
+      "change": {
+        "absolute": 63171,
+        "pct": 195.66,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -40943,7 +41482,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -41719,14 +42258,21 @@
       "cercle": "06.111.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15692,
+        "households": null
+      },
       "2024": {
         "total": 21248,
         "moroccan": 21237,
         "foreign": 11,
         "households": 4467
       },
-      "change": null
+      "change": {
+        "absolute": 5556,
+        "pct": 35.41,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -41746,7 +42292,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -42414,14 +42960,21 @@
       "cercle": "06.117.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 38156,
+        "households": null
+      },
       "2024": {
         "total": 43776,
         "moroccan": 43738,
         "foreign": 38,
         "households": 9788
       },
-      "change": null
+      "change": {
+        "absolute": 5620,
+        "pct": 14.73,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -42441,7 +42994,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -42461,14 +43014,21 @@
       "cercle": "06.117.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 33079,
+        "households": null
+      },
       "2024": {
         "total": 45285,
         "moroccan": 45254,
         "foreign": 31,
         "households": 12093
       },
-      "change": null
+      "change": {
+        "absolute": 12206,
+        "pct": 36.9,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -42488,7 +43048,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43210,14 +43770,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12306,
+        "households": null
+      },
       "2024": {
         "total": 12787,
         "moroccan": 12787,
         "foreign": 0,
         "households": 2653
       },
-      "change": null
+      "change": {
+        "absolute": 481,
+        "pct": 3.91,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43237,7 +43804,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43257,14 +43824,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8582,
+        "households": null
+      },
       "2024": {
         "total": 7455,
         "moroccan": 7455,
         "foreign": 0,
         "households": 1629
       },
-      "change": null
+      "change": {
+        "absolute": -1127,
+        "pct": -13.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43284,7 +43858,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43304,14 +43878,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8514,
+        "households": null
+      },
       "2024": {
         "total": 7508,
         "moroccan": 7508,
         "foreign": 0,
         "households": 1764
       },
-      "change": null
+      "change": {
+        "absolute": -1006,
+        "pct": -11.82,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43331,7 +43912,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43351,14 +43932,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8703,
+        "households": null
+      },
       "2024": {
         "total": 8972,
         "moroccan": 8972,
         "foreign": 0,
         "households": 1996
       },
-      "change": null
+      "change": {
+        "absolute": 269,
+        "pct": 3.09,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43378,7 +43966,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43398,14 +43986,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10187,
+        "households": null
+      },
       "2024": {
         "total": 9081,
         "moroccan": 9081,
         "foreign": 0,
         "households": 2091
       },
-      "change": null
+      "change": {
+        "absolute": -1106,
+        "pct": -10.86,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43425,7 +44020,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43445,14 +44040,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8120,
+        "households": null
+      },
       "2024": {
         "total": 9151,
         "moroccan": 9145,
         "foreign": 6,
         "households": 1765
       },
-      "change": null
+      "change": {
+        "absolute": 1031,
+        "pct": 12.7,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43472,7 +44074,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43492,14 +44094,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9539,
+        "households": null
+      },
       "2024": {
         "total": 9718,
         "moroccan": 9717,
         "foreign": 1,
         "households": 2017
       },
-      "change": null
+      "change": {
+        "absolute": 179,
+        "pct": 1.88,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43519,7 +44128,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43539,14 +44148,21 @@
       "cercle": "06.461.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 14037,
+        "households": null
+      },
       "2024": {
         "total": 13759,
         "moroccan": 13759,
         "foreign": 0,
         "households": 2839
       },
-      "change": null
+      "change": {
+        "absolute": -278,
+        "pct": -1.98,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43566,7 +44182,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43586,14 +44202,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 11789,
+        "households": null
+      },
       "2024": {
         "total": 11088,
         "moroccan": 11088,
         "foreign": 0,
         "households": 2281
       },
-      "change": null
+      "change": {
+        "absolute": -701,
+        "pct": -5.95,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43613,7 +44236,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43633,14 +44256,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 20732,
+        "households": null
+      },
       "2024": {
         "total": 22360,
         "moroccan": 22360,
         "foreign": 0,
         "households": 4566
       },
-      "change": null
+      "change": {
+        "absolute": 1628,
+        "pct": 7.85,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43660,7 +44290,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43680,14 +44310,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12341,
+        "households": null
+      },
       "2024": {
         "total": 12096,
         "moroccan": 12096,
         "foreign": 0,
         "households": 2537
       },
-      "change": null
+      "change": {
+        "absolute": -245,
+        "pct": -1.99,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43707,7 +44344,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43727,14 +44364,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8376,
+        "households": null
+      },
       "2024": {
         "total": 7926,
         "moroccan": 7926,
         "foreign": 0,
         "households": 1738
       },
-      "change": null
+      "change": {
+        "absolute": -450,
+        "pct": -5.37,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43754,7 +44398,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43774,14 +44418,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10245,
+        "households": null
+      },
       "2024": {
         "total": 9427,
         "moroccan": 9427,
         "foreign": 0,
         "households": 1916
       },
-      "change": null
+      "change": {
+        "absolute": -818,
+        "pct": -7.98,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43801,7 +44452,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43821,14 +44472,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8081,
+        "households": null
+      },
       "2024": {
         "total": 9513,
         "moroccan": 9513,
         "foreign": 0,
         "households": 1964
       },
-      "change": null
+      "change": {
+        "absolute": 1432,
+        "pct": 17.72,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43848,7 +44506,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43868,14 +44526,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6991,
+        "households": null
+      },
       "2024": {
         "total": 7075,
         "moroccan": 7074,
         "foreign": 1,
         "households": 1506
       },
-      "change": null
+      "change": {
+        "absolute": 84,
+        "pct": 1.2,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -43895,7 +44560,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -43915,14 +44580,21 @@
       "cercle": "06.461.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 14747,
+        "households": null
+      },
       "2024": {
         "total": 14244,
         "moroccan": 14244,
         "foreign": 0,
         "households": 3134
       },
-      "change": null
+      "change": {
+        "absolute": -503,
+        "pct": -3.41,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -43947,7 +44619,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44561,14 +45233,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13839,
+        "households": null
+      },
       "2024": {
         "total": 14165,
         "moroccan": 14154,
         "foreign": 11,
         "households": 3062
       },
-      "change": null
+      "change": {
+        "absolute": 326,
+        "pct": 2.36,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44588,7 +45267,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44608,14 +45287,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 20802,
+        "households": null
+      },
       "2024": {
         "total": 22419,
         "moroccan": 22401,
         "foreign": 18,
         "households": 4360
       },
-      "change": null
+      "change": {
+        "absolute": 1617,
+        "pct": 7.77,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44635,7 +45321,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44655,14 +45341,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5527,
+        "households": null
+      },
       "2024": {
         "total": 5104,
         "moroccan": 5104,
         "foreign": 0,
         "households": 1182
       },
-      "change": null
+      "change": {
+        "absolute": -423,
+        "pct": -7.65,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44682,7 +45375,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44702,14 +45395,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9271,
+        "households": null
+      },
       "2024": {
         "total": 8745,
         "moroccan": 8742,
         "foreign": 3,
         "households": 2027
       },
-      "change": null
+      "change": {
+        "absolute": -526,
+        "pct": -5.67,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -44734,7 +45434,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44754,14 +45454,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7394,
+        "households": null
+      },
       "2024": {
         "total": 7018,
         "moroccan": 7018,
         "foreign": 0,
         "households": 1515
       },
-      "change": null
+      "change": {
+        "absolute": -376,
+        "pct": -5.09,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44781,7 +45488,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44801,14 +45508,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9525,
+        "households": null
+      },
       "2024": {
         "total": 8426,
         "moroccan": 8426,
         "foreign": 0,
         "households": 2090
       },
-      "change": null
+      "change": {
+        "absolute": -1099,
+        "pct": -11.54,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44828,7 +45542,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44848,14 +45562,21 @@
       "cercle": "06.461.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9084,
+        "households": null
+      },
       "2024": {
         "total": 8462,
         "moroccan": 8461,
         "foreign": 1,
         "households": 1906
       },
-      "change": null
+      "change": {
+        "absolute": -622,
+        "pct": -6.85,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44875,7 +45596,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44895,14 +45616,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12289,
+        "households": null
+      },
       "2024": {
         "total": 12189,
         "moroccan": 12188,
         "foreign": 1,
         "households": 2835
       },
-      "change": null
+      "change": {
+        "absolute": -100,
+        "pct": -0.81,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -44927,7 +45655,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44947,14 +45675,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8949,
+        "households": null
+      },
       "2024": {
         "total": 8203,
         "moroccan": 8203,
         "foreign": 0,
         "households": 1827
       },
-      "change": null
+      "change": {
+        "absolute": -746,
+        "pct": -8.34,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -44974,7 +45709,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -44994,14 +45729,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13866,
+        "households": null
+      },
       "2024": {
         "total": 13153,
         "moroccan": 13153,
         "foreign": 0,
         "households": 2748
       },
-      "change": null
+      "change": {
+        "absolute": -713,
+        "pct": -5.14,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45021,7 +45763,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45041,14 +45783,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13031,
+        "households": null
+      },
       "2024": {
         "total": 13099,
         "moroccan": 13097,
         "foreign": 2,
         "households": 2361
       },
-      "change": null
+      "change": {
+        "absolute": 68,
+        "pct": 0.52,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45068,7 +45817,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45088,14 +45837,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 11976,
+        "households": null
+      },
       "2024": {
         "total": 11822,
         "moroccan": 11822,
         "foreign": 0,
         "households": 2317
       },
-      "change": null
+      "change": {
+        "absolute": -154,
+        "pct": -1.29,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45115,7 +45871,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45135,14 +45891,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9355,
+        "households": null
+      },
       "2024": {
         "total": 9331,
         "moroccan": 9331,
         "foreign": 0,
         "households": 2106
       },
-      "change": null
+      "change": {
+        "absolute": -24,
+        "pct": -0.26,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45162,7 +45925,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45182,14 +45945,21 @@
       "cercle": "06.461.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10410,
+        "households": null
+      },
       "2024": {
         "total": 10511,
         "moroccan": 10511,
         "foreign": 0,
         "households": 2223
       },
-      "change": null
+      "change": {
+        "absolute": 101,
+        "pct": 0.97,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45209,7 +45979,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45337,14 +46107,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 18616,
+        "households": null
+      },
       "2024": {
         "total": 21742,
         "moroccan": 21728,
         "foreign": 14,
         "households": 5048
       },
-      "change": null
+      "change": {
+        "absolute": 3126,
+        "pct": 16.79,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -45369,7 +46146,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45713,14 +46490,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10520,
+        "households": null
+      },
       "2024": {
         "total": 9957,
         "moroccan": 9957,
         "foreign": 0,
         "households": 2181
       },
-      "change": null
+      "change": {
+        "absolute": -563,
+        "pct": -5.35,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45740,7 +46524,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45760,14 +46544,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 17843,
+        "households": null
+      },
       "2024": {
         "total": 16767,
         "moroccan": 16767,
         "foreign": 0,
         "households": 4000
       },
-      "change": null
+      "change": {
+        "absolute": -1076,
+        "pct": -6.03,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45787,7 +46578,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45807,14 +46598,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 14067,
+        "households": null
+      },
       "2024": {
         "total": 12794,
         "moroccan": 12794,
         "foreign": 0,
         "households": 2850
       },
-      "change": null
+      "change": {
+        "absolute": -1273,
+        "pct": -9.05,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45834,7 +46632,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45854,14 +46652,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 17850,
+        "households": null
+      },
       "2024": {
         "total": 17486,
         "moroccan": 17486,
         "foreign": 0,
         "households": 4191
       },
-      "change": null
+      "change": {
+        "absolute": -364,
+        "pct": -2.04,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -45886,7 +46691,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45906,14 +46711,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10580,
+        "households": null
+      },
       "2024": {
         "total": 9201,
         "moroccan": 9201,
         "foreign": 0,
         "households": 2127
       },
-      "change": null
+      "change": {
+        "absolute": -1379,
+        "pct": -13.03,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45933,7 +46745,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -45953,14 +46765,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7390,
+        "households": null
+      },
       "2024": {
         "total": 5962,
         "moroccan": 5962,
         "foreign": 0,
         "households": 1367
       },
-      "change": null
+      "change": {
+        "absolute": -1428,
+        "pct": -19.32,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -45980,7 +46799,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46000,14 +46819,21 @@
       "cercle": "06.467.03"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5665,
+        "households": null
+      },
       "2024": {
         "total": 5249,
         "moroccan": 5249,
         "foreign": 0,
         "households": 1104
       },
-      "change": null
+      "change": {
+        "absolute": -416,
+        "pct": -7.34,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -46027,7 +46853,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46047,14 +46873,21 @@
       "cercle": "06.467.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15181,
+        "households": null
+      },
       "2024": {
         "total": 15550,
         "moroccan": 15550,
         "foreign": 0,
         "households": 3289
       },
-      "change": null
+      "change": {
+        "absolute": 369,
+        "pct": 2.43,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -46074,7 +46907,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46094,14 +46927,21 @@
       "cercle": "06.467.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9750,
+        "households": null
+      },
       "2024": {
         "total": 9043,
         "moroccan": 9042,
         "foreign": 1,
         "households": 2076
       },
-      "change": null
+      "change": {
+        "absolute": -707,
+        "pct": -7.25,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -46121,7 +46961,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46141,14 +46981,21 @@
       "cercle": "06.467.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12252,
+        "households": null
+      },
       "2024": {
         "total": 12059,
         "moroccan": 12043,
         "foreign": 16,
         "households": 2650
       },
-      "change": null
+      "change": {
+        "absolute": -193,
+        "pct": -1.58,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -46173,7 +47020,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46193,14 +47040,21 @@
       "cercle": "06.467.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 14351,
+        "households": null
+      },
       "2024": {
         "total": 14259,
         "moroccan": 14259,
         "foreign": 0,
         "households": 3054
       },
-      "change": null
+      "change": {
+        "absolute": -92,
+        "pct": -0.64,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -46225,7 +47079,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46245,14 +47099,21 @@
       "cercle": "06.467.05"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13748,
+        "households": null
+      },
       "2024": {
         "total": 14059,
         "moroccan": 14059,
         "foreign": 0,
         "households": 3220
       },
-      "change": null
+      "change": {
+        "absolute": 311,
+        "pct": 2.26,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -46272,7 +47133,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -46616,14 +47477,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 71172,
+        "households": null
+      },
       "2024": {
         "total": 106013,
         "moroccan": 105539,
         "foreign": 474,
         "households": 26168
       },
-      "change": null
+      "change": {
+        "absolute": 34841,
+        "pct": 48.95,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -46643,7 +47511,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52069,14 +52937,21 @@
       "cercle": "07.191.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15385,
+        "households": null
+      },
       "2024": {
         "total": 16313,
         "moroccan": 16311,
         "foreign": 2,
         "households": 3425
       },
-      "change": null
+      "change": {
+        "absolute": 928,
+        "pct": 6.03,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -52101,7 +52976,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52121,14 +52996,21 @@
       "cercle": "07.191.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 3850,
+        "households": null
+      },
       "2024": {
         "total": 3755,
         "moroccan": 3755,
         "foreign": 0,
         "households": 856
       },
-      "change": null
+      "change": {
+        "absolute": -95,
+        "pct": -2.47,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52148,7 +53030,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52168,14 +53050,21 @@
       "cercle": "07.191.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8605,
+        "households": null
+      },
       "2024": {
         "total": 9172,
         "moroccan": 9172,
         "foreign": 0,
         "households": 1908
       },
-      "change": null
+      "change": {
+        "absolute": 567,
+        "pct": 6.59,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52195,7 +53084,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52215,14 +53104,21 @@
       "cercle": "07.191.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9303,
+        "households": null
+      },
       "2024": {
         "total": 9125,
         "moroccan": 9121,
         "foreign": 4,
         "households": 2121
       },
-      "change": null
+      "change": {
+        "absolute": -178,
+        "pct": -1.91,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52242,7 +53138,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52262,14 +53158,21 @@
       "cercle": "07.191.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10310,
+        "households": null
+      },
       "2024": {
         "total": 10946,
         "moroccan": 10946,
         "foreign": 0,
         "households": 2164
       },
-      "change": null
+      "change": {
+        "absolute": 636,
+        "pct": 6.17,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52289,7 +53192,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52309,14 +53212,21 @@
       "cercle": "07.191.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 19977,
+        "households": null
+      },
       "2024": {
         "total": 19164,
         "moroccan": 19164,
         "foreign": 0,
         "households": 4236
       },
-      "change": null
+      "change": {
+        "absolute": -813,
+        "pct": -4.07,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52336,7 +53246,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52572,14 +53482,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6616,
+        "households": null
+      },
       "2024": {
         "total": 6513,
         "moroccan": 6513,
         "foreign": 0,
         "households": 1533
       },
-      "change": null
+      "change": {
+        "absolute": -103,
+        "pct": -1.56,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52599,7 +53516,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52619,14 +53536,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 11387,
+        "households": null
+      },
       "2024": {
         "total": 12870,
         "moroccan": 12870,
         "foreign": 0,
         "households": 2482
       },
-      "change": null
+      "change": {
+        "absolute": 1483,
+        "pct": 13.02,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52646,7 +53570,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52666,14 +53590,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12233,
+        "households": null
+      },
       "2024": {
         "total": 13243,
         "moroccan": 13243,
         "foreign": 0,
         "households": 2765
       },
-      "change": null
+      "change": {
+        "absolute": 1010,
+        "pct": 8.26,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52693,7 +53624,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52713,14 +53644,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7399,
+        "households": null
+      },
       "2024": {
         "total": 7185,
         "moroccan": 7185,
         "foreign": 0,
         "households": 1485
       },
-      "change": null
+      "change": {
+        "absolute": -214,
+        "pct": -2.89,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52740,7 +53678,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52760,14 +53698,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8774,
+        "households": null
+      },
       "2024": {
         "total": 9468,
         "moroccan": 9468,
         "foreign": 0,
         "households": 2104
       },
-      "change": null
+      "change": {
+        "absolute": 694,
+        "pct": 7.91,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52787,7 +53732,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52807,14 +53752,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12101,
+        "households": null
+      },
       "2024": {
         "total": 11443,
         "moroccan": 11443,
         "foreign": 0,
         "households": 2404
       },
-      "change": null
+      "change": {
+        "absolute": -658,
+        "pct": -5.44,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52834,7 +53786,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52854,14 +53806,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6712,
+        "households": null
+      },
       "2024": {
         "total": 7230,
         "moroccan": 7230,
         "foreign": 0,
         "households": 1689
       },
-      "change": null
+      "change": {
+        "absolute": 518,
+        "pct": 7.72,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52881,7 +53840,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52901,14 +53860,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7143,
+        "households": null
+      },
       "2024": {
         "total": 6791,
         "moroccan": 6791,
         "foreign": 0,
         "households": 1547
       },
-      "change": null
+      "change": {
+        "absolute": -352,
+        "pct": -4.93,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52928,7 +53894,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52948,14 +53914,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8150,
+        "households": null
+      },
       "2024": {
         "total": 7728,
         "moroccan": 7727,
         "foreign": 1,
         "households": 1672
       },
-      "change": null
+      "change": {
+        "absolute": -422,
+        "pct": -5.18,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -52975,7 +53948,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -52995,14 +53968,21 @@
       "cercle": "07.191.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10639,
+        "households": null
+      },
       "2024": {
         "total": 10866,
         "moroccan": 10866,
         "foreign": 0,
         "households": 2248
       },
-      "change": null
+      "change": {
+        "absolute": 227,
+        "pct": 2.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53022,7 +54002,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53042,14 +54022,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9454,
+        "households": null
+      },
       "2024": {
         "total": 8625,
         "moroccan": 8625,
         "foreign": 0,
         "households": 1891
       },
-      "change": null
+      "change": {
+        "absolute": -829,
+        "pct": -8.77,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53069,7 +54056,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53089,14 +54076,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9421,
+        "households": null
+      },
       "2024": {
         "total": 9638,
         "moroccan": 9638,
         "foreign": 0,
         "households": 1919
       },
-      "change": null
+      "change": {
+        "absolute": 217,
+        "pct": 2.3,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53116,7 +54110,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53136,14 +54130,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9704,
+        "households": null
+      },
       "2024": {
         "total": 8600,
         "moroccan": 8600,
         "foreign": 0,
         "households": 1773
       },
-      "change": null
+      "change": {
+        "absolute": -1104,
+        "pct": -11.38,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53163,7 +54164,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53183,14 +54184,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6254,
+        "households": null
+      },
       "2024": {
         "total": 6216,
         "moroccan": 6216,
         "foreign": 0,
         "households": 1243
       },
-      "change": null
+      "change": {
+        "absolute": -38,
+        "pct": -0.61,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53210,7 +54218,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53230,14 +54238,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5011,
+        "households": null
+      },
       "2024": {
         "total": 4188,
         "moroccan": 4188,
         "foreign": 0,
         "households": 1039
       },
-      "change": null
+      "change": {
+        "absolute": -823,
+        "pct": -16.42,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53257,7 +54272,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53277,14 +54292,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7522,
+        "households": null
+      },
       "2024": {
         "total": 6939,
         "moroccan": 6939,
         "foreign": 0,
         "households": 1642
       },
-      "change": null
+      "change": {
+        "absolute": -583,
+        "pct": -7.75,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53304,7 +54326,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53324,14 +54346,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7015,
+        "households": null
+      },
       "2024": {
         "total": 6996,
         "moroccan": 6996,
         "foreign": 0,
         "households": 1451
       },
-      "change": null
+      "change": {
+        "absolute": -19,
+        "pct": -0.27,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53351,7 +54380,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53371,14 +54400,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6822,
+        "households": null
+      },
       "2024": {
         "total": 6302,
         "moroccan": 6300,
         "foreign": 2,
         "households": 1433
       },
-      "change": null
+      "change": {
+        "absolute": -520,
+        "pct": -7.62,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53398,7 +54434,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53418,14 +54454,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5502,
+        "households": null
+      },
       "2024": {
         "total": 4903,
         "moroccan": 4903,
         "foreign": 0,
         "households": 1098
       },
-      "change": null
+      "change": {
+        "absolute": -599,
+        "pct": -10.89,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53445,7 +54488,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53465,14 +54508,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5651,
+        "households": null
+      },
       "2024": {
         "total": 5217,
         "moroccan": 5217,
         "foreign": 0,
         "households": 1214
       },
-      "change": null
+      "change": {
+        "absolute": -434,
+        "pct": -7.68,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53492,7 +54542,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -53512,14 +54562,21 @@
       "cercle": "07.191.13"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9122,
+        "households": null
+      },
       "2024": {
         "total": 8491,
         "moroccan": 8491,
         "foreign": 0,
         "households": 1881
       },
-      "change": null
+      "change": {
+        "absolute": -631,
+        "pct": -6.92,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -53539,7 +54596,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54428,14 +55485,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 3996,
+        "households": null
+      },
       "2024": {
         "total": 3951,
         "moroccan": 3951,
         "foreign": 0,
         "households": 936
       },
-      "change": null
+      "change": {
+        "absolute": -45,
+        "pct": -1.13,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54455,7 +55519,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54475,14 +55539,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7293,
+        "households": null
+      },
       "2024": {
         "total": 7342,
         "moroccan": 7342,
         "foreign": 0,
         "households": 1850
       },
-      "change": null
+      "change": {
+        "absolute": 49,
+        "pct": 0.67,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -54507,7 +55578,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54527,14 +55598,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6750,
+        "households": null
+      },
       "2024": {
         "total": 6479,
         "moroccan": 6479,
         "foreign": 0,
         "households": 1497
       },
-      "change": null
+      "change": {
+        "absolute": -271,
+        "pct": -4.01,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54554,7 +55632,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54574,14 +55652,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6083,
+        "households": null
+      },
       "2024": {
         "total": 5934,
         "moroccan": 5934,
         "foreign": 0,
         "households": 1389
       },
-      "change": null
+      "change": {
+        "absolute": -149,
+        "pct": -2.45,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54601,7 +55686,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54621,14 +55706,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4209,
+        "households": null
+      },
       "2024": {
         "total": 3573,
         "moroccan": 3573,
         "foreign": 0,
         "households": 853
       },
-      "change": null
+      "change": {
+        "absolute": -636,
+        "pct": -15.11,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54648,7 +55740,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54668,14 +55760,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5341,
+        "households": null
+      },
       "2024": {
         "total": 4306,
         "moroccan": 4306,
         "foreign": 0,
         "households": 963
       },
-      "change": null
+      "change": {
+        "absolute": -1035,
+        "pct": -19.38,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54695,7 +55794,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54715,14 +55814,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7587,
+        "households": null
+      },
       "2024": {
         "total": 6488,
         "moroccan": 6488,
         "foreign": 0,
         "households": 1557
       },
-      "change": null
+      "change": {
+        "absolute": -1099,
+        "pct": -14.49,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54742,7 +55848,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54762,14 +55868,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8142,
+        "households": null
+      },
       "2024": {
         "total": 7681,
         "moroccan": 7681,
         "foreign": 0,
         "households": 1801
       },
-      "change": null
+      "change": {
+        "absolute": -461,
+        "pct": -5.66,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54789,7 +55902,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54809,14 +55922,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7873,
+        "households": null
+      },
       "2024": {
         "total": 7567,
         "moroccan": 7567,
         "foreign": 0,
         "households": 1800
       },
-      "change": null
+      "change": {
+        "absolute": -306,
+        "pct": -3.89,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54836,7 +55956,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54856,14 +55976,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4330,
+        "households": null
+      },
       "2024": {
         "total": 4378,
         "moroccan": 4378,
         "foreign": 0,
         "households": 1065
       },
-      "change": null
+      "change": {
+        "absolute": 48,
+        "pct": 1.11,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54883,7 +56010,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54903,14 +56030,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6161,
+        "households": null
+      },
       "2024": {
         "total": 5320,
         "moroccan": 5320,
         "foreign": 0,
         "households": 1263
       },
-      "change": null
+      "change": {
+        "absolute": -841,
+        "pct": -13.65,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54930,7 +56064,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54950,14 +56084,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 9897,
+        "households": null
+      },
       "2024": {
         "total": 9526,
         "moroccan": 9525,
         "foreign": 1,
         "households": 2316
       },
-      "change": null
+      "change": {
+        "absolute": -371,
+        "pct": -3.75,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -54977,7 +56118,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -54997,14 +56138,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5315,
+        "households": null
+      },
       "2024": {
         "total": 4932,
         "moroccan": 4931,
         "foreign": 1,
         "households": 1262
       },
-      "change": null
+      "change": {
+        "absolute": -383,
+        "pct": -7.21,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55024,7 +56172,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55044,14 +56192,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6819,
+        "households": null
+      },
       "2024": {
         "total": 6027,
         "moroccan": 6022,
         "foreign": 5,
         "households": 1557
       },
-      "change": null
+      "change": {
+        "absolute": -792,
+        "pct": -11.61,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55071,7 +56226,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55091,14 +56246,21 @@
       "cercle": "07.211.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6825,
+        "households": null
+      },
       "2024": {
         "total": 6699,
         "moroccan": 6697,
         "foreign": 2,
         "households": 1701
       },
-      "change": null
+      "change": {
+        "absolute": -126,
+        "pct": -1.85,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55118,7 +56280,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55138,14 +56300,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 2825,
+        "households": null
+      },
       "2024": {
         "total": 1656,
         "moroccan": 1656,
         "foreign": 0,
         "households": 432
       },
-      "change": null
+      "change": {
+        "absolute": -1169,
+        "pct": -41.38,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55165,7 +56334,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55185,14 +56354,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6915,
+        "households": null
+      },
       "2024": {
         "total": 4442,
         "moroccan": 4442,
         "foreign": 0,
         "households": 1207
       },
-      "change": null
+      "change": {
+        "absolute": -2473,
+        "pct": -35.76,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55212,7 +56388,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55232,14 +56408,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5874,
+        "households": null
+      },
       "2024": {
         "total": 3940,
         "moroccan": 3940,
         "foreign": 0,
         "households": 1015
       },
-      "change": null
+      "change": {
+        "absolute": -1934,
+        "pct": -32.92,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55259,7 +56442,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55279,14 +56462,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8028,
+        "households": null
+      },
       "2024": {
         "total": 6499,
         "moroccan": 6499,
         "foreign": 0,
         "households": 1712
       },
-      "change": null
+      "change": {
+        "absolute": -1529,
+        "pct": -19.05,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55306,7 +56496,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55326,14 +56516,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4312,
+        "households": null
+      },
       "2024": {
         "total": 3209,
         "moroccan": 3209,
         "foreign": 0,
         "households": 919
       },
-      "change": null
+      "change": {
+        "absolute": -1103,
+        "pct": -25.58,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55353,7 +56550,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55373,14 +56570,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4718,
+        "households": null
+      },
       "2024": {
         "total": 4161,
         "moroccan": 4161,
         "foreign": 0,
         "households": 943
       },
-      "change": null
+      "change": {
+        "absolute": -557,
+        "pct": -11.81,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55400,7 +56604,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55420,14 +56624,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6341,
+        "households": null
+      },
       "2024": {
         "total": 5818,
         "moroccan": 5817,
         "foreign": 1,
         "households": 1470
       },
-      "change": null
+      "change": {
+        "absolute": -523,
+        "pct": -8.25,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55447,7 +56658,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55467,14 +56678,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 3919,
+        "households": null
+      },
       "2024": {
         "total": 2910,
         "moroccan": 2910,
         "foreign": 0,
         "households": 757
       },
-      "change": null
+      "change": {
+        "absolute": -1009,
+        "pct": -25.75,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55494,7 +56712,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -55514,14 +56732,21 @@
       "cercle": "07.211.07"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7959,
+        "households": null
+      },
       "2024": {
         "total": 7077,
         "moroccan": 7077,
         "foreign": 0,
         "households": 1742
       },
-      "change": null
+      "change": {
+        "absolute": -882,
+        "pct": -11.08,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -55541,7 +56766,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -61163,14 +62388,21 @@
       "cercle": "08.201.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10313,
+        "households": null
+      },
       "2024": {
         "total": 10675,
         "moroccan": 10675,
         "foreign": 0,
         "households": 1943
       },
-      "change": null
+      "change": {
+        "absolute": 362,
+        "pct": 3.51,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -61190,7 +62422,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -61210,14 +62442,21 @@
       "cercle": "08.201.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 17360,
+        "households": null
+      },
       "2024": {
         "total": 17230,
         "moroccan": 17226,
         "foreign": 4,
         "households": 3378
       },
-      "change": null
+      "change": {
+        "absolute": -130,
+        "pct": -0.75,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -61237,7 +62476,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -61257,14 +62496,21 @@
       "cercle": "08.201.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12335,
+        "households": null
+      },
       "2024": {
         "total": 11886,
         "moroccan": 11854,
         "foreign": 32,
         "households": 2272
       },
-      "change": null
+      "change": {
+        "absolute": -449,
+        "pct": -3.64,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -61284,7 +62530,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -61304,14 +62550,21 @@
       "cercle": "08.201.15"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 22722,
+        "households": null
+      },
       "2024": {
         "total": 23449,
         "moroccan": 23447,
         "foreign": 2,
         "households": 4404
       },
-      "change": null
+      "change": {
+        "absolute": 727,
+        "pct": 3.2,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -61331,7 +62584,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -62387,14 +63640,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 18212,
+        "households": null
+      },
       "2024": {
         "total": 21713,
         "moroccan": 21700,
         "foreign": 13,
         "households": 5879
       },
-      "change": null
+      "change": {
+        "absolute": 3501,
+        "pct": 19.22,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -62419,7 +63679,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -63701,14 +64961,21 @@
       "cercle": "08.363.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 13297,
+        "households": null
+      },
       "2024": {
         "total": 13424,
         "moroccan": 13424,
         "foreign": 0,
         "households": 3301
       },
-      "change": null
+      "change": {
+        "absolute": 127,
+        "pct": 0.96,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -63733,7 +65000,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -63753,14 +65020,21 @@
       "cercle": "08.363.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4113,
+        "households": null
+      },
       "2024": {
         "total": 3826,
         "moroccan": 3826,
         "foreign": 0,
         "households": 762
       },
-      "change": null
+      "change": {
+        "absolute": -287,
+        "pct": -6.98,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -63780,7 +65054,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -63800,14 +65074,21 @@
       "cercle": "08.363.17"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4885,
+        "households": null
+      },
       "2024": {
         "total": 5140,
         "moroccan": 5140,
         "foreign": 0,
         "households": 1022
       },
-      "change": null
+      "change": {
+        "absolute": 255,
+        "pct": 5.22,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -63827,7 +65108,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -64333,14 +65614,21 @@
       "cercle": "08.577.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15349,
+        "households": null
+      },
       "2024": {
         "total": 15506,
         "moroccan": 15506,
         "foreign": 0,
         "households": 2920
       },
-      "change": null
+      "change": {
+        "absolute": 157,
+        "pct": 1.02,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -64360,7 +65648,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -64380,14 +65668,21 @@
       "cercle": "08.577.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 17392,
+        "households": null
+      },
       "2024": {
         "total": 19985,
         "moroccan": 19983,
         "foreign": 2,
         "households": 3988
       },
-      "change": null
+      "change": {
+        "absolute": 2593,
+        "pct": 14.91,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -64407,7 +65702,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -64427,14 +65722,21 @@
       "cercle": "08.577.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8246,
+        "households": null
+      },
       "2024": {
         "total": 8885,
         "moroccan": 8882,
         "foreign": 3,
         "households": 1599
       },
-      "change": null
+      "change": {
+        "absolute": 639,
+        "pct": 7.75,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -64454,7 +65756,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -64474,14 +65776,21 @@
       "cercle": "08.577.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 17045,
+        "households": null
+      },
       "2024": {
         "total": 16154,
         "moroccan": 16151,
         "foreign": 3,
         "households": 3408
       },
-      "change": null
+      "change": {
+        "absolute": -891,
+        "pct": -5.23,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -64501,7 +65810,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -64521,14 +65830,21 @@
       "cercle": "08.577.09"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 22010,
+        "households": null
+      },
       "2024": {
         "total": 23218,
         "moroccan": 23217,
         "foreign": 1,
         "households": 3734
       },
-      "change": null
+      "change": {
+        "absolute": 1208,
+        "pct": 5.49,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -64548,7 +65864,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -66247,14 +67563,21 @@
       "cercle": "08.587.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 10054,
+        "households": null
+      },
       "2024": {
         "total": 9176,
         "moroccan": 9176,
         "foreign": 0,
         "households": 1328
       },
-      "change": null
+      "change": {
+        "absolute": -878,
+        "pct": -8.73,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -66274,7 +67597,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -66294,14 +67617,21 @@
       "cercle": "08.587.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5439,
+        "households": null
+      },
       "2024": {
         "total": 4757,
         "moroccan": 4757,
         "foreign": 0,
         "households": 779
       },
-      "change": null
+      "change": {
+        "absolute": -682,
+        "pct": -12.54,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -66321,7 +67651,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -66341,14 +67671,21 @@
       "cercle": "08.587.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 15169,
+        "households": null
+      },
       "2024": {
         "total": 13895,
         "moroccan": 13895,
         "foreign": 0,
         "households": 2254
       },
-      "change": null
+      "change": {
+        "absolute": -1274,
+        "pct": -8.4,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -66368,7 +67705,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -66388,14 +67725,21 @@
       "cercle": "08.587.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7209,
+        "households": null
+      },
       "2024": {
         "total": 7742,
         "moroccan": 7739,
         "foreign": 3,
         "households": 1477
       },
-      "change": null
+      "change": {
+        "absolute": 533,
+        "pct": 7.39,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -66415,7 +67759,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -66435,14 +67779,21 @@
       "cercle": "08.587.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 11224,
+        "households": null
+      },
       "2024": {
         "total": 11751,
         "moroccan": 11750,
         "foreign": 1,
         "households": 1827
       },
-      "change": null
+      "change": {
+        "absolute": 527,
+        "pct": 4.7,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -66462,7 +67813,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -67631,14 +68982,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 76646,
+        "households": null
+      },
       "2024": {
         "total": 113236,
         "moroccan": 108658,
         "foreign": 4578,
         "households": 30592
       },
-      "change": null
+      "change": {
+        "absolute": 36590,
+        "pct": 47.74,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -67663,7 +69021,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -67683,14 +69041,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 39042,
+        "households": null
+      },
       "2024": {
         "total": 72929,
         "moroccan": 72232,
         "foreign": 697,
         "households": 18972
       },
-      "change": null
+      "change": {
+        "absolute": 33887,
+        "pct": 86.8,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -67715,7 +69080,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70553,14 +71918,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4804,
+        "households": null
+      },
       "2024": {
         "total": 4123,
         "moroccan": 4123,
         "foreign": 0,
         "households": 1023
       },
-      "change": null
+      "change": {
+        "absolute": -681,
+        "pct": -14.18,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70580,7 +71952,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70600,14 +71972,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 5131,
+        "households": null
+      },
       "2024": {
         "total": 4174,
         "moroccan": 4174,
         "foreign": 0,
         "households": 1056
       },
-      "change": null
+      "change": {
+        "absolute": -957,
+        "pct": -18.65,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70627,7 +72006,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70647,14 +72026,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4004,
+        "households": null
+      },
       "2024": {
         "total": 3336,
         "moroccan": 3336,
         "foreign": 0,
         "households": 798
       },
-      "change": null
+      "change": {
+        "absolute": -668,
+        "pct": -16.68,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70674,7 +72060,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70694,14 +72080,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6584,
+        "households": null
+      },
       "2024": {
         "total": 4967,
         "moroccan": 4967,
         "foreign": 0,
         "households": 1186
       },
-      "change": null
+      "change": {
+        "absolute": -1617,
+        "pct": -24.56,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70721,7 +72114,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70741,14 +72134,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 14976,
+        "households": null
+      },
       "2024": {
         "total": 17673,
         "moroccan": 17661,
         "foreign": 12,
         "households": 3814
       },
-      "change": null
+      "change": {
+        "absolute": 2697,
+        "pct": 18.01,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70768,7 +72168,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70788,14 +72188,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 7565,
+        "households": null
+      },
       "2024": {
         "total": 7781,
         "moroccan": 7781,
         "foreign": 0,
         "households": 1732
       },
-      "change": null
+      "change": {
+        "absolute": 216,
+        "pct": 2.86,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70815,7 +72222,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70835,14 +72242,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 12119,
+        "households": null
+      },
       "2024": {
         "total": 13254,
         "moroccan": 13173,
         "foreign": 81,
         "households": 3163
       },
-      "change": null
+      "change": {
+        "absolute": 1135,
+        "pct": 9.37,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70862,7 +72276,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70882,14 +72296,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 17950,
+        "households": null
+      },
       "2024": {
         "total": 21659,
         "moroccan": 21650,
         "foreign": 9,
         "households": 5069
       },
-      "change": null
+      "change": {
+        "absolute": 3709,
+        "pct": 20.66,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70909,7 +72330,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70929,14 +72350,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 4224,
+        "households": null
+      },
       "2024": {
         "total": 3427,
         "moroccan": 3427,
         "foreign": 0,
         "households": 856
       },
-      "change": null
+      "change": {
+        "absolute": -797,
+        "pct": -18.87,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -70956,7 +72384,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -70976,14 +72404,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 11677,
+        "households": null
+      },
       "2024": {
         "total": 13479,
         "moroccan": 13462,
         "foreign": 17,
         "households": 3148
       },
-      "change": null
+      "change": {
+        "absolute": 1802,
+        "pct": 15.43,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -71003,7 +72438,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -71023,14 +72458,21 @@
       "cercle": "09.541.11"
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 6105,
+        "households": null
+      },
       "2024": {
         "total": 5833,
         "moroccan": 5830,
         "foreign": 3,
         "households": 1432
       },
-      "change": null
+      "change": {
+        "absolute": -272,
+        "pct": -4.46,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [],
     "centroid": {
@@ -71050,7 +72492,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },
@@ -77830,14 +79272,21 @@
       "cercle": null
     },
     "population": {
-      "2014": null,
+      "2014": {
+        "total": 8162,
+        "households": null
+      },
       "2024": {
         "total": 9828,
         "moroccan": 9760,
         "foreign": 68,
         "households": 2767
       },
-      "change": null
+      "change": {
+        "absolute": 1666,
+        "pct": 20.41,
+        "basis": "crosswalk"
+      }
     },
     "urbanCentres": [
       {
@@ -77862,7 +79311,7 @@
     "provenance": {
       "name": "hcp-2024",
       "population2024": "hcp-2024",
-      "population2014": null,
+      "population2014": "hcp-2014:crosswalk",
       "geometry": "osm-odbl"
     }
   },

@@ -9,9 +9,12 @@ import { writeCsv } from "./emit/csv.ts";
 import { fetchRegion } from "./sources/overpass.ts";
 import { joinOsm, type OsmFeature } from "./build/osmJoin.ts";
 import { writeGeometry } from "./emit/topojson.ts";
+import { buildCrosswalk } from "./build/crosswalk.ts";
+import { writeCrosswalk } from "./emit/crosswalk.ts";
 
 const OUT = "data/v1/attributes";
 const GEOMETRY_OUT = "data/v1/geometry";
+const CROSSWALK_OUT = "data/v1/crosswalk";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
@@ -33,15 +36,45 @@ for (const region of hierarchy.regions) {
   byRegion.set(region.code, [...features.values()]);
   for (const [code, f] of features) osm.set(code, f);
 }
-// Anomalies are checked inside assertDataset, so one malformed hole cannot hide every
-// attribute failure by throwing before the attribute checks run.
+// Anomalies are checked inside assertDataset, not in this loop, so one malformed
+// relation does not stop the loop above from finishing every other region, and every
+// attribute failure below is collected into one list instead of stopping at the first.
 console.log(`geometry: ${osm.size} communes, ${unmatchedTotal} unmatched relations, ${rejectedTotal} rejected`);
 
-assertDataset(hierarchy, units2014, osm);
+const firstPass = toRecords(hierarchy, units2014, osm);
+const unresolved = firstPass.communes.filter((c) => c.population["2014"] === null);
+const claimed = new Set(firstPass.communes.filter((c) => c.population["2014"]).map((c) => c.codeDigits));
+// Sorted, because Map iteration order would otherwise decide which unit a pass sees
+// first, and the plan forbids the output depending on anything but the input.
+const unclaimed = [...units2014.values()]
+  .filter((u) => u.kind !== "arrondissement" && !claimed.has(u.codeDigits))
+  .sort((a, b) => a.codeDigits.localeCompare(b.codeDigits));
 
-const records = toRecords(hierarchy, units2014, osm);
+const { rows, unmatched2024, unmatched2014 } = buildCrosswalk(unresolved, unclaimed);
+for (const code of unmatched2024) console.warn(`  crosswalk could not place 2024 commune ${code}`);
+for (const code of unmatched2014) console.warn(`  crosswalk could not place 2014 unit ${code}`);
+console.log(`crosswalk: ${rows.length} rows, ${unmatched2024.length} unplaced 2024, ${unmatched2014.length} unplaced 2014`);
+
+// The assertions on the crosswalk are guarded by `crosswalk.length > 0` so the
+// attribute-only path still passes, which means a matcher returning nothing would
+// check nothing at all and the build would ship 207 nulls under two READMEs claiming
+// 1,503 filled. Refusing an incomplete reconciliation here closes that: zero rows
+// means all 207 communes land in unmatched2024.
+if (unmatched2024.length > 0 || unmatched2014.length > 0) {
+  throw new Error(
+    `crosswalk left ${unmatched2024.length} commune(s) and ${unmatched2014.length} 2014 unit(s) unplaced; ` +
+      `refusing to publish a reconciliation that does not account for both sides`,
+  );
+}
+
+const crosswalkByCode = new Map(rows.map((r) => [r.codeDigits2024, r]));
+
+assertDataset(hierarchy, units2014, osm, rows);
+
+const records = toRecords(hierarchy, units2014, osm, crosswalkByCode);
 await writeJson(records, OUT);
 await writeCsv(records, OUT);
+await writeCrosswalk(rows, CROSSWALK_OUT);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);

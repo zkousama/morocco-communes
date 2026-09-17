@@ -168,3 +168,42 @@ describe("toRecords with geometry", () => {
     expect(plain.communes.every((c) => c.centroid === null)).toBe(true);
   });
 });
+
+describe("toRecords with the crosswalk", () => {
+  it("fills a renumbered commune and marks the basis", () => {
+    const target = h.communes.find((c) => c.nameFr === "Commune d'Ait Kamra")!;
+    const withCrosswalk = toRecords(h, units2014, new Map(), new Map([
+      [target.codeDigits, {
+        code2024: target.code,
+        codeDigits2024: target.codeDigits,
+        code2014: "01.051.05.01",
+        name2024: "Ait Kamra",
+        name2014: "Ait Kamra",
+        nameAr2024: "",
+        nameAr2014: "",
+        method: "exact_name_in_province" as const,
+        evidence: {
+          province: "01051",
+          normalisedNameMatch: true,
+          candidatesInProvince: 1,
+          population2024: 10000,
+          population2014: 9653,
+          populationRatio: 1.036,
+        },
+      }],
+    ]));
+    const record = withCrosswalk.communes.find((c) => c.codeDigits === target.codeDigits)!;
+    expect(record.population["2014"]?.total).toBe(9653);
+    expect(record.population.change?.basis).toBe("crosswalk");
+    expect(record.provenance.population2014).toBe("hcp-2014:crosswalk");
+  });
+
+  it("prefers a direct code match over the crosswalk", () => {
+    const direct = h.communes.find((c) => units2014.has(c.codeDigits))!;
+    const withCrosswalk = toRecords(h, units2014, new Map(), new Map([
+      [direct.codeDigits, { evidence: { population2014: 1 } } as never],
+    ]));
+    const record = withCrosswalk.communes.find((c) => c.codeDigits === direct.codeDigits)!;
+    expect(record.population.change?.basis).toBe("exact_code");
+  });
+});
