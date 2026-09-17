@@ -186,61 +186,28 @@ export const ui = {
   ary: {
     title: "Jamaat l-Maghrib",
     language: "Loghat",
-    theme: "Theme",
-    themeAuto: "Auto",
-    themeLight: "Dawi",
-    themeDark: "Dlam",
-
     tagline: "1 503 jamaa dyal l-Maghrib, f open data.",
-    intro:
-      "Codes rasmiyin dyal l-HCP, smiyat b l-français w b l-arabiya, adad skan men l-ihsa dyal 2024 w dyal 2014, w hdod l kol jamaa ghir wahda. Free bach tstaamelha, w free bach tkhelliha khddama.",
+    intro: "Codes rasmiyin dyal l-HCP, smiyat b l-français w b l-arabiya, adad skan men l-ihsa dyal 2024 w dyal 2014, w hdod l kol jamaa ghir wahda. Free bach tstaamelha, w free bach tkhelliha khddama.",
     mapCaption: "1 502 hdod kamlin, mrsoumin men l-files li kaykhrej had l-API.",
     mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
-
     codeHeading: "Kifach kayetqra l-code",
-    codeBody:
-      "L-code howa l-hiérarchie rasha. Kol majmoua d arqam katsemmi mustawa wahed, daba l-code dyal jamaa fih deja l-amala w l-jiha dyalha. D-dawair kaynin ghir fouq l-jamaat l-qarawiya; jamaa hadariya imken ykono fiha muqataat.",
+    codeBody: "L-code howa l-hiérarchie rasha. Kol majmoua d arqam katsemmi mustawa wahed, daba l-code dyal jamaa fih deja l-amala w l-jiha dyalha. D-dawair kaynin ghir fouq l-jamaat l-qarawiya; jamaa hadariya imken ykono fiha muqataat.",
     colPopulation: "Adad skan, 2024",
-
     tryHeading: "Jerreb wahed l-query",
     tryBody: "Kol request li tahta kaymchi l had l-API w kayrjaa bhal ma howa.",
-
     tiersHeading: "Fin kayetjaweb r-request",
-    tiersBody:
-      "Tlata d blayes, w l-header X-Api-Tier f kol response kaygoul lik fin. Aghlabiyat r-requests ma kaywslo hta l code.",
+    tiersBody: "Tlata d blayes, w l-header X-Api-Tier f kol response kaygoul lik fin. Aghlabiyat r-requests ma kaywslo hta l code.",
     tierPreHeader: "ma kayn hta header, hit walo ma khdem",
     tierPre: "File f CDN",
-    tierPreBody:
-      "3 852 response kayetketbo melli kayetbna s-site. Walo ma kayetlanci bach ykhrejhom, alach ma kayswaw walo w kaysedo qedd ay traffic.",
+    tierPreBody: "3 852 response kayetketbo melli kayetbna s-site. Walo ma kayetlanci bach ykhrejhom, alach ma kayswaw walo w kaysedo qedd ay traffic.",
     tierAlias: "Tahwila l dak l-file",
-    tierAliasBody:
-      "L-query string ma yqderch ykhtar file, alach r-requests li mketbin b dak sh-shakl kayetredo l l-file li fih l-jawab deja, w r-response kaysemmih.",
+    tierAliasBody: "L-query string ma yqderch ykhtar file, alach r-requests li mketbin b dak sh-shakl kayetredo l l-file li fih l-jawab deja, w r-response kaysemmih.",
     tierComputed: "Kayetheseb f l-waqt",
-    tierComputedBody:
-      "S-search, w r-requests b radius, w t-tarkibat dyal filters li hta file ma kayghattiha. Ghir hadshi li kayakol shi haja.",
-
-    chartsHeading: "Ashno kaygoulo l-arqam",
-    chartsBody:
-      "Tlata d l-hwayj khassek taarefhom qbel ma tbni fouq hadshi, kolshi mkhrouj men d-dataset machi mektoub hda.",
-    chartChange: "L-janoub kayaamer",
-    chartChangeBody: "Tabaddol dyal adad skan hasab l-jiha bin ihsa 2014 w 2024.",
-    chartChangeNote:
-      "Dakhla-Oued Ed-Dahab zadat kter men n-nass. L-Oriental hiya l-jiha l-wahida li naqset. Joj l-arqam houma majmou dyal l-jamaat, machi série jihawiya bouhdaha.",
-    chartSize: "Aghlabiyat l-jamaat sghar",
-    chartSizeBody: "L-jamaat hasab adad skan dyal 2024.",
-    chartSpread: "Wash l-crosswalk sahih",
-    chartSpreadBody:
-      "207 jamaa tbeddlo lihom l-codes f islah 2015, alach adad skan dyalhom dyal 2014 khassou yetlaqa b smiya w b l-iqsa machi yetqra men code li ma tbeddelch. Ila kanou dok l-matches ghaltin, n-noumou dyalhom kan ghadi yetferreq b shakl akhor.",
-    chartSpreadNote:
-      "L-khett kayghatti men l-percentile 10 hta 90, l-block men 25 hta 75, w s-star howa l-médiane. Joj t-tawziat qriben bezzaf men bad, w hadi hiya l-hujja belli l-matching sahih — machi bourhan, w t-tafsil dyal kol zawj kayn f data/v1/crosswalk.",
-
+    tierComputedBody: "S-search, w r-requests b radius, w t-tarkibat dyal filters li hta file ma kayghattiha. Ghir hadshi li kayakol shi haja.",
     dataHeading: "Ded kolshi",
-    dataBody:
-      "D-dataset mversioné f l-repo, imken tstaamelha bla had l-API bl-kamel. L-licences kaytbeddlo hasab l-dossier: l-attributs jayin men l-ihsa, w l-hdod share-alike.",
-
+    dataBody: "D-dataset mversioné f l-repo, imken tstaamelha bla had l-API bl-kamel. L-licences kaytbeddlo hasab l-dossier: l-attributs jayin men l-ihsa, w l-hdod share-alike.",
     searchTab: "Search",
-    searchHint:
-      "B l-français, b l-arabiya, wla b slug. L-accents w suwar l-alif w t-ta l-marbouta kolhom kayetwahdo, w l-blayes katelqahom hta b smiyat okhra li maarofin biha — Fez katjib Fès, Port Lyautey katjib Kénitra.",
+    searchHint: "B l-français, b l-arabiya, wla b slug. L-accents w suwar l-alif w t-ta l-marbouta kolhom kayetwahdo, w l-blayes katelqahom hta b smiyat okhra li maarofin biha — Fez katjib Fès, Port Lyautey katjib Kénitra.",
     nearTab: "Qrib",
     nearHint: "L-jamaat li dakhel radius men noqta, men l-qrib l l-baid.",
     lookupTab: "Lookup",
@@ -254,7 +221,20 @@ export const ui = {
     tier: "Jaweb bih",
     emptyState: "Khtar shi mital wla kteb query, men baad lanciha.",
     failed: "R-request ma kmelch. Tchekki wash l-API khddama, men baad awed.",
-
+    theme: "Theme",
+    themeAuto: "Auto",
+    themeLight: "Dawi",
+    themeDark: "Dlam",
+    chartsHeading: "Ashno kaygoulo l-arqam",
+    chartsBody: "Tlata d l-hwayj khassek taarefhom qbel ma tbni fouq hadshi, kolshi mkhrouj men d-dataset machi mektoub hda.",
+    chartChange: "L-janoub kayaamer",
+    chartChangeBody: "Tabaddol dyal adad skan hasab l-jiha bin ihsa 2014 w 2024.",
+    chartChangeNote: "Dakhla-Oued Ed-Dahab zadat kter men n-nass. L-Oriental hiya l-jiha l-wahida li naqset. Joj l-arqam houma majmou dyal l-jamaat, machi série jihawiya bouhdaha.",
+    chartSize: "Aghlabiyat l-jamaat sghar",
+    chartSizeBody: "L-jamaat hasab adad skan dyal 2024.",
+    chartSpread: "Wash l-crosswalk sahih",
+    chartSpreadBody: "207 jamaa tbeddlo lihom l-codes f islah 2015, alach adad skan dyalhom dyal 2014 khassou yetlaqa b smiya w b l-iqsa machi yetqra men code li ma tbeddelch. Ila kanou dok l-matches ghaltin, n-noumou dyalhom kan ghadi yetferreq b shakl akhor.",
+    chartSpreadNote: "L-khett kayghatti men l-percentile 10 hta 90, l-block men 25 hta 75, w s-star howa l-médiane. Joj t-tawziat qriben bezzaf men bad, w hadi hiya l-hujja belli l-matching sahih — machi bourhan, w t-tafsil dyal kol zawj kayn f data/v1/crosswalk.",
     footerData: "L-codes w adad skan men l-Mandoubiya s-Samiya l t-Takhtit, ihsa 2024 w 2014.",
     footerGeometry: "L-hdod men l-musahimin f OpenStreetMap, taht Open Database Licence.",
     repo: "L-code l-masdar",
