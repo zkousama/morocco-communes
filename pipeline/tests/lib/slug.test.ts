@@ -5,9 +5,9 @@ describe("slugify", () => {
   it("strips a label written with a typographic apostrophe", () => {
     // Escapes, not literal characters: a literal ' does not survive being retyped,
     // which is exactly how this regression got in.
-    expect(slugify("Commune d’Assilah")).toBe("assilah");
-    expect(slugify("Arrondissement d’Anfa")).toBe("anfa");
-    expect(slugify("Commune de l’Oulja")).toBe("oulja");
+    expect(slugify("Commune d\u2019Assilah")).toBe("assilah");
+    expect(slugify("Arrondissement d\u2019Anfa")).toBe("anfa");
+    expect(slugify("Commune de l\u2019Oulja")).toBe("oulja");
   });
 
   it("drops the label and folds accents", () => {
