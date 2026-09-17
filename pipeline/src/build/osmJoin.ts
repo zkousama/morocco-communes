@@ -49,7 +49,24 @@ export function joinOsm(
     }
     const unclosed = outer.filter((r) => !isClosed(r)).length;
     if (unclosed > 0) {
-      rejected.push({ relationId: relation.id, ref, reason: `${unclosed} unclosed outer ring(s)` });
+      rejected.push({
+        relationId: relation.id,
+        ref,
+        reason: unclosed === 1 ? "1 unclosed outer ring" : `${unclosed} unclosed outer rings`,
+      });
+      continue;
+    }
+
+    const already = features.get(codeDigits);
+    if (already) {
+      // Two relations claiming one commune. Keep the first and report the second
+      // rather than letting Map.set overwrite it, which would leave features.size
+      // one short with nothing to show why.
+      rejected.push({
+        relationId: relation.id,
+        ref,
+        reason: `duplicate code, already held by relation ${already.relationId}`,
+      });
       continue;
     }
 

@@ -50,4 +50,39 @@ describe("joinOsm", () => {
     const { features, unmatched, rejected } = joinOsm([bare], known);
     expect(features.size + unmatched.length + rejected.length).toBe(0);
   });
+
+  it("rejects a malformed code and names it in the reason", () => {
+    const bad: OverpassRelation = { id: 4, tags: { "ref:MA:HCP": "not-a-code" }, members: [] };
+    const { features, unmatched, rejected } = joinOsm([bad], known);
+    expect(features.size).toBe(0);
+    expect(unmatched).toHaveLength(0);
+    expect(rejected[0]?.ref).toBe("not-a-code");
+    expect(rejected[0]?.reason).toContain("no digits");
+  });
+
+  it("rejects the whole relation when only one of its rings fails to close", () => {
+    const mixed: OverpassRelation = {
+      id: 5,
+      tags: { "ref:MA:HCP": "01.511.05.19" },
+      members: [
+        { type: "way", role: "outer", geometry: square },
+        { type: "way", role: "outer", geometry: [pt(9, 9), pt(10, 9), pt(10, 10)] },
+      ],
+    };
+    const { features, rejected } = joinOsm([mixed], known);
+    expect(features.size).toBe(0);
+    expect(rejected[0]?.reason).toBe("1 unclosed outer ring");
+  });
+
+  it("keeps the first of two relations claiming the same commune and reports the second", () => {
+    const { features, rejected } = joinOsm(
+      [relation("01.511.05.19", 10), relation("01.511.05.19.", 11)],
+      known,
+    );
+    expect(features.size).toBe(1);
+    expect(features.get("015110519")!.relationId).toBe(10);
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0]?.relationId).toBe(11);
+    expect(rejected[0]?.reason).toContain("duplicate code");
+  });
 });
