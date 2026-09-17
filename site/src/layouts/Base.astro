@@ -6,6 +6,11 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
+const themes = [
+  { id: "auto", label: copy.themeAuto },
+  { id: "light", label: copy.themeLight },
+  { id: "dark", label: copy.themeDark },
+];
 ---
 
 <!doctype html>
@@ -20,19 +25,39 @@ const copy = t(locale);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wght@0,400..600;1,400..500&family=JetBrains+Mono:wght@400;500&display=swap"
     />
+    <script is:inline>
+      // Before first paint, so a chosen theme never flashes the other one. Storage can
+      // throw in a private window, and the page has to render regardless.
+      try {
+        var saved = localStorage.getItem("theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.dataset.theme = saved;
+        }
+      } catch (e) {
+        /* no stored preference is readable; the media query decides */
+      }
+    </script>
   </head>
   <body>
     <header class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
-      <nav class="tongues" aria-label={copy.language}>
-        {LOCALES.map((l) => (
-          <a href={path(l)} hreflang={l} aria-current={l === locale ? "page" : undefined}>
-            {LOCALE_NAMES[l]}
-          </a>
-        ))}
-      </nav>
+      <div class="controls">
+        <nav class="tongues" aria-label={copy.language}>
+          {LOCALES.map((l) => (
+            <a href={path(l)} hreflang={l} aria-current={l === locale ? "page" : undefined}>
+              {LOCALE_NAMES[l]}
+            </a>
+          ))}
+        </nav>
+        <fieldset class="themes">
+          <legend class="sr-only">{copy.theme}</legend>
+          {themes.map((theme) => (
+            <button type="button" data-set-theme={theme.id} aria-pressed="false">{theme.label}</button>
+          ))}
+        </fieldset>
+      </div>
     </header>
 
     <main>
@@ -45,50 +70,85 @@ const copy = t(locale);
       {REPO_URL ? <p><a href={REPO_URL}>{copy.repo}</a></p> : null}
     </footer>
 
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-set-theme]"));
+        var current = function () {
+          return root.dataset.theme || "auto";
+        };
+        var paint = function () {
+          var now = current();
+          buttons.forEach(function (button) {
+            button.setAttribute("aria-pressed", String(button.dataset.setTheme === now));
+          });
+        };
+        buttons.forEach(function (button) {
+          button.addEventListener("click", function () {
+            var next = button.dataset.setTheme;
+            if (next === "auto") delete root.dataset.theme;
+            else root.dataset.theme = next;
+            try {
+              if (next === "auto") localStorage.removeItem("theme");
+              else localStorage.setItem("theme", next);
+            } catch (e) {
+              /* the choice still applies to this page view */
+            }
+            paint();
+          });
+        });
+        paint();
+      })();
+    </script>
+
     <style is:global>
       :root {
-        /* A document ground. Warm grey drafting stock, survey ink, one rule colour. */
+        /* The document ground: warm grey stock, survey ink, one rule colour. */
         --paper: #f1efe9;
         --ink: #191d19;
-        --quiet: #63695f;
+        --quiet: #5f6660;
         --rule: #dcd9d0;
-        /* Machine output — code blocks and API responses — sits in a well, while the
-           page itself stays document. The map went the other way: it reads as a survey
-           drawing on the page ground rather than a panel fighting it. */
-        --canvas: #0b1512;
         --brass: #8a6d24;
 
-        --serif: "Newsreader", Georgia, "Times New Roman", serif;
-        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        /* The data plate. Fixed in both themes, because it is a field the page sets
+           data on rather than a surface that follows the page. */
+        --plate: #0d1a17;
+        --plate-ink: #e8efe9;
+        --plate-quiet: #8ba398;
+        --plate-rule: #26392f;
+        --plate-accent: #7fcfae;
+        --plate-warn: #d8a83e;
+
+        --display: "Instrument Serif", Georgia, "Times New Roman", serif;
+        --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 
         /* A fourth, per Bringhurst. */
         --t-xs: 0.75rem;
         --t-sm: 0.875rem;
-        --t-base: 1.0625rem;
+        --t-base: 1rem;
         --t-md: 1.333rem;
         --t-lg: 1.777rem;
         --t-xl: 2.37rem;
         --t-2xl: 3.157rem;
-        --measure: 64ch;
+        --measure: 68ch;
       }
 
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
-          --paper: #12140f;
+          --paper: #191b16;
           --ink: #ece9df;
-          --quiet: #999687;
-          --rule: #2b2d24;
-          --canvas: #050a08;
+          --quiet: #9d9a8d;
+          --rule: #313329;
           --brass: #cfa64a;
         }
       }
 
       :root[data-theme="dark"] {
-        --paper: #12140f;
+        --paper: #191b16;
         --ink: #ece9df;
-        --quiet: #999687;
-        --rule: #2b2d24;
-        --canvas: #050a08;
+        --quiet: #9d9a8d;
+        --rule: #313329;
         --brass: #cfa64a;
       }
 
@@ -106,22 +166,21 @@ const copy = t(locale);
         margin: 0;
         background: var(--paper);
         color: var(--ink);
-        font-family: var(--serif);
-        font-optical-sizing: auto;
+        font-family: var(--sans);
         font-size: var(--t-base);
-        line-height: 1.62;
+        line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
 
       main {
         width: 100%;
-        max-width: 72rem;
+        max-width: 74rem;
         margin: 0 auto;
         padding: 0 clamp(1rem, 4vw, 2.5rem) 6rem;
       }
 
       p {
-        margin: 0 0 1.1rem;
+        margin: 0 0 1.05rem;
         max-width: var(--measure);
       }
 
@@ -144,29 +203,55 @@ const copy = t(locale);
       code,
       .mono {
         font-family: var(--mono);
-        font-size: 0.9em;
+        font-size: 0.88em;
         font-variant-ligatures: none;
       }
 
-      /* Masthead ------------------------------------------------------------- */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      /* The data plate, shared by the map and the charts. ------------------- */
+
+      .plate {
+        background: var(--plate);
+        color: var(--plate-ink);
+        border: 1px solid var(--plate-rule);
+        border-radius: 4px;
+        padding: clamp(1rem, 2.2vw, 1.6rem);
+      }
+
+      /* Masthead ------------------------------------------------------------ */
 
       .masthead {
         width: 100%;
-        max-width: 72rem;
+        max-width: 74rem;
         margin: 0 auto;
-        padding: 1.6rem clamp(1rem, 4vw, 2.5rem);
+        padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem 1.5rem;
+        gap: 0.75rem 1.75rem;
         align-items: baseline;
         justify-content: space-between;
       }
 
       .wordmark {
+        font-family: var(--display);
         font-size: var(--t-md);
-        font-weight: 500;
-        letter-spacing: -0.015em;
+        letter-spacing: 0.002em;
         text-decoration: none;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem 1.5rem;
+        align-items: baseline;
       }
 
       .tongues {
@@ -192,11 +277,42 @@ const copy = t(locale);
         text-underline-offset: 0.3em;
       }
 
-      /* Footer --------------------------------------------------------------- */
+      .themes {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        padding: 2px;
+        margin: 0;
+        min-width: 0;
+      }
+
+      .themes button {
+        font: inherit;
+        font-size: var(--t-xs);
+        color: var(--quiet);
+        background: none;
+        border: 0;
+        border-radius: 999px;
+        padding: 0.18rem 0.6rem;
+        cursor: pointer;
+        line-height: 1.5;
+      }
+
+      .themes button:hover {
+        color: var(--ink);
+      }
+
+      .themes button[aria-pressed="true"] {
+        color: var(--paper);
+        background: var(--ink);
+      }
+
+      /* Footer -------------------------------------------------------------- */
 
       footer {
         width: 100%;
-        max-width: 72rem;
+        max-width: 74rem;
         margin: 0 auto;
         padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
         border-top: 1px solid var(--rule);

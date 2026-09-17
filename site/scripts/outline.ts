@@ -188,15 +188,11 @@ const regions = regionPaths.join("");
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${height}" \
 role="img" aria-label="The ${drawn} commune boundaries of Morocco, drawn from the dataset">\
 <style><![CDATA[
-  /* The map sits on the page ground, so it follows the page theme. Referenced as an
-     image, it cannot read the page's custom properties, so these are literals. CDATA
-     because SVG is XML: a bare < in here would be parsed as markup and break the file. */
-  .commune { fill: none; stroke: #8b9689; stroke-width: 0.8; }
-  .region { fill: none; stroke: #191d19; stroke-width: 1.5; stroke-linecap: round; }
-  @media (prefers-color-scheme: dark) {
-    .commune { stroke: #5a6457; }
-    .region { stroke: #ece9df; }
-  }
+  /* The plate under this is a fixed dark field in both page themes, so the strokes have
+     nothing to respond to and need no media query. CDATA because SVG is XML: a bare <
+     in here would be parsed as markup and break the file. */
+  .commune { fill: none; stroke: #3f7d68; stroke-width: 0.8; }
+  .region { fill: none; stroke: #cfe6d8; stroke-width: 1.5; stroke-linecap: round; }
 ]]></style>\
 <g class="commune"><path d="${communes}"/></g>\
 <g class="region"><path d="${regions}"/></g></svg>

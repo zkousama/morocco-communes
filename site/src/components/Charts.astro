@@ -1,0 +1,367 @@
+---
+import { change, sizes, spread } from "../generated/charts";
+import { t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const group = new Intl.NumberFormat(locale === "fr" ? "fr-MA" : "en-GB");
+
+/* Chart 1: percent change per région, diverging from a zero axis. The axis sits where
+   the data puts it — one région shrank, and barely, so the gutter left of zero is thin. */
+const mostNegative = Math.min(0, ...change.map((r) => r.pct));
+const mostPositive = Math.max(0, ...change.map((r) => r.pct));
+const span = mostPositive - mostNegative;
+const zero = (-mostNegative / span) * 100;
+const widthOf = (pct: number) => (Math.abs(pct) / span) * 100;
+
+/* Chart 2: the size histogram. */
+const maxCount = Math.max(...sizes.map((b) => b.count));
+
+/* Chart 3: the two growth distributions, on one shared scale. */
+const lo = Math.min(...spread.map((s) => s.p10));
+const hi = Math.max(...spread.map((s) => s.p90));
+const pad = (hi - lo) * 0.08;
+const scale = (v: number) => ((v - (lo - pad)) / (hi - lo + pad * 2)) * 100;
+const ticks = [-20, -10, 0, 10, 20];
+---
+
+<div class="charts">
+  <figure class="chart plate">
+    <figcaption>
+      <h3>{copy.chartChange}</h3>
+      <p>{copy.chartChangeBody}</p>
+    </figcaption>
+    <ul class="diverge">
+      {change.map((region) => (
+        <li>
+          <span class="rname">{region.name}</span>
+          <span class="track">
+            <span class="axis" style={`inset-inline-start:${zero}%`}></span>
+            <span
+              class:list={["bar", region.pct >= 0 ? "up" : "down"]}
+              style={
+                region.pct >= 0
+                  ? `inset-inline-start:${zero}%;width:${widthOf(region.pct)}%`
+                  : `inset-inline-start:${zero - widthOf(region.pct)}%;width:${widthOf(region.pct)}%`
+              }
+            ></span>
+          </span>
+          <span class="rval mono">{region.pct >= 0 ? "+" : "−"}{Math.abs(region.pct).toFixed(1)}%</span>
+        </li>
+      ))}
+    </ul>
+    <p class="note">{copy.chartChangeNote}</p>
+  </figure>
+
+  <figure class="chart plate">
+    <figcaption>
+      <h3>{copy.chartSize}</h3>
+      <p>{copy.chartSizeBody}</p>
+    </figcaption>
+    <ul class="histogram">
+      {sizes.map((bucket) => (
+        <li>
+          <span class="hcount mono">{group.format(bucket.count)}</span>
+          <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`}></span>
+          <span class="hlabel">{bucket.label}</span>
+        </li>
+      ))}
+    </ul>
+  </figure>
+
+  <figure class="chart plate wide">
+    <figcaption>
+      <h3>{copy.chartSpread}</h3>
+      <p>{copy.chartSpreadBody}</p>
+    </figcaption>
+    <div class="rangegrid">
+      {spread.map((row) => (
+        <>
+          <span class="rangename">
+            {row.label}
+            <span class="mono n">{group.format(row.count)}</span>
+          </span>
+          <span class="rangetrack">
+            {ticks.map((tick) => (
+              <span class:list={["tick", { zeroline: tick === 0 }]} style={`inset-inline-start:${scale(tick)}%`}></span>
+            ))}
+            <span
+              class="whisker"
+              style={`inset-inline-start:${scale(row.p10)}%;width:${scale(row.p90) - scale(row.p10)}%`}
+            ></span>
+            <span
+              class="box"
+              style={`inset-inline-start:${scale(row.p25)}%;width:${scale(row.p75) - scale(row.p25)}%`}
+            ></span>
+            <span class="median" style={`inset-inline-start:${scale(row.median)}%`}></span>
+          </span>
+        </>
+      ))}
+      <span class="spacer" aria-hidden="true"></span>
+      <span class="scalebar" aria-hidden="true">
+        {ticks.map((tick) => (
+          <span style={`inset-inline-start:${scale(tick)}%`} class="mono">{tick > 0 ? `+${tick}` : tick}%</span>
+        ))}
+      </span>
+    </div>
+    <p class="note">{copy.chartSpreadNote}</p>
+  </figure>
+</div>
+
+<style>
+  .charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+
+  .chart.wide {
+    grid-column: 1 / -1;
+  }
+
+  .chart {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+
+  .chart figcaption {
+    display: block;
+  }
+
+  .chart h3 {
+    margin: 0 0 0.3rem;
+    font-family: var(--display);
+    font-size: var(--t-md);
+    font-weight: 400;
+    color: var(--plate-ink);
+    letter-spacing: -0.01em;
+  }
+
+  .chart figcaption p {
+    margin: 0;
+    color: var(--plate-quiet);
+    font-size: var(--t-sm);
+    max-width: 52ch;
+  }
+
+  .chart .note {
+    margin: 0;
+    color: var(--plate-quiet);
+    font-size: var(--t-xs);
+    max-width: 62ch;
+  }
+
+  /* Diverging bars ---------------------------------------------------------- */
+
+  .diverge,
+  .histogram {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .diverge li {
+    display: grid;
+    grid-template-columns: minmax(6rem, 10rem) minmax(0, 1fr) 4rem;
+    gap: 0.75rem;
+    align-items: center;
+    padding-block: 0.22rem;
+  }
+
+  .rname {
+    font-size: var(--t-xs);
+    color: var(--plate-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track {
+    position: relative;
+    display: block;
+    height: 0.85rem;
+  }
+
+  .axis {
+    position: absolute;
+    top: -0.1rem;
+    bottom: -0.1rem;
+    width: 1px;
+    background: var(--plate-rule);
+  }
+
+  .bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 1px;
+    min-width: 2px;
+  }
+
+  .bar.up {
+    background: var(--plate-accent);
+  }
+
+  .bar.down {
+    background: var(--plate-warn);
+  }
+
+  .rval {
+    font-size: var(--t-xs);
+    text-align: end;
+    color: var(--plate-quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Histogram --------------------------------------------------------------- */
+
+  .histogram {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0.5rem;
+    align-items: end;
+    flex: 1 1 auto;
+    min-height: 12rem;
+  }
+
+  .histogram li {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    height: 100%;
+    text-align: center;
+  }
+
+  .hcount {
+    font-size: var(--t-xs);
+    color: var(--plate-quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hbar {
+    display: block;
+    flex: 0 0 auto;
+    background: var(--plate-accent);
+    border-radius: 1px 1px 0 0;
+    min-height: 2px;
+  }
+
+  .hlabel {
+    font-size: 0.7rem;
+    color: var(--plate-quiet);
+    white-space: nowrap;
+  }
+
+  /* Box and whisker --------------------------------------------------------- */
+
+  .rangegrid {
+    display: grid;
+    grid-template-columns: minmax(9rem, 17rem) minmax(0, 1fr);
+    gap: 0.6rem 1rem;
+    align-items: center;
+  }
+
+  .rangename {
+    font-size: var(--t-sm);
+    color: var(--plate-ink);
+    line-height: 1.4;
+  }
+
+  .rangename .n {
+    font-size: var(--t-xs);
+    color: var(--plate-quiet);
+    margin-inline-start: 0.5rem;
+  }
+
+  .rangetrack {
+    position: relative;
+    display: block;
+    height: 1.5rem;
+  }
+
+  .tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--plate-rule);
+  }
+
+  .tick.zeroline {
+    background: var(--plate-quiet);
+  }
+
+  .whisker {
+    position: absolute;
+    top: 50%;
+    height: 1px;
+    background: var(--plate-accent);
+    transform: translateY(-50%);
+  }
+
+  .box {
+    position: absolute;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    background: var(--plate-accent);
+    opacity: 0.32;
+    border-radius: 1px;
+  }
+
+  /* Reads against the box it sits inside, which the accent colour would not. */
+  .median {
+    position: absolute;
+    top: 0.1rem;
+    bottom: 0.1rem;
+    width: 2px;
+    background: var(--plate-ink);
+  }
+
+  .scalebar {
+    position: relative;
+    display: block;
+    height: 1rem;
+  }
+
+  .scalebar span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: var(--t-xs);
+    color: var(--plate-quiet);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 62rem) {
+    .charts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rangegrid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.3rem;
+    }
+
+    .spacer {
+      display: none;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .diverge li {
+      grid-template-columns: minmax(4.5rem, 7rem) minmax(0, 1fr) 3.4rem;
+      gap: 0.5rem;
+    }
+
+    .hlabel {
+      font-size: 0.62rem;
+    }
+  }
+</style>

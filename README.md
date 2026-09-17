@@ -75,14 +75,24 @@ Full reference: [`api/README.md`](api/README.md).
 
 ## The docs site
 
-`site/` is an Astro site in English and French. It builds to static HTML — the only
-JavaScript is a Solid island for the playground, which issues live queries against
-whatever it is deployed beside and shows the request URL and the `X-Api-Tier` of the
-response.
+`site/` is an Astro site in English and French, with a light and dark theme and a control
+to pick either or follow the system. It builds to static HTML — the only JavaScript is a
+Solid island for the playground, which issues live queries against whatever it is deployed
+beside and shows the request URL and the `X-Api-Tier` of the response.
 
-The hero draws all 1,502 commune boundaries from `data/v1/geometry`, simplified at build
-time by `site/scripts/outline.ts` to a tolerance that stays under a device pixel at the
-size it renders. It is the dataset, not an illustration of it.
+Everything drawn on it comes out of `data/v1` at build time, by three scripts under
+`site/scripts/`:
+
+- `outline.ts` — the hero. All 1,502 commune boundaries, decoded from the TopoJSON,
+  projected and simplified to a tolerance that stays under a device pixel at the size it
+  renders. It is the dataset, not an illustration of it.
+- `hierarchy.ts` — the code ladder, a real chain from région down to arrondissement.
+- `charts.ts` — population change per région, the distribution of commune sizes, and the
+  growth spread of the 207 crosswalked communes against the 1,286 whose code never
+  changed. That last one is the reconciliation checking itself: the two distributions sit
+  almost on top of each other.
+
+The charts are inline SVG and CSS, so they need no JavaScript and no charting library.
 
 Arabic names are in the data and Arabic queries work — the site's own interface is
 English and French.

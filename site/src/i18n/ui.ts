@@ -72,6 +72,26 @@ export const ui = {
     emptyState: "Pick an example or type a query, then run it.",
     failed: "That request did not complete. Check the API is running, then try again.",
 
+    theme: "Theme",
+    themeAuto: "Auto",
+    themeLight: "Light",
+    themeDark: "Dark",
+
+    chartsHeading: "What the numbers show",
+    chartsBody:
+      "Three things worth knowing before you build on this, each drawn from the dataset rather than written down beside it.",
+    chartChange: "The south is filling up",
+    chartChangeBody: "Population change by région between the 2014 and 2024 censuses.",
+    chartChangeNote:
+      "Dakhla-Oued Ed-Dahab grew by more than half. The Oriental is the only région that shrank. Both figures are sums over the communes in each, not a separate régional series.",
+    chartSize: "Most communes are small",
+    chartSizeBody: "Communes by 2024 population.",
+    chartSpread: "Whether the crosswalk holds up",
+    chartSpreadBody:
+      "207 communes were renumbered by the 2015 reform, so their 2014 population had to be matched by name and elimination rather than read off an unchanged code. If those matches were wrong, their implied growth would scatter differently.",
+    chartSpreadNote:
+      "Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The two distributions sit almost on top of each other, which is the evidence that the matching is sound — it is not proof, and the per-pair reasoning is in data/v1/crosswalk.",
+
     footerData: "Codes and population from the Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014.",
     footerGeometry: "Boundaries from OpenStreetMap contributors, under the Open Database Licence.",
     repo: "Source",
@@ -128,6 +148,26 @@ export const ui = {
     tier: "Traitée par",
     emptyState: "Choisissez un exemple ou saisissez une requête, puis lancez-la.",
     failed: "La requête n’a pas abouti. Vérifiez que l’API tourne, puis réessayez.",
+
+    theme: "Thème",
+    themeAuto: "Auto",
+    themeLight: "Clair",
+    themeDark: "Sombre",
+
+    chartsHeading: "Ce que disent les chiffres",
+    chartsBody:
+      "Trois choses à savoir avant de construire là-dessus, chacune tirée du jeu de données et non écrite à côté.",
+    chartChange: "Le sud se remplit",
+    chartChangeBody: "Évolution de la population par région entre les recensements de 2014 et 2024.",
+    chartChangeNote:
+      "Dakhla-Oued Ed-Dahab a gagné plus de la moitié. L’Oriental est la seule région à avoir perdu des habitants. Les deux chiffres sont des sommes sur les communes, pas une série régionale distincte.",
+    chartSize: "La plupart des communes sont petites",
+    chartSizeBody: "Communes par population en 2024.",
+    chartSpread: "Ce que vaut la table de correspondance",
+    chartSpreadBody:
+      "207 communes ont été renumérotées par la réforme de 2015 : leur population de 2014 a dû être appariée par nom et par élimination, faute d’un code inchangé. Si ces appariements étaient faux, leur croissance se disperserait autrement.",
+    chartSpreadNote:
+      "La barre couvre les 10e à 90e centiles, le bloc les 25e à 75e, le trait la médiane. Les deux distributions se superposent presque : c’est l’indice que l’appariement tient — ce n’est pas une preuve, et le raisonnement par paire est dans data/v1/crosswalk.",
 
     footerData: "Codes et population : Haut-Commissariat au Plan, RGPH 2024 et RGPH 2014.",
     footerGeometry: "Limites : contributeurs d’OpenStreetMap, sous licence Open Database.",
