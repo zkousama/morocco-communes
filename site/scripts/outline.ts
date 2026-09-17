@@ -116,6 +116,9 @@ for (const file of files) {
       }
     }
   }
+  // An arc used an odd number of times is on the région's edge: a shared internal border
+  // is traversed once from each side and cancels. Verified against the data — 333 of
+  // these are traced identically by two régions, and no arc is used more than twice.
   for (const [index, count] of uses) {
     if (count % 2 === 1) regionArcs.push(arcs[index]!);
   }
@@ -180,7 +183,23 @@ for (const { rings } of communeRings) {
   if (kept.length > 0) drawn++;
   communePaths.push(...kept);
 }
-const regionPaths = regionArcs.map((arc) => toPath(arc, false)).filter((d): d is string => d !== null);
+/**
+ * Spans fewer than two units in the 1000-unit viewBox, so it renders as a dot rather than
+ * a line. On the régional layer that reads as a place, and the one that survives here is
+ * an islet off the Mediterranean coast rather than a border between two régions.
+ */
+function isDot(d: string): boolean {
+  const numbers = d.match(/-?\d+/g);
+  if (!numbers) return true;
+  const xs: number[] = [];
+  const ys: number[] = [];
+  numbers.forEach((n, i) => (i % 2 === 0 ? xs : ys).push(Number(n)));
+  return Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) < 2;
+}
+
+const regionPaths = regionArcs
+  .map((arc) => toPath(arc, false))
+  .filter((d): d is string => d !== null && !isDot(d));
 
 const communes = communePaths.join("");
 const regions = regionPaths.join("");
