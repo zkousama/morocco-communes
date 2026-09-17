@@ -27,7 +27,10 @@ export interface DatasetRecords {
   arrondissements: unknown[];
 }
 
-const LABEL = /^(Commune|Arrondissement|Cercle|Province|Préfecture|Région)\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
+// Plurals matter and the strip repeats, for the same reason the Arabic one does:
+// Casablanca's eight groupings are labelled twice, "Préfecture d'arrondissements de X".
+// One pass leaves "arrondissements de X" standing as the name.
+const LABEL = /^(Communes?|Arrondissements?|Cercles?|Provinces?|Préfectures?|Régions?)\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
 const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
 // The Arabic column carries its own label word, one per level, and it has to come off
 // too or every record ships a name meaning "commune Tanger" rather than "Tanger".
@@ -35,7 +38,15 @@ const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['\u2019]|de\s+
 // جماعة 1503, مقاطعة 41. Nothing else appears in first position, and the only
 // second-position labels are مقاطعات 6 and مقاطعة 2, inside Casablanca.
 const LABEL_AR = /^(جهة|عمالة|إقليم|دائرة|جماعة|مقاطعات|مقاطعة)\s+/;
-const strip = (name: string) => name.replace(LABEL, "").trim();
+const strip = (name: string) => {
+  let out = name.trim();
+  let previous = "";
+  while (out !== previous) {
+    previous = out;
+    out = out.replace(LABEL, "").trim();
+  }
+  return out;
+};
 /**
  * Applied until it stops changing the string. Casablanca's eight préfectures
  * d'arrondissements carry a compound label — "عمالة مقاطعات X" for the six that group

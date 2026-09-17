@@ -58,7 +58,7 @@ describe("toRecords", () => {
     expect(aitKamra.population.change).toBeNull();
   });
 
-  it("strips the Arabic label word as well as the French one", () => {
+  it("strips every label word, in both languages and however often it repeats", () => {
     const tanger = records.communes.find((c) => c.code === "01.511.01.0")!;
     expect(tanger.name.fr).toBe("Tanger");
     expect(tanger.name.ar).toBe("طنجة");
@@ -67,6 +67,15 @@ describe("toRecords", () => {
     expect((grouped as { name: { ar: string } }).name.ar).toBe("الدار البيضاء-أنفا");
     const single = records.provinces.find((p) => (p as { code: string }).code === "06.141.01.30")!;
     expect((single as { name: { ar: string } }).name.ar).toBe("الحي الحسني");
+    // The French side is labelled twice over too.
+    expect((grouped as { name: { fr: string } }).name.fr).toBe("Casablanca-Anfa");
+    expect((single as { name: { fr: string } }).name.fr).toBe("Hay-Hassani");
+    const residue = /^(commune|arrondissements?|cercle|province|préfecture|région)\b/i;
+    for (const level of [records.regions, records.provinces, records.cercles, records.communes, records.arrondissements]) {
+      for (const unit of level as { name: { fr: string } }[]) {
+        expect(residue.test(unit.name.fr)).toBe(false);
+      }
+    }
 
     // Not one record anywhere should still open with a level's label word.
     const labels = ["جهة", "عمالة", "إقليم", "دائرة", "جماعة", "مقاطعات", "مقاطعة"];
