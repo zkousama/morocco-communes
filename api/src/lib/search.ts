@@ -35,6 +35,9 @@ export type IndexEntry = [
   normalisedAr: string,
   /** Distinct trigrams across all three searchable fields, the denominator for Dice. */
   gramCount: number,
+  /** The zero-padded form, so the Worker can resolve a digits-only code without
+   * reimplementing the per-level padding rules. */
+  codeDigits: string,
 ];
 
 export interface SearchIndex {

@@ -1,0 +1,127 @@
+/**
+ * Probes a running deployment — `wrangler dev` locally, or the live URL after a deploy.
+ *
+ * The pure logic behind these routes is unit-tested; what this checks is the part only a
+ * real runtime can answer: which tier served a request, whether the asset store bypasses
+ * the Worker, and whether the headers survive the trip.
+ *
+ *   pnpm api:smoke                       (against wrangler dev on :8788)
+ *   pnpm api:smoke https://<deployment>
+ */
+const base = (process.argv[2] ?? "http://127.0.0.1:8788").replace(/\/$/, "");
+
+let failures = 0;
+const check = (name: string, ok: boolean, detail = "") => {
+  if (!ok) failures++;
+  console.log(`  ${ok ? "ok  " : "FAIL"}  ${name}${detail && !ok ? ` — ${detail}` : ""}`);
+};
+
+async function get(path: string) {
+  const response = await fetch(base + path);
+  const text = await response.text();
+  let body: Record<string, never> | null = null;
+  try {
+    body = JSON.parse(text) as Record<string, never>;
+  } catch {
+    body = null;
+  }
+  return {
+    status: response.status,
+    tier: response.headers.get("x-api-tier"),
+    contentType: response.headers.get("content-type") ?? "",
+    cors: response.headers.get("access-control-allow-origin"),
+    contentLocation: response.headers.get("content-location"),
+    body,
+  };
+}
+
+console.log(`probing ${base}\n`);
+
+console.log("pre-rendered tier — served by the asset store, never invoking the Worker");
+for (const path of [
+  "/api/version.json",
+  "/api/regions.json",
+  "/api/communes/01.511.01.0.json",
+  "/api/arrondissements/01.511.01.05.json",
+  "/api/provinces/01.511/communes/page/1.json",
+  "/api/communes/type/urban/page/1.json",
+  "/api/communes/01.511.01.0/arrondissements.json",
+]) {
+  const r = await get(path);
+  check(path, r.status === 200 && r.tier === null && r.contentType.includes("json") && r.cors === "*",
+    `status=${r.status} tier=${r.tier} ct=${r.contentType} cors=${r.cors}`);
+}
+{
+  const r = await get("/data/v1/geometry/01.topojson");
+  check("/data/v1/geometry/01.topojson is typed by _headers",
+    r.status === 200 && r.contentType.includes("json"), `ct=${r.contentType}`);
+}
+
+console.log("\nalias tier — the Worker rewrites to a pre-rendered file");
+for (const [path, expected] of [
+  ["/api/communes?province=01.511&page=1", "/api/provinces/01.511/communes/page/1.json"],
+  ["/api/communes?type=urban&page=2", "/api/communes/type/urban/page/2.json"],
+  ["/api/communes?region=01", "/api/regions/01/communes/page/1.json"],
+  ["/api/communes/01.511.01.0", "/api/communes/01.511.01.0.json"],
+  ["/api/communes/001511010", "/api/communes/01.511.01.0.json"],
+  ["/api/communes/tanger", "/api/communes/01.511.01.0.json"],
+  ["/api/regions", "/api/regions.json"],
+] as const) {
+  const r = await get(path);
+  const located = r.contentLocation === expected || r.body?.links?.self === expected;
+  check(path, r.status === 200 && r.tier === "alias" && located,
+    `status=${r.status} tier=${r.tier} location=${r.contentLocation}`);
+}
+
+console.log("\ncomputed tier — answers no file holds");
+{
+  const r = await get("/api/search?q=tanger&limit=3");
+  const first = r.body?.data?.[0];
+  check("/api/search finds Tanger by its French name",
+    r.status === 200 && r.tier === "computed" && first?.code === "01.511.01.0", JSON.stringify(first));
+}
+{
+  const r = await get(`/api/search?q=${encodeURIComponent("طَنْجَة")}&limit=1`);
+  check("/api/search finds it from Arabic written with vowel marks",
+    r.body?.data?.[0]?.code === "01.511.01.0");
+}
+{
+  const r = await get("/api/search?q=Shefshaouen&limit=10");
+  const names = (r.body?.data ?? []).map((h: never) => (h as { name: { fr: string } }).name.fr);
+  check("/api/search retrieves a transliteration variant", names.includes("Chefchaouen"), names.slice(0, 3).join(", "));
+}
+{
+  const r = await get("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15&limit=3");
+  const hits = r.body?.data ?? [];
+  const ordered = hits.every((h: never, i: number) =>
+    i === 0 || (h as { distanceKm: number }).distanceKm >= (hits[i - 1] as { distanceKm: number }).distanceKm);
+  check("/api/communes/near returns communes nearest first",
+    r.status === 200 && r.tier === "computed" && hits.length > 0 && ordered);
+}
+{
+  const all = await get("/api/communes?province=01.511");
+  const urban = await get("/api/communes?province=01.511&type=urban");
+  const rural = await get("/api/communes?province=01.511&type=rural");
+  check("a two-filter query is computed and actually filters",
+    urban.tier === "computed" &&
+      (urban.body?.meta?.total ?? 0) + (rural.body?.meta?.total ?? 0) === (all.body?.meta?.total ?? -1),
+    `all=${all.body?.meta?.total} urban=${urban.body?.meta?.total} rural=${rural.body?.meta?.total}`);
+}
+
+console.log("\nproblem documents");
+for (const [path, status] of [
+  ["/api/communes/99.999.99.99", 404],
+  ["/api/search", 400],
+  ["/api/communes/near?lat=33&lng=-7&radius=9999", 400],
+  ["/api/communes/near?lat=abc&lng=-7", 400],
+  ["/api/communes?type=banana", 400],
+  ["/api/nonsense", 404],
+] as const) {
+  const r = await get(path);
+  check(`${path} -> ${status}`,
+    r.status === status && typeof r.body?.type === "string" && typeof r.body?.title === "string",
+    `got ${r.status}`);
+}
+
+console.log(`\n${failures === 0 ? "all probes passed" : `${failures} probe(s) failed`}`);
+process.exit(failures === 0 ? 0 : 1);

@@ -37,13 +37,15 @@ describe("emitTree", () => {
       1 + d.cercles.length + // cercles list, detail
       pagesOver(sizes(d.communes, (c) => c.parents.cercle, cercleCodes)) +
       Math.ceil(d.communes.length / PER_PAGE) +
+      pagesOver([d.communes.filter((c) => c.type === "urban").length]) +
+      pagesOver([d.communes.filter((c) => c.type === "rural").length]) +
       d.communes.length + d.communes.length + // commune detail, nested arrondissements
       1 + d.arrondissements.length; // arrondissements list, detail
 
     expect(tree.size).toBe(expected);
     // Named outright: adding an endpoint has to be a deliberate edit here, and the tree
     // has to stay well inside Cloudflare's 20,000-file ceiling.
-    expect(tree.size).toBe(3821);
+    expect(tree.size).toBe(3852);
     expect(tree.size).toBeLessThan(20_000);
   });
 
@@ -106,6 +108,27 @@ describe("emitTree", () => {
       expect(body.meta.datasetVersion, path).toBe("1.0.0");
       expect("prev" in body.links && "next" in body.links, path).toBe(true);
     }
+  });
+
+  it("records that type and cercle-presence are the same filter", () => {
+    // Measured: 242 urban communes, all with no cercle; 1,261 rural, all with one. The
+    // emitter keys ?type= pages off the type field rather than off cercle-presence, so
+    // this is here to notice if the two ever stop agreeing rather than to require it.
+    const urban = d.communes.filter((c) => c.type === "urban");
+    const rural = d.communes.filter((c) => c.type === "rural");
+    expect(urban.length).toBe(242);
+    expect(rural.length).toBe(1261);
+    expect(urban.filter((c) => c.parents.cercle !== null)).toEqual([]);
+    expect(rural.filter((c) => c.parents.cercle === null)).toEqual([]);
+  });
+
+  it("paginates the type filters, which span the whole country", () => {
+    expect(tree.has("/api/communes/type/urban/page/5.json")).toBe(true);
+    expect(tree.has("/api/communes/type/rural/page/26.json")).toBe(true);
+    expect(tree.has("/api/communes/type/urban/page/6.json")).toBe(false);
+    const page1 = tree.get("/api/communes/type/urban/page/1.json")!;
+    for (const c of page1.data as { type: string }[]) expect(c.type).toBe("urban");
+    expect(page1.meta.total).toBe(242);
   });
 
   it("reports the record counts and the source vintages at /api/version.json", () => {

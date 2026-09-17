@@ -79,6 +79,12 @@ export function emitTree(d: Dataset): Tree {
   }
 
   paged(api("communes/page"), d.communes);
+  // ?type= is the one single-key filter the Worker cannot answer by narrowing to a
+  // parent's list: it spans the whole country, which would be 31 subrequests. 31 files
+  // instead.
+  for (const type of ["urban", "rural"] as const) {
+    paged(api(`communes/type/${type}/page`), d.communes.filter((c) => c.type === type));
+  }
   for (const c of d.communes) {
     put(api(`communes/${c.code}.json`), envelope(c, { self: api(`communes/${c.code}.json`) }));
     whole(api(`communes/${c.code}/arrondissements.json`), arrondissementsByCommune.get(c.code) ?? []);

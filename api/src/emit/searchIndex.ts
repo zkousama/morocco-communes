@@ -3,6 +3,7 @@ import type { IndexEntry, Level, SearchIndex } from "../lib/search.ts";
 
 interface Named {
   code: string;
+  codeDigits?: string;
   name: { fr: string; ar: string };
   slug?: string;
   centroid?: { lat: number; lng: number } | null;
@@ -42,6 +43,7 @@ export function buildIndex(
         nFr,
         nAr,
         grams.size,
+        row.codeDigits ?? row.code.replace(/\./g, ""),
       ]);
     }
   }

@@ -12,7 +12,8 @@
     "types": [
       "node",
       "@cloudflare/workers-types"
-    ]
+    ],
+    "resolveJsonModule": true
   },
   "include": [
     "pipeline/src",
