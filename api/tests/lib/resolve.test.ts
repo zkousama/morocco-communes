@@ -46,10 +46,16 @@ describe("resolve", () => {
   });
 
   it("reports the level it found, so a wrong collection can be explained", () => {
-    expect(resolve(lookup, "01").level).toBe("region");
-    expect(resolve(lookup, "01.511").level).toBe("province");
-    expect(resolve(lookup, "01.511.05").level).toBe("cercle");
-    expect(resolve(lookup, "01.511.01.05").level).toBe("arrondissement");
+    const levelOf = (raw: string) => {
+      const found = resolve(lookup, raw);
+      expect(found.kind, raw).toBe("found");
+      return found.kind === "found" ? found.level : null;
+    };
+    expect(levelOf("01")).toBe("region");
+    expect(levelOf("01.511")).toBe("province");
+    expect(levelOf("01.511.05")).toBe("cercle");
+    expect(levelOf("01.511.01.0")).toBe("commune");
+    expect(levelOf("01.511.01.05")).toBe("arrondissement");
   });
 });
 
