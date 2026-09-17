@@ -2,6 +2,7 @@ import { uniqueSlugs } from "../lib/slug.ts";
 import type { Hierarchy } from "../build/hierarchy.ts";
 import type { Hcp2014Unit } from "../sources/hcp2014.ts";
 import type { OsmFeature } from "../build/osmJoin.ts";
+import type { CrosswalkRow } from "../build/crosswalk.ts";
 
 export interface CommuneRecord {
   code: string;
@@ -14,7 +15,7 @@ export interface CommuneRecord {
   population: {
     "2024": { total: number | null; moroccan: number | null; foreign: number | null; households: number | null };
     "2014": { total: number | null; households: number | null } | null;
-    change: { absolute: number; pct: number; basis: "exact_code" | "arrondissement_sum" } | null;
+    change: { absolute: number; pct: number; basis: "exact_code" | "arrondissement_sum" | "crosswalk" } | null;
   };
   urbanCentres: { name: string; population: number | null }[];
   centroid: { lat: number; lng: number } | null;
@@ -75,13 +76,14 @@ const stripUrbanCentre = (name: string) => name.replace(URBAN_CENTRE, "").trim()
 interface Prior {
   total: number | null;
   households: number | null;
-  basis: "exact_code" | "arrondissement_sum";
+  basis: "exact_code" | "arrondissement_sum" | "crosswalk";
 }
 
 export function toRecords(
   h: Hierarchy,
   units2014: Map<string, Hcp2014Unit>,
   osm: Map<string, OsmFeature> = new Map(),
+  crosswalk: Map<string, CrosswalkRow> = new Map(),
 ): DatasetRecords {
   const slugs = uniqueSlugs(h.communes.map((c) => ({ code: c.code, nameFr: c.nameFr })));
 
@@ -104,17 +106,27 @@ export function toRecords(
       return { total: direct.population, households: direct.households, basis: "exact_code" };
     }
     const codes = arrondissementCodes.get(c.code) ?? [];
-    if (codes.length === 0) return null;
-    const parts = codes.map((code) => units2014.get(code));
-    if (parts.some((p) => p === undefined || p.population === null)) return null;
-    const households = parts.every((p) => p!.households !== null)
-      ? parts.reduce((n, p) => n + p!.households!, 0)
-      : null;
-    return {
-      total: parts.reduce((n, p) => n + p!.population!, 0),
-      households,
-      basis: "arrondissement_sum",
-    };
+    if (codes.length > 0) {
+      const parts = codes.map((code) => units2014.get(code));
+      if (parts.some((p) => p === undefined || p.population === null)) return null;
+      const households = parts.every((p) => p!.households !== null)
+        ? parts.reduce((n, p) => n + p!.households!, 0)
+        : null;
+      return {
+        total: parts.reduce((n, p) => n + p!.population!, 0),
+        households,
+        basis: "arrondissement_sum",
+      };
+    }
+    const mapped = crosswalk.get(c.codeDigits);
+    if (mapped) {
+      return {
+        total: mapped.evidence.population2014,
+        households: null,
+        basis: "crosswalk",
+      };
+    }
+    return null;
   }
 
   const communes: CommuneRecord[] = h.communes.map((c) => {

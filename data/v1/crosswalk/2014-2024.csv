@@ -1,0 +1,208 @@
+code_2024,code_2014,name_2024,name_2014,method,normalised_name_match,candidates_in_province,population_2024,population_2014,population_ratio
+01.051.11.01,01.051.05.01,Ait Kamra,Ait Kamra,exact_name_in_province,true,1,8269,7685,1.076
+01.051.11.07,01.051.05.07,Bni Abdellah,Bni Abdallah,sole_remaining_in_province,false,1,4939,5983,0.8255
+01.051.11.09,01.051.05.09,Bni Hadifa,Bni Hadifa,exact_name_in_province,true,1,4723,5594,0.8443
+01.051.11.15,01.051.05.15,Izemmouren,Izemmouren,exact_name_in_province,true,1,6365,5153,1.2352
+01.051.11.21,01.051.05.21,Rouadi,Rouadi,exact_name_in_province,true,1,6858,7131,0.9617
+01.051.11.25,01.051.05.25,Zaouiat Sidi Abdelkader,Zaouiat Sidi Abdelkader,exact_name_in_province,true,1,4150,5452,0.7612
+01.051.13.03,01.051.05.03,Ait Youssef Ou Ali,Ait Youssef Ou Ali,exact_name_in_province,true,1,13830,12673,1.0913
+01.051.13.05,01.051.05.05,Arbaa Taourirt,Arbaa Taourirt,exact_name_in_province,true,1,3799,5187,0.7324
+01.051.13.11,01.051.05.11,Chakrane,Chakrane,exact_name_in_province,true,1,3306,4761,0.6944
+01.051.13.13,01.051.05.13,Imrabten,Imrabten,exact_name_in_province,true,1,6983,8715,0.8013
+01.051.13.17,01.051.05.17,Louta,Louta,exact_name_in_province,true,1,4408,4428,0.9955
+01.051.13.19,01.051.05.19,Nekkour,Nekkour,exact_name_in_province,true,1,7721,8963,0.8614
+01.051.13.23,01.051.05.23,Tifarouine,Tifarouine,exact_name_in_province,true,1,3318,4231,0.7842
+01.151.11.03,01.151.07.03,Bni Mansour,Bni Mansour,exact_name_in_province,true,1,16660,20811,0.8005
+01.151.11.05,01.151.07.05,Bni Selmane,Bni Selmane,exact_name_in_province,true,1,21413,24217,0.8842
+01.405.13.03,01.405.07.03,Lamjaara,Lamjaara,exact_name_in_province,true,1,19162,18820,1.0182
+01.405.13.09,01.405.07.09,Ouannana,Ounnana,sole_remaining_in_province,false,1,12123,12801,0.947
+01.405.13.11,01.405.07.11,Sidi Ahmed Cherif,Sidi Ahmed Cherif,exact_name_in_province,true,1,7913,9576,0.8263
+01.405.13.13,01.405.07.13,Sidi Bousber,Sidi Bousber,exact_name_in_province,true,1,9671,10528,0.9186
+01.405.13.17,01.405.07.17,Teroual,Teroual,exact_name_in_province,true,1,11673,12621,0.9249
+01.405.13.19,01.405.07.19,Zghira,Zghira,exact_name_in_province,true,1,13415,15503,0.8653
+01.511.05.01,01.511.03.01,Al Manzla,Al Manzla,exact_name_in_province,true,1,2680,2650,1.0113
+01.511.05.05,01.511.03.05,Sebt Azzinate,Sebt Azzinate,exact_name_in_province,true,1,7265,5153,1.4099
+01.511.05.07,01.511.03.07,Dar Chaoui,Dar Chaoui,exact_name_in_province,true,1,4471,4303,1.039
+01.511.05.17,01.511.03.17,Laaouama,Laaouama,exact_name_in_province,true,1,19187,8013,2.3945
+01.511.05.19,01.511.81.05,Hjar Ennhal,HJAR ENNHAL,exact_name_in_province,true,1,27204,9792,2.7782
+01.573.01.07,01.573.03.03,Allyene,Allyene,exact_name_in_province,true,1,8111,6583,1.2321
+01.573.01.09,01.573.03.05,Belyounech,Belyounech,exact_name_in_province,true,1,5208,5296,0.9834
+02.167.11.05,02.167.09.05,Bni Marghnine,Bni Marghnine,exact_name_in_province,true,1,4950,6263,0.7904
+02.167.11.07,02.167.09.07,Boudinar,Boudinar,exact_name_in_province,true,1,7996,9863,0.8107
+02.167.11.11,02.167.09.11,Ijermaouas,Ijermaouas,exact_name_in_province,true,1,5303,7540,0.7033
+02.167.11.19,02.167.09.19,Oulad Amghar,Oulad Amghar,exact_name_in_province,true,1,5755,6010,0.9576
+02.167.11.25,02.167.09.25,Temsamane,Temsamane,exact_name_in_province,true,1,12198,13920,0.8763
+02.167.11.27,02.167.09.27,Trougout,Trougout,exact_name_in_province,true,1,11348,11458,0.9904
+02.167.13.01,02.167.09.01,Azlaf,Azlaf,exact_name_in_province,true,1,4132,4919,0.84
+02.167.13.09,02.167.09.09,Iferni,Iferni,exact_name_in_province,true,1,4873,6365,0.7656
+02.167.13.15,02.167.09.15,M'hajer,M'Hajer,exact_name_in_province,true,1,8008,9386,0.8532
+02.167.13.17,02.167.09.17,Ouardana,Ouardana,exact_name_in_province,true,1,7032,7120,0.9876
+02.167.13.21,02.167.09.21,Tafersit,Tafersit,exact_name_in_province,true,1,8202,9133,0.8981
+02.167.13.23,02.167.09.23,Talilit,Talilit,exact_name_in_province,true,1,3881,5208,0.7452
+02.167.13.29,02.167.09.29,Tsaft,Tsaft,exact_name_in_province,true,1,8401,9578,0.8771
+02.167.15.03,02.167.03.03,Ait Mait,Ait Mait,exact_name_in_province,true,1,4721,5613,0.8411
+02.167.15.05,02.167.03.05,Amejjaou,Amejjaou,exact_name_in_province,true,1,4177,4988,0.8374
+02.167.15.07,02.167.03.07,Dar El Kebdani,Dar El Kebdani,exact_name_in_province,true,1,8518,9911,0.8594
+02.167.15.13,02.167.03.13,Tazaghine,Tazaghine,exact_name_in_province,true,1,3456,4323,0.7994
+02.167.17.01,02.167.03.01,Ain Zohra,Ain Zohra,exact_name_in_province,true,1,8705,10601,0.8211
+02.167.17.09,02.167.03.09,Mtalssa,Mtalssa,exact_name_in_province,true,1,16778,16787,0.9995
+02.167.17.11,02.167.03.11,Oulad Boubker,Oulad Boubker,exact_name_in_province,true,1,3703,8054,0.4598
+02.251.07.07,02.251.03.07,Bouchaouene,Bouchaouene,exact_name_in_province,true,1,15242,13057,1.1673
+02.251.07.09,02.251.03.09,Boumerieme,Boumerieme,exact_name_in_province,true,1,8067,8521,0.9467
+02.251.07.11,02.251.03.11,Talsint,Talsint,exact_name_in_province,true,1,18806,16166,1.1633
+02.275.07.03,02.275.03.03,Gafait,Gafait,exact_name_in_province,true,1,2604,2656,0.9804
+02.275.07.07,02.275.03.07,Laaouinate,Laaouinate,exact_name_in_province,true,1,5467,3867,1.4138
+02.275.07.09,02.275.03.09,Lebkhata,Lebkhata,exact_name_in_province,true,1,2541,2612,0.9728
+02.275.09.05,02.275.03.05,Guenfouda,Guenfouda,exact_name_in_province,true,1,5712,5591,1.0216
+02.275.09.13,02.275.03.13,Ras Asfour,Ras Asfour,exact_name_in_province,true,1,1275,1274,1.0008
+02.275.09.15,02.275.03.15,Sidi Boubker,Sidi Boubker,exact_name_in_province,true,1,2354,2638,0.8923
+02.275.09.21,02.275.03.21,Tiouli,Tiouli,exact_name_in_province,true,1,4305,5199,0.828
+03.131.09.01,03.131.03.01,Ait Bazza,Ait Bazza,exact_name_in_province,true,1,2397,2955,0.8112
+03.131.09.03,03.131.03.03,Ait El Mane,Ait El Mane,exact_name_in_province,true,1,1694,1927,0.8791
+03.131.09.05,03.131.03.05,Almis Marmoucha,Almis Marmoucha,exact_name_in_province,true,1,2292,2461,0.9313
+03.131.09.07,03.131.03.07,El Mers,El Mers,exact_name_in_province,true,1,4887,5152,0.9486
+03.131.09.13,03.131.03.13,Serghina,Serghina,exact_name_in_province,true,1,3567,3746,0.9522
+03.131.09.17,03.131.03.17,Talzemt,Talzemt,exact_name_in_province,true,1,2701,3160,0.8547
+03.231.01.15,03.231.81.01,Oulad Tayeb,Oulad Tayeb,exact_name_in_province,true,1,56352,24594,2.2913
+03.271.01.05,03.271.81.01,Dayat-Aoua,Dayat Aoua,exact_name_in_province,true,1,12050,9854,1.2229
+03.271.01.07,03.271.81.03,Tizguite,Tizguite,exact_name_in_province,true,1,12204,10693,1.1413
+03.591.01.03,03.591.03.01,Ain Chkef,Ain Chkef,exact_name_in_province,true,1,91541,54477,1.6804
+04.281.01.13,04.281.03.13,Sidi Taibi,Sidi Taibi,exact_name_in_province,true,1,76227,53449,1.4262
+04.441.01.11,04.441.03.01,Shoul,Shoul,exact_name_in_province,true,1,24913,19915,1.251
+04.441.01.13,04.441.03.05,Ameur,Ameur,exact_name_in_province,true,1,75942,46590,1.63
+06.111.05.03,06.111.03.03,Ain Tizgha,Ain Tizgha,exact_name_in_province,true,1,21248,15692,1.3541
+06.117.09.25,06.117.05.25,Sahel Oulad H'riz,Sahel Oulad H'Riz,exact_name_in_province,true,1,43776,38156,1.1473
+06.117.09.33,06.117.05.33,Soualem Trifiya,Soualem Trifiya,exact_name_in_province,true,1,45285,33079,1.369
+06.355.01.07,06.355.03.01,Almajjatia Oulad Taleb,Al Majjatia Oulad Taleb,exact_name_in_province,true,1,95457,32286,2.9566
+06.355.01.09,06.355.03.05,Sidi Hajjaj Oued Hassar,Sidi Hajjaj Oued Hassar,exact_name_in_province,true,1,76362,20349,3.7526
+06.371.01.05,06.371.03.01,Bni Yakhlef,Bni Yakhlef,exact_name_in_province,true,1,117653,48338,2.434
+06.371.01.07,06.371.03.03,Ech-challalate,Ech-challalate,exact_name_in_province,true,1,98015,53503,1.832
+06.385.01.05,06.385.03.05,Ouled Salah,Oulad Salah,sole_remaining_in_province,false,1,51621,15031,3.4343
+06.385.01.07,06.385.03.03,Oulad Azzouz,Oulad Azzouz,exact_name_in_province,true,1,81048,40372,2.0075
+06.461.11.02,06.461.03.02,Ain Dorbane-Lahlaf,Ain Dorbane-Lahlaf,exact_name_in_province,true,1,9151,8120,1.127
+06.461.11.03,06.461.03.03,Bouguargouh,Bouguargouh,exact_name_in_province,true,1,9718,9539,1.0188
+06.461.11.07,06.461.03.07,Lakhzazra,Lakhzazra,exact_name_in_province,true,1,7455,8582,0.8687
+06.461.11.13,06.461.03.13,M'garto,M'Garto,exact_name_in_province,true,1,7508,8514,0.8818
+06.461.11.15,06.461.03.15,N'khila,N'Khila,exact_name_in_province,true,1,12787,12306,1.0391
+06.461.11.23,06.461.03.23,Ouled M'hamed,Oulad M'Hamed,sole_remaining_in_province,false,1,9081,10187,0.8914
+06.461.11.29,06.461.03.29,Sidi Abdelkrim,Sidi Abdelkrim,exact_name_in_province,true,1,13759,14037,0.9802
+06.461.11.31,06.461.03.31,Sidi Dahbi,Sidi Dahbi,exact_name_in_province,true,1,8972,8703,1.0309
+06.461.13.09,06.461.03.09,Mniaa,Mniaa,exact_name_in_province,true,1,11088,11789,0.9405
+06.461.13.11,06.461.03.11,Mrizigue,Mrizigue,exact_name_in_province,true,1,7926,8376,0.9463
+06.461.13.17,06.461.03.17,Oued Naanaa,Oued Naanaa,exact_name_in_province,true,1,7075,6991,1.012
+06.461.13.19,06.461.03.19,Oulad Chbana,Oulad Chbana,exact_name_in_province,true,1,9513,8081,1.1772
+06.461.13.21,06.461.03.21,Oulad Fares,Oulad Fares,exact_name_in_province,true,1,12096,12341,0.9801
+06.461.13.25,06.461.03.25,Ras El Ain Chaouia,Ras El Ain Chaouia,exact_name_in_province,true,1,14244,14747,0.9659
+06.461.13.27,06.461.03.27,Sgamna,Sgamna,exact_name_in_province,true,1,9427,10245,0.9202
+06.461.13.33,06.461.03.33,Sidi Hajjaj,Sidi Hajjaj,exact_name_in_province,true,1,22360,20732,1.0785
+06.461.15.05,06.461.09.05,Gdana,Gdana,exact_name_in_province,true,1,8462,9084,0.9315
+06.461.15.09,06.461.09.09,Khemisset Chaouia,Khemisset Chaouia,exact_name_in_province,true,1,5104,5527,0.9235
+06.461.15.11,06.461.09.11,Lahouaza,Lahouaza,exact_name_in_province,true,1,7018,7394,0.9491
+06.461.15.14,06.461.09.14,Mzamza Janoubia,Mzamza Janoubia,exact_name_in_province,true,1,22419,20802,1.0777
+06.461.15.15,06.461.09.15,Mzoura,Mzoura,exact_name_in_province,true,1,8426,9525,0.8846
+06.461.15.19,06.461.09.19,Oulad Said,Oulad Said,exact_name_in_province,true,1,8745,9271,0.9433
+06.461.15.25,06.461.09.25,Sidi El Aidi,Sidi El Aidi,exact_name_in_province,true,1,14165,13839,1.0236
+06.461.17.03,06.461.09.03,Bni Yagrine,Bni Yagrine,exact_name_in_province,true,1,13099,13031,1.0052
+06.461.17.07,06.461.09.07,Guisser,Guisser,exact_name_in_province,true,1,12189,12289,0.9919
+06.461.17.13,06.461.09.13,Machraa Ben Abbou,Machraa Ben Abbou,exact_name_in_province,true,1,9331,9355,0.9974
+06.461.17.21,06.461.09.21,Oulad Sghir,Oulad Sghir,exact_name_in_province,true,1,13153,13866,0.9486
+06.461.17.23,06.461.09.23,Rima,Rima,exact_name_in_province,true,1,8203,8949,0.9166
+06.461.17.27,06.461.09.27,Sidi Mohammed Ben Rahal,Sidi Mohammed Ben Rahal,exact_name_in_province,true,1,10511,10410,1.0097
+06.461.17.31,06.461.09.31,Toualet,Toualet,exact_name_in_province,true,1,11822,11976,0.9871
+06.467.01.05,06.467.11.05,Loualidia,Loualidia,exact_name_in_province,true,1,21742,18616,1.1679
+06.467.03.01,06.467.07.01,Bni Hilal,Bni Hilal,exact_name_in_province,true,1,16767,17843,0.9397
+06.467.03.03,06.467.07.03,Bni Tsiriss,Bni Tsiriss,exact_name_in_province,true,1,12794,14067,0.9095
+06.467.03.09,06.467.07.09,Khmis Ksiba,Khmis Ksiba,exact_name_in_province,true,1,5249,5665,0.9266
+06.467.03.17,06.467.07.17,Laamria,Laamria,exact_name_in_province,true,1,9957,10520,0.9465
+06.467.03.19,06.467.07.19,Laaounate,Laaounate,exact_name_in_province,true,1,17486,17850,0.9796
+06.467.03.25,06.467.07.25,Metrane,Metrane,exact_name_in_province,true,1,9201,10580,0.8697
+06.467.03.31,06.467.07.31,Oulad Boussaken,Oulad Boussaken,exact_name_in_province,true,1,5962,7390,0.8068
+06.467.05.11,06.467.07.11,Koudiat Bni Dghough,Koudiat Bni Dghough,exact_name_in_province,true,1,15550,15181,1.0243
+06.467.05.13,06.467.07.13,Kridid,Kridid,exact_name_in_province,true,1,14259,14351,0.9936
+06.467.05.15,06.467.07.15,Laagagcha,Laagagcha,exact_name_in_province,true,1,14059,13748,1.0226
+06.467.05.29,06.467.07.29,Oulad Amrane,Oulad Amrane,exact_name_in_province,true,1,12059,12252,0.9842
+06.467.05.35,06.467.07.35,Tamda,Tamda,exact_name_in_province,true,1,9043,9750,0.9275
+07.191.09.01,07.191.05.01,Assahrij,Assahrij,exact_name_in_province,true,1,16313,15385,1.0603
+07.191.09.17,07.191.05.17,Louad Lakhdar,Louad Lakhdar,exact_name_in_province,true,1,9125,9303,0.9809
+07.191.09.19,07.191.05.19,M'zem Sanhaja,M'Zem Sanhaja,exact_name_in_province,true,1,10946,10310,1.0617
+07.191.09.25,07.191.05.25,Oulad Khallouf,Oulad Khallouf,exact_name_in_province,true,1,9172,8605,1.0659
+07.191.09.27,07.191.05.27,Sidi Aissa Ben Slimane,Sidi Aissa Ben Slimane,exact_name_in_province,true,1,19164,19977,0.9593
+07.191.09.29,07.191.05.29,Sour El Aaz,Sour El Aaz,exact_name_in_province,true,1,3755,3850,0.9753
+07.191.11.07,07.191.03.07,El Marbouh,El Marbouh,exact_name_in_province,true,1,9468,8774,1.0791
+07.191.11.11,07.191.03.11,Hiadna,Hiadna,exact_name_in_province,true,1,12870,11387,1.1302
+07.191.11.13,07.191.03.13,Lounasda,Lounasda,exact_name_in_province,true,1,10866,10639,1.0213
+07.191.11.15,07.191.03.15,Mayate,Mayate,exact_name_in_province,true,1,11443,12101,0.9456
+07.191.11.21,07.191.03.21,Oulad Cherki,Oulad Cherki,exact_name_in_province,true,1,7185,7399,0.9711
+07.191.11.23,07.191.03.23,Oulad El Garne,Oulad El Garne,exact_name_in_province,true,1,7728,8150,0.9482
+07.191.11.29,07.191.03.29,Oulad Sbih,Oulad Sbih,exact_name_in_province,true,1,6513,6616,0.9844
+07.191.11.31,07.191.03.31,Oulad Yaacoub,Oulad Yaacoub,exact_name_in_province,true,1,6791,7143,0.9507
+07.191.11.33,07.191.03.33,Oulad Zarrad,Oulad Zarrad,exact_name_in_province,true,1,13243,12233,1.0826
+07.191.11.41,07.191.03.41,Znada,Znada,exact_name_in_province,true,1,7230,6712,1.0772
+07.191.13.01,07.191.03.01,Chtaiba,Chtaiba,exact_name_in_province,true,1,8491,9122,0.9308
+07.191.13.03,07.191.03.03,Eddachra,Eddachra,exact_name_in_province,true,1,6939,7522,0.9225
+07.191.13.05,07.191.03.05,El Aamria,El Aamria,exact_name_in_province,true,1,8625,9454,0.9123
+07.191.13.09,07.191.03.09,Errafiaya,Errafiaya,exact_name_in_province,true,1,4903,5502,0.8911
+07.191.13.17,07.191.03.17,Oulad Aamer,Oulad Aamer,exact_name_in_province,true,1,6996,7015,0.9973
+07.191.13.19,07.191.03.19,Oulad Bouali Loued,Oulad Bouali Loued,exact_name_in_province,true,1,6302,6822,0.9238
+07.191.13.25,07.191.03.25,Oulad Massaoud,Oulad Massaoud,exact_name_in_province,true,1,4188,5011,0.8358
+07.191.13.27,07.191.03.27,Oulad Msabbel,Oulad Msabbel,exact_name_in_province,true,1,6216,6254,0.9939
+07.191.13.35,07.191.03.35,Sidi El Hattab,Sidi El Hattab,exact_name_in_province,true,1,9638,9421,1.023
+07.191.13.37,07.191.03.37,Sidi Moussa,Sidi Moussa,exact_name_in_province,true,1,8600,9704,0.8862
+07.191.13.39,07.191.03.39,Taouzint,Taouzint,exact_name_in_province,true,1,5217,5651,0.9232
+07.211.07.01,07.211.05.01,Adaghas,Adaghas,exact_name_in_province,true,1,1656,2825,0.5862
+07.211.07.03,07.211.05.03,Aglif,Aglif,exact_name_in_province,true,1,6499,8028,0.8095
+07.211.07.09,07.211.05.09,Assais,Assais,exact_name_in_province,true,1,4442,6915,0.6424
+07.211.07.11,07.211.05.11,Bizdad,Bizdad,exact_name_in_province,true,1,7077,7959,0.8892
+07.211.07.13,07.211.05.13,Bouzemmour,Bouzemmour,exact_name_in_province,true,1,3940,5874,0.6708
+07.211.07.15,07.211.05.15,Ezzaouite,Ezzaouite,exact_name_in_province,true,1,5818,6341,0.9175
+07.211.07.31,07.211.05.31,Sidi Ghaneme,Sidi Ghaneme,exact_name_in_province,true,1,4161,4718,0.8819
+07.211.07.43,07.211.05.43,Tahelouante,Tahelouante,exact_name_in_province,true,1,2910,3919,0.7425
+07.211.07.45,07.211.05.45,Takoucht,Takoucht,exact_name_in_province,true,1,3209,4312,0.7442
+07.211.09.01,07.211.03.01,Ait Said,Ait Said,exact_name_in_province,true,1,6027,6819,0.8839
+07.211.09.07,07.211.03.07,Kechoula,Kechoula,exact_name_in_province,true,1,5934,6083,0.9755
+07.211.09.09,07.211.03.09,Korimate,Korimate,exact_name_in_province,true,1,9526,9897,0.9625
+07.211.09.11,07.211.03.11,Lagdadra,Lagdadra,exact_name_in_province,true,1,6699,6825,0.9815
+07.211.09.13,07.211.03.13,Lahsinate,Lahsinate,exact_name_in_province,true,1,4932,5315,0.9279
+07.211.09.15,07.211.03.15,Mejji,Mejji,exact_name_in_province,true,1,6479,6750,0.9599
+07.211.09.17,07.211.03.17,Meskala,Meskala,exact_name_in_province,true,1,4378,4330,1.0111
+07.211.09.19,07.211.03.19,Mouarid,Mouarid,exact_name_in_province,true,1,5320,6161,0.8635
+07.211.09.23,07.211.03.23,Mzilate,Mzilate,exact_name_in_province,true,1,3573,4209,0.8489
+07.211.09.27,07.211.03.27,M'ramer,M'Ramer,exact_name_in_province,true,1,6488,7587,0.8551
+07.211.09.29,07.211.03.29,Oulad M'rabet,Oulad M'Rabet,exact_name_in_province,true,1,3951,3996,0.9887
+07.211.09.35,07.211.03.35,Sidi Aissa Regragui,Sidi Aissa Regragui,exact_name_in_province,true,1,7567,7873,0.9611
+07.211.09.39,07.211.03.39,Sidi Boulaalam,Sidi Boulaalam,exact_name_in_province,true,1,7681,8142,0.9434
+07.211.09.45,07.211.03.45,Sidi M'hamed Ou Marzouq,Sidi M'Hamed Ou Marzouq,exact_name_in_province,true,1,4306,5341,0.8062
+07.211.09.47,07.211.03.47,Tafetachte,Tafetachte,exact_name_in_province,true,1,7342,7293,1.0067
+07.351.01.13,07.351.07.13,Tassoultante,Tassoultante,exact_name_in_province,true,1,106013,71172,1.4895
+08.201.15.01,08.201.13.01,Aghbalou-N'kerdous,Aghbalou N'Kerdous,exact_name_in_province,true,1,10675,10313,1.0351
+08.201.15.03,08.201.13.03,Ferkla El Oulia,Ferkla El Oulia,exact_name_in_province,true,1,23449,22722,1.032
+08.201.15.05,08.201.13.05,Ferkla Es-Soufla,Ferkla Es-soufla,exact_name_in_province,true,1,11886,12335,0.9636
+08.201.15.11,08.201.13.11,Melaab,Melaab,exact_name_in_province,true,1,17230,17360,0.9925
+08.363.01.15,08.363.05.15,Boumia,Boumia,exact_name_in_province,true,1,21713,18212,1.1922
+08.363.17.03,08.363.05.03,Agoudim,Agoudim,exact_name_in_province,true,1,3826,4113,0.9302
+08.363.17.13,08.363.05.13,Anemzi,Anemzi,exact_name_in_province,true,1,5140,4885,1.0522
+08.363.17.27,08.363.05.27,Tounfite,Tounfite,exact_name_in_province,true,1,13424,13297,1.0096
+08.577.09.03,08.577.05.03,Ait Ouassif,Ait Ouassif,exact_name_in_province,true,1,8885,8246,1.0775
+08.577.09.09,08.577.05.09,Ait Sedrate Sahl Charkia,Ait Sedrate Sahl Charkia,exact_name_in_province,true,1,15506,15349,1.0102
+08.577.09.11,08.577.05.11,Ait Sedrate Sahl El-Gharbia,Ait Sedrate Sahl El Gharbia,exact_name_in_province,true,1,19985,17392,1.1491
+08.577.09.15,08.577.05.15,Ighil N'oumgoun,Ighil N'Oumgoun,exact_name_in_province,true,1,23218,22010,1.0549
+08.577.09.25,08.577.05.25,Souk Lakhmis Dades,Souk Lakhmis Dades,exact_name_in_province,true,1,16154,17045,0.9477
+08.587.11.05,08.587.03.05,Ait Boudaoud,Ait Boudaoud,exact_name_in_province,true,1,4757,5439,0.8746
+08.587.11.07,08.587.03.07,Ait Ouallal,Ait Ouallal,exact_name_in_province,true,1,11751,11224,1.047
+08.587.11.25,08.587.03.25,N'kob,N'Kob,exact_name_in_province,true,1,7742,7209,1.0739
+08.587.11.31,08.587.03.31,Taghbalte,Taghbalte,exact_name_in_province,true,1,9176,10054,0.9127
+08.587.11.41,08.587.03.41,Tazarine,Tazarine,exact_name_in_province,true,1,13895,15169,0.916
+09.163.01.01,09.163.07.01,Ait Amira,Ait Amira,exact_name_in_province,true,1,113236,76646,1.4774
+09.163.01.27,09.163.07.27,Sidi Bibi,Sidi Bibi,exact_name_in_province,true,1,72929,39042,1.868
+09.541.11.01,09.541.09.01,Ahmar Laglalcha,Ahmar Laglalcha,exact_name_in_province,true,1,21659,17950,1.2066
+09.541.11.03,09.541.05.03,Argana,Argana,exact_name_in_province,true,1,4123,4804,0.8582
+09.541.11.07,09.541.05.07,Bigoudine,Bigoudine,exact_name_in_province,true,1,4174,5131,0.8135
+09.541.11.09,09.541.05.09,Eddir,Eddir,exact_name_in_province,true,1,7781,7565,1.0286
+09.541.11.13,09.541.05.13,Imilmaiss,Imilmaiss,exact_name_in_province,true,1,4967,6584,0.7544
+09.541.11.15,09.541.05.15,Issen,Issen,exact_name_in_province,true,1,13254,12119,1.0937
+09.541.11.19,09.541.09.19,Ida Ou Moumen,Ida Ou Moumen,exact_name_in_province,true,1,5833,6105,0.9554
+09.541.11.29,09.541.05.29,Sidi Moussa Lhamri,Sidi Moussa Lhamri,exact_name_in_province,true,1,17673,14976,1.1801
+09.541.11.31,09.541.09.31,Lamnizla,Lamnizla,exact_name_in_province,true,1,3427,4224,0.8113
+09.541.11.33,09.541.05.31,Talmakante,Talmakante,exact_name_in_province,true,1,3336,4004,0.8332
+09.541.11.71,09.541.09.71,Zaouia Sidi Tahar,Zaouia Sidi Tahar,exact_name_in_province,true,1,13479,11677,1.1543
+10.473.01.07,10.473.05.07,Mirleft,Mirleft,exact_name_in_province,true,1,9828,8162,1.2041

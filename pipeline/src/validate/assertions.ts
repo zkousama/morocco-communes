@@ -1,6 +1,7 @@
 import type { Hierarchy } from "../build/hierarchy.ts";
 import type { Hcp2014Unit } from "../sources/hcp2014.ts";
 import type { OsmFeature } from "../build/osmJoin.ts";
+import type { CrosswalkRow } from "../build/crosswalk.ts";
 import { pointInRing } from "../geo/point.ts";
 import { ringArea } from "../geo/rings.ts";
 import { findAnomalies } from "../emit/topojson.ts";
@@ -53,6 +54,7 @@ export function assertDataset(
   h: Hierarchy,
   units2014: Map<string, Hcp2014Unit>,
   osm: Map<string, OsmFeature> = new Map(),
+  crosswalk: CrosswalkRow[] = [],
 ): void {
   const fail: string[] = [];
   const check = (ok: boolean, message: string) => { if (!ok) fail.push(message); };
@@ -145,6 +147,38 @@ export function assertDataset(
     for (const a of findAnomalies([...osm.values()])) {
       check(false, `geometry anomaly ${a.kind} on ${a.code}: ${a.detail}`);
     }
+  }
+
+  if (crosswalk.length > 0) {
+    check(crosswalk.length === 207, `expected 207 crosswalk rows, got ${crosswalk.length}`);
+
+    // A bijection: no 2024 code and no 2014 code may appear twice.
+    const seen2024 = new Set<string>();
+    const seen2014 = new Set<string>();
+    for (const r of crosswalk) {
+      check(!seen2024.has(r.code2024), `crosswalk claims ${r.code2024} twice`);
+      check(!seen2014.has(r.code2014), `crosswalk claims 2014 code ${r.code2014} twice`);
+      seen2024.add(r.code2024);
+      seen2014.add(r.code2014);
+      check(r.evidence.province === r.codeDigits2024.slice(0, 5),
+        `crosswalk row ${r.code2024} records a province that does not match its own code`);
+    }
+
+    const byMethod = crosswalk.filter((r) => r.method === "exact_name_in_province").length;
+    check(byMethod === 203, `expected 203 rows matched by name, got ${byMethod}`);
+
+    // Count by route, not by computable change: 4 communes carry `pm` in the 2014
+    // source, so they have a 2014 object with a null total and no change. A check
+    // written against change.basis would be off by exactly those 4.
+    const byRoute = h.communes.filter((c) => units2014.has(c.codeDigits)).length;
+    check(byRoute === 1290, `expected 1290 communes joining 2014 by exact code, got ${byRoute}`);
+
+    // Every commune should now have a 2014 figure by one of the three routes.
+    const missing = h.communes.filter(
+      (c) => !units2014.has(c.codeDigits) && !crosswalk.some((r) => r.codeDigits2024 === c.codeDigits),
+    );
+    check(missing.length <= 6,
+      `${missing.length} communes still have no 2014 route; only the 6 arrondissement-bearing cities should`);
   }
 
   if (fail.length > 0) throw new Error(`dataset assertions failed:\n  ${fail.join("\n  ")}`);
