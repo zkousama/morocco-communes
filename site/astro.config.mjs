@@ -11,7 +11,7 @@ export default defineConfig({
   integrations: [solid()],
   i18n: {
     defaultLocale: "en",
-    locales: ["en", "fr", "ar"],
+    locales: ["en", "fr"],
     routing: { prefixDefaultLocale: false },
   },
   devToolbar: { enabled: false },

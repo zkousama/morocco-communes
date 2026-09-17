@@ -1,29 +1,34 @@
 ---
-import { LOCALE_NAMES, LOCALES, REPO_URL, RTL, path, t, type Locale } from "../i18n/ui";
+import { LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
 
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-const rtl = RTL[locale];
 ---
 
 <!doctype html>
-<html lang={locale} dir={rtl ? "rtl" : "ltr"}>
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{copy.title}</title>
     <meta name="description" content={copy.tagline} />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%87%B2%F0%9F%87%A6%3C/text%3E%3C/svg%3E" />
+    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
   </head>
   <body>
-    <header class="top">
-      <a class="brand" href={path(locale)}>{copy.title}</a>
-      <nav class="langs">
+    <header class="masthead">
+      <a class="wordmark" href={path(locale)}>{copy.title}</a>
+      <nav class="tongues" aria-label={copy.language}>
         {LOCALES.map((l) => (
-          <a href={path(l)} class:list={["lang", { on: l === locale }]} hreflang={l}>
+          <a href={path(l)} hreflang={l} aria-current={l === locale ? "page" : undefined}>
             {LOCALE_NAMES[l]}
           </a>
         ))}
@@ -35,186 +40,182 @@ const rtl = RTL[locale];
     </main>
 
     <footer>
-      {
-        REPO_URL ? (
-          <a href={REPO_URL}>{copy.repo}</a>
-        ) : null
-      }
-      <span>HCP RGPH 2024 · © OpenStreetMap contributors (ODbL)</span>
+      <p>{copy.footerData}</p>
+      <p>{copy.footerGeometry}</p>
+      {REPO_URL ? <p><a href={REPO_URL}>{copy.repo}</a></p> : null}
     </footer>
 
     <style is:global>
       :root {
-        --bg: #fbf9f6;
-        --panel: #ffffff;
-        --ink: #1d1b19;
-        --muted: #6b645c;
-        --line: #e6e0d8;
-        --accent: #a4343a;
-        --accent-soft: #f6eceb;
-        --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-        --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        /* A document ground. Warm grey drafting stock, survey ink, one rule colour. */
+        --paper: #f1efe9;
+        --ink: #191d19;
+        --quiet: #63695f;
+        --rule: #dcd9d0;
+        /* Machine output — code blocks and API responses — sits in a well, while the
+           page itself stays document. The map went the other way: it reads as a survey
+           drawing on the page ground rather than a panel fighting it. */
+        --canvas: #0b1512;
+        --brass: #8a6d24;
+
+        --serif: "Newsreader", Georgia, "Times New Roman", serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+        /* A fourth, per Bringhurst. */
+        --t-xs: 0.75rem;
+        --t-sm: 0.875rem;
+        --t-base: 1.0625rem;
+        --t-md: 1.333rem;
+        --t-lg: 1.777rem;
+        --t-xl: 2.37rem;
+        --t-2xl: 3.157rem;
+        --measure: 64ch;
       }
 
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
-          --bg: #16150f;
-          --panel: #1f1e17;
-          --ink: #f3efe7;
-          --muted: #a49c90;
-          --line: #322f26;
-          --accent: #e07a7f;
-          --accent-soft: #2a2119;
+          --paper: #12140f;
+          --ink: #ece9df;
+          --quiet: #999687;
+          --rule: #2b2d24;
+          --canvas: #050a08;
+          --brass: #cfa64a;
         }
       }
 
       :root[data-theme="dark"] {
-        --bg: #16150f;
-        --panel: #1f1e17;
-        --ink: #f3efe7;
-        --muted: #a49c90;
-        --line: #322f26;
-        --accent: #e07a7f;
-        --accent-soft: #2a2119;
+        --paper: #12140f;
+        --ink: #ece9df;
+        --quiet: #999687;
+        --rule: #2b2d24;
+        --canvas: #050a08;
+        --brass: #cfa64a;
       }
 
-      * { box-sizing: border-box; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
 
       body {
         margin: 0;
-        background: var(--bg);
+        background: var(--paper);
         color: var(--ink);
-        font-family: var(--sans);
-        line-height: 1.6;
+        font-family: var(--serif);
+        font-optical-sizing: auto;
+        font-size: var(--t-base);
+        line-height: 1.62;
         -webkit-font-smoothing: antialiased;
       }
 
-      html[dir="rtl"] body { font-family: "Segoe UI", Tahoma, var(--sans); }
-
-      main { max-width: 68rem; margin: 0 auto; padding: 0 16px 5rem; }
-
-      .top {
-        max-width: 68rem;
+      main {
+        width: 100%;
+        max-width: 72rem;
         margin: 0 auto;
-        padding: 1.25rem 16px;
+        padding: 0 clamp(1rem, 4vw, 2.5rem) 6rem;
+      }
+
+      p {
+        margin: 0 0 1.1rem;
+        max-width: var(--measure);
+      }
+
+      a {
+        color: var(--ink);
+        text-decoration-color: var(--brass);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.18em;
+      }
+
+      a:hover {
+        color: var(--brass);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--brass);
+        outline-offset: 2px;
+      }
+
+      code,
+      .mono {
+        font-family: var(--mono);
+        font-size: 0.9em;
+        font-variant-ligatures: none;
+      }
+
+      /* Masthead ------------------------------------------------------------- */
+
+      .masthead {
+        width: 100%;
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 1.6rem clamp(1rem, 4vw, 2.5rem);
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
-        align-items: center;
+        gap: 0.75rem 1.5rem;
+        align-items: baseline;
         justify-content: space-between;
       }
 
-      .brand {
-        font-weight: 620;
-        letter-spacing: -0.01em;
-        color: var(--ink);
+      .wordmark {
+        font-size: var(--t-md);
+        font-weight: 500;
+        letter-spacing: -0.015em;
         text-decoration: none;
       }
 
-      .langs { display: flex; gap: 0.25rem; }
-
-      .lang {
-        font-size: 0.85rem;
-        color: var(--muted);
-        text-decoration: none;
-        padding: 0.25rem 0.6rem;
-        border-radius: 999px;
-        border: 1px solid transparent;
-      }
-
-      .lang:hover { color: var(--ink); }
-      .lang.on { color: var(--accent); border-color: var(--line); background: var(--panel); }
-
-      h1 {
-        font-size: clamp(1.9rem, 5vw, 3rem);
-        line-height: 1.12;
-        letter-spacing: -0.025em;
-        margin: 2.5rem 0 1rem;
-        max-width: 34ch;
-      }
-
-      h2 {
-        font-size: 1.05rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--muted);
-        font-weight: 600;
-        margin: 3.5rem 0 1.25rem;
-      }
-
-      h3 { font-size: 1rem; margin: 0 0 0.35rem; }
-
-      p { margin: 0 0 1rem; max-width: 68ch; }
-      .lede { font-size: 1.1rem; color: var(--muted); max-width: 60ch; }
-
-      a { color: var(--accent); }
-
-      .grid {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-      }
-
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 1.1rem 1.2rem;
-      }
-
-      .card p { color: var(--muted); font-size: 0.92rem; margin: 0; }
-
-      .counts {
+      .tongues {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
-        list-style: none;
-        padding: 0;
-        margin: 0;
+        gap: 1rem;
+        font-size: var(--t-sm);
       }
 
-      .counts li {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 0.7rem 1rem;
-        min-width: 8.5rem;
+      .tongues a {
+        color: var(--quiet);
+        text-decoration: none;
       }
 
-      .counts b { display: block; font-size: 1.5rem; letter-spacing: -0.02em; }
-      .counts span { font-size: 0.82rem; color: var(--muted); }
-
-      code, pre, .mono { font-family: var(--mono); }
-
-      pre {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 0.9rem 1rem;
-        overflow: auto;
-        font-size: 0.82rem;
-        line-height: 1.55;
-        margin: 0;
-        direction: ltr;
-        text-align: left;
+      .tongues a:hover {
+        color: var(--ink);
       }
 
-      .routes { direction: ltr; text-align: left; }
+      .tongues a[aria-current="page"] {
+        color: var(--ink);
+        text-decoration: underline;
+        text-decoration-color: var(--brass);
+        text-decoration-thickness: 2px;
+        text-underline-offset: 0.3em;
+      }
+
+      /* Footer --------------------------------------------------------------- */
 
       footer {
-        max-width: 68rem;
+        width: 100%;
+        max-width: 72rem;
         margin: 0 auto;
-        padding: 2rem 16px 3rem;
-        border-top: 1px solid var(--line);
-        color: var(--muted);
-        font-size: 0.82rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
+        padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
+        border-top: 1px solid var(--rule);
+        color: var(--quiet);
+        font-size: var(--t-sm);
       }
 
-      @media (max-width: 34rem) {
-        h2 { margin-top: 2.5rem; }
+      footer p {
+        margin: 0 0 0.35rem;
+        max-width: 70ch;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
       }
     </style>
   </body>

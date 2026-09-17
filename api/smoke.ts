@@ -17,7 +17,16 @@ const check = (name: string, ok: boolean, detail = "") => {
 };
 
 async function get(path: string) {
-  const response = await fetch(base + path);
+  let response: Response;
+  try {
+    response = await fetch(base + path);
+  } catch (error) {
+    // A dead server is the commonest reason to be running this, so it reports as a line
+    // in the list rather than a stack trace over the results.
+    console.log(`\n  cannot reach ${base} — ${(error as Error).message}`);
+    console.log("  start it with: pnpm api:dev\n");
+    process.exit(1);
+  }
   const text = await response.text();
   let body: Record<string, never> | null = null;
   try {

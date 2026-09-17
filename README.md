@@ -75,10 +75,17 @@ Full reference: [`api/README.md`](api/README.md).
 
 ## The docs site
 
-`site/` is an Astro site in English, French and Arabic, with Arabic served RTL. It builds
-to static HTML — the only JavaScript is a Solid island for the playground, which issues
-live queries against whatever it is deployed beside and shows the request URL and the
-`X-Api-Tier` of the response.
+`site/` is an Astro site in English and French. It builds to static HTML — the only
+JavaScript is a Solid island for the playground, which issues live queries against
+whatever it is deployed beside and shows the request URL and the `X-Api-Tier` of the
+response.
+
+The hero draws all 1,502 commune boundaries from `data/v1/geometry`, simplified at build
+time by `site/scripts/outline.ts` to a tolerance that stays under a device pixel at the
+size it renders. It is the dataset, not an illustration of it.
+
+Arabic names are in the data and Arabic queries work — the site's own interface is
+English and French.
 
 It is static on purpose: nothing in it needs a server, so the hand-written Worker stays
 the only Worker and the pages cost nothing to serve.

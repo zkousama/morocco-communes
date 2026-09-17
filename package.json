@@ -15,8 +15,9 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p site/tsconfig.json",
     "check": "pnpm typecheck && pnpm test",
     "site:dev": "astro dev --root site",
-    "site:build": "astro build --root site",
-    "build": "pnpm site:build && pnpm api:build"
+    "site:build": "pnpm site:data && astro build --root site",
+    "build": "pnpm site:build && pnpm api:build",
+    "site:data": "node --experimental-strip-types site/scripts/outline.ts && node --experimental-strip-types site/scripts/hierarchy.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

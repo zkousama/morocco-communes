@@ -1,4 +1,4 @@
-export type Locale = "en" | "fr" | "ar";
+export type Locale = "en" | "fr";
 
 /**
  * Set this once the repository is public. Empty means the footer link is left out
@@ -6,153 +6,134 @@ export type Locale = "en" | "fr" | "ar";
  */
 export const REPO_URL = "";
 
-export const LOCALES: Locale[] = ["en", "fr", "ar"];
-export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français", ar: "العربية" };
-export const RTL: Record<Locale, boolean> = { en: false, fr: false, ar: true };
+export const LOCALES: Locale[] = ["en", "fr"];
+export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
 
 /** `/` for English, `/fr/` and `/ar/` for the others. */
 export const path = (locale: Locale, rest = "") =>
   locale === "en" ? `/${rest}` : `/${locale}/${rest}`;
 
+/** Levels, named as a reader of the census would name them. */
+export const LEVELS: Record<Locale, Record<string, string>> = {
+  en: { region: "région", province: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
+  fr: { region: "région", province: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
+};
+
 export const ui = {
   en: {
-    title: "Morocco communes API",
-    tagline: "Every commune in Morocco, with its official code, both its names, its population and its boundary.",
+    title: "Morocco communes",
+    language: "Language",
+    tagline: "Morocco’s 1,503 communes, as open data.",
     intro:
-      "An open dataset and HTTP API for Morocco's administrative divisions, built from the census HCP publishes and the boundaries OpenStreetMap holds. Free to use, and free to run.",
-    counts: "What it covers",
-    regions: "régions",
-    provinces: "provinces and préfectures",
-    cercles: "cercles",
-    communes: "communes",
-    arrondissements: "arrondissements",
-    tryIt: "Try it",
-    tryItBody: "Every query below runs against the real API.",
-    endpoints: "Endpoints",
-    tiers: "Three tiers",
+      "Official HCP codes, names in French and Arabic, population from the 2024 and 2014 censuses, and a boundary for every commune but one. Free to use, and free to run.",
+    mapCaption: "All 1,502 boundaries, drawn from the files this API serves.",
+    mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
+
+    codeHeading: "How a code reads",
+    codeBody:
+      "The code is the hierarchy. Each group of digits names one level, so a commune’s code already contains its province and its région. Cercles sit above rural communes only; an urban commune may hold arrondissements instead.",
+    colPopulation: "Population, 2024",
+
+    tryHeading: "Run a query",
+    tryBody: "Every request below goes to this API and comes back unedited.",
+
+    tiersHeading: "Where a request is answered",
     tiersBody:
-      "Which tier answered a request is in its X-Api-Tier header. The pre-rendered tier is files on a CDN, so it costs nothing to serve and keeps working under any amount of traffic.",
-    tierPre: "Pre-rendered",
-    tierPreBody: "3,852 files written at build time and served without running any code.",
-    tierAlias: "Alias",
-    tierAliasBody: "Query-string and extensionless shapes, rewritten to the file that holds the answer.",
-    tierComputed: "Computed",
-    tierComputedBody: "Search, radius queries, and filter combinations no single file answers.",
-    dataset: "The dataset",
-    datasetBody:
-      "Committed in the repository and versioned, so you can use it without the API at all. The licences differ by directory: the attributes come from HCP, and the boundaries are ODbL, which is share-alike.",
-    search: "Search",
-    searchBody:
-      "Type French, Arabic, or a slug. Diacritics, the alef variants and ta-marbuta all fold, and a place is findable by the names it is also known by — Fez finds Fès, Port Lyautey finds Kénitra.",
-    near: "Nearby",
-    nearBody: "Communes within a radius of a point, nearest first.",
-    lookup: "Lookup",
-    lookupBody: "One commune by code or slug. All four spellings resolve to the same unit.",
-    source: "Source",
+      "Three places, and the X-Api-Tier header on every response says which one. Most requests never reach any code at all.",
+    tierPreHeader: "no header, because nothing ran",
+    tierPre: "A file on the CDN",
+    tierPreBody:
+      "3,852 responses are written when the site is built. Nothing runs to serve them, so they cost nothing and hold up under any amount of traffic.",
+    tierAlias: "A rewrite to that file",
+    tierAliasBody:
+      "A query string cannot pick a file, so requests written that way are resolved to the file that already holds the answer, and the response names it.",
+    tierComputed: "Worked out on the spot",
+    tierComputedBody:
+      "Search, radius queries, and filter combinations no single file covers. These are the only requests that spend anything.",
+
+    dataHeading: "Take the whole thing",
+    dataBody:
+      "The dataset is versioned in the repository, so it can be used without this API at all. Licences differ by directory: the attributes come from the census, and the boundaries are share-alike.",
+
+    searchTab: "Search",
+    searchHint:
+      "French, Arabic, or a slug. Accents, the alef variants and ta-marbuta all fold, and places are findable by the other names they go by — Fez finds Fès, Port Lyautey finds Kénitra.",
+    nearTab: "Nearby",
+    nearHint: "Communes within a radius of a point, nearest first.",
+    lookupTab: "Lookup",
+    lookupHint: "One commune by code or slug. All four ways of writing it reach the same record.",
+    fieldQuery: "Search for",
+    fieldRadius: "Radius in km",
+    fieldIdentifier: "Code or slug",
     run: "Run",
     running: "Running",
     request: "Request",
-    response: "Response",
-    tier: "Tier",
-    query: "Query",
-    radius: "Radius (km)",
-    identifier: "Code or slug",
-    empty: "Nothing to show yet.",
-    failed: "That request failed.",
-    repo: "Repository",
+    tier: "Answered by",
+    emptyState: "Pick an example or type a query, then run it.",
+    failed: "That request did not complete. Check the API is running, then try again.",
+
+    footerData: "Codes and population from the Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014.",
+    footerGeometry: "Boundaries from OpenStreetMap contributors, under the Open Database Licence.",
+    repo: "Source",
   },
+
   fr: {
-    title: "API des communes du Maroc",
-    tagline: "Chaque commune du Maroc, avec son code officiel, ses deux noms, sa population et sa limite.",
+    title: "Communes du Maroc",
+    language: "Langue",
+    tagline: "Les 1 503 communes du Maroc, en données ouvertes.",
     intro:
-      "Un jeu de données ouvert et une API HTTP pour le découpage administratif du Maroc, construits à partir du recensement publié par le HCP et des limites présentes dans OpenStreetMap. Libre d'usage, et gratuit à héberger.",
-    counts: "Ce que ça couvre",
-    regions: "régions",
-    provinces: "provinces et préfectures",
-    cercles: "cercles",
-    communes: "communes",
-    arrondissements: "arrondissements",
-    tryIt: "Essayer",
-    tryItBody: "Chaque requête ci-dessous interroge la vraie API.",
-    endpoints: "Points d'accès",
-    tiers: "Trois niveaux",
+      "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, et une limite pour chaque commune sauf une. Libre d’usage, et gratuit à héberger.",
+    mapCaption: "Les 1 502 limites, tracées depuis les fichiers que cette API sert.",
+    mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
+
+    codeHeading: "Comment se lit un code",
+    codeBody:
+      "Le code est la hiérarchie. Chaque groupe de chiffres nomme un niveau : le code d’une commune contient donc déjà sa province et sa région. Les cercles ne coiffent que les communes rurales ; une commune urbaine peut à la place contenir des arrondissements.",
+    colPopulation: "Population, 2024",
+
+    tryHeading: "Lancer une requête",
+    tryBody: "Chaque requête ci-dessous part vers cette API et revient telle quelle.",
+
+    tiersHeading: "Où une requête est traitée",
     tiersBody:
-      "L'en-tête X-Api-Tier indique lequel a répondu. Le niveau pré-généré n'est que des fichiers sur un CDN : il ne coûte rien à servir et tient sous n'importe quel trafic.",
-    tierPre: "Pré-généré",
-    tierPreBody: "3 852 fichiers écrits à la construction et servis sans exécuter de code.",
-    tierAlias: "Alias",
-    tierAliasBody: "Les formes avec paramètres ou sans extension, réécrites vers le fichier qui porte la réponse.",
-    tierComputed: "Calculé",
-    tierComputedBody: "La recherche, les requêtes par rayon, et les combinaisons de filtres qu'aucun fichier ne couvre.",
-    dataset: "Le jeu de données",
-    datasetBody:
-      "Versionné et présent dans le dépôt, donc utilisable sans passer par l'API. Les licences diffèrent par dossier : les attributs viennent du HCP, les limites sont sous ODbL, qui impose le partage à l'identique.",
-    search: "Recherche",
-    searchBody:
-      "Tapez en français, en arabe ou un slug. Les diacritiques, les variantes de l'alif et le ta marbouta sont normalisés, et un lieu se trouve aussi par ses autres noms — Fez trouve Fès, Port Lyautey trouve Kénitra.",
-    near: "À proximité",
-    nearBody: "Les communes dans un rayon autour d'un point, de la plus proche à la plus lointaine.",
-    lookup: "Consultation",
-    lookupBody: "Une commune par code ou slug. Les quatre écritures mènent à la même unité.",
-    source: "Source",
-    run: "Exécuter",
+      "Trois endroits, et l’en-tête X-Api-Tier de chaque réponse dit lequel. La plupart des requêtes n’atteignent aucun code.",
+    tierPreHeader: "aucun en-tête : rien ne s’est exécuté",
+    tierPre: "Un fichier sur le CDN",
+    tierPreBody:
+      "3 852 réponses sont écrites à la construction du site. Rien ne s’exécute pour les servir : elles ne coûtent rien et tiennent sous n’importe quel trafic.",
+    tierAlias: "Une réécriture vers ce fichier",
+    tierAliasBody:
+      "Une chaîne de requête ne peut pas désigner un fichier. Les requêtes écrites ainsi sont donc renvoyées vers le fichier qui porte déjà la réponse, et la réponse le nomme.",
+    tierComputed: "Calculée à la demande",
+    tierComputedBody:
+      "La recherche, les requêtes par rayon, et les combinaisons de filtres qu’aucun fichier ne couvre. Ce sont les seules requêtes qui consomment quelque chose.",
+
+    dataHeading: "Tout récupérer",
+    dataBody:
+      "Le jeu de données est versionné dans le dépôt : il s’utilise sans passer par cette API. Les licences diffèrent selon le dossier : les attributs viennent du recensement, les limites sont à partage à l’identique.",
+
+    searchTab: "Recherche",
+    searchHint:
+      "En français, en arabe ou par slug. Les accents, les variantes de l’alif et le ta marbouta sont normalisés, et les lieux se trouvent aussi par leurs autres noms — Fez donne Fès, Port Lyautey donne Kénitra.",
+    nearTab: "À proximité",
+    nearHint: "Les communes dans un rayon autour d’un point, de la plus proche à la plus lointaine.",
+    lookupTab: "Consultation",
+    lookupHint: "Une commune par code ou slug. Les quatre écritures mènent au même enregistrement.",
+    fieldQuery: "Rechercher",
+    fieldRadius: "Rayon en km",
+    fieldIdentifier: "Code ou slug",
+    run: "Lancer",
     running: "En cours",
     request: "Requête",
-    response: "Réponse",
-    tier: "Niveau",
-    query: "Requête",
-    radius: "Rayon (km)",
-    identifier: "Code ou slug",
-    empty: "Rien à afficher pour l'instant.",
-    failed: "La requête a échoué.",
-    repo: "Dépôt",
+    tier: "Traitée par",
+    emptyState: "Choisissez un exemple ou saisissez une requête, puis lancez-la.",
+    failed: "La requête n’a pas abouti. Vérifiez que l’API tourne, puis réessayez.",
+
+    footerData: "Codes et population : Haut-Commissariat au Plan, RGPH 2024 et RGPH 2014.",
+    footerGeometry: "Limites : contributeurs d’OpenStreetMap, sous licence Open Database.",
+    repo: "Code source",
   },
-  ar: {
-    title: "واجهة جماعات المغرب",
-    tagline: "كل جماعة في المغرب، مع رمزها الرسمي واسميها وعدد سكانها وحدودها.",
-    intro:
-      "مجموعة بيانات مفتوحة وواجهة HTTP للتقسيم الإداري للمغرب، مبنية على الإحصاء الذي تنشره المندوبية السامية للتخطيط وعلى الحدود الموجودة في OpenStreetMap. حرة الاستخدام، ومجانية التشغيل.",
-    counts: "ما تغطيه",
-    regions: "جهات",
-    provinces: "أقاليم وعمالات",
-    cercles: "دوائر",
-    communes: "جماعات",
-    arrondissements: "مقاطعات",
-    tryIt: "جرّبها",
-    tryItBody: "كل طلب أدناه يُنفَّذ على الواجهة الحقيقية.",
-    endpoints: "نقاط الوصول",
-    tiers: "ثلاث طبقات",
-    tiersBody:
-      "ترويسة X-Api-Tier تبيّن أي طبقة أجابت. الطبقة المُهيَّأة مسبقًا ملفات على شبكة توصيل، فلا تكلّف شيئًا ولا تتأثر بحجم الزيارات.",
-    tierPre: "مُهيَّأة مسبقًا",
-    tierPreBody: "‏3852 ملفًا تُكتب عند البناء وتُقدَّم دون تنفيذ أي كود.",
-    tierAlias: "بديلة",
-    tierAliasBody: "الصيغ ذات المعاملات أو بدون امتداد، تُحوَّل إلى الملف الذي يحمل الجواب.",
-    tierComputed: "محسوبة",
-    tierComputedBody: "البحث، والاستعلام بنصف قطر، وتجميع المرشحات الذي لا يغطيه ملف واحد.",
-    dataset: "مجموعة البيانات",
-    datasetBody:
-      "محفوظة في المستودع ولها إصدارات، فيمكن استخدامها دون الواجهة أصلًا. الرخص تختلف بحسب المجلد: الخصائص من المندوبية السامية للتخطيط، والحدود تحت رخصة ODbL التي تشترط المشاركة بالمثل.",
-    search: "البحث",
-    searchBody:
-      "اكتب بالفرنسية أو العربية أو بالمعرّف. تُوحَّد الحركات وصور الألف والتاء المربوطة، ويمكن العثور على المكان بأسمائه الأخرى أيضًا — Fez تجد فاس، وPort Lyautey تجد القنيطرة.",
-    near: "الأقرب",
-    nearBody: "الجماعات داخل نصف قطر حول نقطة، من الأقرب إلى الأبعد.",
-    lookup: "الاستعلام",
-    lookupBody: "جماعة واحدة بالرمز أو المعرّف. الصيغ الأربع كلها تؤدي إلى الوحدة نفسها.",
-    source: "المصدر",
-    run: "تشغيل",
-    running: "جارٍ",
-    request: "الطلب",
-    response: "الجواب",
-    tier: "الطبقة",
-    query: "الاستعلام",
-    radius: "نصف القطر (كم)",
-    identifier: "الرمز أو المعرّف",
-    empty: "لا شيء لعرضه بعد.",
-    failed: "فشل الطلب.",
-    repo: "المستودع",
-  },
+
 } as const;
 
 export const t = (locale: Locale) => ui[locale];

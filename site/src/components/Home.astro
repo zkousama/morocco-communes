@@ -1,80 +1,381 @@
 ---
 import Base from "../layouts/Base.astro";
 import Playground from "./Playground.tsx";
-import { RTL, t, type Locale } from "../i18n/ui";
+import { LEVELS, t, type Locale } from "../i18n/ui";
+import { chain, counts } from "../generated/hierarchy";
+import { aspect } from "../generated/outline";
 
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
 const copy = t(locale);
+const levels = LEVELS[locale];
 
-const counts = [
-  { n: "12", label: copy.regions },
-  { n: "83", label: copy.provinces },
-  { n: "213", label: copy.cercles },
-  { n: "1 503", label: copy.communes },
-  { n: "41", label: copy.arrondissements },
-];
+const group = new Intl.NumberFormat(locale === "fr" ? "fr-MA" : "en-GB");
+
+/** Depth is the dot count, so the indent is the code's own structure. */
+const depthOf = (code: string) => code.split(".").length - 1;
 
 const tiers = [
-  { name: copy.tierPre, body: copy.tierPreBody },
-  { name: copy.tierAlias, body: copy.tierAliasBody },
-  { name: copy.tierComputed, body: copy.tierComputedBody },
+  { name: copy.tierPre, body: copy.tierPreBody, header: copy.tierPreHeader },
+  { name: copy.tierAlias, body: copy.tierAliasBody, header: "X-Api-Tier: alias" },
+  { name: copy.tierComputed, body: copy.tierComputedBody, header: "X-Api-Tier: computed" },
 ];
 
-const routes = `GET /api/regions.json
+const prerendered = `GET /api/regions.json
 GET /api/regions/01/provinces.json
 GET /api/provinces/01.511/communes/page/1.json
-GET /api/cercles/01.511.05.json
 GET /api/communes/01.511.01.0.json
 GET /api/communes/01.511.01.0/arrondissements.json
 GET /api/communes/type/urban/page/1.json
-GET /api/arrondissements/01.511.01.05.json
-GET /api/version.json
+GET /api/version.json`;
 
-GET /api/search?q=tanger&levels=commune&limit=10
-GET /api/communes/near?lat=33.5731&lng=-7.5898&radius=15
-GET /api/communes?province=01.511&type=urban`;
----
-
-<Base locale={locale}>
-  <h1>{copy.tagline}</h1>
-  <p class="lede">{copy.intro}</p>
-
-  <h2>{copy.counts}</h2>
-  <ul class="counts">
-    {counts.map((c) => (
-      <li>
-        <b>{c.n}</b>
-        <span>{c.label}</span>
-      </li>
-    ))}
-  </ul>
-
-  <h2>{copy.tryIt}</h2>
-  <p>{copy.tryItBody}</p>
-  <Playground copy={copy} rtl={RTL[locale]} client:load />
-
-  <h2>{copy.tiers}</h2>
-  <p>{copy.tiersBody}</p>
-  <div class="grid">
-    {tiers.map((tier) => (
-      <div class="card">
-        <h3>{tier.name}</h3>
-        <p>{tier.body}</p>
-      </div>
-    ))}
-  </div>
-
-  <h2>{copy.endpoints}</h2>
-  <pre class="routes">{routes}</pre>
-
-  <h2>{copy.dataset}</h2>
-  <p>{copy.datasetBody}</p>
-  <pre class="routes">{`GET /data/v1/attributes/communes.json
+const dataFiles = `GET /data/v1/attributes/communes.json
 GET /data/v1/attributes/communes.csv
 GET /data/v1/geometry/01.topojson
 GET /data/v1/crosswalk/crosswalk.json
-GET /data/v1/sources.json`}</pre>
+GET /data/v1/sources.json`;
+---
+
+<Base locale={locale}>
+  <section class="hero">
+    <div class="hero-words">
+      <h1>{copy.tagline}</h1>
+      <p class="lede">{copy.intro}</p>
+    </div>
+
+    <figure class="plate">
+      <img src="/morocco.svg" alt={copy.mapCaption} width="1000" height={Math.round(1000 * aspect)} />
+      <figcaption>
+        <span>{copy.mapCaption}</span>
+        <span class="mono">{copy.mapSource}</span>
+      </figcaption>
+    </figure>
+
+    <dl class="tally">
+        <div><dt>{group.format(counts.regions)}</dt><dd>{levels.region}</dd></div>
+        <div><dt>{group.format(counts.provinces)}</dt><dd>{levels.province}</dd></div>
+        <div><dt>{group.format(counts.cercles)}</dt><dd>{levels.cercle}</dd></div>
+        <div><dt>{group.format(counts.communes)}</dt><dd>{levels.commune}</dd></div>
+        <div><dt>{group.format(counts.arrondissements)}</dt><dd>{levels.arrondissement}</dd></div>
+    </dl>
+  </section>
+
+  <section class="band">
+    <h2>{copy.codeHeading}</h2>
+    <p>{copy.codeBody}</p>
+
+    <div class="ladder-scroll">
+    <table class="ladder">
+      <thead>
+        <tr>
+          <th scope="col">code</th>
+          <th scope="col"><span class="sr">{copy.codeHeading}</span></th>
+          <th scope="col" class="num">{copy.colPopulation}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {chain.map((entry) => (
+          <tr>
+            <td class="mono code" style={`--depth:${depthOf(entry.code)}`}>{entry.code}</td>
+            <td class="name">
+              <span>{entry.fr}</span>
+              <span class="level">{levels[entry.level]}</span>
+            </td>
+            <td class="num mono">{entry.population === null ? "—" : group.format(entry.population)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="band">
+    <h2>{copy.tryHeading}</h2>
+    <p>{copy.tryBody}</p>
+    <Playground copy={copy} client:load />
+  </section>
+
+  <section class="band">
+    <h2>{copy.tiersHeading}</h2>
+    <p>{copy.tiersBody}</p>
+    <ol class="tiers">
+      {tiers.map((tier) => (
+        <li>
+          <h3>{tier.name}</h3>
+          <p class="mono header">{tier.header}</p>
+          <p>{tier.body}</p>
+        </li>
+      ))}
+    </ol>
+    <pre class="routes">{prerendered}</pre>
+  </section>
+
+  <section class="band">
+    <h2>{copy.dataHeading}</h2>
+    <p>{copy.dataBody}</p>
+    <pre class="routes">{dataFiles}</pre>
+  </section>
 </Base>
+
+<style>
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Hero ------------------------------------------------------------------- */
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(1.5rem, 4vw, 3.25rem);
+    align-items: center;
+    padding-top: clamp(0.5rem, 3vw, 2rem);
+  }
+
+  h1 {
+    font-size: clamp(var(--t-lg), 5.2vw, var(--t-2xl));
+    font-weight: 400;
+    line-height: 1.14;
+    letter-spacing: -0.021em;
+    margin: 0 0 1.1rem;
+    max-width: 27ch;
+    text-wrap: balance;
+  }
+
+
+  .lede {
+    color: var(--quiet);
+    max-width: 46ch;
+    margin-bottom: 0;
+  }
+
+  .tally {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 clamp(1.5rem, 4vw, 3.25rem);
+    margin: clamp(1.75rem, 4vw, 2.75rem) 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .tally dt {
+    font-size: var(--t-md);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+
+  .tally dd {
+    margin: 0;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  /* The geometry sits on its own ground, the way it sits under its own licence. */
+  .plate {
+    margin: 0;
+    padding: 0;
+  }
+
+  .plate img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .plate figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--rule);
+    color: var(--quiet);
+    font-size: var(--t-xs);
+    line-height: 1.45;
+  }
+
+  .plate figcaption .mono {
+    direction: ltr;
+  }
+
+
+  /* Bands ------------------------------------------------------------------ */
+
+  .band {
+    padding-block: clamp(2.5rem, 6vw, 4rem) 0;
+  }
+
+  .band h2 {
+    font-size: var(--t-md);
+    font-weight: 500;
+    letter-spacing: -0.012em;
+    margin: 0 0 0.6rem;
+  }
+
+  .band > p {
+    color: var(--quiet);
+  }
+
+  /* The code ladder -------------------------------------------------------- */
+
+  /* The cells cannot wrap without losing the shape of the column, so on a narrow screen
+     the table scrolls inside its own box rather than dragging the page sideways. */
+  .ladder-scroll {
+    overflow-x: auto;
+    margin-top: 1.75rem;
+  }
+
+  .ladder {
+    width: 100%;
+    min-width: 30rem;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+  }
+
+  .ladder th:first-child,
+  .ladder td:first-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .ladder th {
+    text-align: start;
+    font-weight: 400;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    padding: 0 0 0.55rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ladder td {
+    padding: 0.62rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  .ladder tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* Indent grows with the dots, so the shape of the column is the hierarchy. */
+  .ladder .code {
+    padding-inline-start: calc(var(--depth) * 1.15rem);
+    padding-inline-end: 1.5rem;
+    white-space: nowrap;
+    color: var(--brass);
+    direction: ltr;
+  }
+
+  .ladder .name {
+    width: 100%;
+  }
+
+  .ladder .name .level {
+    color: var(--quiet);
+    font-size: var(--t-xs);
+    margin-inline-start: 0.6rem;
+  }
+
+  .ladder .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Tiers: a sequence, because a request really does fall through them in order. */
+  .tiers {
+    list-style: none;
+    counter-reset: tier;
+    padding: 0;
+    margin: 1.75rem 0 0;
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border-block: 1px solid var(--rule);
+  }
+
+  .tiers li {
+    counter-increment: tier;
+    background: var(--paper);
+    padding: 1.1rem 0;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 0 1rem;
+    align-items: baseline;
+  }
+
+  .tiers li::before {
+    content: counter(tier);
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .tiers h3 {
+    margin: 0;
+    font-size: var(--t-base);
+    font-weight: 500;
+  }
+
+  .tiers .header {
+    grid-column: 2;
+    margin: 0.2rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--brass);
+    direction: ltr;
+  }
+
+
+  .tiers li p:last-child {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    margin: 0;
+    color: var(--quiet);
+    font-size: var(--t-sm);
+  }
+
+  pre.routes {
+    margin: 1.75rem 0 0;
+    padding: 1.1rem 1.25rem;
+    background: var(--canvas);
+    color: #b9cfc5;
+    border-radius: 3px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    line-height: 1.85;
+    direction: ltr;
+    text-align: left;
+  }
+
+  @media (max-width: 40rem) {
+    .ladder .code {
+      padding-inline-start: calc(var(--depth) * 0.7rem);
+      padding-inline-end: 1rem;
+    }
+  }
+
+  @media (max-width: 62rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tiers li {
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .tiers li p:last-child {
+      grid-column: 2;
+      grid-row: auto;
+      margin-top: 0.5rem;
+    }
+  }
+</style>
