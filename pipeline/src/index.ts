@@ -3,7 +3,7 @@ import { parseHcp2024 } from "./sources/hcp2024.ts";
 import { parseHcp2014 } from "./sources/hcp2014.ts";
 import { buildHierarchy } from "./build/hierarchy.ts";
 import { assertDataset } from "./validate/assertions.ts";
-import { toRecords } from "./emit/records.ts";
+import { crosswalkInputs, toRecords } from "./emit/records.ts";
 import { writeJson } from "./emit/json.ts";
 import { writeCsv } from "./emit/csv.ts";
 import { fetchRegion } from "./sources/overpass.ts";
@@ -41,9 +41,7 @@ for (const region of hierarchy.regions) {
 // attribute failure below is collected into one list instead of stopping at the first.
 console.log(`geometry: ${osm.size} communes, ${unmatchedTotal} unmatched relations, ${rejectedTotal} rejected`);
 
-const firstPass = toRecords(hierarchy, units2014, osm);
-const unresolved = firstPass.communes.filter((c) => c.population["2014"] === null);
-const claimed = new Set(firstPass.communes.filter((c) => c.population["2014"]).map((c) => c.codeDigits));
+const { unresolved, claimed } = crosswalkInputs(hierarchy, units2014);
 // Sorted, because Map iteration order would otherwise decide which unit a pass sees
 // first, and the plan forbids the output depending on anything but the input.
 const unclaimed = [...units2014.values()]

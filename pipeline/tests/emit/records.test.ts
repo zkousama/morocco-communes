@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseHcp2024 } from "../../src/sources/hcp2024.ts";
 import { parseHcp2014 } from "../../src/sources/hcp2014.ts";
 import { buildHierarchy } from "../../src/build/hierarchy.ts";
-import { toRecords } from "../../src/emit/records.ts";
+import { crosswalkInputs, toRecords } from "../../src/emit/records.ts";
 import { readCachedWorkbook } from "../support/workbooks.ts";
 
 const h = buildHierarchy(parseHcp2024(readCachedWorkbook(".cache/hcp-population-legale-2024.xlsx")));
@@ -205,5 +205,37 @@ describe("toRecords with the crosswalk", () => {
     ]));
     const record = withCrosswalk.communes.find((c) => c.codeDigits === direct.codeDigits)!;
     expect(record.population.change?.basis).toBe("exact_code");
+  });
+});
+
+describe("crosswalkInputs", () => {
+  // The pipeline used to build the entire dataset once just to learn which communes the
+  // crosswalk had to place, then build it again with the answer. This asserts the
+  // short-cut agrees with that first pass exactly, so the refactor cannot quietly change
+  // which communes reach the matcher or which 2014 units it considers spent.
+  const firstPass = toRecords(h, units2014);
+  const inputs = crosswalkInputs(h, units2014);
+
+  it("selects the same communes the first pass left without a 2014 figure", () => {
+    const expected = firstPass.communes
+      .filter((c) => c.population["2014"] === null)
+      .map((c) => c.codeDigits);
+    expect(inputs.unresolved.map((c) => c.codeDigits)).toEqual(expected);
+    expect(inputs.unresolved.length).toBe(207);
+  });
+
+  it("marks the same 2014 codes as already spent", () => {
+    const expected = firstPass.communes
+      .filter((c) => c.population["2014"] !== null)
+      .map((c) => c.codeDigits)
+      .sort();
+    expect([...inputs.claimed].sort()).toEqual(expected);
+  });
+
+  it("carries stripped names, because the matcher compares on them", () => {
+    const aitKamra = inputs.unresolved.find((c) => c.codeDigits === "010511101")!;
+    expect(aitKamra.name.fr).toBe("Ait Kamra");
+    expect(aitKamra.name.ar).toBe("آيت قمرة");
+    expect(aitKamra.population["2024"].total).toBe(h.communes.find((c) => c.codeDigits === "010511101")!.population);
   });
 });

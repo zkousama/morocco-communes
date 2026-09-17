@@ -73,20 +73,33 @@ const stripAr = (name: string) => {
 };
 const stripUrbanCentre = (name: string) => name.replace(URBAN_CENTRE, "").trim();
 
+/** What the matcher needs off a 2024 commune, and nothing more. */
+export interface CrosswalkCandidate {
+  code: string;
+  codeDigits: string;
+  name: { fr: string; ar: string };
+  population: { "2024": { total: number | null } };
+}
+
 interface Prior {
   total: number | null;
   households: number | null;
   basis: "exact_code" | "arrondissement_sum" | "crosswalk";
 }
 
-export function toRecords(
+/**
+ * Resolves a commune's 2014 figure, trying three routes in order: the code that never
+ * changed, the sum of the commune's own arrondissements, and the crosswalk.
+ *
+ * Extracted from `toRecords` because the crosswalk cannot be built until it is known
+ * which communes need it, and asking that question used to mean building the whole
+ * dataset with an empty crosswalk and throwing the result away.
+ */
+function priorResolver(
   h: Hierarchy,
   units2014: Map<string, Hcp2014Unit>,
-  osm: Map<string, OsmFeature> = new Map(),
-  crosswalk: Map<string, CrosswalkRow> = new Map(),
-): DatasetRecords {
-  const slugs = uniqueSlugs(h.communes.map((c) => ({ code: c.code, nameFr: c.nameFr })));
-
+  crosswalk: Map<string, CrosswalkRow>,
+): (c: { code: string; codeDigits: string }) => Prior | null {
   // The six arrondissement-bearing cities have no commune row in the 2014 workbook,
   // because that tier did not exist for them then: the 2014 hierarchy runs préfecture →
   // préfecture d'arrondissements → arrondissement with nothing in between. All 41
@@ -100,7 +113,7 @@ export function toRecords(
     arrondissementCodes.set(a.communeCode, list);
   }
 
-  function priorFor(c: { code: string; codeDigits: string }): Prior | null {
+  return function priorFor(c: { code: string; codeDigits: string }): Prior | null {
     const direct = units2014.get(c.codeDigits);
     if (direct && direct.kind !== "arrondissement") {
       return { total: direct.population, households: direct.households, basis: "exact_code" };
@@ -127,7 +140,42 @@ export function toRecords(
       };
     }
     return null;
+  };
+}
+
+/** The 2024 side of the crosswalk: who still needs a figure, and which codes are spent. */
+export function crosswalkInputs(
+  h: Hierarchy,
+  units2014: Map<string, Hcp2014Unit>,
+): { unresolved: CrosswalkCandidate[]; claimed: Set<string> } {
+  const priorFor = priorResolver(h, units2014, new Map());
+  const unresolved: CrosswalkCandidate[] = [];
+  const claimed = new Set<string>();
+  // Hierarchy order, because the matcher's exhaustion pass reads the remaining
+  // candidates in the order it is given them.
+  for (const c of h.communes) {
+    if (priorFor(c) !== null) {
+      claimed.add(c.codeDigits);
+      continue;
+    }
+    unresolved.push({
+      code: c.code,
+      codeDigits: c.codeDigits,
+      name: { fr: strip(c.nameFr), ar: stripAr(c.nameAr) },
+      population: { "2024": { total: c.population } },
+    });
   }
+  return { unresolved, claimed };
+}
+
+export function toRecords(
+  h: Hierarchy,
+  units2014: Map<string, Hcp2014Unit>,
+  osm: Map<string, OsmFeature> = new Map(),
+  crosswalk: Map<string, CrosswalkRow> = new Map(),
+): DatasetRecords {
+  const slugs = uniqueSlugs(h.communes.map((c) => ({ code: c.code, nameFr: c.nameFr })));
+  const priorFor = priorResolver(h, units2014, crosswalk);
 
   const communes: CommuneRecord[] = h.communes.map((c) => {
     const usable = priorFor(c);
