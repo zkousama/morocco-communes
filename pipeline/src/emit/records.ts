@@ -32,10 +32,25 @@ const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['\u2019]|de\s+
 // The Arabic column carries its own label word, one per level, and it has to come off
 // too or every record ships a name meaning "commune Tanger" rather than "Tanger".
 // Measured across the whole workbook: جهة 12, عمالة 21, إقليم 62, دائرة 213,
-// جماعة 1503, مقاطعة 41. Nothing else appears in first position.
-const LABEL_AR = /^(جهة|عمالة|إقليم|دائرة|جماعة|مقاطعة)\s+/;
+// جماعة 1503, مقاطعة 41. Nothing else appears in first position, and the only
+// second-position labels are مقاطعات 6 and مقاطعة 2, inside Casablanca.
+const LABEL_AR = /^(جهة|عمالة|إقليم|دائرة|جماعة|مقاطعات|مقاطعة)\s+/;
 const strip = (name: string) => name.replace(LABEL, "").trim();
-const stripAr = (name: string) => name.replace(LABEL_AR, "").trim();
+/**
+ * Applied until it stops changing the string. Casablanca's eight préfectures
+ * d'arrondissements carry a compound label — "عمالة مقاطعات X" for the six that group
+ * several arrondissements, "عمالة مقاطعة X" for the two that group one — so a single
+ * anchored replace removes only the outer word and leaves the inner one in the name.
+ */
+const stripAr = (name: string) => {
+  let out = name.trim();
+  let previous = "";
+  while (out !== previous) {
+    previous = out;
+    out = out.replace(LABEL_AR, "").trim();
+  }
+  return out;
+};
 const stripUrbanCentre = (name: string) => name.replace(URBAN_CENTRE, "").trim();
 
 interface Prior {

@@ -62,8 +62,14 @@ describe("toRecords", () => {
     const tanger = records.communes.find((c) => c.code === "01.511.01.0")!;
     expect(tanger.name.fr).toBe("Tanger");
     expect(tanger.name.ar).toBe("طنجة");
+    // Casablanca's préfectures d'arrondissements are labelled twice over.
+    const grouped = records.provinces.find((p) => (p as { code: string }).code === "06.141.01.00")!;
+    expect((grouped as { name: { ar: string } }).name.ar).toBe("الدار البيضاء-أنفا");
+    const single = records.provinces.find((p) => (p as { code: string }).code === "06.141.01.30")!;
+    expect((single as { name: { ar: string } }).name.ar).toBe("الحي الحسني");
+
     // Not one record anywhere should still open with a level's label word.
-    const labels = ["جهة", "عمالة", "إقليم", "دائرة", "جماعة", "مقاطعة"];
+    const labels = ["جهة", "عمالة", "إقليم", "دائرة", "جماعة", "مقاطعات", "مقاطعة"];
     for (const level of [records.regions, records.provinces, records.cercles, records.communes, records.arrondissements]) {
       for (const unit of level as { name: { ar: string } }[]) {
         expect(labels.some((l) => unit.name.ar.startsWith(`${l} `))).toBe(false);
