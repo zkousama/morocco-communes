@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import { slugify, uniqueSlugs } from "../../src/lib/slug.ts";
 
 describe("slugify", () => {
+  it("strips a label written with a typographic apostrophe", () => {
+    // Escapes, not literal characters: a literal ' does not survive being retyped,
+    // which is exactly how this regression got in.
+    expect(slugify("Commune d’Assilah")).toBe("assilah");
+    expect(slugify("Arrondissement d’Anfa")).toBe("anfa");
+    expect(slugify("Commune de l’Oulja")).toBe("oulja");
+  });
+
   it("drops the label and folds accents", () => {
     expect(slugify("Commune de Tétouan")).toBe("tetouan");
     expect(slugify("Commune d'Assilah")).toBe("assilah");

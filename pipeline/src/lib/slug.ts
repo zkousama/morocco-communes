@@ -1,11 +1,11 @@
-const LABEL = /^(Commune|Arrondissement|Cercle|Province|Préfecture|Région)\s+(de\s+la\s+|de\s+l'|de\s+|du\s+|des\s+|d'|d')?/i;
+const LABEL = /^(Commune|Arrondissement|Cercle|Province|Préfecture|Région)\s+(de\s+la\s+|de\s+l['’]|de\s+|du\s+|des\s+|d['’])?/i;
 
 export function slugify(nameFr: string): string {
   return nameFr
     .replace(LABEL, "")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/['']/g, " ")
+    .replace(/['’]/g, " ")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
