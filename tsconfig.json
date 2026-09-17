@@ -10,7 +10,8 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": [
-      "node"
+      "node",
+      "@cloudflare/workers-types"
     ]
   },
   "include": [

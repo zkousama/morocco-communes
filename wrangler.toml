@@ -1,0 +1,12 @@
+name = "morocco-communes-api"
+main = "api/src/worker/index.ts"
+compatibility_date = "2026-09-17"
+
+# Assets are matched first and served without invoking the Worker, which is what makes
+# the pre-rendered tier free. not_found_handling = "none" hands a miss to the Worker
+# rather than serving a fallback page, because a miss here is an API request the Worker
+# may still be able to answer.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "none"

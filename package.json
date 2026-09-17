@@ -12,10 +12,20 @@
     "api:build": "node --experimental-strip-types api/src/emit/index.ts"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260917.1",
     "@types/node": "^22.10.0",
     "@types/polylabel": "^2.0.0",
     "@types/topojson-server": "^3.0.4",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "wrangler": "^4.134.0"
+  },
+  "dependencies": {
+    "hono": "^4.13.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "workerd"
+    ]
   }
 }

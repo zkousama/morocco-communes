@@ -129,4 +129,11 @@ describe("HEADERS_FILE", () => {
     expect(HEADERS_FILE).toContain("Access-Control-Allow-Origin: *");
     expect(HEADERS_FILE).toContain("/data/*");
   });
+
+  it("types the .topojson files, which the asset store serves with no Content-Type", () => {
+    // Measured against wrangler dev: an unknown extension gets no content-type header at
+    // all, and a _headers rule does override it.
+    expect(HEADERS_FILE).toContain("/data/v1/geometry/*.topojson");
+    expect(HEADERS_FILE).toContain("Content-Type: application/json");
+  });
 });
