@@ -15,7 +15,7 @@ export interface CommuneRecord {
     "2014": { total: number | null; households: number | null } | null;
     change: { absolute: number; pct: number; basis: "exact_code" | "arrondissement_sum" } | null;
   };
-  urbanCentre: { name: string; population: number | null } | null;
+  urbanCentres: { name: string; population: number | null }[];
   provenance: { name: string; population2024: string; population2014: string | null };
 }
 
@@ -30,16 +30,20 @@ export interface DatasetRecords {
 // Plurals matter and the strip repeats, for the same reason the Arabic one does:
 // Casablanca's eight groupings are labelled twice, "Préfecture d'arrondissements de X".
 // One pass leaves "arrondissements de X" standing as the name.
-const LABEL = /^(Communes?|Arrondissements?|Cercles?|Provinces?|Préfectures?|Régions?)\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
-const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
+const LABEL = /^(Communes?|Arrondissements?|Cercles?|Provinces?|Préfectures?|Régions?)\s+(de\s+la\s+|de\s+l['’]|de\s+|du\s+|des\s+|d['’])?/i;
+const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['’]|de\s+|du\s+|des\s+|d['’])?/i;
 // The Arabic column carries its own label word, one per level, and it has to come off
 // too or every record ships a name meaning "commune Tanger" rather than "Tanger".
 // Measured across the whole workbook: جهة 12, عمالة 21, إقليم 62, دائرة 213,
 // جماعة 1503, مقاطعة 41. Nothing else appears in first position, and the only
 // second-position labels are مقاطعات 6 and مقاطعة 2, inside Casablanca.
 const LABEL_AR = /^(جهة|عمالة|إقليم|دائرة|جماعة|مقاطعات|مقاطعة)\s+/;
+// The workbook marks four Western Sahara communes with a trailing asterisk, a footnote
+// reference rather than part of the name. slugify already drops it, so leaving it here
+// makes name and slug disagree. nameFrRaw keeps the row exactly as published.
+const FOOTNOTE = /\*+$/;
 const strip = (name: string) => {
-  let out = name.trim();
+  let out = name.replace(FOOTNOTE, "").trim();
   let previous = "";
   while (out !== previous) {
     previous = out;
@@ -54,7 +58,7 @@ const strip = (name: string) => {
  * anchored replace removes only the outer word and leaves the inner one in the name.
  */
 const stripAr = (name: string) => {
-  let out = name.trim();
+  let out = name.replace(FOOTNOTE, "").trim();
   let previous = "";
   while (out !== previous) {
     previous = out;
@@ -129,9 +133,10 @@ export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): Da
               }
             : null,
       },
-      urbanCentre: c.urbanCentre
-        ? { name: stripUrbanCentre(c.urbanCentre.nameFr), population: c.urbanCentre.population }
-        : null,
+      urbanCentres: c.urbanCentres.map((u) => ({
+        name: stripUrbanCentre(u.nameFr),
+        population: u.population,
+      })),
       provenance: {
         name: "hcp-2024",
         population2024: "hcp-2024",
@@ -140,15 +145,45 @@ export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): Da
     };
   });
 
-  const plain = (u: { code: string; nameFr: string; nameAr: string }) => ({
+  // Every level carries the population HCP publishes for it. Dropping those would make a
+  // consumer re-derive by summing children, which is both wasteful and a different number
+  // wherever a parent includes something its children do not.
+  const plain = (u: {
+    code: string; codeDigits: string; nameFr: string; nameAr: string;
+    population: number | null; moroccan: number | null; foreign: number | null; households: number | null;
+  }) => ({
     code: u.code,
+    codeDigits: u.codeDigits,
     name: { fr: strip(u.nameFr), ar: stripAr(u.nameAr) },
+    population: {
+      "2024": { total: u.population, moroccan: u.moroccan, foreign: u.foreign, households: u.households },
+    },
+    provenance: { name: "hcp-2024", population2024: "hcp-2024" },
   });
 
+  const inRegion = (code: string) => communes.filter((c) => c.parents.region === code).length;
+  const inProvince = (code: string) => communes.filter((c) => c.parents.province === code).length;
+  const inCercle = (code: string) => communes.filter((c) => c.parents.cercle === code).length;
+
   return {
-    regions: h.regions.map((r) => ({ ...plain(r), communeCount: communes.filter((c) => c.parents.region === r.code).length })),
-    provinces: h.provinces.map((p) => ({ ...plain(p), type: p.type, regionCode: p.regionCode })),
-    cercles: h.cercles.map((c) => ({ ...plain(c), regionCode: c.regionCode, provinceCode: c.provinceCode })),
+    regions: h.regions.map((r) => ({
+      ...plain(r),
+      provinceCount: h.provinces.filter((p) => p.regionCode === r.code && p.type !== "prefecture_of_arrondissements").length,
+      communeCount: inRegion(r.code),
+    })),
+    provinces: h.provinces.map((p) => ({
+      ...plain(p),
+      type: p.type,
+      regionCode: p.regionCode,
+      cercleCount: h.cercles.filter((c) => c.provinceCode === p.code).length,
+      communeCount: inProvince(p.code),
+    })),
+    cercles: h.cercles.map((c) => ({
+      ...plain(c),
+      regionCode: c.regionCode,
+      provinceCode: c.provinceCode,
+      communeCount: inCercle(c.code),
+    })),
     communes,
     arrondissements: h.arrondissements.map((a) => ({
       ...plain(a),

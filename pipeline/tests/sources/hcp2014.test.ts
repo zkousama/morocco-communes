@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { parseHcp2014 } from "../../src/sources/hcp2014.ts";
+import { readCachedWorkbook } from "../support/workbooks.ts";
 
-const bytes = new Uint8Array(readFileSync(".cache/hcp-population-legale-2014.xlsx"));
+const bytes = readCachedWorkbook(".cache/hcp-population-legale-2014.xlsx");
 const units = parseHcp2014(bytes);
 
 describe("parseHcp2014", () => {

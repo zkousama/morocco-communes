@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { parseHcp2024 } from "../../src/sources/hcp2024.ts";
 import { parseHcp2014 } from "../../src/sources/hcp2014.ts";
 import { buildHierarchy } from "../../src/build/hierarchy.ts";
 import { toRecords } from "../../src/emit/records.ts";
+import { readCachedWorkbook } from "../support/workbooks.ts";
 
-const h = buildHierarchy(parseHcp2024(new Uint8Array(readFileSync(".cache/hcp-population-legale-2024.xlsx"))));
-const units2014 = parseHcp2014(new Uint8Array(readFileSync(".cache/hcp-population-legale-2014.xlsx")));
+const h = buildHierarchy(parseHcp2024(readCachedWorkbook(".cache/hcp-population-legale-2024.xlsx")));
+const units2014 = parseHcp2014(readCachedWorkbook(".cache/hcp-population-legale-2014.xlsx"));
 const records = toRecords(h, units2014);
 
 describe("toRecords", () => {
@@ -84,6 +84,34 @@ describe("toRecords", () => {
         expect(labels.some((l) => unit.name.ar.startsWith(`${l} `))).toBe(false);
       }
     }
+  });
+
+  it("keeps the footnote marker out of display names but not out of nameFrRaw", () => {
+    const mijik = records.communes.find((c) => c.code === "12.391.05.05")!;
+    expect(mijik.nameFrRaw).toBe("Commune de Mijik*");
+    expect(mijik.name.fr).toBe("Mijik");
+    expect(mijik.name.ar).not.toContain("*");
+    expect(mijik.slug).toBe("mijik");
+    for (const c of records.communes) expect(c.name.fr).not.toContain("*");
+  });
+
+  it("keeps every urban centre, including the three communes that have several", () => {
+    const total = records.communes.reduce((n, c) => n + c.urbanCentres.length, 0);
+    expect(total).toBe(164);
+    expect(records.communes.filter((c) => c.urbanCentres.length > 0).length).toBe(160);
+    const ainChkef = records.communes.find((c) => c.codeDigits === "035910103")!;
+    expect(ainChkef.urbanCentres.map((u) => u.name).sort()).toEqual([
+      "Ain Chkef Al Andalous",
+      "Ras El Mae",
+    ]);
+  });
+
+  it("carries the published population at every level, not just communes", () => {
+    const region = records.regions.find((r) => (r as { code: string }).code === "01") as
+      { population: { "2024": { total: number } }; communeCount: number; provinceCount: number };
+    expect(region.population["2024"].total).toBe(4030222);
+    expect(region.provinceCount).toBeGreaterThan(0);
+    expect(region.communeCount).toBeGreaterThan(0);
   });
 
   it("records provenance per field group", () => {

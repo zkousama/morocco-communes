@@ -21,4 +21,14 @@ until the crosswalk lands.
 
 Four communes — Aghouinite, Lagouira, Mijik and Zoug — carry `pm`, for *pour mémoire*,
 in the 2014 source instead of a count. They keep a 2014 object with a null total, and no
-population change is computed for them.
+population change is computed for them. That is a different thing from the 207 renumbered
+communes, whose `population.2014` is null outright: read `provenance.population2014` to
+tell them apart. `communes.csv` cannot express the difference, so use the JSON when it
+matters.
+
+Régions, provinces and cercles carry the population HCP publishes for them directly,
+rather than a sum over their children. A parent can legitimately differ from the sum of
+its parts.
+
+`urbanCentres` is a list. 160 communes have one, three have several, and 164 exist in
+total.

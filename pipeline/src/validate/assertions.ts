@@ -29,11 +29,32 @@ export function assertDataset(h: Hierarchy, units2014: Map<string, Hcp2014Unit>)
   check(total === NATIONAL_POPULATION_2024, `commune populations sum to ${total}, expected ${NATIONAL_POPULATION_2024}`);
 
   // Catches the Méchouar mis-parenting: a province code is always five digits.
+  // The set membership checks are the stronger form — a well-shaped code that names
+  // nothing is still a broken parent.
+  const regionCodes = new Set(h.regions.map((r) => r.code));
+  const provinceCodes = new Set(h.provinces.map((p) => p.code));
+  const cercleCodes = new Set(h.cercles.map((c) => c.code));
   for (const c of h.communes) {
     check(c.provinceCode.replace(/\D/g, "").length === 5, `${c.nameFr} has province code ${c.provinceCode}`);
+    check(regionCodes.has(c.regionCode), `${c.nameFr} names unknown région ${c.regionCode}`);
+    check(provinceCodes.has(c.provinceCode), `${c.nameFr} names unknown province ${c.provinceCode}`);
     check(c.type === "rural" ? c.cercleCode !== null : c.cercleCode === null,
       `${c.nameFr} is ${c.type} but cercle is ${c.cercleCode}`);
+    if (c.cercleCode !== null) {
+      check(cercleCodes.has(c.cercleCode), `${c.nameFr} names unknown cercle ${c.cercleCode}`);
+    }
   }
+
+  // 164 urban-centre rows across 160 communes. Without this, a changed label in the
+  // source would silently null every one of them and no other assertion would notice.
+  const centres = h.communes.reduce((n, c) => n + c.urbanCentres.length, 0);
+  check(centres === 164, `expected 164 urban centres, got ${centres}`);
+  const withCentre = h.communes.filter((c) => c.urbanCentres.length > 0).length;
+  check(withCentre === 160, `expected 160 communes with an urban centre, got ${withCentre}`);
+
+  const urban = h.communes.filter((c) => c.type === "urban").length;
+  check(urban === 242, `expected 242 urban communes, got ${urban}`);
+  check(h.communes.length - urban === 1261, `expected 1261 rural communes, got ${h.communes.length - urban}`);
 
   const communeCodes = new Set(h.communes.map((c) => c.code));
   const tally: Record<string, number> = {};

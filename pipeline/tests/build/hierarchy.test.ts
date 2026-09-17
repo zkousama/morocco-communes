@@ -28,7 +28,8 @@ describe("buildHierarchy", () => {
 
   it("attaches an urban centre to the rural commune that contains it", () => {
     const dar = built.communes.find((c) => c.nameFr === "Commune de Dar Chaoui")!;
-    expect(dar.urbanCentre?.nameFr).toContain("Dar Chaoui");
+    expect(dar.urbanCentres).toHaveLength(1);
+    expect(dar.urbanCentres[0]!.nameFr).toContain("Dar Chaoui");
   });
 
   it("gives the province its own five-digit code rather than a composed one", () => {

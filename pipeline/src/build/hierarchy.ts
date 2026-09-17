@@ -11,7 +11,7 @@ export interface Cercle extends Unit { regionCode: string; provinceCode: string 
 export interface Commune extends Unit {
   type: "urban" | "rural";
   regionCode: string; provinceCode: string; cercleCode: string | null;
-  urbanCentre: { nameFr: string; population: number | null } | null;
+  urbanCentres: { nameFr: string; population: number | null }[];
 }
 export interface Arrondissement extends Unit {
   communeCode: string; prefectureOfArrondissementsCode: string | null;
@@ -43,7 +43,6 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
   let provinceRaw: string | null = null;
   let provinceCode: string | null = null;
   let cercleCode: string | null = null;
-  let poaRaw: string | null = null;
   let poaCode: string | null = null;
   let commune: Commune | null = null;
 
@@ -54,7 +53,7 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
       case "region": {
         regionRaw = row.code;
         regionCode = formatRegion(row.code);
-        provinceRaw = provinceCode = cercleCode = poaRaw = poaCode = null;
+        provinceRaw = provinceCode = cercleCode = poaCode = null;
         commune = null;
         out.regions.push({ ...base(row, regionCode), codeDigits: regionCode });
         break;
@@ -64,7 +63,7 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
         if (!regionRaw) throw new Error(`province before any région: ${row.nameFr}`);
         provinceRaw = row.code;
         provinceCode = formatProvince(row.code);
-        cercleCode = poaRaw = poaCode = null;
+        cercleCode = poaCode = null;
         commune = null;
         out.provinces.push({
           ...base(row, provinceCode),
@@ -77,7 +76,6 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
       case "prefectureOfArrondissements": {
         // Sits inside a commune. Leaves province and cercle untouched on purpose.
         if (!provinceRaw) throw new Error(`préfecture d'arrondissements before any province: ${row.nameFr}`);
-        poaRaw = row.code;
         poaCode = toDotted(row.code, provinceRaw);
         out.provinces.push({
           ...base(row, poaCode),
@@ -89,7 +87,7 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
       case "cercle": {
         if (!provinceRaw) throw new Error(`cercle before any province: ${row.nameFr}`);
         cercleCode = toDotted(row.code, provinceRaw);
-        poaRaw = poaCode = null;
+        poaCode = null;
         commune = null;
         out.cercles.push({
           ...base(row, cercleCode),
@@ -101,14 +99,14 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
       }
       case "commune": {
         if (!provinceRaw) throw new Error(`commune before any province: ${row.nameFr}`);
-        poaRaw = poaCode = null;
+        poaCode = null;
         commune = {
           ...base(row, toDotted(row.code, provinceRaw)),
           type: cercleCode ? "rural" : "urban",
           regionCode: regionCode!,
           provinceCode: provinceCode!,
           cercleCode,
-          urbanCentre: null,
+          urbanCentres: [],
         };
         out.communes.push(commune);
         break;
@@ -125,7 +123,10 @@ export function buildHierarchy(rows: RawRow[]): Hierarchy {
         break;
       }
       case "urbanCentre": {
-        if (commune) commune.urbanCentre = { nameFr: row.nameFr, population: row.population };
+        // Appended, never assigned. Three communes carry several: Ain Chkef has both
+        // Ras El Mae and Ain Chkef Al Andalous, and assigning would silently drop the
+        // larger of the two. 164 rows attach across 160 communes.
+        if (commune) commune.urbanCentres.push({ nameFr: row.nameFr, population: row.population });
         break;
       }
     }

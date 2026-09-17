@@ -1,98 +1,266 @@
 [
   {
     "code": "01",
+    "codeDigits": "01",
     "name": {
       "fr": "Tanger-Tétouan-Al Hoceima",
       "ar": "طنجة-تطوان-الحسيمة"
     },
+    "population": {
+      "2024": {
+        "total": 4030222,
+        "moroccan": 4020545,
+        "foreign": 9677,
+        "households": 1048860
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 8,
     "communeCount": 146
   },
   {
     "code": "02",
+    "codeDigits": "02",
     "name": {
       "fr": "Oriental",
       "ar": "الشرق"
     },
+    "population": {
+      "2024": {
+        "total": 2294665,
+        "moroccan": 2291040,
+        "foreign": 3625,
+        "households": 575015
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 8,
     "communeCount": 124
   },
   {
     "code": "03",
+    "codeDigits": "03",
     "name": {
       "fr": "Fès-Meknès",
       "ar": "فاس-مكناس"
     },
+    "population": {
+      "2024": {
+        "total": 4467911,
+        "moroccan": 4461182,
+        "foreign": 6729,
+        "households": 1135717
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 9,
     "communeCount": 194
   },
   {
     "code": "04",
+    "codeDigits": "04",
     "name": {
       "fr": "Rabat-Salé-Kénitra",
       "ar": "الرباط-سلا-القنيطرة"
     },
+    "population": {
+      "2024": {
+        "total": 5132639,
+        "moroccan": 5103406,
+        "foreign": 29233,
+        "households": 1301492
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 7,
     "communeCount": 114
   },
   {
     "code": "05",
+    "codeDigits": "05",
     "name": {
       "fr": "Béni Mellal-Khénifra",
       "ar": "بني ملال-خنيفرة"
     },
+    "population": {
+      "2024": {
+        "total": 2525801,
+        "moroccan": 2524541,
+        "foreign": 1260,
+        "households": 616566
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 5,
     "communeCount": 135
   },
   {
     "code": "06",
+    "codeDigits": "06",
     "name": {
       "fr": "Casablanca-Settat",
       "ar": "الدار البيضاء-سطات"
     },
+    "population": {
+      "2024": {
+        "total": 7688967,
+        "moroccan": 7628065,
+        "foreign": 60902,
+        "households": 2021032
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 9,
     "communeCount": 153
   },
   {
     "code": "07",
+    "codeDigits": "07",
     "name": {
       "fr": "Marrakech-Safi",
       "ar": "مراكش-آسفي"
     },
+    "population": {
+      "2024": {
+        "total": 4892393,
+        "moroccan": 4878500,
+        "foreign": 13893,
+        "households": 1185865
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 8,
     "communeCount": 251
   },
   {
     "code": "08",
+    "codeDigits": "08",
     "name": {
       "fr": "Drâa-Tafilalet",
       "ar": "درعة-تافيلالت"
     },
+    "population": {
+      "2024": {
+        "total": 1655623,
+        "moroccan": 1654942,
+        "foreign": 681,
+        "households": 338977
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 5,
     "communeCount": 125
   },
   {
     "code": "09",
+    "codeDigits": "09",
     "name": {
       "fr": "Souss-Massa",
       "ar": "سوس-ماسة"
     },
+    "population": {
+      "2024": {
+        "total": 3020431,
+        "moroccan": 3006430,
+        "foreign": 14001,
+        "households": 785208
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 6,
     "communeCount": 175
   },
   {
     "code": "10",
+    "codeDigits": "10",
     "name": {
       "fr": "Guelmim-Oued Noun",
       "ar": "كلميم-واد نون"
     },
+    "population": {
+      "2024": {
+        "total": 448685,
+        "moroccan": 448152,
+        "foreign": 533,
+        "households": 105394
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 4,
     "communeCount": 53
   },
   {
     "code": "11",
+    "codeDigits": "11",
     "name": {
       "fr": "Laâyoune-Sakia El Hamra",
       "ar": "العيون-الساقية الحمراء"
     },
+    "population": {
+      "2024": {
+        "total": 451028,
+        "moroccan": 449256,
+        "foreign": 1772,
+        "households": 106751
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 4,
     "communeCount": 20
   },
   {
     "code": "12",
+    "codeDigits": "12",
     "name": {
       "fr": "Dakhla-Oued Ed-Dahab",
       "ar": "الداخلة-وادي الذهب"
     },
+    "population": {
+      "2024": {
+        "total": 219965,
+        "moroccan": 214119,
+        "foreign": 5846,
+        "households": 54161
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
+    "provinceCount": 2,
     "communeCount": 13
   }
 ]

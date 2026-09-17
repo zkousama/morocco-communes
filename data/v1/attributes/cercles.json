@@ -1,1919 +1,4901 @@
 [
   {
     "code": "01.511.05",
+    "codeDigits": "0151105",
     "name": {
       "fr": "Tanger",
       "ar": "طنجة"
     },
+    "population": {
+      "2024": {
+        "total": 60807,
+        "moroccan": 60765,
+        "foreign": 42,
+        "households": 14102
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.511"
+    "provinceCode": "01.511",
+    "communeCount": 5
   },
   {
     "code": "01.511.03",
+    "codeDigits": "0151103",
     "name": {
       "fr": "Assilah",
       "ar": "أصيلة"
     },
+    "population": {
+      "2024": {
+        "total": 33463,
+        "moroccan": 33434,
+        "foreign": 29,
+        "households": 7896
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.511"
+    "provinceCode": "01.511",
+    "communeCount": 4
   },
   {
     "code": "01.571.03",
+    "codeDigits": "0157103",
     "name": {
       "fr": "Jebala",
       "ar": "جبالة"
     },
+    "population": {
+      "2024": {
+        "total": 66920,
+        "moroccan": 66912,
+        "foreign": 8,
+        "households": 15852
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.571"
+    "provinceCode": "01.571",
+    "communeCount": 10
   },
   {
     "code": "01.571.05",
+    "codeDigits": "0157105",
     "name": {
       "fr": "Tétouan",
       "ar": "تطوان"
     },
+    "population": {
+      "2024": {
+        "total": 110561,
+        "moroccan": 110526,
+        "foreign": 35,
+        "households": 24542
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.571"
+    "provinceCode": "01.571",
+    "communeCount": 10
   },
   {
     "code": "01.227.05",
+    "codeDigits": "0122705",
     "name": {
       "fr": "Fahs",
       "ar": "الفحص"
     },
+    "population": {
+      "2024": {
+        "total": 51470,
+        "moroccan": 51427,
+        "foreign": 43,
+        "households": 12930
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.227"
+    "provinceCode": "01.227",
+    "communeCount": 3
   },
   {
     "code": "01.227.03",
+    "codeDigits": "0122703",
     "name": {
       "fr": "Anjra",
       "ar": "أنجرة"
     },
+    "population": {
+      "2024": {
+        "total": 49319,
+        "moroccan": 49273,
+        "foreign": 46,
+        "households": 12230
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.227"
+    "provinceCode": "01.227",
+    "communeCount": 4
   },
   {
     "code": "01.331.07",
+    "codeDigits": "0133107",
     "name": {
       "fr": "Loukouss",
       "ar": "اللوكوس"
     },
+    "population": {
+      "2024": {
+        "total": 122597,
+        "moroccan": 122591,
+        "foreign": 6,
+        "households": 26159
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.331"
+    "provinceCode": "01.331",
+    "communeCount": 6
   },
   {
     "code": "01.331.09",
+    "codeDigits": "0133109",
     "name": {
       "fr": "Moulay Abdeslem-Ben M'chich",
       "ar": "مولاي عبد السلام-بن مشيش"
     },
+    "population": {
+      "2024": {
+        "total": 39637,
+        "moroccan": 39636,
+        "foreign": 1,
+        "households": 10039
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.331"
+    "provinceCode": "01.331",
+    "communeCount": 5
   },
   {
     "code": "01.331.11",
+    "codeDigits": "0133111",
     "name": {
       "fr": "Oued El Makhazine",
       "ar": "وادي المخازن"
     },
+    "population": {
+      "2024": {
+        "total": 89545,
+        "moroccan": 89533,
+        "foreign": 12,
+        "households": 19438
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.331"
+    "provinceCode": "01.331",
+    "communeCount": 6
   },
   {
     "code": "01.051.03",
+    "codeDigits": "0105103",
     "name": {
       "fr": "Bni Boufrah",
       "ar": "بني بوفراح"
     },
+    "population": {
+      "2024": {
+        "total": 31426,
+        "moroccan": 31426,
+        "foreign": 0,
+        "households": 7102
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.051"
+    "provinceCode": "01.051",
+    "communeCount": 4
   },
   {
     "code": "01.051.13",
+    "codeDigits": "0105113",
     "name": {
       "fr": "Bni Ouriaghel Charqia",
       "ar": "بني ورياغل الشرقية"
     },
+    "population": {
+      "2024": {
+        "total": 43365,
+        "moroccan": 43357,
+        "foreign": 8,
+        "households": 10788
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.051"
+    "provinceCode": "01.051",
+    "communeCount": 7
   },
   {
     "code": "01.051.11",
+    "codeDigits": "0105111",
     "name": {
       "fr": "Bni Ouriaghel Gharbia",
       "ar": "بني ورياغل الغربية"
     },
+    "population": {
+      "2024": {
+        "total": 35304,
+        "moroccan": 35302,
+        "foreign": 2,
+        "households": 8908
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.051"
+    "provinceCode": "01.051",
+    "communeCount": 6
   },
   {
     "code": "01.051.07",
+    "codeDigits": "0105107",
     "name": {
       "fr": "Targuist",
       "ar": "تارجيست"
     },
+    "population": {
+      "2024": {
+        "total": 41881,
+        "moroccan": 41881,
+        "foreign": 0,
+        "households": 8956
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.051"
+    "provinceCode": "01.051",
+    "communeCount": 7
   },
   {
     "code": "01.051.09",
+    "codeDigits": "0105109",
     "name": {
       "fr": "Ketama",
       "ar": "كتامة"
     },
+    "population": {
+      "2024": {
+        "total": 94197,
+        "moroccan": 94194,
+        "foreign": 3,
+        "households": 20174
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.051"
+    "provinceCode": "01.051",
+    "communeCount": 7
   },
   {
     "code": "01.151.03",
+    "codeDigits": "0115103",
     "name": {
       "fr": "Bab Berred",
       "ar": "باب برد"
     },
+    "population": {
+      "2024": {
+        "total": 68495,
+        "moroccan": 68493,
+        "foreign": 2,
+        "households": 14827
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.151"
+    "provinceCode": "01.151",
+    "communeCount": 3
   },
   {
     "code": "01.151.09",
+    "codeDigits": "0115109",
     "name": {
       "fr": "Jebha",
       "ar": "الجبهة"
     },
+    "population": {
+      "2024": {
+        "total": 62127,
+        "moroccan": 62125,
+        "foreign": 2,
+        "households": 13161
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.151"
+    "provinceCode": "01.151",
+    "communeCount": 5
   },
   {
     "code": "01.151.06",
+    "codeDigits": "0115106",
     "name": {
       "fr": "Bni Ahmed",
       "ar": "بني احمد"
     },
+    "population": {
+      "2024": {
+        "total": 47024,
+        "moroccan": 47024,
+        "foreign": 0,
+        "households": 10921
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.151"
+    "provinceCode": "01.151",
+    "communeCount": 4
   },
   {
     "code": "01.151.05",
+    "codeDigits": "0115105",
     "name": {
       "fr": "Bab Taza",
       "ar": "باب تازة"
     },
+    "population": {
+      "2024": {
+        "total": 96263,
+        "moroccan": 96257,
+        "foreign": 6,
+        "households": 20805
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.151"
+    "provinceCode": "01.151",
+    "communeCount": 8
   },
   {
     "code": "01.151.11",
+    "codeDigits": "0115111",
     "name": {
       "fr": "Assifane",
       "ar": "اسيفان"
     },
+    "population": {
+      "2024": {
+        "total": 38073,
+        "moroccan": 38073,
+        "foreign": 0,
+        "households": 7112
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.151"
+    "provinceCode": "01.151",
+    "communeCount": 2
   },
   {
     "code": "01.151.07",
+    "codeDigits": "0115107",
     "name": {
       "fr": "Bou Ahmed",
       "ar": "بواحمد"
     },
+    "population": {
+      "2024": {
+        "total": 54563,
+        "moroccan": 54549,
+        "foreign": 14,
+        "households": 11656
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.151"
+    "provinceCode": "01.151",
+    "communeCount": 5
   },
   {
     "code": "01.405.07",
+    "codeDigits": "0140507",
     "name": {
       "fr": "Ouezzane",
       "ar": "وزان"
     },
+    "population": {
+      "2024": {
+        "total": 52274,
+        "moroccan": 52273,
+        "foreign": 1,
+        "households": 14680
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.405"
+    "provinceCode": "01.405",
+    "communeCount": 4
   },
   {
     "code": "01.405.13",
+    "codeDigits": "0140513",
     "name": {
       "fr": "Al Ouahda",
       "ar": "الوحدة"
     },
+    "population": {
+      "2024": {
+        "total": 73957,
+        "moroccan": 73952,
+        "foreign": 5,
+        "households": 19590
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.405"
+    "provinceCode": "01.405",
+    "communeCount": 6
   },
   {
     "code": "01.405.09",
+    "codeDigits": "0140509",
     "name": {
       "fr": "Moqrissat",
       "ar": "مقريصات"
     },
+    "population": {
+      "2024": {
+        "total": 40037,
+        "moroccan": 40028,
+        "foreign": 9,
+        "households": 10831
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.405"
+    "provinceCode": "01.405",
+    "communeCount": 4
   },
   {
     "code": "01.405.11",
+    "codeDigits": "0140511",
     "name": {
       "fr": "Zoumi",
       "ar": "زومي"
     },
+    "population": {
+      "2024": {
+        "total": 50572,
+        "moroccan": 50571,
+        "foreign": 1,
+        "households": 13529
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "01",
-    "provinceCode": "01.405"
+    "provinceCode": "01.405",
+    "communeCount": 2
   },
   {
     "code": "02.411.03",
+    "codeDigits": "0241103",
     "name": {
       "fr": "Oujda-Banlieue Nord",
       "ar": "أحواز وجدة الشمالية"
     },
+    "population": {
+      "2024": {
+        "total": 30051,
+        "moroccan": 30009,
+        "foreign": 42,
+        "households": 7112
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.411"
+    "provinceCode": "02.411",
+    "communeCount": 4
   },
   {
     "code": "02.411.05",
+    "codeDigits": "0241105",
     "name": {
       "fr": "Oujda-Banlieue Sud",
       "ar": "أحواز وجدة الجنوبية"
     },
+    "population": {
+      "2024": {
+        "total": 24253,
+        "moroccan": 24165,
+        "foreign": 88,
+        "households": 4635
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.411"
+    "provinceCode": "02.411",
+    "communeCount": 4
   },
   {
     "code": "02.381.05",
+    "codeDigits": "0238105",
     "name": {
       "fr": "Guelaia",
       "ar": "قلعية"
     },
+    "population": {
+      "2024": {
+        "total": 123904,
+        "moroccan": 123870,
+        "foreign": 34,
+        "households": 30369
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.381"
+    "provinceCode": "02.381",
+    "communeCount": 8
   },
   {
     "code": "02.381.07",
+    "codeDigits": "0238107",
     "name": {
       "fr": "Louta",
       "ar": "لوطا"
     },
+    "population": {
+      "2024": {
+        "total": 81481,
+        "moroccan": 81457,
+        "foreign": 24,
+        "households": 19778
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.381"
+    "provinceCode": "02.381",
+    "communeCount": 8
   },
   {
     "code": "02.167.13",
+    "codeDigits": "0216713",
     "name": {
       "fr": "Rif Sud",
       "ar": "الريف الجنوبية"
     },
+    "population": {
+      "2024": {
+        "total": 44529,
+        "moroccan": 44523,
+        "foreign": 6,
+        "households": 11813
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.167"
+    "provinceCode": "02.167",
+    "communeCount": 7
   },
   {
     "code": "02.167.11",
+    "codeDigits": "0216711",
     "name": {
       "fr": "Rif Nord",
       "ar": "الريف الشمالية"
     },
+    "population": {
+      "2024": {
+        "total": 47550,
+        "moroccan": 47548,
+        "foreign": 2,
+        "households": 12366
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.167"
+    "provinceCode": "02.167",
+    "communeCount": 6
   },
   {
     "code": "02.167.17",
+    "codeDigits": "0216717",
     "name": {
       "fr": "Driouch Sud",
       "ar": "الدريوش الجنوبية"
     },
+    "population": {
+      "2024": {
+        "total": 29186,
+        "moroccan": 29160,
+        "foreign": 26,
+        "households": 7055
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.167"
+    "provinceCode": "02.167",
+    "communeCount": 3
   },
   {
     "code": "02.167.15",
+    "codeDigits": "0216715",
     "name": {
       "fr": "Driouch Nord",
       "ar": "الدريوش الشمالية"
     },
+    "population": {
+      "2024": {
+        "total": 20872,
+        "moroccan": 20766,
+        "foreign": 106,
+        "households": 5595
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.167"
+    "provinceCode": "02.167",
+    "communeCount": 4
   },
   {
     "code": "02.275.09",
+    "codeDigits": "0227509",
     "name": {
       "fr": "Jerada-Banlieue Nord",
       "ar": "أحواز جرادة الشمالية"
     },
+    "population": {
+      "2024": {
+        "total": 13646,
+        "moroccan": 13644,
+        "foreign": 2,
+        "households": 3240
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.275"
+    "provinceCode": "02.275",
+    "communeCount": 4
   },
   {
     "code": "02.275.07",
+    "codeDigits": "0227507",
     "name": {
       "fr": "Jerada-Banlieue Sud",
       "ar": "أحواز جرادة الجنوبية"
     },
+    "population": {
+      "2024": {
+        "total": 10612,
+        "moroccan": 10612,
+        "foreign": 0,
+        "households": 2143
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.275"
+    "provinceCode": "02.275",
+    "communeCount": 3
   },
   {
     "code": "02.275.05",
+    "codeDigits": "0227505",
     "name": {
       "fr": "Ain Bni Mathar",
       "ar": "عين بني مطهر"
     },
+    "population": {
+      "2024": {
+        "total": 19701,
+        "moroccan": 19701,
+        "foreign": 0,
+        "households": 3896
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.275"
+    "provinceCode": "02.275",
+    "communeCount": 4
   },
   {
     "code": "02.113.03",
+    "codeDigits": "0211303",
     "name": {
       "fr": "Ahfir",
       "ar": "أحفير"
     },
+    "population": {
+      "2024": {
+        "total": 51116,
+        "moroccan": 51067,
+        "foreign": 49,
+        "households": 13236
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.113"
+    "provinceCode": "02.113",
+    "communeCount": 4
   },
   {
     "code": "02.113.05",
+    "codeDigits": "0211305",
     "name": {
       "fr": "Aklim",
       "ar": "أكليم"
     },
+    "population": {
+      "2024": {
+        "total": 64345,
+        "moroccan": 64324,
+        "foreign": 21,
+        "households": 16444
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.113"
+    "provinceCode": "02.113",
+    "communeCount": 6
   },
   {
     "code": "02.533.09",
+    "codeDigits": "0253309",
     "name": {
       "fr": "Taourirt",
       "ar": "تاوريرت"
     },
+    "population": {
+      "2024": {
+        "total": 27255,
+        "moroccan": 27247,
+        "foreign": 8,
+        "households": 5584
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.533"
+    "provinceCode": "02.533",
+    "communeCount": 3
   },
   {
     "code": "02.533.07",
+    "codeDigits": "0253307",
     "name": {
       "fr": "El Aioun",
       "ar": "العيون"
     },
+    "population": {
+      "2024": {
+        "total": 23422,
+        "moroccan": 23422,
+        "foreign": 0,
+        "households": 5381
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.533"
+    "provinceCode": "02.533",
+    "communeCount": 4
   },
   {
     "code": "02.533.03",
+    "codeDigits": "0253303",
     "name": {
       "fr": "Debdou",
       "ar": "دبدو"
     },
+    "population": {
+      "2024": {
+        "total": 23979,
+        "moroccan": 23978,
+        "foreign": 1,
+        "households": 4645
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.533"
+    "provinceCode": "02.533",
+    "communeCount": 4
   },
   {
     "code": "02.265.05",
+    "codeDigits": "0226505",
     "name": {
       "fr": "Guercif",
       "ar": "جرسيف"
     },
+    "population": {
+      "2024": {
+        "total": 89244,
+        "moroccan": 89232,
+        "foreign": 12,
+        "households": 18595
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.265"
+    "provinceCode": "02.265",
+    "communeCount": 5
   },
   {
     "code": "02.265.07",
+    "codeDigits": "0226507",
     "name": {
       "fr": "Taddart",
       "ar": "تادرت"
     },
+    "population": {
+      "2024": {
+        "total": 45890,
+        "moroccan": 45889,
+        "foreign": 1,
+        "households": 10358
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.265"
+    "provinceCode": "02.265",
+    "communeCount": 4
   },
   {
     "code": "02.251.03",
+    "codeDigits": "0225103",
     "name": {
       "fr": "Bni Tadjite",
       "ar": "بني تدجيت"
     },
+    "population": {
+      "2024": {
+        "total": 30945,
+        "moroccan": 30930,
+        "foreign": 15,
+        "households": 7163
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.251"
+    "provinceCode": "02.251",
+    "communeCount": 4
   },
   {
     "code": "02.251.07",
+    "codeDigits": "0225107",
     "name": {
       "fr": "Talsint",
       "ar": "تالسينت"
     },
+    "population": {
+      "2024": {
+        "total": 42115,
+        "moroccan": 42114,
+        "foreign": 1,
+        "households": 10739
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.251"
+    "provinceCode": "02.251",
+    "communeCount": 3
   },
   {
     "code": "02.251.05",
+    "codeDigits": "0225105",
     "name": {
       "fr": "Figuig",
       "ar": "فجيج"
     },
+    "population": {
+      "2024": {
+        "total": 30874,
+        "moroccan": 30871,
+        "foreign": 3,
+        "households": 6645
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "02",
-    "provinceCode": "02.251"
+    "provinceCode": "02.251",
+    "communeCount": 4
   },
   {
     "code": "03.231.81",
+    "codeDigits": "0323181",
     "name": {
       "fr": "Fès Banlieue",
       "ar": "أحواز فاس"
     },
+    "population": {
+      "2024": {
+        "total": 16857,
+        "moroccan": 16854,
+        "foreign": 3,
+        "households": 3907
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.231"
+    "provinceCode": "03.231",
+    "communeCount": 2
   },
   {
     "code": "03.061.07",
+    "codeDigits": "0306107",
     "name": {
       "fr": "Zerhoun",
       "ar": "زرهون"
     },
+    "population": {
+      "2024": {
+        "total": 41921,
+        "moroccan": 41918,
+        "foreign": 3,
+        "households": 10218
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.061"
+    "provinceCode": "03.061",
+    "communeCount": 5
   },
   {
     "code": "03.061.05",
+    "codeDigits": "0306105",
     "name": {
       "fr": "Meknès-Banlieue",
       "ar": "أحواز مكناس"
     },
+    "population": {
+      "2024": {
+        "total": 115860,
+        "moroccan": 115767,
+        "foreign": 93,
+        "households": 26659
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.061"
+    "provinceCode": "03.061",
+    "communeCount": 5
   },
   {
     "code": "03.061.03",
+    "codeDigits": "0306103",
     "name": {
       "fr": "Ain Orma",
       "ar": "عين عرمة"
     },
+    "population": {
+      "2024": {
+        "total": 62572,
+        "moroccan": 62496,
+        "foreign": 76,
+        "households": 13604
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.061"
+    "provinceCode": "03.061",
+    "communeCount": 5
   },
   {
     "code": "03.171.07",
+    "codeDigits": "0317107",
     "name": {
       "fr": "El Hajeb",
       "ar": "الحاجب"
     },
+    "population": {
+      "2024": {
+        "total": 22537,
+        "moroccan": 22531,
+        "foreign": 6,
+        "households": 5260
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.171"
+    "provinceCode": "03.171",
+    "communeCount": 3
   },
   {
     "code": "03.171.05",
+    "codeDigits": "0317105",
     "name": {
       "fr": "Ain Taoujdate",
       "ar": "عين تاوجطات"
     },
+    "population": {
+      "2024": {
+        "total": 84002,
+        "moroccan": 83993,
+        "foreign": 9,
+        "households": 20230
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.171"
+    "provinceCode": "03.171",
+    "communeCount": 4
   },
   {
     "code": "03.171.03",
+    "codeDigits": "0317103",
     "name": {
       "fr": "Agourai",
       "ar": "أكوراي"
     },
+    "population": {
+      "2024": {
+        "total": 38309,
+        "moroccan": 38308,
+        "foreign": 1,
+        "households": 9612
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.171"
+    "provinceCode": "03.171",
+    "communeCount": 5
   },
   {
     "code": "03.271.03",
+    "codeDigits": "0327103",
     "name": {
       "fr": "Azrou",
       "ar": "أزرو"
     },
+    "population": {
+      "2024": {
+        "total": 65029,
+        "moroccan": 65016,
+        "foreign": 13,
+        "households": 17061
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.271"
+    "provinceCode": "03.271",
+    "communeCount": 6
   },
   {
     "code": "03.591.03",
+    "codeDigits": "0359103",
     "name": {
       "fr": "Moulay Yacoub",
       "ar": "مولاي يعقوب"
     },
+    "population": {
+      "2024": {
+        "total": 44879,
+        "moroccan": 44811,
+        "foreign": 68,
+        "households": 9421
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.591"
+    "provinceCode": "03.591",
+    "communeCount": 3
   },
   {
     "code": "03.591.05",
+    "codeDigits": "0359105",
     "name": {
       "fr": "Oulad Jemâa Lemta",
       "ar": "أولاد جمعة-لمطة"
     },
+    "population": {
+      "2024": {
+        "total": 75989,
+        "moroccan": 75984,
+        "foreign": 5,
+        "households": 16156
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.591"
+    "provinceCode": "03.591",
+    "communeCount": 6
   },
   {
     "code": "03.451.07",
+    "codeDigits": "0345107",
     "name": {
       "fr": "Sefrou",
       "ar": "صفرو"
     },
+    "population": {
+      "2024": {
+        "total": 58868,
+        "moroccan": 58843,
+        "foreign": 25,
+        "households": 14572
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.451"
+    "provinceCode": "03.451",
+    "communeCount": 7
   },
   {
     "code": "03.451.03",
+    "codeDigits": "0345103",
     "name": {
       "fr": "El Menzel",
       "ar": "المنزل"
     },
+    "population": {
+      "2024": {
+        "total": 46153,
+        "moroccan": 46142,
+        "foreign": 11,
+        "households": 12570
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.451"
+    "provinceCode": "03.451",
+    "communeCount": 9
   },
   {
     "code": "03.451.05",
+    "codeDigits": "0345105",
     "name": {
       "fr": "Imouzzer-Kandar",
       "ar": "إيموزار كندر"
     },
+    "population": {
+      "2024": {
+        "total": 47285,
+        "moroccan": 47250,
+        "foreign": 35,
+        "households": 11372
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.451"
+    "provinceCode": "03.451",
+    "communeCount": 2
   },
   {
     "code": "03.131.03",
+    "codeDigits": "0313103",
     "name": {
       "fr": "Boulemane",
       "ar": "بولمان"
     },
+    "population": {
+      "2024": {
+        "total": 40958,
+        "moroccan": 40953,
+        "foreign": 5,
+        "households": 10585
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.131"
+    "provinceCode": "03.131",
+    "communeCount": 3
   },
   {
     "code": "03.131.09",
+    "codeDigits": "0313109",
     "name": {
       "fr": "Marmoucha",
       "ar": "مرموشة"
     },
+    "population": {
+      "2024": {
+        "total": 17538,
+        "moroccan": 17537,
+        "foreign": 1,
+        "households": 4751
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.131"
+    "provinceCode": "03.131",
+    "communeCount": 6
   },
   {
     "code": "03.131.05",
+    "codeDigits": "0313105",
     "name": {
       "fr": "Missour",
       "ar": "ميسور"
     },
+    "population": {
+      "2024": {
+        "total": 25870,
+        "moroccan": 25861,
+        "foreign": 9,
+        "households": 6067
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.131"
+    "provinceCode": "03.131",
+    "communeCount": 3
   },
   {
     "code": "03.131.07",
+    "codeDigits": "0313107",
     "name": {
       "fr": "Outat El Haj",
       "ar": "أوطاط الحاج"
     },
+    "population": {
+      "2024": {
+        "total": 60527,
+        "moroccan": 60521,
+        "foreign": 6,
+        "households": 12109
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.131"
+    "provinceCode": "03.131",
+    "communeCount": 5
   },
   {
     "code": "03.531.05",
+    "codeDigits": "0353105",
     "name": {
       "fr": "Karia Ba Mohamed",
       "ar": "قرية با محمد"
     },
+    "population": {
+      "2024": {
+        "total": 122275,
+        "moroccan": 122273,
+        "foreign": 2,
+        "households": 26518
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.531"
+    "provinceCode": "03.531",
+    "communeCount": 9
   },
   {
     "code": "03.531.03",
+    "codeDigits": "0353103",
     "name": {
       "fr": "Rhafsai",
       "ar": "غفساي"
     },
+    "population": {
+      "2024": {
+        "total": 140519,
+        "moroccan": 140518,
+        "foreign": 1,
+        "households": 36802
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.531"
+    "provinceCode": "03.531",
+    "communeCount": 12
   },
   {
     "code": "03.531.07",
+    "codeDigits": "0353107",
     "name": {
       "fr": "Taounate",
       "ar": "تاونات"
     },
+    "population": {
+      "2024": {
+        "total": 122256,
+        "moroccan": 122252,
+        "foreign": 4,
+        "households": 30866
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.531"
+    "provinceCode": "03.531",
+    "communeCount": 11
   },
   {
     "code": "03.531.09",
+    "codeDigits": "0353109",
     "name": {
       "fr": "Tissa",
       "ar": "تيسة"
     },
+    "population": {
+      "2024": {
+        "total": 143196,
+        "moroccan": 143172,
+        "foreign": 24,
+        "households": 31592
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.531"
+    "provinceCode": "03.531",
+    "communeCount": 12
   },
   {
     "code": "03.561.03",
+    "codeDigits": "0356103",
     "name": {
       "fr": "Aknoul",
       "ar": "أكنول"
     },
+    "population": {
+      "2024": {
+        "total": 37805,
+        "moroccan": 37803,
+        "foreign": 2,
+        "households": 9967
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.561"
+    "provinceCode": "03.561",
+    "communeCount": 6
   },
   {
     "code": "03.561.09",
+    "codeDigits": "0356109",
     "name": {
       "fr": "Tahla",
       "ar": "تاهلة"
     },
+    "population": {
+      "2024": {
+        "total": 47237,
+        "moroccan": 47237,
+        "foreign": 0,
+        "households": 12384
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.561"
+    "provinceCode": "03.561",
+    "communeCount": 6
   },
   {
     "code": "03.561.11",
+    "codeDigits": "0356111",
     "name": {
       "fr": "Tainaste",
       "ar": "تيناست"
     },
+    "population": {
+      "2024": {
+        "total": 59243,
+        "moroccan": 59241,
+        "foreign": 2,
+        "households": 14643
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.561"
+    "provinceCode": "03.561",
+    "communeCount": 8
   },
   {
     "code": "03.561.13",
+    "codeDigits": "0356113",
     "name": {
       "fr": "Taza",
       "ar": "تازة"
     },
+    "population": {
+      "2024": {
+        "total": 77341,
+        "moroccan": 77340,
+        "foreign": 1,
+        "households": 18089
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.561"
+    "provinceCode": "03.561",
+    "communeCount": 8
   },
   {
     "code": "03.561.07",
+    "codeDigits": "0356107",
     "name": {
       "fr": "Ouad Amlil",
       "ar": "واد امليل"
     },
+    "population": {
+      "2024": {
+        "total": 84631,
+        "moroccan": 84623,
+        "foreign": 8,
+        "households": 18842
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "03",
-    "provinceCode": "03.561"
+    "provinceCode": "03.561",
+    "communeCount": 6
   },
   {
     "code": "04.501.05",
+    "codeDigits": "0450105",
     "name": {
       "fr": "Témara",
       "ar": "تمارة"
     },
+    "population": {
+      "2024": {
+        "total": 42096,
+        "moroccan": 42074,
+        "foreign": 22,
+        "households": 9562
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.501"
+    "provinceCode": "04.501",
+    "communeCount": 2
   },
   {
     "code": "04.501.03",
+    "codeDigits": "0450103",
     "name": {
       "fr": "Ain El Aouda",
       "ar": "عين العودة"
     },
+    "population": {
+      "2024": {
+        "total": 128139,
+        "moroccan": 127102,
+        "foreign": 1037,
+        "households": 32624
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.501"
+    "provinceCode": "04.501",
+    "communeCount": 3
   },
   {
     "code": "04.281.03",
+    "codeDigits": "0428103",
     "name": {
       "fr": "Kénitra-Banlieue",
       "ar": "أحواز القنيطرة"
     },
+    "population": {
+      "2024": {
+        "total": 84435,
+        "moroccan": 84427,
+        "foreign": 8,
+        "households": 16844
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.281"
+    "provinceCode": "04.281",
+    "communeCount": 3
   },
   {
     "code": "04.281.05",
+    "codeDigits": "0428105",
     "name": {
       "fr": "Ben Mansour",
       "ar": "بنمنصور"
     },
+    "population": {
+      "2024": {
+        "total": 156134,
+        "moroccan": 156115,
+        "foreign": 19,
+        "households": 27806
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.281"
+    "provinceCode": "04.281",
+    "communeCount": 4
   },
   {
     "code": "04.281.07",
+    "codeDigits": "0428107",
     "name": {
       "fr": "Souk Arbaa El Gharb",
       "ar": "سوق الأربعاء الغرب"
     },
+    "population": {
+      "2024": {
+        "total": 81290,
+        "moroccan": 81287,
+        "foreign": 3,
+        "households": 16846
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.281"
+    "provinceCode": "04.281",
+    "communeCount": 4
   },
   {
     "code": "04.281.09",
+    "codeDigits": "0428109",
     "name": {
       "fr": "Souk Tlet El Gharb",
       "ar": "سوق ثلاثاء الغرب"
     },
+    "population": {
+      "2024": {
+        "total": 137746,
+        "moroccan": 137735,
+        "foreign": 11,
+        "households": 25915
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.281"
+    "provinceCode": "04.281",
+    "communeCount": 4
   },
   {
     "code": "04.281.11",
+    "codeDigits": "0428111",
     "name": {
       "fr": "Lalla Mimouna",
       "ar": "للا ميمونة"
     },
+    "population": {
+      "2024": {
+        "total": 111227,
+        "moroccan": 111187,
+        "foreign": 40,
+        "households": 22856
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.281"
+    "provinceCode": "04.281",
+    "communeCount": 4
   },
   {
     "code": "04.291.03",
+    "codeDigits": "0429103",
     "name": {
       "fr": "Khémisset",
       "ar": "الخميسات"
     },
+    "population": {
+      "2024": {
+        "total": 92952,
+        "moroccan": 92941,
+        "foreign": 11,
+        "households": 23364
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.291"
+    "provinceCode": "04.291",
+    "communeCount": 9
   },
   {
     "code": "04.291.05",
+    "codeDigits": "0429105",
     "name": {
       "fr": "Oulmes",
       "ar": "اولماس"
     },
+    "population": {
+      "2024": {
+        "total": 57963,
+        "moroccan": 57958,
+        "foreign": 5,
+        "households": 17002
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.291"
+    "provinceCode": "04.291",
+    "communeCount": 7
   },
   {
     "code": "04.291.07",
+    "codeDigits": "0429107",
     "name": {
       "fr": "Rommani",
       "ar": "الرماني"
     },
+    "population": {
+      "2024": {
+        "total": 71766,
+        "moroccan": 71736,
+        "foreign": 30,
+        "households": 17144
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.291"
+    "provinceCode": "04.291",
+    "communeCount": 7
   },
   {
     "code": "04.291.09",
+    "codeDigits": "0429109",
     "name": {
       "fr": "Tiflet",
       "ar": "تيفلت"
     },
+    "population": {
+      "2024": {
+        "total": 70407,
+        "moroccan": 70392,
+        "foreign": 15,
+        "households": 17260
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.291"
+    "provinceCode": "04.291",
+    "communeCount": 8
   },
   {
     "code": "04.481.03",
+    "codeDigits": "0448103",
     "name": {
       "fr": "Tilal Al Gharb",
       "ar": "تلال الغرب"
     },
+    "population": {
+      "2024": {
+        "total": 71253,
+        "moroccan": 71249,
+        "foreign": 4,
+        "households": 16186
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.481"
+    "provinceCode": "04.481",
+    "communeCount": 6
   },
   {
     "code": "04.481.07",
+    "codeDigits": "0448107",
     "name": {
       "fr": "Ouargha",
       "ar": "ورغة"
     },
+    "population": {
+      "2024": {
+        "total": 80968,
+        "moroccan": 80959,
+        "foreign": 9,
+        "households": 18544
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.481"
+    "provinceCode": "04.481",
+    "communeCount": 5
   },
   {
     "code": "04.481.11",
+    "codeDigits": "0448111",
     "name": {
       "fr": "Baht",
       "ar": "بهت"
     },
+    "population": {
+      "2024": {
+        "total": 89205,
+        "moroccan": 89203,
+        "foreign": 2,
+        "households": 17214
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.481"
+    "provinceCode": "04.481",
+    "communeCount": 3
   },
   {
     "code": "04.481.05",
+    "codeDigits": "0448105",
     "name": {
       "fr": "Gharb Bni Malek",
       "ar": "الغرب بني مالك"
     },
+    "population": {
+      "2024": {
+        "total": 73467,
+        "moroccan": 73464,
+        "foreign": 3,
+        "households": 14765
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.481"
+    "provinceCode": "04.481",
+    "communeCount": 3
   },
   {
     "code": "04.481.09",
+    "codeDigits": "0448109",
     "name": {
       "fr": "Chrarda",
       "ar": "الشراردة"
     },
+    "population": {
+      "2024": {
+        "total": 74608,
+        "moroccan": 74604,
+        "foreign": 4,
+        "households": 16088
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.481"
+    "provinceCode": "04.481",
+    "communeCount": 7
   },
   {
     "code": "04.491.05",
+    "codeDigits": "0449105",
     "name": {
       "fr": "Sidi Slimane",
       "ar": "سيدي سليمان"
     },
+    "population": {
+      "2024": {
+        "total": 136390,
+        "moroccan": 136384,
+        "foreign": 6,
+        "households": 28950
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.491"
+    "provinceCode": "04.491",
+    "communeCount": 6
   },
   {
     "code": "04.491.03",
+    "codeDigits": "0449103",
     "name": {
       "fr": "Kceibya",
       "ar": "القصيبية"
     },
+    "population": {
+      "2024": {
+        "total": 79749,
+        "moroccan": 79745,
+        "foreign": 4,
+        "households": 14768
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "04",
-    "provinceCode": "04.491"
+    "provinceCode": "04.491",
+    "communeCount": 3
   },
   {
     "code": "05.091.03",
+    "codeDigits": "0509103",
     "name": {
       "fr": "Béni Mellal",
       "ar": "بني ملال"
     },
+    "population": {
+      "2024": {
+        "total": 121730,
+        "moroccan": 121711,
+        "foreign": 19,
+        "households": 28541
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.091"
+    "provinceCode": "05.091",
+    "communeCount": 6
   },
   {
     "code": "05.091.07",
+    "codeDigits": "0509107",
     "name": {
       "fr": "El Ksiba",
       "ar": "القصيبة"
     },
+    "population": {
+      "2024": {
+        "total": 72899,
+        "moroccan": 72892,
+        "foreign": 7,
+        "households": 18679
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.091"
+    "provinceCode": "05.091",
+    "communeCount": 5
   },
   {
     "code": "05.091.05",
+    "codeDigits": "0509105",
     "name": {
       "fr": "Aghbala",
       "ar": "اغبالة"
     },
+    "population": {
+      "2024": {
+        "total": 33872,
+        "moroccan": 33871,
+        "foreign": 1,
+        "households": 8159
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.091"
+    "provinceCode": "05.091",
+    "communeCount": 3
   },
   {
     "code": "05.091.11",
+    "codeDigits": "0509111",
     "name": {
       "fr": "Kasba Tadla",
       "ar": "قصبة تادلة"
     },
+    "population": {
+      "2024": {
+        "total": 49008,
+        "moroccan": 49007,
+        "foreign": 1,
+        "households": 11775
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.091"
+    "provinceCode": "05.091",
+    "communeCount": 4
   },
   {
     "code": "05.081.03",
+    "codeDigits": "0508103",
     "name": {
       "fr": "Azilal",
       "ar": "أزيلال"
     },
+    "population": {
+      "2024": {
+        "total": 101655,
+        "moroccan": 101651,
+        "foreign": 4,
+        "households": 18035
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.081"
+    "provinceCode": "05.081",
+    "communeCount": 7
   },
   {
     "code": "05.081.05",
+    "codeDigits": "0508105",
     "name": {
       "fr": "Bzou",
       "ar": "بزو"
     },
+    "population": {
+      "2024": {
+        "total": 101021,
+        "moroccan": 101010,
+        "foreign": 11,
+        "households": 23597
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.081"
+    "provinceCode": "05.081",
+    "communeCount": 10
   },
   {
     "code": "05.081.15",
+    "codeDigits": "0508115",
     "name": {
       "fr": "Oultana",
       "ar": "ولتانة"
     },
+    "population": {
+      "2024": {
+        "total": 91098,
+        "moroccan": 91097,
+        "foreign": 1,
+        "households": 17878
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.081"
+    "provinceCode": "05.081",
+    "communeCount": 6
   },
   {
     "code": "05.081.13",
+    "codeDigits": "0508113",
     "name": {
       "fr": "Fetouaka",
       "ar": "فطواكة"
     },
+    "population": {
+      "2024": {
+        "total": 81082,
+        "moroccan": 81082,
+        "foreign": 0,
+        "households": 15341
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.081"
+    "provinceCode": "05.081",
+    "communeCount": 5
   },
   {
     "code": "05.081.09",
+    "codeDigits": "0508109",
     "name": {
       "fr": "Ouaouizaght",
       "ar": "واويزغت"
     },
+    "population": {
+      "2024": {
+        "total": 65282,
+        "moroccan": 65272,
+        "foreign": 10,
+        "households": 15334
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.081"
+    "provinceCode": "05.081",
+    "communeCount": 10
   },
   {
     "code": "05.081.11",
+    "codeDigits": "0508111",
     "name": {
       "fr": "Afourar",
       "ar": "أفورار"
     },
+    "population": {
+      "2024": {
+        "total": 52201,
+        "moroccan": 52194,
+        "foreign": 7,
+        "households": 12379
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.081"
+    "provinceCode": "05.081",
+    "communeCount": 4
   },
   {
     "code": "05.255.05",
+    "codeDigits": "0525505",
     "name": {
       "fr": "Bni Moussa Charquia",
       "ar": "بني موسى الشرقية"
     },
+    "population": {
+      "2024": {
+        "total": 82106,
+        "moroccan": 82096,
+        "foreign": 10,
+        "households": 18480
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.255"
+    "provinceCode": "05.255",
+    "communeCount": 4
   },
   {
     "code": "05.255.09",
+    "codeDigits": "0525509",
     "name": {
       "fr": "Fquih Ben Salah",
       "ar": "الفقيه بن صالح"
     },
+    "population": {
+      "2024": {
+        "total": 113633,
+        "moroccan": 113628,
+        "foreign": 5,
+        "households": 26618
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.255"
+    "provinceCode": "05.255",
+    "communeCount": 6
   },
   {
     "code": "05.255.11",
+    "codeDigits": "0525511",
     "name": {
       "fr": "Bni Moussa Gharbia",
       "ar": "بني موسى الغربية"
     },
+    "population": {
+      "2024": {
+        "total": 98001,
+        "moroccan": 97997,
+        "foreign": 4,
+        "households": 21484
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.255"
+    "provinceCode": "05.255",
+    "communeCount": 3
   },
   {
     "code": "05.301.03",
+    "codeDigits": "0530103",
     "name": {
       "fr": "El Kbab",
       "ar": "القباب"
     },
+    "population": {
+      "2024": {
+        "total": 73401,
+        "moroccan": 73389,
+        "foreign": 12,
+        "households": 19844
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.301"
+    "provinceCode": "05.301",
+    "communeCount": 7
   },
   {
     "code": "05.301.05",
+    "codeDigits": "0530105",
     "name": {
       "fr": "Khénifra",
       "ar": "خنيفرة"
     },
+    "population": {
+      "2024": {
+        "total": 47286,
+        "moroccan": 47283,
+        "foreign": 3,
+        "households": 12183
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.301"
+    "provinceCode": "05.301",
+    "communeCount": 6
   },
   {
     "code": "05.301.07",
+    "codeDigits": "0530107",
     "name": {
       "fr": "Aguelmous",
       "ar": "أكلموس"
     },
+    "population": {
+      "2024": {
+        "total": 79530,
+        "moroccan": 79525,
+        "foreign": 5,
+        "households": 20703
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.301"
+    "provinceCode": "05.301",
+    "communeCount": 7
   },
   {
     "code": "05.311.03",
+    "codeDigits": "0531103",
     "name": {
       "fr": "Bejaad",
       "ar": "أبي الجعد"
     },
+    "population": {
+      "2024": {
+        "total": 32447,
+        "moroccan": 32447,
+        "foreign": 0,
+        "households": 8034
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.311"
+    "provinceCode": "05.311",
+    "communeCount": 8
   },
   {
     "code": "05.311.05",
+    "codeDigits": "0531105",
     "name": {
       "fr": "Khouribga",
       "ar": "خريبكة"
     },
+    "population": {
+      "2024": {
+        "total": 70893,
+        "moroccan": 70875,
+        "foreign": 18,
+        "households": 16924
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.311"
+    "provinceCode": "05.311",
+    "communeCount": 8
   },
   {
     "code": "05.311.07",
+    "codeDigits": "0531107",
     "name": {
       "fr": "Oued Zem",
       "ar": "وادي زم"
     },
+    "population": {
+      "2024": {
+        "total": 60440,
+        "moroccan": 60433,
+        "foreign": 7,
+        "households": 13899
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "05",
-    "provinceCode": "05.311"
+    "provinceCode": "05.311",
+    "communeCount": 10
   },
   {
     "code": "06.371.03",
+    "codeDigits": "0637103",
     "name": {
       "fr": "Zenata",
       "ar": "زناتة"
     },
+    "population": {
+      "2024": {
+        "total": 43227,
+        "moroccan": 43209,
+        "foreign": 18,
+        "households": 10763
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.371"
+    "provinceCode": "06.371",
+    "communeCount": 2
   },
   {
     "code": "06.181.03",
+    "codeDigits": "0618103",
     "name": {
       "fr": "Azemmour",
       "ar": "أزمور"
     },
+    "population": {
+      "2024": {
+        "total": 123315,
+        "moroccan": 123267,
+        "foreign": 48,
+        "households": 26895
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.181"
+    "provinceCode": "06.181",
+    "communeCount": 4
   },
   {
     "code": "06.181.07",
+    "codeDigits": "0618107",
     "name": {
       "fr": "Haouzia",
       "ar": "حوزية"
     },
+    "population": {
+      "2024": {
+        "total": 69157,
+        "moroccan": 69067,
+        "foreign": 90,
+        "households": 14585
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.181"
+    "provinceCode": "06.181",
+    "communeCount": 2
   },
   {
     "code": "06.181.05",
+    "codeDigits": "0618105",
     "name": {
       "fr": "El Jadida",
       "ar": "الجديدة"
     },
+    "population": {
+      "2024": {
+        "total": 230246,
+        "moroccan": 230051,
+        "foreign": 195,
+        "households": 53141
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.181"
+    "provinceCode": "06.181",
+    "communeCount": 6
   },
   {
     "code": "06.181.09",
+    "codeDigits": "0618109",
     "name": {
       "fr": "Sidi Smail",
       "ar": "سيدي اسماعيل"
     },
+    "population": {
+      "2024": {
+        "total": 181840,
+        "moroccan": 181738,
+        "foreign": 102,
+        "households": 40585
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.181"
+    "provinceCode": "06.181",
+    "communeCount": 12
   },
   {
     "code": "06.111.03",
+    "codeDigits": "0611103",
     "name": {
       "fr": "Benslimane",
       "ar": "بنسليمان"
     },
+    "population": {
+      "2024": {
+        "total": 82974,
+        "moroccan": 82946,
+        "foreign": 28,
+        "households": 19142
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.111"
+    "provinceCode": "06.111",
+    "communeCount": 8
   },
   {
     "code": "06.111.05",
+    "codeDigits": "0611105",
     "name": {
       "fr": "Bouznika",
       "ar": "بوزنيقة"
     },
+    "population": {
+      "2024": {
+        "total": 44365,
+        "moroccan": 44334,
+        "foreign": 31,
+        "households": 9663
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.111"
+    "provinceCode": "06.111",
+    "communeCount": 4
   },
   {
     "code": "06.117.05",
+    "codeDigits": "0611705",
     "name": {
       "fr": "Berrechid",
       "ar": "برشيد"
     },
+    "population": {
+      "2024": {
+        "total": 62205,
+        "moroccan": 62192,
+        "foreign": 13,
+        "households": 13481
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.117"
+    "provinceCode": "06.117",
+    "communeCount": 6
   },
   {
     "code": "06.117.09",
+    "codeDigits": "0611709",
     "name": {
       "fr": "Sahel-Trifiya",
       "ar": "الساحل-الطريفية"
     },
+    "population": {
+      "2024": {
+        "total": 89061,
+        "moroccan": 88992,
+        "foreign": 69,
+        "households": 21881
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.117"
+    "provinceCode": "06.117",
+    "communeCount": 2
   },
   {
     "code": "06.117.08",
+    "codeDigits": "0611708",
     "name": {
       "fr": "El Gara",
       "ar": "الكارة"
     },
+    "population": {
+      "2024": {
+        "total": 83531,
+        "moroccan": 83510,
+        "foreign": 21,
+        "households": 19029
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.117"
+    "provinceCode": "06.117",
+    "communeCount": 8
   },
   {
     "code": "06.461.11",
+    "codeDigits": "0646111",
     "name": {
       "fr": "Ben Ahmed Chamalia",
       "ar": "بن احمد الشمالية"
     },
+    "population": {
+      "2024": {
+        "total": 78431,
+        "moroccan": 78424,
+        "foreign": 7,
+        "households": 16754
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.461"
+    "provinceCode": "06.461",
+    "communeCount": 8
   },
   {
     "code": "06.461.13",
+    "codeDigits": "0646113",
     "name": {
       "fr": "Ben Ahmed Janoubia",
       "ar": "بن احمد الجنوبية"
     },
+    "population": {
+      "2024": {
+        "total": 93729,
+        "moroccan": 93728,
+        "foreign": 1,
+        "households": 19642
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.461"
+    "provinceCode": "06.461",
+    "communeCount": 8
   },
   {
     "code": "06.461.07",
+    "codeDigits": "0646107",
     "name": {
       "fr": "El Borouj",
       "ar": "البروج"
     },
+    "population": {
+      "2024": {
+        "total": 89223,
+        "moroccan": 89219,
+        "foreign": 4,
+        "households": 18189
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.461"
+    "provinceCode": "06.461",
+    "communeCount": 11
   },
   {
     "code": "06.461.15",
+    "codeDigits": "0646115",
     "name": {
       "fr": "Settat Chamalia",
       "ar": "سطات الشمالية"
     },
+    "population": {
+      "2024": {
+        "total": 74339,
+        "moroccan": 74306,
+        "foreign": 33,
+        "households": 16142
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.461"
+    "provinceCode": "06.461",
+    "communeCount": 7
   },
   {
     "code": "06.461.17",
+    "codeDigits": "0646117",
     "name": {
       "fr": "Settat Janoubia",
       "ar": "سطات الجنوبية"
     },
+    "population": {
+      "2024": {
+        "total": 78308,
+        "moroccan": 78305,
+        "foreign": 3,
+        "households": 16417
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.461"
+    "provinceCode": "06.461",
+    "communeCount": 7
   },
   {
     "code": "06.467.07",
+    "codeDigits": "0646707",
     "name": {
       "fr": "Sidi Bennour",
       "ar": "سيدي بنور"
     },
+    "population": {
+      "2024": {
+        "total": 106714,
+        "moroccan": 106711,
+        "foreign": 3,
+        "households": 22997
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.467"
+    "provinceCode": "06.467",
+    "communeCount": 6
   },
   {
     "code": "06.467.03",
+    "codeDigits": "0646703",
     "name": {
       "fr": "Bni Hilal-Laaounate",
       "ar": "بني هلال-لعونات"
     },
+    "population": {
+      "2024": {
+        "total": 77416,
+        "moroccan": 77416,
+        "foreign": 0,
+        "households": 17820
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.467"
+    "provinceCode": "06.467",
+    "communeCount": 7
   },
   {
     "code": "06.467.05",
+    "codeDigits": "0646705",
     "name": {
       "fr": "Oulad Amrane",
       "ar": "أولاد عمران"
     },
+    "population": {
+      "2024": {
+        "total": 64970,
+        "moroccan": 64953,
+        "foreign": 17,
+        "households": 14289
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.467"
+    "provinceCode": "06.467",
+    "communeCount": 5
   },
   {
     "code": "06.467.11",
+    "codeDigits": "0646711",
     "name": {
       "fr": "Zemamra",
       "ar": "زمامرة"
     },
+    "population": {
+      "2024": {
+        "total": 110894,
+        "moroccan": 110892,
+        "foreign": 2,
+        "households": 24518
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "06",
-    "provinceCode": "06.467"
+    "provinceCode": "06.467",
+    "communeCount": 4
   },
   {
     "code": "07.351.05",
+    "codeDigits": "0735105",
     "name": {
       "fr": "Loudaya",
       "ar": "الاوداية"
     },
+    "population": {
+      "2024": {
+        "total": 91265,
+        "moroccan": 91177,
+        "foreign": 88,
+        "households": 20786
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.351"
+    "provinceCode": "07.351",
+    "communeCount": 4
   },
   {
     "code": "07.351.07",
+    "codeDigits": "0735107",
     "name": {
       "fr": "Saada",
       "ar": "سعادة"
     },
+    "population": {
+      "2024": {
+        "total": 124409,
+        "moroccan": 124241,
+        "foreign": 168,
+        "households": 29065
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.351"
+    "provinceCode": "07.351",
+    "communeCount": 2
   },
   {
     "code": "07.351.03",
+    "codeDigits": "0735103",
     "name": {
       "fr": "Bour",
       "ar": "البور"
     },
+    "population": {
+      "2024": {
+        "total": 133823,
+        "moroccan": 133722,
+        "foreign": 101,
+        "households": 30487
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.351"
+    "provinceCode": "07.351",
+    "communeCount": 3
   },
   {
     "code": "07.351.02",
+    "codeDigits": "0735102",
     "name": {
       "fr": "Al Ouidane",
       "ar": "الويدان"
     },
+    "population": {
+      "2024": {
+        "total": 101257,
+        "moroccan": 100746,
+        "foreign": 511,
+        "households": 23613
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.351"
+    "provinceCode": "07.351",
+    "communeCount": 3
   },
   {
     "code": "07.161.03",
+    "codeDigits": "0716103",
     "name": {
       "fr": "Chichaoua",
       "ar": "شيشاوة"
     },
+    "population": {
+      "2024": {
+        "total": 101751,
+        "moroccan": 101746,
+        "foreign": 5,
+        "households": 24003
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.161"
+    "provinceCode": "07.161",
+    "communeCount": 8
   },
   {
     "code": "07.161.05",
+    "codeDigits": "0716105",
     "name": {
       "fr": "Imintanoute",
       "ar": "امنتانوت"
     },
+    "population": {
+      "2024": {
+        "total": 55988,
+        "moroccan": 55987,
+        "foreign": 1,
+        "households": 13871
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.161"
+    "provinceCode": "07.161",
+    "communeCount": 9
   },
   {
     "code": "07.161.09",
+    "codeDigits": "0716109",
     "name": {
       "fr": "Mtouga",
       "ar": "امتوكة"
     },
+    "population": {
+      "2024": {
+        "total": 52166,
+        "moroccan": 52166,
+        "foreign": 0,
+        "households": 13954
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.161"
+    "provinceCode": "07.161",
+    "communeCount": 8
   },
   {
     "code": "07.161.07",
+    "codeDigits": "0716107",
     "name": {
       "fr": "Majjat",
       "ar": "مجاط"
     },
+    "population": {
+      "2024": {
+        "total": 105673,
+        "moroccan": 105669,
+        "foreign": 4,
+        "households": 24940
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.161"
+    "provinceCode": "07.161",
+    "communeCount": 8
   },
   {
     "code": "07.041.03",
+    "codeDigits": "0704103",
     "name": {
       "fr": "Ait Ourir",
       "ar": "آيت أورير"
     },
+    "population": {
+      "2024": {
+        "total": 175598,
+        "moroccan": 175477,
+        "foreign": 121,
+        "households": 40168
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.041"
+    "provinceCode": "07.041",
+    "communeCount": 7
   },
   {
     "code": "07.041.11",
+    "codeDigits": "0704111",
     "name": {
       "fr": "Touama",
       "ar": "التوامة"
     },
+    "population": {
+      "2024": {
+        "total": 102815,
+        "moroccan": 102762,
+        "foreign": 53,
+        "households": 21480
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.041"
+    "provinceCode": "07.041",
+    "communeCount": 8
   },
   {
     "code": "07.041.07",
+    "codeDigits": "0704107",
     "name": {
       "fr": "Asni",
       "ar": "اسني"
     },
+    "population": {
+      "2024": {
+        "total": 56005,
+        "moroccan": 55997,
+        "foreign": 8,
+        "households": 13422
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.041"
+    "provinceCode": "07.041",
+    "communeCount": 7
   },
   {
     "code": "07.041.05",
+    "codeDigits": "0704105",
     "name": {
       "fr": "Amizmiz",
       "ar": "أمزميز"
     },
+    "population": {
+      "2024": {
+        "total": 53988,
+        "moroccan": 53943,
+        "foreign": 45,
+        "households": 13609
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.041"
+    "provinceCode": "07.041",
+    "communeCount": 9
   },
   {
     "code": "07.041.09",
+    "codeDigits": "0704109",
     "name": {
       "fr": "Tahannaout",
       "ar": "تحناوت"
     },
+    "population": {
+      "2024": {
+        "total": 167379,
+        "moroccan": 166999,
+        "foreign": 380,
+        "households": 38469
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.041"
+    "provinceCode": "07.041",
+    "communeCount": 6
   },
   {
     "code": "07.191.05",
+    "codeDigits": "0719105",
     "name": {
       "fr": "Laattaouia",
       "ar": "العطاوية"
     },
+    "population": {
+      "2024": {
+        "total": 81279,
+        "moroccan": 81276,
+        "foreign": 3,
+        "households": 18217
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.191"
+    "provinceCode": "07.191",
+    "communeCount": 8
   },
   {
     "code": "07.191.09",
+    "codeDigits": "0719109",
     "name": {
       "fr": "Assahrij-Sanhaja",
       "ar": "الصهريج-صنهاجة"
     },
+    "population": {
+      "2024": {
+        "total": 68475,
+        "moroccan": 68469,
+        "foreign": 6,
+        "households": 14710
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.191"
+    "provinceCode": "07.191",
+    "communeCount": 6
   },
   {
     "code": "07.191.07",
+    "codeDigits": "0719107",
     "name": {
       "fr": "Tamallalt",
       "ar": "تملالت"
     },
+    "population": {
+      "2024": {
+        "total": 65440,
+        "moroccan": 65437,
+        "foreign": 3,
+        "households": 14097
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.191"
+    "provinceCode": "07.191",
+    "communeCount": 4
   },
   {
     "code": "07.191.11",
+    "codeDigits": "0719111",
     "name": {
       "fr": "El Kelâa-Ahl El Ghaba",
       "ar": "القلعة-أهل الغابة"
     },
+    "population": {
+      "2024": {
+        "total": 93337,
+        "moroccan": 93336,
+        "foreign": 1,
+        "households": 19929
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.191"
+    "provinceCode": "07.191",
+    "communeCount": 10
   },
   {
     "code": "07.191.13",
+    "codeDigits": "0719113",
     "name": {
       "fr": "El Kelâa-Beni Ameur",
       "ar": "القلعة-بني عامر"
     },
+    "population": {
+      "2024": {
+        "total": 76115,
+        "moroccan": 76113,
+        "foreign": 2,
+        "households": 16584
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.191"
+    "provinceCode": "07.191",
+    "communeCount": 11
   },
   {
     "code": "07.211.03",
+    "codeDigits": "0721103",
     "name": {
       "fr": "Essaouira",
       "ar": "الصويرة"
     },
+    "population": {
+      "2024": {
+        "total": 99520,
+        "moroccan": 99371,
+        "foreign": 149,
+        "households": 25311
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.211"
+    "provinceCode": "07.211",
+    "communeCount": 11
   },
   {
     "code": "07.211.09",
+    "codeDigits": "0721109",
     "name": {
       "fr": "El Hanchane",
       "ar": "الحنشان"
     },
+    "population": {
+      "2024": {
+        "total": 90203,
+        "moroccan": 90194,
+        "foreign": 9,
+        "households": 21810
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.211"
+    "provinceCode": "07.211",
+    "communeCount": 15
   },
   {
     "code": "07.211.07",
+    "codeDigits": "0721107",
     "name": {
       "fr": "Ait Daoud",
       "ar": "آيت داوود"
     },
+    "population": {
+      "2024": {
+        "total": 39712,
+        "moroccan": 39711,
+        "foreign": 1,
+        "households": 10197
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.211"
+    "provinceCode": "07.211",
+    "communeCount": 9
   },
   {
     "code": "07.211.05",
+    "codeDigits": "0721105",
     "name": {
       "fr": "Tamanar",
       "ar": "تمنار"
     },
+    "population": {
+      "2024": {
+        "total": 89095,
+        "moroccan": 88857,
+        "foreign": 238,
+        "households": 22975
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.211"
+    "provinceCode": "07.211",
+    "communeCount": 17
   },
   {
     "code": "07.427.07",
+    "codeDigits": "0742707",
     "name": {
       "fr": "Rehamna",
       "ar": "الرحامنة"
     },
+    "population": {
+      "2024": {
+        "total": 112507,
+        "moroccan": 112500,
+        "foreign": 7,
+        "households": 24204
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.427"
+    "provinceCode": "07.427",
+    "communeCount": 13
   },
   {
     "code": "07.427.09",
+    "codeDigits": "0742709",
     "name": {
       "fr": "Sidi Bou Othmane",
       "ar": "سيدي بوعثمان"
     },
+    "population": {
+      "2024": {
+        "total": 106239,
+        "moroccan": 106221,
+        "foreign": 18,
+        "households": 21974
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.427"
+    "provinceCode": "07.427",
+    "communeCount": 10
   },
   {
     "code": "07.431.03",
+    "codeDigits": "0743103",
     "name": {
       "fr": "Abda",
       "ar": "عبدة"
     },
+    "population": {
+      "2024": {
+        "total": 118720,
+        "moroccan": 118716,
+        "foreign": 4,
+        "households": 26638
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.431"
+    "provinceCode": "07.431",
+    "communeCount": 9
   },
   {
     "code": "07.431.09",
+    "codeDigits": "0743109",
     "name": {
       "fr": "Hrara",
       "ar": "حرارة"
     },
+    "population": {
+      "2024": {
+        "total": 124112,
+        "moroccan": 124089,
+        "foreign": 23,
+        "households": 26616
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.431"
+    "provinceCode": "07.431",
+    "communeCount": 6
   },
   {
     "code": "07.431.07",
+    "codeDigits": "0743107",
     "name": {
       "fr": "Gzoula",
       "ar": "كزولة"
     },
+    "population": {
+      "2024": {
+        "total": 116486,
+        "moroccan": 116466,
+        "foreign": 20,
+        "households": 27159
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.431"
+    "provinceCode": "07.431",
+    "communeCount": 7
   },
   {
     "code": "07.585.05",
+    "codeDigits": "0758505",
     "name": {
       "fr": "Ahmar",
       "ar": "احمر"
     },
+    "population": {
+      "2024": {
+        "total": 81516,
+        "moroccan": 81516,
+        "foreign": 0,
+        "households": 16921
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.585"
+    "provinceCode": "07.585",
+    "communeCount": 4
   },
   {
     "code": "07.585.07",
+    "codeDigits": "0758507",
     "name": {
       "fr": "El Gantour",
       "ar": "الكنتور"
     },
+    "population": {
+      "2024": {
+        "total": 72416,
+        "moroccan": 72413,
+        "foreign": 3,
+        "households": 15696
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "07",
-    "provinceCode": "07.585"
+    "provinceCode": "07.585",
+    "communeCount": 5
   },
   {
     "code": "08.201.03",
+    "codeDigits": "0820103",
     "name": {
       "fr": "Arfoud",
       "ar": "أرفود"
     },
+    "population": {
+      "2024": {
+        "total": 36227,
+        "moroccan": 36225,
+        "foreign": 2,
+        "households": 6658
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.201"
+    "provinceCode": "08.201",
+    "communeCount": 4
   },
   {
     "code": "08.201.11",
+    "codeDigits": "0820111",
     "name": {
       "fr": "Er-Rissani",
       "ar": "الريصاني"
     },
+    "population": {
+      "2024": {
+        "total": 36197,
+        "moroccan": 36189,
+        "foreign": 8,
+        "households": 7027
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.201"
+    "provinceCode": "08.201",
+    "communeCount": 5
   },
   {
     "code": "08.201.07",
+    "codeDigits": "0820107",
     "name": {
       "fr": "Errachidia",
       "ar": "الرشيدية"
     },
+    "population": {
+      "2024": {
+        "total": 64000,
+        "moroccan": 63976,
+        "foreign": 24,
+        "households": 13332
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.201"
+    "provinceCode": "08.201",
+    "communeCount": 5
   },
   {
     "code": "08.201.13",
+    "codeDigits": "0820113",
     "name": {
       "fr": "Goulmima",
       "ar": "كلميمة"
     },
+    "population": {
+      "2024": {
+        "total": 29799,
+        "moroccan": 29793,
+        "foreign": 6,
+        "households": 6349
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.201"
+    "provinceCode": "08.201",
+    "communeCount": 4
   },
   {
     "code": "08.201.15",
+    "codeDigits": "0820115",
     "name": {
       "fr": "Tinejdad",
       "ar": "تنجداد"
     },
+    "population": {
+      "2024": {
+        "total": 63240,
+        "moroccan": 63202,
+        "foreign": 38,
+        "households": 11997
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.201"
+    "provinceCode": "08.201",
+    "communeCount": 4
   },
   {
     "code": "08.401.03",
+    "codeDigits": "0840103",
     "name": {
       "fr": "Amerzgane",
       "ar": "امرزكان"
     },
+    "population": {
+      "2024": {
+        "total": 100670,
+        "moroccan": 100661,
+        "foreign": 9,
+        "households": 22341
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.401"
+    "provinceCode": "08.401",
+    "communeCount": 9
   },
   {
     "code": "08.401.07",
+    "codeDigits": "0840107",
     "name": {
       "fr": "Ouarzazate",
       "ar": "ورزازات"
     },
+    "population": {
+      "2024": {
+        "total": 116776,
+        "moroccan": 116711,
+        "foreign": 65,
+        "households": 23772
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.401"
+    "provinceCode": "08.401",
+    "communeCount": 6
   },
   {
     "code": "08.363.09",
+    "codeDigits": "0836309",
     "name": {
       "fr": "Er-Rich",
       "ar": "الريش"
     },
+    "population": {
+      "2024": {
+        "total": 64519,
+        "moroccan": 64516,
+        "foreign": 3,
+        "households": 13361
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.363"
+    "provinceCode": "08.363",
+    "communeCount": 7
   },
   {
     "code": "08.363.15",
+    "codeDigits": "0836315",
     "name": {
       "fr": "Imilchil",
       "ar": "املشيل"
     },
+    "population": {
+      "2024": {
+        "total": 34683,
+        "moroccan": 34673,
+        "foreign": 10,
+        "households": 7105
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.363"
+    "provinceCode": "08.363",
+    "communeCount": 5
   },
   {
     "code": "08.363.07",
+    "codeDigits": "0836307",
     "name": {
       "fr": "Midelt",
       "ar": "ميدلت"
     },
+    "population": {
+      "2024": {
+        "total": 58511,
+        "moroccan": 58505,
+        "foreign": 6,
+        "households": 14196
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.363"
+    "provinceCode": "08.363",
+    "communeCount": 7
   },
   {
     "code": "08.363.05",
+    "codeDigits": "0836305",
     "name": {
       "fr": "Boumia",
       "ar": "بومية"
     },
+    "population": {
+      "2024": {
+        "total": 20843,
+        "moroccan": 20842,
+        "foreign": 1,
+        "households": 4963
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.363"
+    "provinceCode": "08.363",
+    "communeCount": 4
   },
   {
     "code": "08.363.17",
+    "codeDigits": "0836317",
     "name": {
       "fr": "Tounfite",
       "ar": "تونفيت"
     },
+    "population": {
+      "2024": {
+        "total": 22390,
+        "moroccan": 22390,
+        "foreign": 0,
+        "households": 5085
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.363"
+    "provinceCode": "08.363",
+    "communeCount": 3
   },
   {
     "code": "08.577.05",
+    "codeDigits": "0857705",
     "name": {
       "fr": "Boumalne-Dades",
       "ar": "بومالن دادس"
     },
+    "population": {
+      "2024": {
+        "total": 52970,
+        "moroccan": 52968,
+        "foreign": 2,
+        "households": 8920
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.577"
+    "provinceCode": "08.577",
+    "communeCount": 6
   },
   {
     "code": "08.577.09",
+    "codeDigits": "0857709",
     "name": {
       "fr": "Kalaat M'gouna",
       "ar": "قلعة مكونة"
     },
+    "population": {
+      "2024": {
+        "total": 83748,
+        "moroccan": 83739,
+        "foreign": 9,
+        "households": 15649
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.577"
+    "provinceCode": "08.577",
+    "communeCount": 5
   },
   {
     "code": "08.577.07",
+    "codeDigits": "0857707",
     "name": {
       "fr": "Tinghir",
       "ar": "تنغير"
     },
+    "population": {
+      "2024": {
+        "total": 56627,
+        "moroccan": 56624,
+        "foreign": 3,
+        "households": 10918
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.577"
+    "provinceCode": "08.577",
+    "communeCount": 6
   },
   {
     "code": "08.577.02",
+    "codeDigits": "0857702",
     "name": {
       "fr": "Alnif",
       "ar": "النيف"
     },
+    "population": {
+      "2024": {
+        "total": 38146,
+        "moroccan": 38146,
+        "foreign": 0,
+        "households": 6333
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.577"
+    "provinceCode": "08.577",
+    "communeCount": 3
   },
   {
     "code": "08.577.03",
+    "codeDigits": "0857703",
     "name": {
       "fr": "Assoul",
       "ar": "اسول"
     },
+    "population": {
+      "2024": {
+        "total": 17947,
+        "moroccan": 17947,
+        "foreign": 0,
+        "households": 3794
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.577"
+    "provinceCode": "08.577",
+    "communeCount": 2
   },
   {
     "code": "08.587.07",
+    "codeDigits": "0858707",
     "name": {
       "fr": "Tinzouline",
       "ar": "تنزولين"
     },
+    "population": {
+      "2024": {
+        "total": 75267,
+        "moroccan": 75265,
+        "foreign": 2,
+        "households": 10672
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.587"
+    "provinceCode": "08.587",
+    "communeCount": 7
   },
   {
     "code": "08.587.09",
+    "codeDigits": "0858709",
     "name": {
       "fr": "Zagora",
       "ar": "زاكورة"
     },
+    "population": {
+      "2024": {
+        "total": 55151,
+        "moroccan": 55139,
+        "foreign": 12,
+        "households": 8859
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.587"
+    "provinceCode": "08.587",
+    "communeCount": 5
   },
   {
     "code": "08.587.03",
+    "codeDigits": "0858703",
     "name": {
       "fr": "Agdz",
       "ar": "أكدز"
     },
+    "population": {
+      "2024": {
+        "total": 54323,
+        "moroccan": 54317,
+        "foreign": 6,
+        "households": 9271
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.587"
+    "provinceCode": "08.587",
+    "communeCount": 6
   },
   {
     "code": "08.587.11",
+    "codeDigits": "0858711",
     "name": {
       "fr": "Lamaidar",
       "ar": "المعيدر"
     },
+    "population": {
+      "2024": {
+        "total": 47321,
+        "moroccan": 47317,
+        "foreign": 4,
+        "households": 7665
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "08",
-    "provinceCode": "08.587"
+    "provinceCode": "08.587",
+    "communeCount": 5
   },
   {
     "code": "09.001.05",
+    "codeDigits": "0900105",
     "name": {
       "fr": "Agadir Banlieue",
       "ar": "أحواز أكادير"
     },
+    "population": {
+      "2024": {
+        "total": 119984,
+        "moroccan": 119713,
+        "foreign": 271,
+        "households": 28595
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.001"
+    "provinceCode": "09.001",
+    "communeCount": 3
   },
   {
     "code": "09.001.07",
+    "codeDigits": "0900107",
     "name": {
       "fr": "Agadir Atlantique",
       "ar": "أكادير الأطلسية"
     },
+    "population": {
+      "2024": {
+        "total": 96679,
+        "moroccan": 96358,
+        "foreign": 321,
+        "households": 25100
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.001"
+    "provinceCode": "09.001",
+    "communeCount": 9
   },
   {
     "code": "09.273.05",
+    "codeDigits": "0927305",
     "name": {
       "fr": "Ait-Melloul",
       "ar": "آيت ملول"
     },
+    "population": {
+      "2024": {
+        "total": 68360,
+        "moroccan": 68307,
+        "foreign": 53,
+        "households": 16671
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.273"
+    "provinceCode": "09.273",
+    "communeCount": 2
   },
   {
     "code": "09.163.03",
+    "codeDigits": "0916303",
     "name": {
       "fr": "Ait Baha",
       "ar": "آيت باها"
     },
+    "population": {
+      "2024": {
+        "total": 32432,
+        "moroccan": 32430,
+        "foreign": 2,
+        "households": 10252
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.163"
+    "provinceCode": "09.163",
+    "communeCount": 10
   },
   {
     "code": "09.163.07",
+    "codeDigits": "0916307",
     "name": {
       "fr": "Biougra",
       "ar": "بيوكرى"
     },
+    "population": {
+      "2024": {
+        "total": 102193,
+        "moroccan": 102031,
+        "foreign": 162,
+        "households": 26367
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.163"
+    "provinceCode": "09.163",
+    "communeCount": 3
   },
   {
     "code": "09.163.05",
+    "codeDigits": "0916305",
     "name": {
       "fr": "Belfaâ-Massa",
       "ar": "بلفاع-ماسة"
     },
+    "population": {
+      "2024": {
+        "total": 116200,
+        "moroccan": 114899,
+        "foreign": 1301,
+        "households": 32159
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.163"
+    "provinceCode": "09.163",
+    "communeCount": 5
   },
   {
     "code": "09.541.03",
+    "codeDigits": "0954103",
     "name": {
       "fr": "Irherm",
       "ar": "إيغرم"
     },
+    "population": {
+      "2024": {
+        "total": 30675,
+        "moroccan": 30652,
+        "foreign": 23,
+        "households": 10344
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.541"
+    "provinceCode": "09.541",
+    "communeCount": 16
   },
   {
     "code": "09.541.05",
+    "codeDigits": "0954105",
     "name": {
       "fr": "Oulad Teima",
       "ar": "أولاد تايمة"
     },
+    "population": {
+      "2024": {
+        "total": 134570,
+        "moroccan": 134532,
+        "foreign": 38,
+        "households": 32406
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.541"
+    "provinceCode": "09.541",
+    "communeCount": 10
   },
   {
     "code": "09.541.11",
+    "codeDigits": "0954111",
     "name": {
       "fr": "Sidi Moussa Lhamri",
       "ar": "سيدي موسى الحمري"
     },
+    "population": {
+      "2024": {
+        "total": 99706,
+        "moroccan": 99584,
+        "foreign": 122,
+        "households": 23277
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.541"
+    "provinceCode": "09.541",
+    "communeCount": 11
   },
   {
     "code": "09.541.09",
+    "codeDigits": "0954109",
     "name": {
       "fr": "Taroudannt",
       "ar": "تارودانت"
     },
+    "population": {
+      "2024": {
+        "total": 86194,
+        "moroccan": 86183,
+        "foreign": 11,
+        "households": 20491
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.541"
+    "provinceCode": "09.541",
+    "communeCount": 12
   },
   {
     "code": "09.541.04",
+    "codeDigits": "0954104",
     "name": {
       "fr": "Oulad Berhil",
       "ar": "أولاد برحيل"
     },
+    "population": {
+      "2024": {
+        "total": 128988,
+        "moroccan": 128978,
+        "foreign": 10,
+        "households": 31006
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.541"
+    "provinceCode": "09.541",
+    "communeCount": 17
   },
   {
     "code": "09.541.07",
+    "codeDigits": "0954107",
     "name": {
       "fr": "Taliouine",
       "ar": "تالوين"
     },
+    "population": {
+      "2024": {
+        "total": 100164,
+        "moroccan": 100137,
+        "foreign": 27,
+        "households": 23329
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.541"
+    "provinceCode": "09.541",
+    "communeCount": 15
   },
   {
     "code": "09.581.09",
+    "codeDigits": "0958109",
     "name": {
       "fr": "Tafraout",
       "ar": "تافراوت"
     },
+    "population": {
+      "2024": {
+        "total": 13152,
+        "moroccan": 13152,
+        "foreign": 0,
+        "households": 4801
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.581"
+    "provinceCode": "09.581",
+    "communeCount": 6
   },
   {
     "code": "09.581.03",
+    "codeDigits": "0958103",
     "name": {
       "fr": "Anezi",
       "ar": "أنزي"
     },
+    "population": {
+      "2024": {
+        "total": 33130,
+        "moroccan": 33122,
+        "foreign": 8,
+        "households": 10084
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.581"
+    "provinceCode": "09.581",
+    "communeCount": 9
   },
   {
     "code": "09.581.11",
+    "codeDigits": "0958111",
     "name": {
       "fr": "Tiznit",
       "ar": "تيزنيت"
     },
+    "population": {
+      "2024": {
+        "total": 59541,
+        "moroccan": 59481,
+        "foreign": 60,
+        "households": 17217
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.581"
+    "provinceCode": "09.581",
+    "communeCount": 8
   },
   {
     "code": "09.551.03",
+    "codeDigits": "0955103",
     "name": {
       "fr": "Akka",
       "ar": "أقا"
     },
+    "population": {
+      "2024": {
+        "total": 15987,
+        "moroccan": 15983,
+        "foreign": 4,
+        "households": 3972
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.551"
+    "provinceCode": "09.551",
+    "communeCount": 4
   },
   {
     "code": "09.551.07",
+    "codeDigits": "0955107",
     "name": {
       "fr": "Tata",
       "ar": "طاطا"
     },
+    "population": {
+      "2024": {
+        "total": 23898,
+        "moroccan": 23895,
+        "foreign": 3,
+        "households": 6002
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.551"
+    "provinceCode": "09.551",
+    "communeCount": 6
   },
   {
     "code": "09.551.05",
+    "codeDigits": "0955105",
     "name": {
       "fr": "Fom Zguid",
       "ar": "فم زكيد"
     },
+    "population": {
+      "2024": {
+        "total": 32185,
+        "moroccan": 32185,
+        "foreign": 0,
+        "households": 6805
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "09",
-    "provinceCode": "09.551"
+    "provinceCode": "09.551",
+    "communeCount": 6
   },
   {
     "code": "10.261.03",
+    "codeDigits": "1026103",
     "name": {
       "fr": "Bouizakarne",
       "ar": "بويزكارن"
     },
+    "population": {
+      "2024": {
+        "total": 33668,
+        "moroccan": 33640,
+        "foreign": 28,
+        "households": 8451
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.261"
+    "provinceCode": "10.261",
+    "communeCount": 7
   },
   {
     "code": "10.261.05",
+    "codeDigits": "1026105",
     "name": {
       "fr": "Guelmim",
       "ar": "كلميم"
     },
+    "population": {
+      "2024": {
+        "total": 8504,
+        "moroccan": 8474,
+        "foreign": 30,
+        "households": 1979
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.261"
+    "provinceCode": "10.261",
+    "communeCount": 4
   },
   {
     "code": "10.261.07",
+    "codeDigits": "1026107",
     "name": {
       "fr": "Laqsabi",
       "ar": "لقصابي"
     },
+    "population": {
+      "2024": {
+        "total": 9330,
+        "moroccan": 9324,
+        "foreign": 6,
+        "households": 2364
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.261"
+    "provinceCode": "10.261",
+    "communeCount": 7
   },
   {
     "code": "10.071.03",
+    "codeDigits": "1007103",
     "name": {
       "fr": "Assa",
       "ar": "آسا"
     },
+    "population": {
+      "2024": {
+        "total": 12745,
+        "moroccan": 12742,
+        "foreign": 3,
+        "households": 1330
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.071"
+    "provinceCode": "10.071",
+    "communeCount": 3
   },
   {
     "code": "10.071.05",
+    "codeDigits": "1007105",
     "name": {
       "fr": "Zag",
       "ar": "الزاك"
     },
+    "population": {
+      "2024": {
+        "total": 20196,
+        "moroccan": 20194,
+        "foreign": 2,
+        "households": 387
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.071"
+    "provinceCode": "10.071",
+    "communeCount": 2
   },
   {
     "code": "10.521.05",
+    "codeDigits": "1052105",
     "name": {
       "fr": "Tan-Tan",
       "ar": "طانطان"
     },
+    "population": {
+      "2024": {
+        "total": 1879,
+        "moroccan": 1830,
+        "foreign": 49,
+        "households": 337
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.521"
+    "provinceCode": "10.521",
+    "communeCount": 3
   },
   {
     "code": "10.521.03",
+    "codeDigits": "1052103",
     "name": {
       "fr": "Msied",
       "ar": "لمسيد"
     },
+    "population": {
+      "2024": {
+        "total": 2248,
+        "moroccan": 2248,
+        "foreign": 0,
+        "households": 457
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.521"
+    "provinceCode": "10.521",
+    "communeCount": 2
   },
   {
     "code": "10.473.05",
+    "codeDigits": "1047305",
     "name": {
       "fr": "Ifni",
       "ar": "إفني"
     },
+    "population": {
+      "2024": {
+        "total": 27087,
+        "moroccan": 27084,
+        "foreign": 3,
+        "households": 7104
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.473"
+    "provinceCode": "10.473",
+    "communeCount": 7
   },
   {
     "code": "10.473.07",
+    "codeDigits": "1047307",
     "name": {
       "fr": "Lakhsas",
       "ar": "الأخصاص"
     },
+    "population": {
+      "2024": {
+        "total": 39387,
+        "moroccan": 39385,
+        "foreign": 2,
+        "households": 10807
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "10",
-    "provinceCode": "10.473"
+    "provinceCode": "10.473",
+    "communeCount": 9
   },
   {
     "code": "11.321.03",
+    "codeDigits": "1132103",
     "name": {
       "fr": "Laâyoune",
       "ar": "العيون"
     },
+    "population": {
+      "2024": {
+        "total": 3916,
+        "moroccan": 3889,
+        "foreign": 27,
+        "households": 1280
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "11",
-    "provinceCode": "11.321"
+    "provinceCode": "11.321",
+    "communeCount": 3
   },
   {
     "code": "11.121.03",
+    "codeDigits": "1112103",
     "name": {
       "fr": "Jraifia",
       "ar": "جريفية"
     },
+    "population": {
+      "2024": {
+        "total": 8021,
+        "moroccan": 8012,
+        "foreign": 9,
+        "households": 614
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "11",
-    "provinceCode": "11.121"
+    "provinceCode": "11.121",
+    "communeCount": 3
   },
   {
     "code": "11.537.03",
+    "codeDigits": "1153703",
     "name": {
       "fr": "Daoura-El Hagounia",
       "ar": "الدورة-الحكونية"
     },
+    "population": {
+      "2024": {
+        "total": 1463,
+        "moroccan": 1463,
+        "foreign": 0,
+        "households": 531
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "11",
-    "provinceCode": "11.537"
+    "provinceCode": "11.537",
+    "communeCount": 2
   },
   {
     "code": "11.537.05",
+    "codeDigits": "1153705",
     "name": {
       "fr": "Tarfaya",
       "ar": "طرفاية"
     },
+    "population": {
+      "2024": {
+        "total": 3735,
+        "moroccan": 3717,
+        "foreign": 18,
+        "households": 1075
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "11",
-    "provinceCode": "11.537"
+    "provinceCode": "11.537",
+    "communeCount": 2
   },
   {
     "code": "11.221.03",
+    "codeDigits": "1122103",
     "name": {
       "fr": "Es-Semara",
       "ar": "السمارة"
     },
+    "population": {
+      "2024": {
+        "total": 17257,
+        "moroccan": 17241,
+        "foreign": 16,
+        "households": 398
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "11",
-    "provinceCode": "11.221"
+    "provinceCode": "11.221",
+    "communeCount": 5
   },
   {
     "code": "12.391.09",
+    "codeDigits": "1239109",
     "name": {
       "fr": "El Argoub",
       "ar": "العركوب"
     },
+    "population": {
+      "2024": {
+        "total": 15527,
+        "moroccan": 15210,
+        "foreign": 317,
+        "households": 5216
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "12",
-    "provinceCode": "12.391"
+    "provinceCode": "12.391",
+    "communeCount": 2
   },
   {
     "code": "12.391.05",
+    "codeDigits": "1239105",
     "name": {
       "fr": "Bir Anzarane",
       "ar": "بئر أنزران"
     },
+    "population": {
+      "2024": {
+        "total": 14477,
+        "moroccan": 14452,
+        "foreign": 25,
+        "households": 1123
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "12",
-    "provinceCode": "12.391"
+    "provinceCode": "12.391",
+    "communeCount": 4
   },
   {
     "code": "12.066.05",
+    "codeDigits": "1206605",
     "name": {
       "fr": "Bir Gandouz",
       "ar": "بئر كندوز"
     },
+    "population": {
+      "2024": {
+        "total": 9183,
+        "moroccan": 9159,
+        "foreign": 24,
+        "households": 1122
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "12",
-    "provinceCode": "12.066"
+    "provinceCode": "12.066",
+    "communeCount": 1
   },
   {
     "code": "12.066.03",
+    "codeDigits": "1206603",
     "name": {
       "fr": "Aousserd",
       "ar": "أوسرد"
     },
+    "population": {
+      "2024": {
+        "total": 12188,
+        "moroccan": 12079,
+        "foreign": 109,
+        "households": 565
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
+    },
     "regionCode": "12",
-    "provinceCode": "12.066"
+    "provinceCode": "12.066",
+    "communeCount": 4
   }
 ]

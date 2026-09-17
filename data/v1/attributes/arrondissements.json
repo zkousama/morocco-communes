@@ -1,369 +1,902 @@
 [
   {
     "code": "01.511.01.05",
+    "codeDigits": "015110105",
     "name": {
       "fr": "Mghogha",
       "ar": "مغوغة"
+    },
+    "population": {
+      "2024": {
+        "total": 252656,
+        "moroccan": 251850,
+        "foreign": 806,
+        "households": 70679
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "01.511.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "01.511.01.06",
+    "codeDigits": "015110106",
     "name": {
       "fr": "Souani",
       "ar": "السواني"
+    },
+    "population": {
+      "2024": {
+        "total": 111772,
+        "moroccan": 111120,
+        "foreign": 652,
+        "households": 33489
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "01.511.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "01.511.01.03",
+    "codeDigits": "015110103",
     "name": {
       "fr": "Bni Makada",
       "ar": "بني مكادة"
+    },
+    "population": {
+      "2024": {
+        "total": 567465,
+        "moroccan": 566538,
+        "foreign": 927,
+        "households": 150816
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "01.511.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "01.511.01.07",
+    "codeDigits": "015110107",
     "name": {
       "fr": "Médina",
       "ar": "المدينة"
+    },
+    "population": {
+      "2024": {
+        "total": 343535,
+        "moroccan": 339004,
+        "foreign": 4531,
+        "households": 107078
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "01.511.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "03.231.01.11",
+    "codeDigits": "032310111",
     "name": {
       "fr": "El Mariniyine",
       "ar": "المرينيين"
+    },
+    "population": {
+      "2024": {
+        "total": 206427,
+        "moroccan": 206341,
+        "foreign": 86,
+        "households": 54509
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "03.231.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "03.231.01.09",
+    "codeDigits": "032310109",
     "name": {
       "fr": "Jnan El Ouard",
       "ar": "جنان الورد"
+    },
+    "population": {
+      "2024": {
+        "total": 187737,
+        "moroccan": 187717,
+        "foreign": 20,
+        "households": 45619
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "03.231.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "03.231.01.01",
+    "codeDigits": "032310101",
     "name": {
       "fr": "Agdal",
       "ar": "أكدال"
+    },
+    "population": {
+      "2024": {
+        "total": 128030,
+        "moroccan": 126846,
+        "foreign": 1184,
+        "households": 39373
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "03.231.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "03.231.01.07",
+    "codeDigits": "032310107",
     "name": {
       "fr": "Fès-Médina",
       "ar": "فاس المدينة"
+    },
+    "population": {
+      "2024": {
+        "total": 49775,
+        "moroccan": 49685,
+        "foreign": 90,
+        "households": 13730
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "03.231.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "03.231.01.13",
+    "codeDigits": "032310113",
     "name": {
       "fr": "Zouagha",
       "ar": "زواغة"
+    },
+    "population": {
+      "2024": {
+        "total": 358631,
+        "moroccan": 358221,
+        "foreign": 410,
+        "households": 89164
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "03.231.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "03.231.01.05",
+    "codeDigits": "032310105",
     "name": {
       "fr": "Saiss",
       "ar": "سايس"
+    },
+    "population": {
+      "2024": {
+        "total": 237242,
+        "moroccan": 235233,
+        "foreign": 2009,
+        "households": 64927
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "03.231.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.421.01.09",
+    "codeDigits": "044210109",
     "name": {
       "fr": "Yacoub El Mansour",
       "ar": "يعقوب المنصور"
+    },
+    "population": {
+      "2024": {
+        "total": 168391,
+        "moroccan": 166498,
+        "foreign": 1893,
+        "households": 47492
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.421.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.421.01.05",
+    "codeDigits": "044210105",
     "name": {
       "fr": "Hassan",
       "ar": "حسان"
+    },
+    "population": {
+      "2024": {
+        "total": 92454,
+        "moroccan": 90518,
+        "foreign": 1936,
+        "households": 32327
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.421.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.421.01.03",
+    "codeDigits": "044210103",
     "name": {
       "fr": "El Youssoufia",
       "ar": "اليوسفية"
+    },
+    "population": {
+      "2024": {
+        "total": 157587,
+        "moroccan": 154258,
+        "foreign": 3329,
+        "households": 45900
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.421.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.421.01.01",
+    "codeDigits": "044210101",
     "name": {
       "fr": "Agdal Riyad",
       "ar": "أكدال الرياض"
+    },
+    "population": {
+      "2024": {
+        "total": 70435,
+        "moroccan": 64551,
+        "foreign": 5884,
+        "households": 24248
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.421.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.421.01.06",
+    "codeDigits": "044210106",
     "name": {
       "fr": "Souissi",
       "ar": "السويسي"
+    },
+    "population": {
+      "2024": {
+        "total": 21049,
+        "moroccan": 19477,
+        "foreign": 1572,
+        "households": 6431
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.421.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.441.01.09",
+    "codeDigits": "044410109",
     "name": {
       "fr": "Tabriquet",
       "ar": "تابريكت"
+    },
+    "population": {
+      "2024": {
+        "total": 237385,
+        "moroccan": 234920,
+        "foreign": 2465,
+        "households": 65252
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.441.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.441.01.03",
+    "codeDigits": "044410103",
     "name": {
       "fr": "Bab Lamrissa",
       "ar": "باب لمريسة"
+    },
+    "population": {
+      "2024": {
+        "total": 167319,
+        "moroccan": 165739,
+        "foreign": 1580,
+        "households": 48307
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.441.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.441.01.05",
+    "codeDigits": "044410105",
     "name": {
       "fr": "Bettana",
       "ar": "بطانة"
+    },
+    "population": {
+      "2024": {
+        "total": 76233,
+        "moroccan": 75735,
+        "foreign": 498,
+        "households": 21404
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.441.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.441.01.07",
+    "codeDigits": "044410107",
     "name": {
       "fr": "Layayda",
       "ar": "العيايدة"
+    },
+    "population": {
+      "2024": {
+        "total": 229838,
+        "moroccan": 228812,
+        "foreign": 1026,
+        "households": 57358
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.441.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "04.441.01.06",
+    "codeDigits": "044410106",
     "name": {
       "fr": "Hssaine",
       "ar": "حصين"
+    },
+    "population": {
+      "2024": {
+        "total": 234326,
+        "moroccan": 233269,
+        "foreign": 1057,
+        "households": 63823
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "04.441.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "06.141.01.01",
+    "codeDigits": "061410101",
     "name": {
       "fr": "Anfa",
       "ar": "أنفا"
+    },
+    "population": {
+      "2024": {
+        "total": 66202,
+        "moroccan": 63580,
+        "foreign": 2622,
+        "households": 22331
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.00"
   },
   {
     "code": "06.141.01.03",
+    "codeDigits": "061410103",
     "name": {
       "fr": "Maârif",
       "ar": "المعاريف"
+    },
+    "population": {
+      "2024": {
+        "total": 139669,
+        "moroccan": 134151,
+        "foreign": 5518,
+        "households": 51113
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.00"
   },
   {
     "code": "06.141.01.07",
+    "codeDigits": "061410107",
     "name": {
       "fr": "Sidi Belyout",
       "ar": "سيدي بليوط"
+    },
+    "population": {
+      "2024": {
+        "total": 138294,
+        "moroccan": 134535,
+        "foreign": 3759,
+        "households": 47055
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.00"
   },
   {
     "code": "06.141.01.11",
+    "codeDigits": "061410111",
     "name": {
       "fr": "Al-Fida",
       "ar": "الفداء"
+    },
+    "population": {
+      "2024": {
+        "total": 125933,
+        "moroccan": 125652,
+        "foreign": 281,
+        "households": 35993
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.10"
   },
   {
     "code": "06.141.01.13",
+    "codeDigits": "061410113",
     "name": {
       "fr": "Mers-Sultan",
       "ar": "مرس السلطان"
+    },
+    "population": {
+      "2024": {
+        "total": 98139,
+        "moroccan": 96764,
+        "foreign": 1375,
+        "households": 30509
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.10"
   },
   {
     "code": "06.141.01.25",
+    "codeDigits": "061410125",
     "name": {
       "fr": "Hay-Mohammadi",
       "ar": "الحي المحمدي"
+    },
+    "population": {
+      "2024": {
+        "total": 104232,
+        "moroccan": 104131,
+        "foreign": 101,
+        "households": 28469
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.20"
   },
   {
     "code": "06.141.01.23",
+    "codeDigits": "061410123",
     "name": {
       "fr": "Asoukhour Assawda",
       "ar": "الصخور السوداء"
+    },
+    "population": {
+      "2024": {
+        "total": 104775,
+        "moroccan": 102953,
+        "foreign": 1822,
+        "households": 32260
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.20"
   },
   {
     "code": "06.141.01.21",
+    "codeDigits": "061410121",
     "name": {
       "fr": "Aïn-Sebaâ",
       "ar": "عين السبع"
+    },
+    "population": {
+      "2024": {
+        "total": 155828,
+        "moroccan": 153441,
+        "foreign": 2387,
+        "households": 40875
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.20"
   },
   {
     "code": "06.141.01.31",
+    "codeDigits": "061410131",
     "name": {
       "fr": "Hay-Hassani",
       "ar": "الحي الحسني"
+    },
+    "population": {
+      "2024": {
+        "total": 537509,
+        "moroccan": 517080,
+        "foreign": 20429,
+        "households": 157634
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.30"
   },
   {
     "code": "06.141.01.41",
+    "codeDigits": "061410141",
     "name": {
       "fr": "Aïn-Chock",
       "ar": "عين الشق"
+    },
+    "population": {
+      "2024": {
+        "total": 374707,
+        "moroccan": 368349,
+        "foreign": 6358,
+        "households": 102598
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.40"
   },
   {
     "code": "06.141.01.51",
+    "codeDigits": "061410151",
     "name": {
       "fr": "Sidi Bernoussi",
       "ar": "سيدي البرنوصي"
+    },
+    "population": {
+      "2024": {
+        "total": 154919,
+        "moroccan": 154758,
+        "foreign": 161,
+        "households": 42626
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.50"
   },
   {
     "code": "06.141.01.53",
+    "codeDigits": "061410153",
     "name": {
       "fr": "Sidi Moumen",
       "ar": "سيدي مومن"
+    },
+    "population": {
+      "2024": {
+        "total": 551443,
+        "moroccan": 550749,
+        "foreign": 694,
+        "households": 142020
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.50"
   },
   {
     "code": "06.141.01.61",
+    "codeDigits": "061410161",
     "name": {
       "fr": "Ben-M'sick",
       "ar": "ابن مسيك"
+    },
+    "population": {
+      "2024": {
+        "total": 105612,
+        "moroccan": 105578,
+        "foreign": 34,
+        "households": 29445
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.60"
   },
   {
     "code": "06.141.01.63",
+    "codeDigits": "061410163",
     "name": {
       "fr": "Sbata",
       "ar": "سباتة"
+    },
+    "population": {
+      "2024": {
+        "total": 101640,
+        "moroccan": 101608,
+        "foreign": 32,
+        "households": 26764
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.60"
   },
   {
     "code": "06.141.01.71",
+    "codeDigits": "061410171",
     "name": {
       "fr": "Moulay Rachid",
       "ar": "مولاي رشيد"
+    },
+    "population": {
+      "2024": {
+        "total": 245139,
+        "moroccan": 244865,
+        "foreign": 274,
+        "households": 63294
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.70"
   },
   {
     "code": "06.141.01.73",
+    "codeDigits": "061410173",
     "name": {
       "fr": "Sidi Othmane",
       "ar": "سيدي عثمان"
+    },
+    "population": {
+      "2024": {
+        "total": 211894,
+        "moroccan": 211784,
+        "foreign": 110,
+        "households": 56242
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "06.141.01.0",
     "prefectureOfArrondissementsCode": "06.141.01.70"
   },
   {
     "code": "07.351.01.07",
+    "codeDigits": "073510107",
     "name": {
       "fr": "Marrakech-Médina",
       "ar": "مراكش المدينة"
+    },
+    "population": {
+      "2024": {
+        "total": 81103,
+        "moroccan": 80861,
+        "foreign": 242,
+        "households": 21660
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "07.351.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "07.351.01.09",
+    "codeDigits": "073510109",
     "name": {
       "fr": "Ménara",
       "ar": "المنارة"
+    },
+    "population": {
+      "2024": {
+        "total": 522259,
+        "moroccan": 520454,
+        "foreign": 1805,
+        "households": 135189
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "07.351.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "07.351.01.05",
+    "codeDigits": "073510105",
     "name": {
       "fr": "Gueliz",
       "ar": "جيليز"
+    },
+    "population": {
+      "2024": {
+        "total": 219863,
+        "moroccan": 213648,
+        "foreign": 6215,
+        "households": 68658
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "07.351.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "07.351.01.11",
+    "codeDigits": "073510111",
     "name": {
       "fr": "Sidi Youssef Ben Ali",
       "ar": "سيدي يوسف بن علي"
+    },
+    "population": {
+      "2024": {
+        "total": 107966,
+        "moroccan": 107914,
+        "foreign": 52,
+        "households": 25887
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "07.351.01.0",
     "prefectureOfArrondissementsCode": null
   },
   {
     "code": "07.351.01.03",
+    "codeDigits": "073510103",
     "name": {
       "fr": "Annakhil",
       "ar": "النخيل"
+    },
+    "population": {
+      "2024": {
+        "total": 71506,
+        "moroccan": 70622,
+        "foreign": 884,
+        "households": 17531
+      }
+    },
+    "provenance": {
+      "name": "hcp-2024",
+      "population2024": "hcp-2024"
     },
     "communeCode": "07.351.01.0",
     "prefectureOfArrondissementsCode": null
