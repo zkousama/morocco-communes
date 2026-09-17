@@ -6,6 +6,17 @@ d'arrondissements, 213 cercles, 1,503 communes and 41 arrondissements.
 Source: Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014. Regenerate with
 `pnpm dataset:build`.
 
+`sources.json` records what this build read: each workbook's URL, licence, sha256 and
+retrieval date, and the OpenStreetMap snapshot. The OSM vintage is a **range**, because
+the boundaries come from twelve separate Overpass queries that rate-limiting spreads over
+an hour or more, so the twelve régions are snapshots taken at different moments rather
+than one consistent extract. `datasetVersion` is this directory's own version, which
+moves independently of the API's.
+
+Rebuilding from the same cache is byte-identical. Rebuilding after re-fetching is not,
+and should not be: a newer OSM snapshot is different input, and `sources.json` is where
+that shows up.
+
 `code` is the canonical dotted HCP geographic code. `codeDigits` is the same code
 zero-padded to nine digits, which is the key that joins across both censuses and
 OpenStreetMap.

@@ -1,4 +1,4 @@
-import { fetchAll } from "./fetch.ts";
+import { fetchAll, sha256 } from "./fetch.ts";
 import { parseHcp2024 } from "./sources/hcp2024.ts";
 import { parseHcp2014 } from "./sources/hcp2014.ts";
 import { buildHierarchy } from "./build/hierarchy.ts";
@@ -11,8 +11,10 @@ import { joinOsm, type OsmFeature } from "./build/osmJoin.ts";
 import { writeGeometry } from "./emit/topojson.ts";
 import { buildCrosswalk } from "./build/crosswalk.ts";
 import { writeCrosswalk } from "./emit/crosswalk.ts";
+import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/sources.ts";
 
 const OUT = "data/v1/attributes";
+const DATASET_OUT = "data/v1";
 const GEOMETRY_OUT = "data/v1/geometry";
 const CROSSWALK_OUT = "data/v1/crosswalk";
 
@@ -25,10 +27,12 @@ const osm = new Map<string, OsmFeature>();
 const byRegion = new Map<string, OsmFeature[]>();
 let unmatchedTotal = 0;
 let rejectedTotal = 0;
+const osmFetchedAt: (string | null)[] = [];
 
 for (const region of hierarchy.regions) {
-  const response = await fetchRegion(region.code, ".cache");
-  const { features, unmatched, rejected } = joinOsm(response.elements, knownCodes);
+  const snapshot = await fetchRegion(region.code, ".cache");
+  osmFetchedAt.push(snapshot.fetchedAt);
+  const { features, unmatched, rejected } = joinOsm(snapshot.elements, knownCodes);
   unmatchedTotal += unmatched.length;
   rejectedTotal += rejected.length;
   for (const r of rejected) console.warn(`  rejected relation ${r.relationId} (${r.ref}): ${r.reason}`);
@@ -76,6 +80,17 @@ await writeCrosswalk(rows, CROSSWALK_OUT);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);
+
+// Provenance is the dataset's whole argument, so a build that cannot say which snapshot
+// it read refuses to publish rather than shipping a null vintage under a README that
+// claims the sources are pinned.
+const digests = Object.fromEntries([...sources].map(([id, bytes]) => [id, sha256(bytes)]));
+const sourcesDoc = buildSources(digests, await retrievedAt(".cache"), osmFetchedAt);
+const sourceProblems = checkSources(sourcesDoc);
+if (sourceProblems.length > 0) {
+  throw new Error(`the dataset cannot account for its sources:\n  ${sourceProblems.join("\n  ")}`);
+}
+await writeSources(sourcesDoc, DATASET_OUT);
 
 console.log(
   `wrote ${records.communes.length} communes, ${records.arrondissements.length} arrondissements to ${OUT}`,

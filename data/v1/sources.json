@@ -1,0 +1,30 @@
+{
+  "datasetVersion": "1.0.0",
+  "sources": [
+    {
+      "id": "hcp-2024",
+      "url": "https://www.hcp.ma/file/242341/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2024. Government publication, attributed.",
+      "sha256": "7e9d3d402cc2fd0d9c4fc941c4f23c6a5e5ddcbefbba80b7540267f8e2728dca",
+      "retrievedAt": "2026-09-17"
+    },
+    {
+      "id": "hcp-2014",
+      "url": "https://www.hcp.ma/file/230057/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2014. Government publication, attributed.",
+      "sha256": "e0a7e308c0c1e185e5bec0c080d10635b19e83216d0bf91656554c707bbf0709",
+      "retrievedAt": "2026-09-17"
+    },
+    {
+      "id": "osm",
+      "via": "Overpass API",
+      "licence": "ODbL-1.0",
+      "attribution": "© OpenStreetMap contributors, opendatacommons.org/licenses/odbl/1-0/",
+      "snapshot": {
+        "earliest": "2026-09-17T16:53:06.964Z",
+        "latest": "2026-09-17T17:54:20.231Z",
+        "regions": 12
+      }
+    }
+  ]
+}
