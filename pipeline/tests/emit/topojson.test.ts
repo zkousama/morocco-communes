@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toFeatureCollection } from "../../src/emit/topojson.ts";
+import { findAnomalies, toFeatureCollection } from "../../src/emit/topojson.ts";
 import type { OsmFeature } from "../../src/build/osmJoin.ts";
 
 const feature = (codeDigits: string): OsmFeature => ({
@@ -59,5 +59,32 @@ describe("toFeatureCollection", () => {
     );
     expect(out.features[0]!.geometry.type).toBe("Polygon");
     expect(out.features[0]!.geometry.coordinates).toHaveLength(2);
+  });
+});
+
+describe("findAnomalies", () => {
+  it("finds nothing wrong with a well-formed feature", () => {
+    expect(findAnomalies([feature("015110519")])).toEqual([]);
+  });
+
+  it("reports a hole that sits inside none of the outer rings", () => {
+    const orphan = {
+      ...feature("015110519"),
+      outer: [[[0, 0], [4, 0], [4, 4], [0, 0]] as [number, number][]],
+      inner: [[[90, 90], [91, 90], [91, 91], [90, 90]] as [number, number][]],
+    };
+    const found = findAnomalies([orphan]);
+    expect(found).toHaveLength(1);
+    expect(found[0]!.kind).toBe("orphan_hole");
+    expect(found[0]!.code).toBe("015110519");
+  });
+
+  it("reports a ring collapsed to fewer than three distinct points", () => {
+    const collapsed = {
+      ...feature("015110519"),
+      outer: [[[1, 1], [1, 1], [1, 1], [1, 1]] as [number, number][]],
+    };
+    const found = findAnomalies([collapsed]);
+    expect(found.some((a) => a.kind === "degenerate_ring")).toBe(true);
   });
 });
