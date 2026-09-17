@@ -5,11 +5,13 @@
     "code2014": "01.051.05.01",
     "name2024": "Ait Kamra",
     "name2014": "Ait Kamra",
+    "nameAr2024": "آيت قمرة",
+    "nameAr2014": "أيت قمرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 8269,
       "population2014": 7685,
       "populationRatio": 1.076
@@ -21,6 +23,8 @@
     "code2014": "01.051.05.07",
     "name2024": "Bni Abdellah",
     "name2014": "Bni Abdallah",
+    "nameAr2024": "بني عبد الله",
+    "nameAr2014": "بني عبد الله",
     "method": "sole_remaining_in_province",
     "evidence": {
       "province": "01051",
@@ -37,11 +41,13 @@
     "code2014": "01.051.05.09",
     "name2024": "Bni Hadifa",
     "name2014": "Bni Hadifa",
+    "nameAr2024": "بني حذيفة",
+    "nameAr2014": "بني حذيفة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 4723,
       "population2014": 5594,
       "populationRatio": 0.8443
@@ -53,11 +59,13 @@
     "code2014": "01.051.05.15",
     "name2024": "Izemmouren",
     "name2014": "Izemmouren",
+    "nameAr2024": "ازمورن",
+    "nameAr2014": "ازمورن",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 6365,
       "population2014": 5153,
       "populationRatio": 1.2352
@@ -69,11 +77,13 @@
     "code2014": "01.051.05.21",
     "name2024": "Rouadi",
     "name2014": "Rouadi",
+    "nameAr2024": "ارواضي",
+    "nameAr2014": "رواضي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 6858,
       "population2014": 7131,
       "populationRatio": 0.9617
@@ -85,11 +95,13 @@
     "code2014": "01.051.05.25",
     "name2024": "Zaouiat Sidi Abdelkader",
     "name2014": "Zaouiat Sidi Abdelkader",
+    "nameAr2024": "زاوية سيدي عبد القادر",
+    "nameAr2014": "زاوية سيدي عبد القادر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 4150,
       "population2014": 5452,
       "populationRatio": 0.7612
@@ -101,11 +113,13 @@
     "code2014": "01.051.05.03",
     "name2024": "Ait Youssef Ou Ali",
     "name2014": "Ait Youssef Ou Ali",
+    "nameAr2024": "آيت يوسف وعلي",
+    "nameAr2014": "أيت يوسف وعلي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 13830,
       "population2014": 12673,
       "populationRatio": 1.0913
@@ -117,11 +131,13 @@
     "code2014": "01.051.05.05",
     "name2024": "Arbaa Taourirt",
     "name2014": "Arbaa Taourirt",
+    "nameAr2024": "اربعاء تاوريرت",
+    "nameAr2014": "اربعاء تاوريرت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 12,
       "population2024": 3799,
       "population2014": 5187,
       "populationRatio": 0.7324
@@ -133,11 +149,13 @@
     "code2014": "01.051.05.11",
     "name2024": "Chakrane",
     "name2014": "Chakrane",
+    "nameAr2024": "شقران",
+    "nameAr2014": "شكران",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 13,
       "population2024": 3306,
       "population2014": 4761,
       "populationRatio": 0.6944
@@ -149,11 +167,13 @@
     "code2014": "01.051.05.13",
     "name2024": "Imrabten",
     "name2014": "Imrabten",
+    "nameAr2024": "امرابطن",
+    "nameAr2014": "امرابطن",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 6983,
       "population2014": 8715,
       "populationRatio": 0.8013
@@ -165,11 +185,13 @@
     "code2014": "01.051.05.17",
     "name2024": "Louta",
     "name2014": "Louta",
+    "nameAr2024": "لوطا",
+    "nameAr2014": "لوطا",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 4408,
       "population2014": 4428,
       "populationRatio": 0.9955
@@ -181,11 +203,13 @@
     "code2014": "01.051.05.19",
     "name2024": "Nekkour",
     "name2014": "Nekkour",
+    "nameAr2024": "النكور",
+    "nameAr2014": "نقور",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 7721,
       "population2014": 8963,
       "populationRatio": 0.8614
@@ -197,11 +221,13 @@
     "code2014": "01.051.05.23",
     "name2024": "Tifarouine",
     "name2014": "Tifarouine",
+    "nameAr2024": "تيفروين",
+    "nameAr2014": "تيفروين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01051",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 3318,
       "population2014": 4231,
       "populationRatio": 0.7842
@@ -213,6 +239,8 @@
     "code2014": "01.151.07.03",
     "name2024": "Bni Mansour",
     "name2014": "Bni Mansour",
+    "nameAr2024": "بني منصور",
+    "nameAr2014": "بني منصور",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01151",
@@ -229,11 +257,13 @@
     "code2014": "01.151.07.05",
     "name2024": "Bni Selmane",
     "name2014": "Bni Selmane",
+    "nameAr2024": "بني سلمان",
+    "nameAr2014": "بني سلمان",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01151",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 21413,
       "population2014": 24217,
       "populationRatio": 0.8842
@@ -245,11 +275,13 @@
     "code2014": "01.405.07.03",
     "name2024": "Lamjaara",
     "name2014": "Lamjaara",
+    "nameAr2024": "لمجاعرة",
+    "nameAr2014": "لمجاعرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01405",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 19162,
       "population2014": 18820,
       "populationRatio": 1.0182
@@ -261,6 +293,8 @@
     "code2014": "01.405.07.09",
     "name2024": "Ouannana",
     "name2014": "Ounnana",
+    "nameAr2024": "ونانة",
+    "nameAr2014": "أونانة",
     "method": "sole_remaining_in_province",
     "evidence": {
       "province": "01405",
@@ -277,11 +311,13 @@
     "code2014": "01.405.07.11",
     "name2024": "Sidi Ahmed Cherif",
     "name2014": "Sidi Ahmed Cherif",
+    "nameAr2024": "سيدي أحمد الشريف",
+    "nameAr2014": "سيدي أحمد الشريف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01405",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 7913,
       "population2014": 9576,
       "populationRatio": 0.8263
@@ -293,11 +329,13 @@
     "code2014": "01.405.07.13",
     "name2024": "Sidi Bousber",
     "name2014": "Sidi Bousber",
+    "nameAr2024": "سيدي بوصبر",
+    "nameAr2014": "سيدي بوصبر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01405",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 9671,
       "population2014": 10528,
       "populationRatio": 0.9186
@@ -309,11 +347,13 @@
     "code2014": "01.405.07.17",
     "name2024": "Teroual",
     "name2014": "Teroual",
+    "nameAr2024": "تروال",
+    "nameAr2014": "تروال",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01405",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 11673,
       "population2014": 12621,
       "populationRatio": 0.9249
@@ -325,11 +365,13 @@
     "code2014": "01.405.07.19",
     "name2024": "Zghira",
     "name2014": "Zghira",
+    "nameAr2024": "ازغيرة",
+    "nameAr2014": "ازغيرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01405",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 13415,
       "population2014": 15503,
       "populationRatio": 0.8653
@@ -341,11 +383,13 @@
     "code2014": "01.511.03.01",
     "name2024": "Al Manzla",
     "name2014": "Al Manzla",
+    "nameAr2024": "المنزلة",
+    "nameAr2014": "المنزلة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01511",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 2680,
       "population2014": 2650,
       "populationRatio": 1.0113
@@ -357,6 +401,8 @@
     "code2014": "01.511.03.05",
     "name2024": "Sebt Azzinate",
     "name2014": "Sebt Azzinate",
+    "nameAr2024": "سبت الزينات",
+    "nameAr2014": "سبت الزينات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01511",
@@ -373,11 +419,13 @@
     "code2014": "01.511.03.07",
     "name2024": "Dar Chaoui",
     "name2014": "Dar Chaoui",
+    "nameAr2024": "دار الشاوي",
+    "nameAr2014": "دار الشاوي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01511",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 4471,
       "population2014": 4303,
       "populationRatio": 1.039
@@ -389,11 +437,13 @@
     "code2014": "01.511.03.17",
     "name2024": "Laaouama",
     "name2014": "Laaouama",
+    "nameAr2024": "العوامة",
+    "nameAr2014": "العوامة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01511",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 19187,
       "population2014": 8013,
       "populationRatio": 2.3945
@@ -405,11 +455,13 @@
     "code2014": "01.511.81.05",
     "name2024": "Hjar Ennhal",
     "name2014": "HJAR ENNHAL",
+    "nameAr2024": "حجر النحل",
+    "nameAr2014": "حجر النحل",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01511",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 27204,
       "population2014": 9792,
       "populationRatio": 2.7782
@@ -421,11 +473,13 @@
     "code2014": "01.573.03.03",
     "name2024": "Allyene",
     "name2014": "Allyene",
+    "nameAr2024": "عليين",
+    "nameAr2014": "عليين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01573",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 8111,
       "population2014": 6583,
       "populationRatio": 1.2321
@@ -437,6 +491,8 @@
     "code2014": "01.573.03.05",
     "name2024": "Belyounech",
     "name2014": "Belyounech",
+    "nameAr2024": "بليونش",
+    "nameAr2014": "بليونش",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "01573",
@@ -453,11 +509,13 @@
     "code2014": "02.167.09.05",
     "name2024": "Bni Marghnine",
     "name2014": "Bni Marghnine",
+    "nameAr2024": "بني مرغنين",
+    "nameAr2014": "بني مرغنين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 4950,
       "population2014": 6263,
       "populationRatio": 0.7904
@@ -469,11 +527,13 @@
     "code2014": "02.167.09.07",
     "name2024": "Boudinar",
     "name2014": "Boudinar",
+    "nameAr2024": "بودينار",
+    "nameAr2014": "بودينار",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 7996,
       "population2014": 9863,
       "populationRatio": 0.8107
@@ -485,11 +545,13 @@
     "code2014": "02.167.09.11",
     "name2024": "Ijermaouas",
     "name2014": "Ijermaouas",
+    "nameAr2024": "اجرمواس",
+    "nameAr2014": "اجرماواس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 13,
       "population2024": 5303,
       "population2014": 7540,
       "populationRatio": 0.7033
@@ -501,11 +563,13 @@
     "code2014": "02.167.09.19",
     "name2024": "Oulad Amghar",
     "name2014": "Oulad Amghar",
+    "nameAr2024": "أولاد أمغار",
+    "nameAr2014": "اولاد امغار",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 5755,
       "population2014": 6010,
       "populationRatio": 0.9576
@@ -517,11 +581,13 @@
     "code2014": "02.167.09.25",
     "name2024": "Temsamane",
     "name2014": "Temsamane",
+    "nameAr2024": "تمسمان",
+    "nameAr2014": "تمسمان",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 12,
       "population2024": 12198,
       "population2014": 13920,
       "populationRatio": 0.8763
@@ -533,11 +599,13 @@
     "code2014": "02.167.09.27",
     "name2024": "Trougout",
     "name2014": "Trougout",
+    "nameAr2024": "اتروكوت",
+    "nameAr2014": "اتروكوت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 11348,
       "population2014": 11458,
       "populationRatio": 0.9904
@@ -549,11 +617,13 @@
     "code2014": "02.167.09.01",
     "name2024": "Azlaf",
     "name2014": "Azlaf",
+    "nameAr2024": "ازلاف",
+    "nameAr2014": "ازلاف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 16,
       "population2024": 4132,
       "population2014": 4919,
       "populationRatio": 0.84
@@ -565,11 +635,13 @@
     "code2014": "02.167.09.09",
     "name2024": "Iferni",
     "name2014": "Iferni",
+    "nameAr2024": "افرني",
+    "nameAr2014": "افرني",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 17,
       "population2024": 4873,
       "population2014": 6365,
       "populationRatio": 0.7656
@@ -581,11 +653,13 @@
     "code2014": "02.167.09.15",
     "name2024": "M'hajer",
     "name2014": "M'Hajer",
+    "nameAr2024": "امهاجر",
+    "nameAr2014": "امهاجر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 18,
       "population2024": 8008,
       "population2014": 9386,
       "populationRatio": 0.8532
@@ -597,11 +671,13 @@
     "code2014": "02.167.09.17",
     "name2024": "Ouardana",
     "name2014": "Ouardana",
+    "nameAr2024": "وردانة",
+    "nameAr2014": "وردانة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 19,
       "population2024": 7032,
       "population2014": 7120,
       "populationRatio": 0.9876
@@ -613,11 +689,13 @@
     "code2014": "02.167.09.21",
     "name2024": "Tafersit",
     "name2014": "Tafersit",
+    "nameAr2024": "تفرسيت",
+    "nameAr2014": "تفرسيت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 14,
       "population2024": 8202,
       "population2014": 9133,
       "populationRatio": 0.8981
@@ -629,11 +707,13 @@
     "code2014": "02.167.09.23",
     "name2024": "Talilit",
     "name2014": "Talilit",
+    "nameAr2024": "تليليت",
+    "nameAr2014": "تليليت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 20,
       "population2024": 3881,
       "population2014": 5208,
       "populationRatio": 0.7452
@@ -645,11 +725,13 @@
     "code2014": "02.167.09.29",
     "name2024": "Tsaft",
     "name2014": "Tsaft",
+    "nameAr2024": "اتسافت",
+    "nameAr2014": "اتصافت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 15,
       "population2024": 8401,
       "population2014": 9578,
       "populationRatio": 0.8771
@@ -661,11 +743,13 @@
     "code2014": "02.167.03.03",
     "name2024": "Ait Mait",
     "name2014": "Ait Mait",
+    "nameAr2024": "آيت مايت",
+    "nameAr2014": "أيت مايت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 4721,
       "population2014": 5613,
       "populationRatio": 0.8411
@@ -677,6 +761,8 @@
     "code2014": "02.167.03.05",
     "name2024": "Amejjaou",
     "name2014": "Amejjaou",
+    "nameAr2024": "امجاو",
+    "nameAr2014": "امجاو",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
@@ -693,11 +779,13 @@
     "code2014": "02.167.03.07",
     "name2024": "Dar El Kebdani",
     "name2014": "Dar El Kebdani",
+    "nameAr2024": "دار الكبداني",
+    "nameAr2014": "دار الكبداني",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 8518,
       "population2014": 9911,
       "populationRatio": 0.8594
@@ -709,11 +797,13 @@
     "code2014": "02.167.03.13",
     "name2024": "Tazaghine",
     "name2014": "Tazaghine",
+    "nameAr2024": "تزاغين",
+    "nameAr2014": "تزاغين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 3456,
       "population2014": 4323,
       "populationRatio": 0.7994
@@ -725,11 +815,13 @@
     "code2014": "02.167.03.01",
     "name2024": "Ain Zohra",
     "name2014": "Ain Zohra",
+    "nameAr2024": "عين الزهرة",
+    "nameAr2014": "عين الزهرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 8705,
       "population2014": 10601,
       "populationRatio": 0.8211
@@ -741,11 +833,13 @@
     "code2014": "02.167.03.09",
     "name2024": "Mtalssa",
     "name2014": "Mtalssa",
+    "nameAr2024": "امطالسة",
+    "nameAr2014": "امطالسة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 16778,
       "population2014": 16787,
       "populationRatio": 0.9995
@@ -757,11 +851,13 @@
     "code2014": "02.167.03.11",
     "name2024": "Oulad Boubker",
     "name2014": "Oulad Boubker",
+    "nameAr2024": "أولاد بوبكر",
+    "nameAr2014": "أولاد بوبكر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02167",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 3703,
       "population2014": 8054,
       "populationRatio": 0.4598
@@ -773,6 +869,8 @@
     "code2014": "02.251.03.07",
     "name2024": "Bouchaouene",
     "name2014": "Bouchaouene",
+    "nameAr2024": "بوشاون",
+    "nameAr2014": "بوشاوون",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02251",
@@ -789,11 +887,13 @@
     "code2014": "02.251.03.09",
     "name2024": "Boumerieme",
     "name2014": "Boumerieme",
+    "nameAr2024": "بومريم",
+    "nameAr2014": "بو مريم",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02251",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 8067,
       "population2014": 8521,
       "populationRatio": 0.9467
@@ -805,11 +905,13 @@
     "code2014": "02.251.03.11",
     "name2024": "Talsint",
     "name2014": "Talsint",
+    "nameAr2024": "تالسينت",
+    "nameAr2014": "تالسينت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02251",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 18806,
       "population2014": 16166,
       "populationRatio": 1.1633
@@ -821,11 +923,13 @@
     "code2014": "02.275.03.03",
     "name2024": "Gafait",
     "name2014": "Gafait",
+    "nameAr2024": "كفايت",
+    "nameAr2014": "كفايت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 2604,
       "population2014": 2656,
       "populationRatio": 0.9804
@@ -837,11 +941,13 @@
     "code2014": "02.275.03.07",
     "name2024": "Laaouinate",
     "name2014": "Laaouinate",
+    "nameAr2024": "لعوينات",
+    "nameAr2014": "لعوينات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 5467,
       "population2014": 3867,
       "populationRatio": 1.4138
@@ -853,6 +959,8 @@
     "code2014": "02.275.03.09",
     "name2024": "Lebkhata",
     "name2014": "Lebkhata",
+    "nameAr2024": "لبخاتة",
+    "nameAr2014": "لبخاتة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
@@ -869,11 +977,13 @@
     "code2014": "02.275.03.05",
     "name2024": "Guenfouda",
     "name2014": "Guenfouda",
+    "nameAr2024": "كنفودة",
+    "nameAr2014": "كنفودة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 5712,
       "population2014": 5591,
       "populationRatio": 1.0216
@@ -885,11 +995,13 @@
     "code2014": "02.275.03.13",
     "name2024": "Ras Asfour",
     "name2014": "Ras Asfour",
+    "nameAr2024": "راس عصفور",
+    "nameAr2014": "رأس عصفور",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 1275,
       "population2014": 1274,
       "populationRatio": 1.0008
@@ -901,11 +1013,13 @@
     "code2014": "02.275.03.15",
     "name2024": "Sidi Boubker",
     "name2014": "Sidi Boubker",
+    "nameAr2024": "سيدي بوبكر",
+    "nameAr2014": "سيدي بوبكر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 2354,
       "population2014": 2638,
       "populationRatio": 0.8923
@@ -917,11 +1031,13 @@
     "code2014": "02.275.03.21",
     "name2024": "Tiouli",
     "name2014": "Tiouli",
+    "nameAr2024": "تيولي",
+    "nameAr2014": "تيولي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "02275",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 4305,
       "population2014": 5199,
       "populationRatio": 0.828
@@ -933,11 +1049,13 @@
     "code2014": "03.131.03.01",
     "name2024": "Ait Bazza",
     "name2014": "Ait Bazza",
+    "nameAr2024": "آيت بازة",
+    "nameAr2014": "أيت بازة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03131",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 2397,
       "population2014": 2955,
       "populationRatio": 0.8112
@@ -949,11 +1067,13 @@
     "code2014": "03.131.03.03",
     "name2024": "Ait El Mane",
     "name2014": "Ait El Mane",
+    "nameAr2024": "آيت المان",
+    "nameAr2014": "أيت المان",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03131",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 1694,
       "population2014": 1927,
       "populationRatio": 0.8791
@@ -965,11 +1085,13 @@
     "code2014": "03.131.03.05",
     "name2024": "Almis Marmoucha",
     "name2014": "Almis Marmoucha",
+    "nameAr2024": "الميس مرموشة",
+    "nameAr2014": "الميس مرموشة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03131",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 2292,
       "population2014": 2461,
       "populationRatio": 0.9313
@@ -981,6 +1103,8 @@
     "code2014": "03.131.03.07",
     "name2024": "El Mers",
     "name2014": "El Mers",
+    "nameAr2024": "المرس",
+    "nameAr2014": "المرس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03131",
@@ -997,11 +1121,13 @@
     "code2014": "03.131.03.13",
     "name2024": "Serghina",
     "name2014": "Serghina",
+    "nameAr2024": "سرغينة",
+    "nameAr2014": "سرغينة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03131",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 3567,
       "population2014": 3746,
       "populationRatio": 0.9522
@@ -1013,11 +1139,13 @@
     "code2014": "03.131.03.17",
     "name2024": "Talzemt",
     "name2014": "Talzemt",
+    "nameAr2024": "تالزمت",
+    "nameAr2014": "تالزمت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03131",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 2701,
       "population2014": 3160,
       "populationRatio": 0.8547
@@ -1029,6 +1157,8 @@
     "code2014": "03.231.81.01",
     "name2024": "Oulad Tayeb",
     "name2014": "Oulad Tayeb",
+    "nameAr2024": "أولاد الطيب",
+    "nameAr2014": "أولاد الطيب",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03231",
@@ -1045,6 +1175,8 @@
     "code2014": "03.271.81.01",
     "name2024": "Dayat-Aoua",
     "name2014": "Dayat Aoua",
+    "nameAr2024": "ضاية عوا",
+    "nameAr2014": "ضاية عوا",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03271",
@@ -1061,11 +1193,13 @@
     "code2014": "03.271.81.03",
     "name2024": "Tizguite",
     "name2014": "Tizguite",
+    "nameAr2024": "تزكيت",
+    "nameAr2014": "تيزكيت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03271",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 12204,
       "population2014": 10693,
       "populationRatio": 1.1413
@@ -1077,6 +1211,8 @@
     "code2014": "03.591.03.01",
     "name2024": "Ain Chkef",
     "name2014": "Ain Chkef",
+    "nameAr2024": "عين الشقف",
+    "nameAr2014": "عين الشقف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "03591",
@@ -1093,6 +1229,8 @@
     "code2014": "04.281.03.13",
     "name2024": "Sidi Taibi",
     "name2014": "Sidi Taibi",
+    "nameAr2024": "سيدي الطيبي",
+    "nameAr2014": "سيدي الطيبي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "04281",
@@ -1109,6 +1247,8 @@
     "code2014": "04.441.03.01",
     "name2024": "Shoul",
     "name2014": "Shoul",
+    "nameAr2024": "السهول",
+    "nameAr2014": "السهول",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "04441",
@@ -1125,11 +1265,13 @@
     "code2014": "04.441.03.05",
     "name2024": "Ameur",
     "name2014": "Ameur",
+    "nameAr2024": "عامر",
+    "nameAr2014": "عامر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "04441",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 75942,
       "population2014": 46590,
       "populationRatio": 1.63
@@ -1141,6 +1283,8 @@
     "code2014": "06.111.03.03",
     "name2024": "Ain Tizgha",
     "name2014": "Ain Tizgha",
+    "nameAr2024": "عين تيزغة",
+    "nameAr2014": "عين تيزغة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06111",
@@ -1157,11 +1301,13 @@
     "code2014": "06.117.05.25",
     "name2024": "Sahel Oulad H'riz",
     "name2014": "Sahel Oulad H'Riz",
+    "nameAr2024": "الساحل أولاد احريز",
+    "nameAr2014": "الساحل اولاد احريز",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06117",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 43776,
       "population2014": 38156,
       "populationRatio": 1.1473
@@ -1173,6 +1319,8 @@
     "code2014": "06.117.05.33",
     "name2024": "Soualem Trifiya",
     "name2014": "Soualem Trifiya",
+    "nameAr2024": "السوالم الطريفية",
+    "nameAr2014": "السوالم-الطريفية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06117",
@@ -1189,6 +1337,8 @@
     "code2014": "06.355.03.01",
     "name2024": "Almajjatia Oulad Taleb",
     "name2014": "Al Majjatia Oulad Taleb",
+    "nameAr2024": "المجاطية أولاد الطالب",
+    "nameAr2014": "المجاطية أولاد الطالب",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06355",
@@ -1205,11 +1355,13 @@
     "code2014": "06.355.03.05",
     "name2024": "Sidi Hajjaj Oued Hassar",
     "name2014": "Sidi Hajjaj Oued Hassar",
+    "nameAr2024": "سيدي حجاج واد حصار",
+    "nameAr2014": "سيدي حجاج واد حصار",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06355",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 76362,
       "population2014": 20349,
       "populationRatio": 3.7526
@@ -1221,11 +1373,13 @@
     "code2014": "06.371.03.01",
     "name2024": "Bni Yakhlef",
     "name2014": "Bni Yakhlef",
+    "nameAr2024": "بني يخلف",
+    "nameAr2014": "بني يخلف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06371",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 117653,
       "population2014": 48338,
       "populationRatio": 2.434
@@ -1237,6 +1391,8 @@
     "code2014": "06.371.03.03",
     "name2024": "Ech-challalate",
     "name2014": "Ech-challalate",
+    "nameAr2024": "الشلالات",
+    "nameAr2014": "الشلالات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06371",
@@ -1253,6 +1409,8 @@
     "code2014": "06.385.03.05",
     "name2024": "Ouled Salah",
     "name2014": "Oulad Salah",
+    "nameAr2024": "أولاد صالح",
+    "nameAr2014": "أولاد صالح",
     "method": "sole_remaining_in_province",
     "evidence": {
       "province": "06385",
@@ -1269,11 +1427,13 @@
     "code2014": "06.385.03.03",
     "name2024": "Oulad Azzouz",
     "name2014": "Oulad Azzouz",
+    "nameAr2024": "أولاد عزوز",
+    "nameAr2014": "اولاد عزوز",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06385",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 81048,
       "population2014": 40372,
       "populationRatio": 2.0075
@@ -1285,11 +1445,13 @@
     "code2014": "06.461.03.02",
     "name2024": "Ain Dorbane-Lahlaf",
     "name2014": "Ain Dorbane-Lahlaf",
+    "nameAr2024": "عين الضربان-لحلاف",
+    "nameAr2014": "عين الضربان-لحلاف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 26,
       "population2024": 9151,
       "population2014": 8120,
       "populationRatio": 1.127
@@ -1301,11 +1463,13 @@
     "code2014": "06.461.03.03",
     "name2024": "Bouguargouh",
     "name2014": "Bouguargouh",
+    "nameAr2024": "بوكركوح",
+    "nameAr2014": "بوكركوح",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 25,
       "population2024": 9718,
       "population2014": 9539,
       "populationRatio": 1.0188
@@ -1317,11 +1481,13 @@
     "code2014": "06.461.03.07",
     "name2024": "Lakhzazra",
     "name2014": "Lakhzazra",
+    "nameAr2024": "لخزازرة",
+    "nameAr2014": "لخزازرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 29,
       "population2024": 7455,
       "population2014": 8582,
       "populationRatio": 0.8687
@@ -1333,11 +1499,13 @@
     "code2014": "06.461.03.13",
     "name2024": "M'garto",
     "name2014": "M'Garto",
+    "nameAr2024": "مكارطو",
+    "nameAr2014": "امكارطو",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 28,
       "population2024": 7508,
       "population2014": 8514,
       "populationRatio": 0.8818
@@ -1349,11 +1517,13 @@
     "code2014": "06.461.03.15",
     "name2024": "N'khila",
     "name2014": "N'Khila",
+    "nameAr2024": "انخيلة",
+    "nameAr2014": "انخيلة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 30,
       "population2024": 12787,
       "population2014": 12306,
       "populationRatio": 1.0391
@@ -1365,6 +1535,8 @@
     "code2014": "06.461.03.23",
     "name2024": "Ouled M'hamed",
     "name2014": "Oulad M'Hamed",
+    "nameAr2024": "أولاد امحمد",
+    "nameAr2014": "اولاد امحمد",
     "method": "sole_remaining_in_province",
     "evidence": {
       "province": "06461",
@@ -1381,11 +1553,13 @@
     "code2014": "06.461.03.29",
     "name2024": "Sidi Abdelkrim",
     "name2014": "Sidi Abdelkrim",
+    "nameAr2024": "سيدي عبد الكريم",
+    "nameAr2014": "سيدي عبد الكريم",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 24,
       "population2024": 13759,
       "population2014": 14037,
       "populationRatio": 0.9802
@@ -1397,11 +1571,13 @@
     "code2014": "06.461.03.31",
     "name2024": "Sidi Dahbi",
     "name2014": "Sidi Dahbi",
+    "nameAr2024": "سيدي الذهبي",
+    "nameAr2014": "سيدي الذهبي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 27,
       "population2024": 8972,
       "population2014": 8703,
       "populationRatio": 1.0309
@@ -1413,11 +1589,13 @@
     "code2014": "06.461.03.09",
     "name2024": "Mniaa",
     "name2014": "Mniaa",
+    "nameAr2024": "منيع",
+    "nameAr2014": "امنيع",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 23,
       "population2024": 11088,
       "population2014": 11789,
       "populationRatio": 0.9405
@@ -1429,11 +1607,13 @@
     "code2014": "06.461.03.11",
     "name2024": "Mrizigue",
     "name2014": "Mrizigue",
+    "nameAr2024": "مريزيك",
+    "nameAr2014": "امريزيك",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 20,
       "population2024": 7926,
       "population2014": 8376,
       "populationRatio": 0.9463
@@ -1445,11 +1625,13 @@
     "code2014": "06.461.03.17",
     "name2024": "Oued Naanaa",
     "name2014": "Oued Naanaa",
+    "nameAr2024": "واد النعناع",
+    "nameAr2014": "واد النعناع",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 17,
       "population2024": 7075,
       "population2014": 6991,
       "populationRatio": 1.012
@@ -1461,11 +1643,13 @@
     "code2014": "06.461.03.19",
     "name2024": "Oulad Chbana",
     "name2014": "Oulad Chbana",
+    "nameAr2024": "أولاد شبانة",
+    "nameAr2014": "اولاد شبانة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 18,
       "population2024": 9513,
       "population2014": 8081,
       "populationRatio": 1.1772
@@ -1477,11 +1661,13 @@
     "code2014": "06.461.03.21",
     "name2024": "Oulad Fares",
     "name2014": "Oulad Fares",
+    "nameAr2024": "أولاد فارس",
+    "nameAr2014": "اولاد فارس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 21,
       "population2024": 12096,
       "population2014": 12341,
       "populationRatio": 0.9801
@@ -1493,11 +1679,13 @@
     "code2014": "06.461.03.25",
     "name2024": "Ras El Ain Chaouia",
     "name2014": "Ras El Ain Chaouia",
+    "nameAr2024": "رأس العين الشاوية",
+    "nameAr2014": "رأس العين الشاوية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 16,
       "population2024": 14244,
       "population2014": 14747,
       "populationRatio": 0.9659
@@ -1509,11 +1697,13 @@
     "code2014": "06.461.03.27",
     "name2024": "Sgamna",
     "name2014": "Sgamna",
+    "nameAr2024": "السكامنة",
+    "nameAr2014": "السكامنة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 19,
       "population2024": 9427,
       "population2014": 10245,
       "populationRatio": 0.9202
@@ -1525,11 +1715,13 @@
     "code2014": "06.461.03.33",
     "name2024": "Sidi Hajjaj",
     "name2014": "Sidi Hajjaj",
+    "nameAr2024": "سيدي حجاج",
+    "nameAr2014": "سيدي حجاج",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 22,
       "population2024": 22360,
       "population2014": 20732,
       "populationRatio": 1.0785
@@ -1541,11 +1733,13 @@
     "code2014": "06.461.09.05",
     "name2024": "Gdana",
     "name2014": "Gdana",
+    "nameAr2024": "كدانة",
+    "nameAr2014": "كدانة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 8462,
       "population2014": 9084,
       "populationRatio": 0.9315
@@ -1557,11 +1751,13 @@
     "code2014": "06.461.09.09",
     "name2024": "Khemisset Chaouia",
     "name2014": "Khemisset Chaouia",
+    "nameAr2024": "اخميسات الشاوية",
+    "nameAr2014": "اخميسات الشاوية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 13,
       "population2024": 5104,
       "population2014": 5527,
       "populationRatio": 0.9235
@@ -1573,11 +1769,13 @@
     "code2014": "06.461.09.11",
     "name2024": "Lahouaza",
     "name2014": "Lahouaza",
+    "nameAr2024": "لحوازة",
+    "nameAr2014": "لحوازة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 7018,
       "population2014": 7394,
       "populationRatio": 0.9491
@@ -1589,11 +1787,13 @@
     "code2014": "06.461.09.14",
     "name2024": "Mzamza Janoubia",
     "name2014": "Mzamza Janoubia",
+    "nameAr2024": "مزامزة الجنوبية",
+    "nameAr2014": "امزامزة الجنوبية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 14,
       "population2024": 22419,
       "population2014": 20802,
       "populationRatio": 1.0777
@@ -1605,11 +1805,13 @@
     "code2014": "06.461.09.15",
     "name2024": "Mzoura",
     "name2014": "Mzoura",
+    "nameAr2024": "امزورة",
+    "nameAr2014": "امزورة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 8426,
       "population2014": 9525,
       "populationRatio": 0.8846
@@ -1621,11 +1823,13 @@
     "code2014": "06.461.09.19",
     "name2024": "Oulad Said",
     "name2014": "Oulad Said",
+    "nameAr2024": "أولاد سعيد",
+    "nameAr2014": "اولاد سعيد",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 12,
       "population2024": 8745,
       "population2014": 9271,
       "populationRatio": 0.9433
@@ -1637,11 +1841,13 @@
     "code2014": "06.461.09.25",
     "name2024": "Sidi El Aidi",
     "name2014": "Sidi El Aidi",
+    "nameAr2024": "سيدي العايدي",
+    "nameAr2014": "سيدي العايدي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 15,
       "population2024": 14165,
       "population2014": 13839,
       "populationRatio": 1.0236
@@ -1653,11 +1859,13 @@
     "code2014": "06.461.09.03",
     "name2024": "Bni Yagrine",
     "name2014": "Bni Yagrine",
+    "nameAr2024": "بني يكرين",
+    "nameAr2014": "بني ياكرين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 13099,
       "population2014": 13031,
       "populationRatio": 1.0052
@@ -1669,11 +1877,13 @@
     "code2014": "06.461.09.07",
     "name2024": "Guisser",
     "name2014": "Guisser",
+    "nameAr2024": "كيسر",
+    "nameAr2014": "كيسر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 12189,
       "population2014": 12289,
       "populationRatio": 0.9919
@@ -1685,11 +1895,13 @@
     "code2014": "06.461.09.13",
     "name2024": "Machraa Ben Abbou",
     "name2014": "Machraa Ben Abbou",
+    "nameAr2024": "مشرع بن عبو",
+    "nameAr2014": "مشرع بن عبو",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 9331,
       "population2014": 9355,
       "populationRatio": 0.9974
@@ -1701,11 +1913,13 @@
     "code2014": "06.461.09.21",
     "name2024": "Oulad Sghir",
     "name2014": "Oulad Sghir",
+    "nameAr2024": "أولاد الصغير",
+    "nameAr2014": "اولاد الصغير",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 13153,
       "population2014": 13866,
       "populationRatio": 0.9486
@@ -1717,11 +1931,13 @@
     "code2014": "06.461.09.23",
     "name2024": "Rima",
     "name2014": "Rima",
+    "nameAr2024": "ريما",
+    "nameAr2014": "ريمة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 8203,
       "population2014": 8949,
       "populationRatio": 0.9166
@@ -1733,11 +1949,13 @@
     "code2014": "06.461.09.27",
     "name2024": "Sidi Mohammed Ben Rahal",
     "name2014": "Sidi Mohammed Ben Rahal",
+    "nameAr2024": "سيدي محمد بن رحال",
+    "nameAr2014": "سيدي محمد بن رحال",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 10511,
       "population2014": 10410,
       "populationRatio": 1.0097
@@ -1749,11 +1967,13 @@
     "code2014": "06.461.09.31",
     "name2024": "Toualet",
     "name2014": "Toualet",
+    "nameAr2024": "الثوالث",
+    "nameAr2014": "ثوالت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06461",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 11822,
       "population2014": 11976,
       "populationRatio": 0.9871
@@ -1765,11 +1985,13 @@
     "code2014": "06.467.11.05",
     "name2024": "Loualidia",
     "name2014": "Loualidia",
+    "nameAr2024": "الوليدية",
+    "nameAr2014": "الوليدية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 13,
       "population2024": 21742,
       "population2014": 18616,
       "populationRatio": 1.1679
@@ -1781,11 +2003,13 @@
     "code2014": "06.467.07.01",
     "name2024": "Bni Hilal",
     "name2014": "Bni Hilal",
+    "nameAr2024": "بني هلال",
+    "nameAr2014": "بني هلال",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 16767,
       "population2014": 17843,
       "populationRatio": 0.9397
@@ -1797,11 +2021,13 @@
     "code2014": "06.467.07.03",
     "name2024": "Bni Tsiriss",
     "name2014": "Bni Tsiriss",
+    "nameAr2024": "بني تسيريس",
+    "nameAr2014": "بني تسيريس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 12794,
       "population2014": 14067,
       "populationRatio": 0.9095
@@ -1813,11 +2039,13 @@
     "code2014": "06.467.07.09",
     "name2024": "Khmis Ksiba",
     "name2014": "Khmis Ksiba",
+    "nameAr2024": "خميس القصيبة",
+    "nameAr2014": "خميس قصيبة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 5249,
       "population2014": 5665,
       "populationRatio": 0.9266
@@ -1829,11 +2057,13 @@
     "code2014": "06.467.07.17",
     "name2024": "Laamria",
     "name2014": "Laamria",
+    "nameAr2024": "لعامرية",
+    "nameAr2014": "العامرية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 12,
       "population2024": 9957,
       "population2014": 10520,
       "populationRatio": 0.9465
@@ -1845,11 +2075,13 @@
     "code2014": "06.467.07.19",
     "name2024": "Laaounate",
     "name2014": "Laaounate",
+    "nameAr2024": "لعونات",
+    "nameAr2014": "العونات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 17486,
       "population2014": 17850,
       "populationRatio": 0.9796
@@ -1861,11 +2093,13 @@
     "code2014": "06.467.07.25",
     "name2024": "Metrane",
     "name2014": "Metrane",
+    "nameAr2024": "مطران",
+    "nameAr2014": "مطران",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 9201,
       "population2014": 10580,
       "populationRatio": 0.8697
@@ -1877,11 +2111,13 @@
     "code2014": "06.467.07.31",
     "name2024": "Oulad Boussaken",
     "name2014": "Oulad Boussaken",
+    "nameAr2024": "أولاد بوساكن",
+    "nameAr2014": "أولاد بوساكن",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 5962,
       "population2014": 7390,
       "populationRatio": 0.8068
@@ -1893,11 +2129,13 @@
     "code2014": "06.467.07.11",
     "name2024": "Koudiat Bni Dghough",
     "name2014": "Koudiat Bni Dghough",
+    "nameAr2024": "كدية بني دغوغ",
+    "nameAr2014": "كدية بني دغوغ",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 15550,
       "population2014": 15181,
       "populationRatio": 1.0243
@@ -1909,11 +2147,13 @@
     "code2014": "06.467.07.13",
     "name2024": "Kridid",
     "name2014": "Kridid",
+    "nameAr2024": "كرديد",
+    "nameAr2014": "كرديد",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 14259,
       "population2014": 14351,
       "populationRatio": 0.9936
@@ -1925,6 +2165,8 @@
     "code2014": "06.467.07.15",
     "name2024": "Laagagcha",
     "name2014": "Laagagcha",
+    "nameAr2024": "لعكاكشة",
+    "nameAr2014": "لعكاكشة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
@@ -1941,11 +2183,13 @@
     "code2014": "06.467.07.29",
     "name2024": "Oulad Amrane",
     "name2014": "Oulad Amrane",
+    "nameAr2024": "أولاد عمران",
+    "nameAr2014": "أولاد عمران",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 12059,
       "population2014": 12252,
       "populationRatio": 0.9842
@@ -1957,11 +2201,13 @@
     "code2014": "06.467.07.35",
     "name2024": "Tamda",
     "name2014": "Tamda",
+    "nameAr2024": "تامدة",
+    "nameAr2014": "تامدة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "06467",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 9043,
       "population2014": 9750,
       "populationRatio": 0.9275
@@ -1973,11 +2219,13 @@
     "code2014": "07.191.05.01",
     "name2024": "Assahrij",
     "name2014": "Assahrij",
+    "nameAr2024": "الصهريج",
+    "nameAr2014": "الصهريج",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 27,
       "population2024": 16313,
       "population2014": 15385,
       "populationRatio": 1.0603
@@ -1989,11 +2237,13 @@
     "code2014": "07.191.05.17",
     "name2024": "Louad Lakhdar",
     "name2014": "Louad Lakhdar",
+    "nameAr2024": "الواد لخضر",
+    "nameAr2014": "الواد لخضر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 24,
       "population2024": 9125,
       "population2014": 9303,
       "populationRatio": 0.9809
@@ -2005,11 +2255,13 @@
     "code2014": "07.191.05.19",
     "name2024": "M'zem Sanhaja",
     "name2014": "M'Zem Sanhaja",
+    "nameAr2024": "مزم صنهاجة",
+    "nameAr2014": "مزم صنهاجة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 23,
       "population2024": 10946,
       "population2014": 10310,
       "populationRatio": 1.0617
@@ -2021,11 +2273,13 @@
     "code2014": "07.191.05.25",
     "name2024": "Oulad Khallouf",
     "name2014": "Oulad Khallouf",
+    "nameAr2024": "أولاد خلوف",
+    "nameAr2014": "أولاد خلوف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 25,
       "population2024": 9172,
       "population2014": 8605,
       "populationRatio": 1.0659
@@ -2037,11 +2291,13 @@
     "code2014": "07.191.05.27",
     "name2024": "Sidi Aissa Ben Slimane",
     "name2014": "Sidi Aissa Ben Slimane",
+    "nameAr2024": "سيدي عيسى بن سليمان",
+    "nameAr2014": "سيدي عيسى بن سليمان",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 22,
       "population2024": 19164,
       "population2014": 19977,
       "populationRatio": 0.9593
@@ -2053,11 +2309,13 @@
     "code2014": "07.191.05.29",
     "name2024": "Sour El Aaz",
     "name2014": "Sour El Aaz",
+    "nameAr2024": "سور العز",
+    "nameAr2014": "سور العز",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 26,
       "population2024": 3755,
       "population2014": 3850,
       "populationRatio": 0.9753
@@ -2069,11 +2327,13 @@
     "code2014": "07.191.03.07",
     "name2024": "El Marbouh",
     "name2014": "El Marbouh",
+    "nameAr2024": "المربوح",
+    "nameAr2014": "المربوح",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 17,
       "population2024": 9468,
       "population2014": 8774,
       "populationRatio": 1.0791
@@ -2085,11 +2345,13 @@
     "code2014": "07.191.03.11",
     "name2024": "Hiadna",
     "name2014": "Hiadna",
+    "nameAr2024": "الهيادنة",
+    "nameAr2014": "الهيادنة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 20,
       "population2024": 12870,
       "population2014": 11387,
       "populationRatio": 1.1302
@@ -2101,11 +2363,13 @@
     "code2014": "07.191.03.13",
     "name2024": "Lounasda",
     "name2014": "Lounasda",
+    "nameAr2024": "لوناسدة",
+    "nameAr2014": "لوناسدة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 12,
       "population2024": 10866,
       "population2014": 10639,
       "populationRatio": 1.0213
@@ -2117,11 +2381,13 @@
     "code2014": "07.191.03.15",
     "name2024": "Mayate",
     "name2014": "Mayate",
+    "nameAr2024": "ميات",
+    "nameAr2014": "ميات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 16,
       "population2024": 11443,
       "population2014": 12101,
       "populationRatio": 0.9456
@@ -2133,11 +2399,13 @@
     "code2014": "07.191.03.21",
     "name2024": "Oulad Cherki",
     "name2014": "Oulad Cherki",
+    "nameAr2024": "أولاد الشرقي",
+    "nameAr2014": "أولاد الشرقي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 18,
       "population2024": 7185,
       "population2014": 7399,
       "populationRatio": 0.9711
@@ -2149,11 +2417,13 @@
     "code2014": "07.191.03.23",
     "name2024": "Oulad El Garne",
     "name2014": "Oulad El Garne",
+    "nameAr2024": "أولاد الكرن",
+    "nameAr2014": "أولاد الكرن",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 13,
       "population2024": 7728,
       "population2014": 8150,
       "populationRatio": 0.9482
@@ -2165,11 +2435,13 @@
     "code2014": "07.191.03.29",
     "name2024": "Oulad Sbih",
     "name2014": "Oulad Sbih",
+    "nameAr2024": "أولاد صبيح",
+    "nameAr2014": "أولاد اصبيح",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 21,
       "population2024": 6513,
       "population2014": 6616,
       "populationRatio": 0.9844
@@ -2181,11 +2453,13 @@
     "code2014": "07.191.03.31",
     "name2024": "Oulad Yaacoub",
     "name2014": "Oulad Yaacoub",
+    "nameAr2024": "أولاد يعكوب",
+    "nameAr2014": "أولاد يعقوب",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 14,
       "population2024": 6791,
       "population2014": 7143,
       "populationRatio": 0.9507
@@ -2197,11 +2471,13 @@
     "code2014": "07.191.03.33",
     "name2024": "Oulad Zarrad",
     "name2014": "Oulad Zarrad",
+    "nameAr2024": "أولاد زراد",
+    "nameAr2014": "أولاد زراد",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 19,
       "population2024": 13243,
       "population2014": 12233,
       "populationRatio": 1.0826
@@ -2213,11 +2489,13 @@
     "code2014": "07.191.03.41",
     "name2024": "Znada",
     "name2014": "Znada",
+    "nameAr2024": "ازنادة",
+    "nameAr2014": "ازنادة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 15,
       "population2024": 7230,
       "population2014": 6712,
       "populationRatio": 1.0772
@@ -2229,6 +2507,8 @@
     "code2014": "07.191.03.01",
     "name2024": "Chtaiba",
     "name2014": "Chtaiba",
+    "nameAr2024": "الشطيبة",
+    "nameAr2014": "الشطيبة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
@@ -2245,11 +2525,13 @@
     "code2014": "07.191.03.03",
     "name2024": "Eddachra",
     "name2014": "Eddachra",
+    "nameAr2024": "الدشرة",
+    "nameAr2014": "الدشرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 6939,
       "population2014": 7522,
       "populationRatio": 0.9225
@@ -2261,11 +2543,13 @@
     "code2014": "07.191.03.05",
     "name2024": "El Aamria",
     "name2014": "El Aamria",
+    "nameAr2024": "العامرية",
+    "nameAr2014": "العامرية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 8625,
       "population2014": 9454,
       "populationRatio": 0.9123
@@ -2277,11 +2561,13 @@
     "code2014": "07.191.03.09",
     "name2024": "Errafiaya",
     "name2014": "Errafiaya",
+    "nameAr2024": "الرافعية",
+    "nameAr2014": "الرافعية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 4903,
       "population2014": 5502,
       "populationRatio": 0.8911
@@ -2293,11 +2579,13 @@
     "code2014": "07.191.03.17",
     "name2024": "Oulad Aamer",
     "name2014": "Oulad Aamer",
+    "nameAr2024": "أولاد عمرو",
+    "nameAr2014": "أولاد عامر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 6996,
       "population2014": 7015,
       "populationRatio": 0.9973
@@ -2309,11 +2597,13 @@
     "code2014": "07.191.03.19",
     "name2024": "Oulad Bouali Loued",
     "name2014": "Oulad Bouali Loued",
+    "nameAr2024": "أولاد بوعلي الواد",
+    "nameAr2014": "أولاد بوعلي الواد",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 6302,
       "population2014": 6822,
       "populationRatio": 0.9238
@@ -2325,11 +2615,13 @@
     "code2014": "07.191.03.25",
     "name2024": "Oulad Massaoud",
     "name2014": "Oulad Massaoud",
+    "nameAr2024": "أولاد مسعود",
+    "nameAr2014": "أولاد مسعود",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 4188,
       "population2014": 5011,
       "populationRatio": 0.8358
@@ -2341,11 +2633,13 @@
     "code2014": "07.191.03.27",
     "name2024": "Oulad Msabbel",
     "name2014": "Oulad Msabbel",
+    "nameAr2024": "أولاد امسبل",
+    "nameAr2014": "أولاد امسبل",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 6216,
       "population2014": 6254,
       "populationRatio": 0.9939
@@ -2357,11 +2651,13 @@
     "code2014": "07.191.03.35",
     "name2024": "Sidi El Hattab",
     "name2014": "Sidi El Hattab",
+    "nameAr2024": "سيدي الحطاب",
+    "nameAr2014": "سيدي الحطاب",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 9638,
       "population2014": 9421,
       "populationRatio": 1.023
@@ -2373,11 +2669,13 @@
     "code2014": "07.191.03.37",
     "name2024": "Sidi Moussa",
     "name2014": "Sidi Moussa",
+    "nameAr2024": "سيدي موسى",
+    "nameAr2014": "سيدي موسى",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 8600,
       "population2014": 9704,
       "populationRatio": 0.8862
@@ -2389,11 +2687,13 @@
     "code2014": "07.191.03.39",
     "name2024": "Taouzint",
     "name2014": "Taouzint",
+    "nameAr2024": "توزينت",
+    "nameAr2014": "توزينت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07191",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 5217,
       "population2014": 5651,
       "populationRatio": 0.9232
@@ -2405,11 +2705,13 @@
     "code2014": "07.211.05.01",
     "name2024": "Adaghas",
     "name2014": "Adaghas",
+    "nameAr2024": "أدغاس",
+    "nameAr2014": "ادغاس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 1656,
       "population2014": 2825,
       "populationRatio": 0.5862
@@ -2421,11 +2723,13 @@
     "code2014": "07.211.05.03",
     "name2024": "Aglif",
     "name2014": "Aglif",
+    "nameAr2024": "اكليف",
+    "nameAr2014": "اكليف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 6499,
       "population2014": 8028,
       "populationRatio": 0.8095
@@ -2437,11 +2741,13 @@
     "code2014": "07.211.05.09",
     "name2024": "Assais",
     "name2014": "Assais",
+    "nameAr2024": "أسايس",
+    "nameAr2014": "اسايس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 4442,
       "population2014": 6915,
       "populationRatio": 0.6424
@@ -2453,6 +2759,8 @@
     "code2014": "07.211.05.11",
     "name2024": "Bizdad",
     "name2014": "Bizdad",
+    "nameAr2024": "بيزضاض",
+    "nameAr2014": "بيز ضاض",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
@@ -2469,11 +2777,13 @@
     "code2014": "07.211.05.13",
     "name2024": "Bouzemmour",
     "name2014": "Bouzemmour",
+    "nameAr2024": "بوزمور",
+    "nameAr2014": "بوزمور",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 3940,
       "population2014": 5874,
       "populationRatio": 0.6708
@@ -2485,11 +2795,13 @@
     "code2014": "07.211.05.15",
     "name2024": "Ezzaouite",
     "name2014": "Ezzaouite",
+    "nameAr2024": "الزاويت",
+    "nameAr2014": "الزاويت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 5818,
       "population2014": 6341,
       "populationRatio": 0.9175
@@ -2501,11 +2813,13 @@
     "code2014": "07.211.05.31",
     "name2024": "Sidi Ghaneme",
     "name2014": "Sidi Ghaneme",
+    "nameAr2024": "سيدي غانم",
+    "nameAr2014": "سيدي غانم",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 4161,
       "population2014": 4718,
       "populationRatio": 0.8819
@@ -2517,11 +2831,13 @@
     "code2014": "07.211.05.43",
     "name2024": "Tahelouante",
     "name2014": "Tahelouante",
+    "nameAr2024": "تهلوانت",
+    "nameAr2014": "تاهلوانت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 2910,
       "population2014": 3919,
       "populationRatio": 0.7425
@@ -2533,11 +2849,13 @@
     "code2014": "07.211.05.45",
     "name2024": "Takoucht",
     "name2014": "Takoucht",
+    "nameAr2024": "تاكوشت",
+    "nameAr2014": "تاكوشت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 3209,
       "population2014": 4312,
       "populationRatio": 0.7442
@@ -2549,11 +2867,13 @@
     "code2014": "07.211.03.01",
     "name2024": "Ait Said",
     "name2014": "Ait Said",
+    "nameAr2024": "آيت سعيد",
+    "nameAr2014": "أيت سعيد",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 6027,
       "population2014": 6819,
       "populationRatio": 0.8839
@@ -2565,11 +2885,13 @@
     "code2014": "07.211.03.07",
     "name2024": "Kechoula",
     "name2014": "Kechoula",
+    "nameAr2024": "كشولة",
+    "nameAr2014": "كشولة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 21,
       "population2024": 5934,
       "population2014": 6083,
       "populationRatio": 0.9755
@@ -2581,11 +2903,13 @@
     "code2014": "07.211.03.09",
     "name2024": "Korimate",
     "name2014": "Korimate",
+    "nameAr2024": "الكريمات",
+    "nameAr2014": "كريمات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 13,
       "population2024": 9526,
       "population2014": 9897,
       "populationRatio": 0.9625
@@ -2597,11 +2921,13 @@
     "code2014": "07.211.03.11",
     "name2024": "Lagdadra",
     "name2014": "Lagdadra",
+    "nameAr2024": "لكدادرة",
+    "nameAr2014": "لكدادرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 6699,
       "population2014": 6825,
       "populationRatio": 0.9815
@@ -2613,11 +2939,13 @@
     "code2014": "07.211.03.13",
     "name2024": "Lahsinate",
     "name2014": "Lahsinate",
+    "nameAr2024": "لحسينات",
+    "nameAr2014": "لحسينات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 12,
       "population2024": 4932,
       "population2014": 5315,
       "populationRatio": 0.9279
@@ -2629,11 +2957,13 @@
     "code2014": "07.211.03.15",
     "name2024": "Mejji",
     "name2014": "Mejji",
+    "nameAr2024": "مجي",
+    "nameAr2014": "مجي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 22,
       "population2024": 6479,
       "population2014": 6750,
       "populationRatio": 0.9599
@@ -2645,11 +2975,13 @@
     "code2014": "07.211.03.17",
     "name2024": "Meskala",
     "name2014": "Meskala",
+    "nameAr2024": "مسكالة",
+    "nameAr2014": "مسكالة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 15,
       "population2024": 4378,
       "population2014": 4330,
       "populationRatio": 1.0111
@@ -2661,11 +2993,13 @@
     "code2014": "07.211.03.19",
     "name2024": "Mouarid",
     "name2014": "Mouarid",
+    "nameAr2024": "المواريد",
+    "nameAr2014": "المواريد",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 14,
       "population2024": 5320,
       "population2014": 6161,
       "populationRatio": 0.8635
@@ -2677,11 +3011,13 @@
     "code2014": "07.211.03.23",
     "name2024": "Mzilate",
     "name2014": "Mzilate",
+    "nameAr2024": "المزيلات",
+    "nameAr2014": "امزيلات",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 20,
       "population2024": 3573,
       "population2014": 4209,
       "populationRatio": 0.8489
@@ -2693,11 +3029,13 @@
     "code2014": "07.211.03.27",
     "name2024": "M'ramer",
     "name2014": "M'Ramer",
+    "nameAr2024": "امرامر",
+    "nameAr2014": "امرامر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 18,
       "population2024": 6488,
       "population2014": 7587,
       "populationRatio": 0.8551
@@ -2709,11 +3047,13 @@
     "code2014": "07.211.03.29",
     "name2024": "Oulad M'rabet",
     "name2014": "Oulad M'Rabet",
+    "nameAr2024": "أولاد امرابط",
+    "nameAr2014": "أولاد امرابط",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 24,
       "population2024": 3951,
       "population2014": 3996,
       "populationRatio": 0.9887
@@ -2725,11 +3065,13 @@
     "code2014": "07.211.03.35",
     "name2024": "Sidi Aissa Regragui",
     "name2014": "Sidi Aissa Regragui",
+    "nameAr2024": "سيدي عيسى الركراكي",
+    "nameAr2014": "سيدي عيسى الركراكي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 16,
       "population2024": 7567,
       "population2014": 7873,
       "populationRatio": 0.9611
@@ -2741,11 +3083,13 @@
     "code2014": "07.211.03.39",
     "name2024": "Sidi Boulaalam",
     "name2014": "Sidi Boulaalam",
+    "nameAr2024": "سيدي بولعلام",
+    "nameAr2014": "سيدي بولعلام",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 17,
       "population2024": 7681,
       "population2014": 8142,
       "populationRatio": 0.9434
@@ -2757,11 +3101,13 @@
     "code2014": "07.211.03.45",
     "name2024": "Sidi M'hamed Ou Marzouq",
     "name2014": "Sidi M'Hamed Ou Marzouq",
+    "nameAr2024": "سيدي امحمد أومرزوق",
+    "nameAr2014": "سيدي امحمد اومرزوق",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 19,
       "population2024": 4306,
       "population2014": 5341,
       "populationRatio": 0.8062
@@ -2773,11 +3119,13 @@
     "code2014": "07.211.03.47",
     "name2024": "Tafetachte",
     "name2014": "Tafetachte",
+    "nameAr2024": "تفتاشت",
+    "nameAr2014": "تفتاشت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07211",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 23,
       "population2024": 7342,
       "population2014": 7293,
       "populationRatio": 1.0067
@@ -2789,6 +3137,8 @@
     "code2014": "07.351.07.13",
     "name2024": "Tassoultante",
     "name2014": "Tassoultante",
+    "nameAr2024": "تسلطانت",
+    "nameAr2014": "تسلطانت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "07351",
@@ -2805,11 +3155,13 @@
     "code2014": "08.201.13.01",
     "name2024": "Aghbalou-N'kerdous",
     "name2014": "Aghbalou N'Kerdous",
+    "nameAr2024": "اغبالو انكردوس",
+    "nameAr2014": "اغبالو انكردوس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08201",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 10675,
       "population2014": 10313,
       "populationRatio": 1.0351
@@ -2821,6 +3173,8 @@
     "code2014": "08.201.13.03",
     "name2024": "Ferkla El Oulia",
     "name2014": "Ferkla El Oulia",
+    "nameAr2024": "فركلة العليا",
+    "nameAr2014": "فركلة العليا",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08201",
@@ -2837,11 +3191,13 @@
     "code2014": "08.201.13.05",
     "name2024": "Ferkla Es-Soufla",
     "name2014": "Ferkla Es-soufla",
+    "nameAr2024": "فركلة السفلى",
+    "nameAr2014": "فركلة السفلى",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08201",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 11886,
       "population2014": 12335,
       "populationRatio": 0.9636
@@ -2853,11 +3209,13 @@
     "code2014": "08.201.13.11",
     "name2024": "Melaab",
     "name2014": "Melaab",
+    "nameAr2024": "ملعب",
+    "nameAr2014": "ملعب",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08201",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 17230,
       "population2014": 17360,
       "populationRatio": 0.9925
@@ -2869,11 +3227,13 @@
     "code2014": "08.363.05.15",
     "name2024": "Boumia",
     "name2014": "Boumia",
+    "nameAr2024": "بومية",
+    "nameAr2014": "بومية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08363",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 21713,
       "population2014": 18212,
       "populationRatio": 1.1922
@@ -2885,11 +3245,13 @@
     "code2014": "08.363.05.03",
     "name2024": "Agoudim",
     "name2014": "Agoudim",
+    "nameAr2024": "أكديم",
+    "nameAr2014": "أكوديم",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08363",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 3826,
       "population2014": 4113,
       "populationRatio": 0.9302
@@ -2901,6 +3263,8 @@
     "code2014": "08.363.05.13",
     "name2024": "Anemzi",
     "name2014": "Anemzi",
+    "nameAr2024": "أنمزي",
+    "nameAr2014": "انمزي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08363",
@@ -2917,11 +3281,13 @@
     "code2014": "08.363.05.27",
     "name2024": "Tounfite",
     "name2014": "Tounfite",
+    "nameAr2024": "تونفيت",
+    "nameAr2014": "تونفيت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08363",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 13424,
       "population2014": 13297,
       "populationRatio": 1.0096
@@ -2933,11 +3299,13 @@
     "code2014": "08.577.05.03",
     "name2024": "Ait Ouassif",
     "name2014": "Ait Ouassif",
+    "nameAr2024": "آيت واسيف",
+    "nameAr2014": "أيت واسيف",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08577",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 8885,
       "population2014": 8246,
       "populationRatio": 1.0775
@@ -2949,11 +3317,13 @@
     "code2014": "08.577.05.09",
     "name2024": "Ait Sedrate Sahl Charkia",
     "name2014": "Ait Sedrate Sahl Charkia",
+    "nameAr2024": "آيت سدرات السهل الشرقية",
+    "nameAr2014": "أيت سدرات السهل الشرقية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08577",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 15506,
       "population2014": 15349,
       "populationRatio": 1.0102
@@ -2965,11 +3335,13 @@
     "code2014": "08.577.05.11",
     "name2024": "Ait Sedrate Sahl El-Gharbia",
     "name2014": "Ait Sedrate Sahl El Gharbia",
+    "nameAr2024": "آيت سدرات السهل الغربية",
+    "nameAr2014": "أيت  سدرات السهل الغربية",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08577",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 19985,
       "population2014": 17392,
       "populationRatio": 1.1491
@@ -2981,6 +3353,8 @@
     "code2014": "08.577.05.15",
     "name2024": "Ighil N'oumgoun",
     "name2014": "Ighil N'Oumgoun",
+    "nameAr2024": "اغيل نومكون",
+    "nameAr2014": "اغيل نومكون",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08577",
@@ -2997,11 +3371,13 @@
     "code2014": "08.577.05.25",
     "name2024": "Souk Lakhmis Dades",
     "name2014": "Souk Lakhmis Dades",
+    "nameAr2024": "سوق الخميس دادس",
+    "nameAr2014": "سوق الخميس دادس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08577",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 16154,
       "population2014": 17045,
       "populationRatio": 0.9477
@@ -3013,11 +3389,13 @@
     "code2014": "08.587.03.05",
     "name2024": "Ait Boudaoud",
     "name2014": "Ait Boudaoud",
+    "nameAr2024": "آيت بوداود",
+    "nameAr2014": "أيت بوداود",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08587",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 4757,
       "population2014": 5439,
       "populationRatio": 0.8746
@@ -3029,6 +3407,8 @@
     "code2014": "08.587.03.07",
     "name2024": "Ait Ouallal",
     "name2014": "Ait Ouallal",
+    "nameAr2024": "آيت ولال",
+    "nameAr2014": "أيت ولال",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08587",
@@ -3045,11 +3425,13 @@
     "code2014": "08.587.03.25",
     "name2024": "N'kob",
     "name2014": "N'Kob",
+    "nameAr2024": "النقوب",
+    "nameAr2014": "انقوب",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08587",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 7742,
       "population2014": 7209,
       "populationRatio": 1.0739
@@ -3061,11 +3443,13 @@
     "code2014": "08.587.03.31",
     "name2024": "Taghbalte",
     "name2014": "Taghbalte",
+    "nameAr2024": "تغبالت",
+    "nameAr2014": "تغبالت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08587",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 9176,
       "population2014": 10054,
       "populationRatio": 0.9127
@@ -3077,11 +3461,13 @@
     "code2014": "08.587.03.41",
     "name2024": "Tazarine",
     "name2014": "Tazarine",
+    "nameAr2024": "تازارين",
+    "nameAr2014": "تازارين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "08587",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 13895,
       "population2014": 15169,
       "populationRatio": 0.916
@@ -3093,11 +3479,13 @@
     "code2014": "09.163.07.01",
     "name2024": "Ait Amira",
     "name2014": "Ait Amira",
+    "nameAr2024": "آيت عميرة",
+    "nameAr2014": "أيت عميرة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09163",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 113236,
       "population2014": 76646,
       "populationRatio": 1.4774
@@ -3109,6 +3497,8 @@
     "code2014": "09.163.07.27",
     "name2024": "Sidi Bibi",
     "name2014": "Sidi Bibi",
+    "nameAr2024": "سيدي بيبي",
+    "nameAr2014": "سيدي بيبي",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09163",
@@ -3125,11 +3515,13 @@
     "code2014": "09.541.09.01",
     "name2024": "Ahmar Laglalcha",
     "name2014": "Ahmar Laglalcha",
+    "nameAr2024": "احمر لكلالشة",
+    "nameAr2014": "احمر  لكلالشة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 4,
       "population2024": 21659,
       "population2014": 17950,
       "populationRatio": 1.2066
@@ -3141,11 +3533,13 @@
     "code2014": "09.541.05.03",
     "name2024": "Argana",
     "name2014": "Argana",
+    "nameAr2024": "أركانة",
+    "nameAr2014": "اركانة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 11,
       "population2024": 4123,
       "population2014": 4804,
       "populationRatio": 0.8582
@@ -3157,11 +3551,13 @@
     "code2014": "09.541.05.07",
     "name2024": "Bigoudine",
     "name2014": "Bigoudine",
+    "nameAr2024": "بيكودين",
+    "nameAr2014": "بيكودين",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 10,
       "population2024": 4174,
       "population2014": 5131,
       "populationRatio": 0.8135
@@ -3173,11 +3569,13 @@
     "code2014": "09.541.05.09",
     "name2024": "Eddir",
     "name2014": "Eddir",
+    "nameAr2024": "الدير",
+    "nameAr2014": "الدير",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 6,
       "population2024": 7781,
       "population2014": 7565,
       "populationRatio": 1.0286
@@ -3189,11 +3587,13 @@
     "code2014": "09.541.05.13",
     "name2024": "Imilmaiss",
     "name2014": "Imilmaiss",
+    "nameAr2024": "إميلمايس",
+    "nameAr2014": "اميلمايس",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 8,
       "population2024": 4967,
       "population2014": 6584,
       "populationRatio": 0.7544
@@ -3205,11 +3605,13 @@
     "code2014": "09.541.05.15",
     "name2024": "Issen",
     "name2014": "Issen",
+    "nameAr2024": "إسن",
+    "nameAr2014": "اسن",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 5,
       "population2024": 13254,
       "population2014": 12119,
       "populationRatio": 1.0937
@@ -3221,6 +3623,8 @@
     "code2014": "09.541.09.19",
     "name2024": "Ida Ou Moumen",
     "name2014": "Ida Ou Moumen",
+    "nameAr2024": "إدا ومومن",
+    "nameAr2014": "إد او مومن",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
@@ -3237,11 +3641,13 @@
     "code2014": "09.541.05.29",
     "name2024": "Sidi Moussa Lhamri",
     "name2014": "Sidi Moussa Lhamri",
+    "nameAr2024": "سيدي موسى الحمري",
+    "nameAr2014": "سيدي موسى الحمري",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 7,
       "population2024": 17673,
       "population2014": 14976,
       "populationRatio": 1.1801
@@ -3253,11 +3659,13 @@
     "code2014": "09.541.09.31",
     "name2024": "Lamnizla",
     "name2014": "Lamnizla",
+    "nameAr2024": "لمنيزلة",
+    "nameAr2014": "لمنيزلة",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 3,
       "population2024": 3427,
       "population2014": 4224,
       "populationRatio": 0.8113
@@ -3269,11 +3677,13 @@
     "code2014": "09.541.05.31",
     "name2024": "Talmakante",
     "name2014": "Talmakante",
+    "nameAr2024": "تالماكانت",
+    "nameAr2014": "تالمكانت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 9,
       "population2024": 3336,
       "population2014": 4004,
       "populationRatio": 0.8332
@@ -3285,11 +3695,13 @@
     "code2014": "09.541.09.71",
     "name2024": "Zaouia Sidi Tahar",
     "name2014": "Zaouia Sidi Tahar",
+    "nameAr2024": "زاوية سيدي الطاهر",
+    "nameAr2014": "زاوية سيدي الطاهر",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "09541",
       "normalisedNameMatch": true,
-      "candidatesInProvince": 1,
+      "candidatesInProvince": 2,
       "population2024": 13479,
       "population2014": 11677,
       "populationRatio": 1.1543
@@ -3301,6 +3713,8 @@
     "code2014": "10.473.05.07",
     "name2024": "Mirleft",
     "name2014": "Mirleft",
+    "nameAr2024": "مير اللفت",
+    "nameAr2014": "مير لفت",
     "method": "exact_name_in_province",
     "evidence": {
       "province": "10473",

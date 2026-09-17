@@ -11,6 +11,8 @@ const row = (code2024: string, name: string): CrosswalkRow => ({
   code2014: "01.051.05.01",
   name2024: name,
   name2014: name,
+  nameAr2024: "",
+  nameAr2014: "",
   method: "exact_name_in_province",
   evidence: {
     province: "01051",
@@ -33,7 +35,7 @@ describe("writeCrosswalk", () => {
     const csv = await readFile(join(dir, "2014-2024.csv"), "utf8");
     const lines = csv.trim().split("\n");
     expect(lines[0]).toBe(
-      "code_2024,code_2014,name_2024,name_2014,method,normalised_name_match,candidates_in_province,population_2024,population_2014,population_ratio",
+      "code_2024,code_2014,name_2024,name_2014,name_ar_2024,name_ar_2014,method,normalised_name_match,candidates_in_province,population_2024,population_2014,population_ratio",
     );
     expect(lines).toHaveLength(3);
     expect(lines[1]!.startsWith("01.051.11.01,")).toBe(true);

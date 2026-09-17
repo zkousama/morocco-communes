@@ -179,6 +179,8 @@ describe("toRecords with the crosswalk", () => {
         code2014: "01.051.05.01",
         name2024: "Ait Kamra",
         name2014: "Ait Kamra",
+        nameAr2024: "",
+        nameAr2014: "",
         method: "exact_name_in_province" as const,
         evidence: {
           province: "01051",

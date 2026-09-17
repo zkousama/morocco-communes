@@ -10,6 +10,8 @@ export interface CrosswalkRow {
   code2014: string;
   name2024: string;
   name2014: string;
+  nameAr2024: string;
+  nameAr2014: string;
   method: MatchMethod;
   evidence: {
     province: string;
@@ -24,7 +26,7 @@ export interface CrosswalkRow {
 interface CommuneLike {
   code: string;
   codeDigits: string;
-  name: { fr: string };
+  name: { fr: string; ar?: string };
   population: { "2024": { total: number | null } };
 }
 
@@ -60,6 +62,10 @@ export function buildCrosswalk(
     code2014: toDotted(u.codeDigits, u.codeDigits.slice(0, 5)),
     name2024: c.name.fr,
     name2014: u.nameFr.replace(/\s*\(Mun\.\)\s*$/i, "").trim(),
+    // The Arabic names are what make the four exhaustion rows auditable from this file
+    // alone: their French spellings differ, their Arabic agrees or differs by an alef.
+    nameAr2024: c.name.ar ?? "",
+    nameAr2014: u.nameAr,
     method,
     evidence: {
       province: provinceOf(c.codeDigits),
@@ -71,20 +77,34 @@ export function buildCrosswalk(
     },
   });
 
-  // Pass 1: an identical normalised name, unique within the province. Both passes walk
-  // the arrays in the order given, so the result depends on the input alone.
+  // Pass 1: an identical normalised name, unique within the province on BOTH sides.
+  // Requiring uniqueness in one direction only would let two communes sharing a
+  // normalised name race for a unit: the earlier in array order would take it and the
+  // later would fall through to pass 2, where exhaustion could hand it the wrong
+  // counterpart and the result would still look like a clean bijection. Measured on the
+  // real data there are zero such collisions on either side, so the symmetric check
+  // costs nothing and closes the path.
   for (const c of unresolved) {
-    const hits = unclaimed.filter(
-      (u) =>
-        !taken.has(u.codeDigits) &&
-        provinceOf(u.codeDigits) === provinceOf(c.codeDigits) &&
-        compareName(u.nameFr) === compareName(c.name.fr),
+    const pool = unclaimed.filter(
+      (u) => !taken.has(u.codeDigits) && provinceOf(u.codeDigits) === provinceOf(c.codeDigits),
     );
-    if (hits.length === 1) {
-      taken.add(hits[0]!.codeDigits);
-      done.add(c.codeDigits);
-      rows.push(row(c, hits[0]!, "exact_name_in_province", 1));
-    }
+    const hits = pool.filter((u) => compareName(u.nameFr) === compareName(c.name.fr));
+    if (hits.length !== 1) continue;
+
+    const rivals = unresolved.filter(
+      (other) =>
+        !done.has(other.codeDigits) &&
+        provinceOf(other.codeDigits) === provinceOf(c.codeDigits) &&
+        compareName(other.name.fr) === compareName(c.name.fr),
+    );
+    if (rivals.length !== 1) continue;
+
+    taken.add(hits[0]!.codeDigits);
+    done.add(c.codeDigits);
+    // The province pool size, not a literal 1. This is the column that lets a reader
+    // judge how much the exhaustion argument is carrying, and a constant tells them
+    // nothing: one province contributes 30 rows.
+    rows.push(row(c, hits[0]!, "exact_name_in_province", pool.length));
   }
 
   // Pass 2: the name spellings differ, but only one unit is left in that province, so

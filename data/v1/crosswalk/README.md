@@ -17,6 +17,33 @@ Each row records how the pairing was reached, not only that it was:
   `Ouled M'hamed`/`Oulad M'Hamed` and `Ouannana`/`Ounnana`, whose Arabic names agree or
   differ only in an alef form.
 
+## The reconciliation is one to one
+
+All 207 rows pair exactly one 2024 commune with exactly one 2014 unit, and nothing is left
+unplaced on either side. That is the evidence that every one of them is a rename rather
+than a merge or a split: a merge would leave a 2024 commune claiming two 2014 units, and a
+split would leave a 2014 unit unclaimed. The build refuses to publish if either side has a
+leftover.
+
+## What "normalised" means
+
+`normalised_name_match` compares names after removing the `(Mun.)` marker the 2014 workbook
+uses, folding case and accents, and deleting spaces and hyphens. The last step matters
+because transliterated Arabic splits words arbitrarily: it is why 2014's
+`Al Majjatia Oulad Taleb` matches 2024's `Almajjatia Oulad Taleb`. `name_ar_2024` and
+`name_ar_2014` are included so the four `sole_remaining_in_province` rows, whose French
+spellings differ, can be checked from this file rather than from the source workbooks.
+
+`population_2014` is carried across; households are not. Attributing a household count
+across a changed code would be a guess, so `population.2014.households` is null for these
+207 communes in the attribute files.
+
+## Source and licence
+
+Both censuses are Haut-Commissariat au Plan publications, attributed. This directory is
+HCP-derived and carries no OpenStreetMap data, so the ODbL terms that apply to
+`../geometry/` do not apply here.
+
 `population_ratio` is corroboration, not an input to the matching. Its median across the
 207 rows is 0.96, and 185 of them fall between 0.7 and 1.4 — a count rather than a
 percentile, so you can check it by filtering this file instead of guessing which

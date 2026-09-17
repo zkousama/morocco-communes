@@ -90,10 +90,12 @@ describe("buildCrosswalk", () => {
       ],
       [unit("010510501", "Ait Kamra", 9000)],
     );
-    // The first commune claims the only unit in pass 1; the second then sees no
-    // candidate in either pass. The unit is never claimed twice.
+    // Pass 1 requires the name to be unique on the commune side too, so two communes
+    // sharing a name never race for the unit there: both are left unmatched by pass 1.
+    // Pass 2's exhaustion then resolves the first commune in array order; the second
+    // sees no candidate left. The unit is never claimed twice.
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.method).toBe("exact_name_in_province");
+    expect(rows[0]!.method).toBe("sole_remaining_in_province");
     expect(rows[0]!.code2024).toBe("01.051.11.01");
     expect(unmatched2024).toEqual(["01.051.11.03"]);
   });
