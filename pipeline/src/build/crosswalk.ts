@@ -31,7 +31,13 @@ interface CommuneLike {
 /** The province is the first five digits, and it is stable across both censuses. */
 const provinceOf = (codeDigits: string) => codeDigits.slice(0, 5);
 
-/** The 2014 workbook marks municipalities and sometimes shouts. Compare on neither. */
+/**
+ * The 2014 workbook marks municipalities and sometimes shouts, so compare on neither.
+ * Word boundaries go too, because transliterated Arabic splits them arbitrarily: the
+ * commune written `Al Majjatia Oulad Taleb` in 2014 is `Almajjatia Oulad Taleb` in 2024,
+ * the same name with the article attached. Keeping boundaries would push that pair out of
+ * the name-match pass and into the exhaustion pass, which would claim less than we know.
+ */
 const compareName = (name: string) =>
   slugify(name.replace(/\s*\(Mun\.\)\s*$/i, "")).replace(/-/g, "");
 

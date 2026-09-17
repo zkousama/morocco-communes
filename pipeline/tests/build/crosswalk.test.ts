@@ -50,6 +50,17 @@ describe("buildCrosswalk", () => {
     expect(rows[0]!.method).toBe("exact_name_in_province");
   });
 
+  it("treats an attached Arabic article as the same name", () => {
+    // The real pair: 2014 writes the article separately, 2024 attaches it.
+    const { rows } = buildCrosswalk(
+      [commune("06.355.01.07", "063550107", "Almajjatia Oulad Taleb", 95457)],
+      [unit("063550301", "Al Majjatia Oulad Taleb", 32286)],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.method).toBe("exact_name_in_province");
+    expect(rows[0]!.evidence.normalisedNameMatch).toBe(true);
+  });
+
   it("falls back to the sole remaining candidate in a province", () => {
     const { rows } = buildCrosswalk(
       [commune("01.051.11.07", "010511107", "Bni Abdellah", 6500)],
@@ -79,10 +90,12 @@ describe("buildCrosswalk", () => {
       ],
       [unit("010510501", "Ait Kamra", 9000)],
     );
-    // Two communes share a name, so pass 1 finds two candidates for neither and
-    // pass 2 hands the single remaining unit to the first in order.
+    // The first commune claims the only unit in pass 1; the second then sees no
+    // candidate in either pass. The unit is never claimed twice.
     expect(rows).toHaveLength(1);
-    expect(unmatched2024).toHaveLength(1);
+    expect(rows[0]!.method).toBe("exact_name_in_province");
+    expect(rows[0]!.code2024).toBe("01.051.11.01");
+    expect(unmatched2024).toEqual(["01.051.11.03"]);
   });
 
   it("reports a null ratio rather than dividing by a missing figure", () => {
