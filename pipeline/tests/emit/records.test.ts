@@ -58,6 +58,19 @@ describe("toRecords", () => {
     expect(aitKamra.population.change).toBeNull();
   });
 
+  it("strips the Arabic label word as well as the French one", () => {
+    const tanger = records.communes.find((c) => c.code === "01.511.01.0")!;
+    expect(tanger.name.fr).toBe("Tanger");
+    expect(tanger.name.ar).toBe("طنجة");
+    // Not one record anywhere should still open with a level's label word.
+    const labels = ["جهة", "عمالة", "إقليم", "دائرة", "جماعة", "مقاطعة"];
+    for (const level of [records.regions, records.provinces, records.cercles, records.communes, records.arrondissements]) {
+      for (const unit of level as { name: { ar: string } }[]) {
+        expect(labels.some((l) => unit.name.ar.startsWith(`${l} `))).toBe(false);
+      }
+    }
+  });
+
   it("records provenance per field group", () => {
     const any = records.communes[0]!;
     expect(any.provenance.name).toBe("hcp-2024");

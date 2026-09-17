@@ -29,7 +29,13 @@ export interface DatasetRecords {
 
 const LABEL = /^(Commune|Arrondissement|Cercle|Province|Préfecture|Région)\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
 const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['\u2019]|de\s+|du\s+|des\s+|d['\u2019])?/i;
+// The Arabic column carries its own label word, one per level, and it has to come off
+// too or every record ships a name meaning "commune Tanger" rather than "Tanger".
+// Measured across the whole workbook: جهة 12, عمالة 21, إقليم 62, دائرة 213,
+// جماعة 1503, مقاطعة 41. Nothing else appears in first position.
+const LABEL_AR = /^(جهة|عمالة|إقليم|دائرة|جماعة|مقاطعة)\s+/;
 const strip = (name: string) => name.replace(LABEL, "").trim();
+const stripAr = (name: string) => name.replace(LABEL_AR, "").trim();
 const stripUrbanCentre = (name: string) => name.replace(URBAN_CENTRE, "").trim();
 
 interface Prior {
@@ -82,7 +88,7 @@ export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): Da
       codeDigits: c.codeDigits,
       slug: slugs.get(c.code)!,
       nameFrRaw: c.nameFr,
-      name: { fr: strip(c.nameFr), ar: strip(c.nameAr) },
+      name: { fr: strip(c.nameFr), ar: stripAr(c.nameAr) },
       type: c.type,
       parents: { region: c.regionCode, province: c.provinceCode, cercle: c.cercleCode },
       population: {
@@ -110,7 +116,7 @@ export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): Da
 
   const plain = (u: { code: string; nameFr: string; nameAr: string }) => ({
     code: u.code,
-    name: { fr: strip(u.nameFr), ar: strip(u.nameAr) },
+    name: { fr: strip(u.nameFr), ar: stripAr(u.nameAr) },
   });
 
   return {
