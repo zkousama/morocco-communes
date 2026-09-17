@@ -1,0 +1,98 @@
+[
+  {
+    "code": "01",
+    "name": {
+      "fr": "Tanger-Tétouan-Al Hoceima",
+      "ar": "طنجة-تطوان-الحسيمة"
+    },
+    "communeCount": 146
+  },
+  {
+    "code": "02",
+    "name": {
+      "fr": "Oriental",
+      "ar": "الشرق"
+    },
+    "communeCount": 124
+  },
+  {
+    "code": "03",
+    "name": {
+      "fr": "Fès-Meknès",
+      "ar": "فاس-مكناس"
+    },
+    "communeCount": 194
+  },
+  {
+    "code": "04",
+    "name": {
+      "fr": "Rabat-Salé-Kénitra",
+      "ar": "الرباط-سلا-القنيطرة"
+    },
+    "communeCount": 114
+  },
+  {
+    "code": "05",
+    "name": {
+      "fr": "Béni Mellal-Khénifra",
+      "ar": "بني ملال-خنيفرة"
+    },
+    "communeCount": 135
+  },
+  {
+    "code": "06",
+    "name": {
+      "fr": "Casablanca-Settat",
+      "ar": "الدار البيضاء-سطات"
+    },
+    "communeCount": 153
+  },
+  {
+    "code": "07",
+    "name": {
+      "fr": "Marrakech-Safi",
+      "ar": "مراكش-آسفي"
+    },
+    "communeCount": 251
+  },
+  {
+    "code": "08",
+    "name": {
+      "fr": "Drâa-Tafilalet",
+      "ar": "درعة-تافيلالت"
+    },
+    "communeCount": 125
+  },
+  {
+    "code": "09",
+    "name": {
+      "fr": "Souss-Massa",
+      "ar": "سوس-ماسة"
+    },
+    "communeCount": 175
+  },
+  {
+    "code": "10",
+    "name": {
+      "fr": "Guelmim-Oued Noun",
+      "ar": "كلميم-واد نون"
+    },
+    "communeCount": 53
+  },
+  {
+    "code": "11",
+    "name": {
+      "fr": "Laâyoune-Sakia El Hamra",
+      "ar": "العيون-الساقية الحمراء"
+    },
+    "communeCount": 20
+  },
+  {
+    "code": "12",
+    "name": {
+      "fr": "Dakhla-Oued Ed-Dahab",
+      "ar": "الداخلة-وادي الذهب"
+    },
+    "communeCount": 13
+  }
+]

@@ -5,7 +5,8 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dataset:build": "node --experimental-strip-types pipeline/src/index.ts"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

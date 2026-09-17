@@ -1,0 +1,749 @@
+[
+  {
+    "code": "01.511",
+    "name": {
+      "fr": "Tanger-Assilah",
+      "ar": "طنجة-أصيلة"
+    },
+    "type": "prefecture",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.573",
+    "name": {
+      "fr": "M'diq-Fnideq",
+      "ar": "المضيق-الفنيدق"
+    },
+    "type": "prefecture",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.571",
+    "name": {
+      "fr": "Tétouan",
+      "ar": "تطوان"
+    },
+    "type": "province",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.227",
+    "name": {
+      "fr": "Fahs-Anjra",
+      "ar": "الفحص-أنجرة"
+    },
+    "type": "province",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.331",
+    "name": {
+      "fr": "Larache",
+      "ar": "العرائش"
+    },
+    "type": "province",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.051",
+    "name": {
+      "fr": "Al Hoceima",
+      "ar": "الحسيمة"
+    },
+    "type": "province",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.151",
+    "name": {
+      "fr": "Chefchaouen",
+      "ar": "شفشاون"
+    },
+    "type": "province",
+    "regionCode": "01"
+  },
+  {
+    "code": "01.405",
+    "name": {
+      "fr": "Ouezzane",
+      "ar": "وزان"
+    },
+    "type": "province",
+    "regionCode": "01"
+  },
+  {
+    "code": "02.411",
+    "name": {
+      "fr": "Oujda-Angad",
+      "ar": "وجدة-أنجاد"
+    },
+    "type": "prefecture",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.381",
+    "name": {
+      "fr": "Nador",
+      "ar": "الناضور"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.167",
+    "name": {
+      "fr": "Driouch",
+      "ar": "الدريوش"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.275",
+    "name": {
+      "fr": "Jerada",
+      "ar": "جرادة"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.113",
+    "name": {
+      "fr": "Berkane",
+      "ar": "بركان"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.533",
+    "name": {
+      "fr": "Taourirt",
+      "ar": "تاوريرت"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.265",
+    "name": {
+      "fr": "Guercif",
+      "ar": "جرسيف"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "02.251",
+    "name": {
+      "fr": "Figuig",
+      "ar": "فجيج"
+    },
+    "type": "province",
+    "regionCode": "02"
+  },
+  {
+    "code": "03.231",
+    "name": {
+      "fr": "Fès",
+      "ar": "فاس"
+    },
+    "type": "prefecture",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.061",
+    "name": {
+      "fr": "Meknès",
+      "ar": "مكناس"
+    },
+    "type": "prefecture",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.171",
+    "name": {
+      "fr": "El Hajeb",
+      "ar": "الحاجب"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.271",
+    "name": {
+      "fr": "Ifrane",
+      "ar": "إفران"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.591",
+    "name": {
+      "fr": "Moulay Yacoub",
+      "ar": "مولاي يعقوب"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.451",
+    "name": {
+      "fr": "Sefrou",
+      "ar": "صفرو"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.131",
+    "name": {
+      "fr": "Boulemane",
+      "ar": "بولمان"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.531",
+    "name": {
+      "fr": "Taounate",
+      "ar": "تاونات"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "03.561",
+    "name": {
+      "fr": "Taza",
+      "ar": "تازة"
+    },
+    "type": "province",
+    "regionCode": "03"
+  },
+  {
+    "code": "04.421",
+    "name": {
+      "fr": "Rabat",
+      "ar": "الرباط"
+    },
+    "type": "prefecture",
+    "regionCode": "04"
+  },
+  {
+    "code": "04.441",
+    "name": {
+      "fr": "Salé",
+      "ar": "سلا"
+    },
+    "type": "prefecture",
+    "regionCode": "04"
+  },
+  {
+    "code": "04.501",
+    "name": {
+      "fr": "Skhirate-Témara",
+      "ar": "الصخيرات-تمارة"
+    },
+    "type": "prefecture",
+    "regionCode": "04"
+  },
+  {
+    "code": "04.281",
+    "name": {
+      "fr": "Kénitra",
+      "ar": "القنيطرة"
+    },
+    "type": "province",
+    "regionCode": "04"
+  },
+  {
+    "code": "04.291",
+    "name": {
+      "fr": "Khémisset",
+      "ar": "الخميسات"
+    },
+    "type": "province",
+    "regionCode": "04"
+  },
+  {
+    "code": "04.481",
+    "name": {
+      "fr": "Sidi Kacem",
+      "ar": "سيدي قاسم"
+    },
+    "type": "province",
+    "regionCode": "04"
+  },
+  {
+    "code": "04.491",
+    "name": {
+      "fr": "Sidi Slimane",
+      "ar": "سيدي سليمان"
+    },
+    "type": "province",
+    "regionCode": "04"
+  },
+  {
+    "code": "05.091",
+    "name": {
+      "fr": "Béni Mellal",
+      "ar": "بني ملال"
+    },
+    "type": "province",
+    "regionCode": "05"
+  },
+  {
+    "code": "05.081",
+    "name": {
+      "fr": "Azilal",
+      "ar": "أزيلال"
+    },
+    "type": "province",
+    "regionCode": "05"
+  },
+  {
+    "code": "05.255",
+    "name": {
+      "fr": "Fquih Ben Salah",
+      "ar": "الفقيه بن صالح"
+    },
+    "type": "province",
+    "regionCode": "05"
+  },
+  {
+    "code": "05.301",
+    "name": {
+      "fr": "Khénifra",
+      "ar": "خنيفرة"
+    },
+    "type": "province",
+    "regionCode": "05"
+  },
+  {
+    "code": "05.311",
+    "name": {
+      "fr": "Khouribga",
+      "ar": "خريبكة"
+    },
+    "type": "province",
+    "regionCode": "05"
+  },
+  {
+    "code": "06.141",
+    "name": {
+      "fr": "Casablanca",
+      "ar": "الدار البيضاء"
+    },
+    "type": "prefecture",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.00",
+    "name": {
+      "fr": "Casablanca-Anfa",
+      "ar": "الدار البيضاء-أنفا"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.10",
+    "name": {
+      "fr": "Al-Fida-Mers-Sultan",
+      "ar": "الفداء-مرس السلطان"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.20",
+    "name": {
+      "fr": "Aïn-Sebaâ-Hay Mohammadi",
+      "ar": "عين السبع-الحي المحمدي"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.30",
+    "name": {
+      "fr": "Hay-Hassani",
+      "ar": "الحي الحسني"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.40",
+    "name": {
+      "fr": "Aïn-Chock",
+      "ar": "عين الشق"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.50",
+    "name": {
+      "fr": "Sidi Bernoussi",
+      "ar": "سيدي البرنوصي"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.60",
+    "name": {
+      "fr": "Ben M'sick",
+      "ar": "ابن مسيك"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.141.01.70",
+    "name": {
+      "fr": "Moulay Rachid",
+      "ar": "مولاي رشيد"
+    },
+    "type": "prefecture_of_arrondissements",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.371",
+    "name": {
+      "fr": "Mohammadia",
+      "ar": "المحمدية"
+    },
+    "type": "prefecture",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.181",
+    "name": {
+      "fr": "El Jadida",
+      "ar": "الجديدة"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.385",
+    "name": {
+      "fr": "Nouaceur",
+      "ar": "النواصر"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.355",
+    "name": {
+      "fr": "Médiouna",
+      "ar": "مديونة"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.111",
+    "name": {
+      "fr": "Benslimane",
+      "ar": "بنسليمان"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.117",
+    "name": {
+      "fr": "Berrechid",
+      "ar": "برشيد"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.461",
+    "name": {
+      "fr": "Settat",
+      "ar": "سطات"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "06.467",
+    "name": {
+      "fr": "Sidi Bennour",
+      "ar": "سيدي بنور"
+    },
+    "type": "province",
+    "regionCode": "06"
+  },
+  {
+    "code": "07.351",
+    "name": {
+      "fr": "Marrakech",
+      "ar": "مراكش"
+    },
+    "type": "prefecture",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.161",
+    "name": {
+      "fr": "Chichaoua",
+      "ar": "شيشاوة"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.041",
+    "name": {
+      "fr": "Al Haouz",
+      "ar": "الحوز"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.191",
+    "name": {
+      "fr": "El Kelâa Des-Sraghna",
+      "ar": "قلعة السراغنة"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.211",
+    "name": {
+      "fr": "Essaouira",
+      "ar": "الصويرة"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.427",
+    "name": {
+      "fr": "Rehamna",
+      "ar": "الرحامنة"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.431",
+    "name": {
+      "fr": "Safi",
+      "ar": "آسفي"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "07.585",
+    "name": {
+      "fr": "Youssoufia",
+      "ar": "اليوسفية"
+    },
+    "type": "province",
+    "regionCode": "07"
+  },
+  {
+    "code": "08.201",
+    "name": {
+      "fr": "Errachidia",
+      "ar": "الرشيدية"
+    },
+    "type": "province",
+    "regionCode": "08"
+  },
+  {
+    "code": "08.401",
+    "name": {
+      "fr": "Ouarzazate",
+      "ar": "ورزازات"
+    },
+    "type": "province",
+    "regionCode": "08"
+  },
+  {
+    "code": "08.363",
+    "name": {
+      "fr": "Midelt",
+      "ar": "ميدلت"
+    },
+    "type": "province",
+    "regionCode": "08"
+  },
+  {
+    "code": "08.577",
+    "name": {
+      "fr": "Tinghir",
+      "ar": "تنغير"
+    },
+    "type": "province",
+    "regionCode": "08"
+  },
+  {
+    "code": "08.587",
+    "name": {
+      "fr": "Zagora",
+      "ar": "زاكورة"
+    },
+    "type": "province",
+    "regionCode": "08"
+  },
+  {
+    "code": "09.001",
+    "name": {
+      "fr": "Agadir-Ida-Ou-Tanane",
+      "ar": "أكادير-إدا وتنان"
+    },
+    "type": "prefecture",
+    "regionCode": "09"
+  },
+  {
+    "code": "09.273",
+    "name": {
+      "fr": "Inezgane-Aït Melloul",
+      "ar": "إنزكان-آيت ملول"
+    },
+    "type": "prefecture",
+    "regionCode": "09"
+  },
+  {
+    "code": "09.163",
+    "name": {
+      "fr": "Chtouka-Aït Baha",
+      "ar": "اشتوكة-آيت باها"
+    },
+    "type": "province",
+    "regionCode": "09"
+  },
+  {
+    "code": "09.541",
+    "name": {
+      "fr": "Taroudannt",
+      "ar": "تارودانت"
+    },
+    "type": "province",
+    "regionCode": "09"
+  },
+  {
+    "code": "09.581",
+    "name": {
+      "fr": "Tiznit",
+      "ar": "تيزنيت"
+    },
+    "type": "province",
+    "regionCode": "09"
+  },
+  {
+    "code": "09.551",
+    "name": {
+      "fr": "Tata",
+      "ar": "طاطا"
+    },
+    "type": "province",
+    "regionCode": "09"
+  },
+  {
+    "code": "10.261",
+    "name": {
+      "fr": "Guelmim",
+      "ar": "كلميم"
+    },
+    "type": "province",
+    "regionCode": "10"
+  },
+  {
+    "code": "10.071",
+    "name": {
+      "fr": "Assa-Zag",
+      "ar": "آسا-الزاك"
+    },
+    "type": "province",
+    "regionCode": "10"
+  },
+  {
+    "code": "10.521",
+    "name": {
+      "fr": "Tan-Tan",
+      "ar": "طانطان"
+    },
+    "type": "province",
+    "regionCode": "10"
+  },
+  {
+    "code": "10.473",
+    "name": {
+      "fr": "Sidi Ifni",
+      "ar": "سيدي إفني"
+    },
+    "type": "province",
+    "regionCode": "10"
+  },
+  {
+    "code": "11.321",
+    "name": {
+      "fr": "Laâyoune",
+      "ar": "العيون"
+    },
+    "type": "province",
+    "regionCode": "11"
+  },
+  {
+    "code": "11.121",
+    "name": {
+      "fr": "Boujdour",
+      "ar": "بوجدور"
+    },
+    "type": "province",
+    "regionCode": "11"
+  },
+  {
+    "code": "11.537",
+    "name": {
+      "fr": "Tarfaya",
+      "ar": "طرفاية"
+    },
+    "type": "province",
+    "regionCode": "11"
+  },
+  {
+    "code": "11.221",
+    "name": {
+      "fr": "Es-Semara",
+      "ar": "السمارة"
+    },
+    "type": "province",
+    "regionCode": "11"
+  },
+  {
+    "code": "12.391",
+    "name": {
+      "fr": "Oued Ed-Dahab",
+      "ar": "وادي الذهب"
+    },
+    "type": "province",
+    "regionCode": "12"
+  },
+  {
+    "code": "12.066",
+    "name": {
+      "fr": "Aousserd",
+      "ar": "أوسرد"
+    },
+    "type": "province",
+    "regionCode": "12"
+  }
+]

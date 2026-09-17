@@ -1,0 +1,371 @@
+[
+  {
+    "code": "01.511.01.05",
+    "name": {
+      "fr": "Mghogha",
+      "ar": "مغوغة"
+    },
+    "communeCode": "01.511.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "01.511.01.06",
+    "name": {
+      "fr": "Souani",
+      "ar": "السواني"
+    },
+    "communeCode": "01.511.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "01.511.01.03",
+    "name": {
+      "fr": "Bni Makada",
+      "ar": "بني مكادة"
+    },
+    "communeCode": "01.511.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "01.511.01.07",
+    "name": {
+      "fr": "Médina",
+      "ar": "المدينة"
+    },
+    "communeCode": "01.511.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "03.231.01.11",
+    "name": {
+      "fr": "El Mariniyine",
+      "ar": "المرينيين"
+    },
+    "communeCode": "03.231.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "03.231.01.09",
+    "name": {
+      "fr": "Jnan El Ouard",
+      "ar": "جنان الورد"
+    },
+    "communeCode": "03.231.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "03.231.01.01",
+    "name": {
+      "fr": "Agdal",
+      "ar": "أكدال"
+    },
+    "communeCode": "03.231.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "03.231.01.07",
+    "name": {
+      "fr": "Fès-Médina",
+      "ar": "فاس المدينة"
+    },
+    "communeCode": "03.231.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "03.231.01.13",
+    "name": {
+      "fr": "Zouagha",
+      "ar": "زواغة"
+    },
+    "communeCode": "03.231.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "03.231.01.05",
+    "name": {
+      "fr": "Saiss",
+      "ar": "سايس"
+    },
+    "communeCode": "03.231.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.421.01.09",
+    "name": {
+      "fr": "Yacoub El Mansour",
+      "ar": "يعقوب المنصور"
+    },
+    "communeCode": "04.421.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.421.01.05",
+    "name": {
+      "fr": "Hassan",
+      "ar": "حسان"
+    },
+    "communeCode": "04.421.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.421.01.03",
+    "name": {
+      "fr": "El Youssoufia",
+      "ar": "اليوسفية"
+    },
+    "communeCode": "04.421.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.421.01.01",
+    "name": {
+      "fr": "Agdal Riyad",
+      "ar": "أكدال الرياض"
+    },
+    "communeCode": "04.421.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.421.01.06",
+    "name": {
+      "fr": "Souissi",
+      "ar": "السويسي"
+    },
+    "communeCode": "04.421.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.441.01.09",
+    "name": {
+      "fr": "Tabriquet",
+      "ar": "تابريكت"
+    },
+    "communeCode": "04.441.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.441.01.03",
+    "name": {
+      "fr": "Bab Lamrissa",
+      "ar": "باب لمريسة"
+    },
+    "communeCode": "04.441.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.441.01.05",
+    "name": {
+      "fr": "Bettana",
+      "ar": "بطانة"
+    },
+    "communeCode": "04.441.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.441.01.07",
+    "name": {
+      "fr": "Layayda",
+      "ar": "العيايدة"
+    },
+    "communeCode": "04.441.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "04.441.01.06",
+    "name": {
+      "fr": "Hssaine",
+      "ar": "حصين"
+    },
+    "communeCode": "04.441.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "06.141.01.01",
+    "name": {
+      "fr": "Anfa",
+      "ar": "أنفا"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.00"
+  },
+  {
+    "code": "06.141.01.03",
+    "name": {
+      "fr": "Maârif",
+      "ar": "المعاريف"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.00"
+  },
+  {
+    "code": "06.141.01.07",
+    "name": {
+      "fr": "Sidi Belyout",
+      "ar": "سيدي بليوط"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.00"
+  },
+  {
+    "code": "06.141.01.11",
+    "name": {
+      "fr": "Al-Fida",
+      "ar": "الفداء"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.10"
+  },
+  {
+    "code": "06.141.01.13",
+    "name": {
+      "fr": "Mers-Sultan",
+      "ar": "مرس السلطان"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.10"
+  },
+  {
+    "code": "06.141.01.25",
+    "name": {
+      "fr": "Hay-Mohammadi",
+      "ar": "الحي المحمدي"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.20"
+  },
+  {
+    "code": "06.141.01.23",
+    "name": {
+      "fr": "Asoukhour Assawda",
+      "ar": "الصخور السوداء"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.20"
+  },
+  {
+    "code": "06.141.01.21",
+    "name": {
+      "fr": "Aïn-Sebaâ",
+      "ar": "عين السبع"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.20"
+  },
+  {
+    "code": "06.141.01.31",
+    "name": {
+      "fr": "Hay-Hassani",
+      "ar": "الحي الحسني"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.30"
+  },
+  {
+    "code": "06.141.01.41",
+    "name": {
+      "fr": "Aïn-Chock",
+      "ar": "عين الشق"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.40"
+  },
+  {
+    "code": "06.141.01.51",
+    "name": {
+      "fr": "Sidi Bernoussi",
+      "ar": "سيدي البرنوصي"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.50"
+  },
+  {
+    "code": "06.141.01.53",
+    "name": {
+      "fr": "Sidi Moumen",
+      "ar": "سيدي مومن"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.50"
+  },
+  {
+    "code": "06.141.01.61",
+    "name": {
+      "fr": "Ben-M'sick",
+      "ar": "ابن مسيك"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.60"
+  },
+  {
+    "code": "06.141.01.63",
+    "name": {
+      "fr": "Sbata",
+      "ar": "سباتة"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.60"
+  },
+  {
+    "code": "06.141.01.71",
+    "name": {
+      "fr": "Moulay Rachid",
+      "ar": "مولاي رشيد"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.70"
+  },
+  {
+    "code": "06.141.01.73",
+    "name": {
+      "fr": "Sidi Othmane",
+      "ar": "سيدي عثمان"
+    },
+    "communeCode": "06.141.01.0",
+    "prefectureOfArrondissementsCode": "06.141.01.70"
+  },
+  {
+    "code": "07.351.01.07",
+    "name": {
+      "fr": "Marrakech-Médina",
+      "ar": "مراكش المدينة"
+    },
+    "communeCode": "07.351.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "07.351.01.09",
+    "name": {
+      "fr": "Ménara",
+      "ar": "المنارة"
+    },
+    "communeCode": "07.351.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "07.351.01.05",
+    "name": {
+      "fr": "Gueliz",
+      "ar": "جيليز"
+    },
+    "communeCode": "07.351.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "07.351.01.11",
+    "name": {
+      "fr": "Sidi Youssef Ben Ali",
+      "ar": "سيدي يوسف بن علي"
+    },
+    "communeCode": "07.351.01.0",
+    "prefectureOfArrondissementsCode": null
+  },
+  {
+    "code": "07.351.01.03",
+    "name": {
+      "fr": "Annakhil",
+      "ar": "النخيل"
+    },
+    "communeCode": "07.351.01.0",
+    "prefectureOfArrondissementsCode": null
+  }
+]
