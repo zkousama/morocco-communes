@@ -42,4 +42,18 @@ describe("boundingBox", () => {
     const other: Ring = [[10, 10], [12, 10], [12, 12], [10, 10]];
     expect(boundingBox([square, other])).toEqual([0, 0, 12, 12]);
   });
+
+  it("throws rather than returning Infinity sentinels for empty input", () => {
+    expect(() => boundingBox([])).toThrow(/vertex/);
+    expect(() => boundingBox([[]])).toThrow(/vertex/);
+  });
+});
+
+describe("interiorPoint hole handling", () => {
+  it("ignores a hole that only partly overlaps the chosen ring", () => {
+    // Straddles the right edge of `square`, so it belongs to neither ring cleanly.
+    const straddling: Ring = [[3, 1], [5, 1], [5, 2], [3, 1]];
+    const p = interiorPoint([square], [straddling]);
+    expect(pointInRing([p.lng, p.lat], square)).toBe(true);
+  });
 });

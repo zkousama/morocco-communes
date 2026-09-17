@@ -21,8 +21,15 @@ export function pointInRing(point: [number, number], ring: Ring): boolean {
 export function interiorPoint(outer: Ring[], inner: Ring[]): { lat: number; lng: number } {
   if (outer.length === 0) throw new Error("interiorPoint needs at least one outer ring");
   const largest = outer.reduce((a, b) => (ringArea(a) >= ringArea(b) ? a : b));
-  const holes = inner.filter((h) => h.some((p) => pointInRing(p, largest)));
-  const [lng, lat] = polylabel([largest, ...holes], 0.0001) as unknown as [number, number];
+  // Every vertex, not any: a hole with one stray vertex inside this ring probably
+  // belongs to a different outer ring of the same multipolygon, and punching it out
+  // here would shrink the region the point may sit in. Measured across the 23 cached
+  // communes that have holes, both readings give the same point — this is robustness
+  // against boundaries changing upstream, not a fix for anything observed.
+  const holes = inner.filter((h) => h.every((p) => pointInRing(p, largest)));
+  // polylabel declares [number, number] & { distance: number }, so this destructures
+  // directly. No cast is needed.
+  const [lng, lat] = polylabel([largest, ...holes], 0.0001);
   return { lat, lng };
 }
 
@@ -36,5 +43,8 @@ export function boundingBox(outer: Ring[]): [number, number, number, number] {
       if (lat > north) north = lat;
     }
   }
+  // Without this an empty input returns the Infinity sentinels, which would travel
+  // into the dataset as a bounding box rather than failing.
+  if (!Number.isFinite(west)) throw new Error("boundingBox needs at least one vertex");
   return [west, south, east, north];
 }
