@@ -6,7 +6,7 @@ function buildWorkbook(): Uint8Array {
   const sharedStrings = `<?xml version="1.0"?>
 <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="4" uniqueCount="4">
   <si><t>Commune de Tanger</t></si><si><t>طنجة</t></si><si><t>Cercle de Tanger</t></si>
-  <si><r><t>Préfecture d'</t></r><r><t>Arrondissements Ben M'sick</t></r></si>
+  <si><r><t xml:space="preserve">Préfecture d'Arrondissements </t></r><r><t>Ben M'sick</t></r></si>
 </sst>`;
   const sheet = `<?xml version="1.0"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
@@ -47,7 +47,7 @@ describe("readSheetRows", () => {
     expect(rows[1]?.[2]).toBe("001511");
   });
 
-  it("joins rich-text runs instead of yielding an empty string", () => {
+  it("joins rich-text runs and keeps the space they preserve between them", () => {
     expect(rows[1]?.[3]).toBe("Préfecture d'Arrondissements Ben M'sick");
   });
 });

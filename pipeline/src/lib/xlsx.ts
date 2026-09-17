@@ -7,6 +7,11 @@ const parser = new XMLParser({
   // Without this, "001511" is coerced to the number 1511 and the leading zeros
   // that every HCP code depends on are gone before this module sees the value.
   parseTagValue: false,
+  // Rich-text runs carry their separating space as xml:space="preserve", and the
+  // default trim eats it, concatenating "Arrondissements" onto the name that
+  // follows. The 2014 workbook uses xml:space 304 times. Callers trim their own
+  // values, so nothing downstream depends on this trimming.
+  trimValues: false,
   isArray: (name) => name === "row" || name === "c" || name === "si",
 });
 
