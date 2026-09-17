@@ -6,18 +6,45 @@ import { assertDataset } from "./validate/assertions.ts";
 import { toRecords } from "./emit/records.ts";
 import { writeJson } from "./emit/json.ts";
 import { writeCsv } from "./emit/csv.ts";
+import { fetchRegion } from "./sources/overpass.ts";
+import { joinOsm, type OsmFeature } from "./build/osmJoin.ts";
+import { writeGeometry } from "./emit/topojson.ts";
 
 const OUT = "data/v1/attributes";
+const GEOMETRY_OUT = "data/v1/geometry";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
 const units2014 = parseHcp2014(sources.get("hcp-2014")!);
 
-assertDataset(hierarchy, units2014);
+const knownCodes = new Set(hierarchy.communes.map((c) => c.codeDigits));
+const osm = new Map<string, OsmFeature>();
+const byRegion = new Map<string, OsmFeature[]>();
+let unmatchedTotal = 0;
+let rejectedTotal = 0;
 
-const records = toRecords(hierarchy, units2014);
+for (const region of hierarchy.regions) {
+  const response = await fetchRegion(region.code, ".cache");
+  const { features, unmatched, rejected } = joinOsm(response.elements, knownCodes);
+  unmatchedTotal += unmatched.length;
+  rejectedTotal += rejected.length;
+  for (const r of rejected) console.warn(`  rejected relation ${r.relationId} (${r.ref}): ${r.reason}`);
+  for (const u of unmatched) console.warn(`  unmatched relation ${u.relationId} carries ref ${u.ref}`);
+  byRegion.set(region.code, [...features.values()]);
+  for (const [code, f] of features) osm.set(code, f);
+}
+// Anomalies are checked inside assertDataset, so one malformed hole cannot hide every
+// attribute failure by throwing before the attribute checks run.
+console.log(`geometry: ${osm.size} communes, ${unmatchedTotal} unmatched relations, ${rejectedTotal} rejected`);
+
+assertDataset(hierarchy, units2014, osm);
+
+const records = toRecords(hierarchy, units2014, osm);
 await writeJson(records, OUT);
 await writeCsv(records, OUT);
+
+const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
+await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);
 
 console.log(
   `wrote ${records.communes.length} communes, ${records.arrondissements.length} arrondissements to ${OUT}`,

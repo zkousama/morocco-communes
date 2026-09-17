@@ -2,15 +2,19 @@
   "name": "morocco-communes-api",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "dataset:build": "node --experimental-strip-types pipeline/src/index.ts"
   },
   "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/polylabel": "^2.0.0",
+    "@types/topojson-server": "^3.0.4",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0",
-    "@types/node": "^22.10.0"
+    "vitest": "^3.0.0"
   }
 }

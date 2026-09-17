@@ -1,6 +1,7 @@
 import { uniqueSlugs } from "../lib/slug.ts";
 import type { Hierarchy } from "../build/hierarchy.ts";
 import type { Hcp2014Unit } from "../sources/hcp2014.ts";
+import type { OsmFeature } from "../build/osmJoin.ts";
 
 export interface CommuneRecord {
   code: string;
@@ -16,7 +17,10 @@ export interface CommuneRecord {
     change: { absolute: number; pct: number; basis: "exact_code" | "arrondissement_sum" } | null;
   };
   urbanCentres: { name: string; population: number | null }[];
-  provenance: { name: string; population2024: string; population2014: string | null };
+  centroid: { lat: number; lng: number } | null;
+  bbox: [number, number, number, number] | null;
+  osm: { relationId: number; wikidata: string | null } | null;
+  provenance: { name: string; population2024: string; population2014: string | null; geometry: string | null };
 }
 
 export interface DatasetRecords {
@@ -74,7 +78,11 @@ interface Prior {
   basis: "exact_code" | "arrondissement_sum";
 }
 
-export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): DatasetRecords {
+export function toRecords(
+  h: Hierarchy,
+  units2014: Map<string, Hcp2014Unit>,
+  osm: Map<string, OsmFeature> = new Map(),
+): DatasetRecords {
   const slugs = uniqueSlugs(h.communes.map((c) => ({ code: c.code, nameFr: c.nameFr })));
 
   // The six arrondissement-bearing cities have no commune row in the 2014 workbook,
@@ -113,6 +121,7 @@ export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): Da
     const usable = priorFor(c);
     const now = c.population;
     const before = usable?.total ?? null;
+    const geo = osm.get(c.codeDigits) ?? null;
     return {
       code: c.code,
       codeDigits: c.codeDigits,
@@ -137,10 +146,14 @@ export function toRecords(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): Da
         name: stripUrbanCentre(u.nameFr),
         population: u.population,
       })),
+      centroid: geo?.centroid ?? null,
+      bbox: geo?.bbox ?? null,
+      osm: geo ? { relationId: geo.relationId, wikidata: geo.wikidata } : null,
       provenance: {
         name: "hcp-2024",
         population2024: "hcp-2024",
         population2014: usable ? `hcp-2014:${usable.basis}` : null,
+        geometry: geo ? "osm-odbl" : null,
       },
     };
   });

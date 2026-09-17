@@ -1,5 +1,9 @@
 import type { Hierarchy } from "../build/hierarchy.ts";
 import type { Hcp2014Unit } from "../sources/hcp2014.ts";
+import type { OsmFeature } from "../build/osmJoin.ts";
+import { pointInRing } from "../geo/point.ts";
+import { ringArea } from "../geo/rings.ts";
+import { findAnomalies } from "../emit/topojson.ts";
 
 const NATIONAL_POPULATION_2024 = 36_828_330;
 const ARRONDISSEMENTS_BY_COMMUNE: Record<string, number> = {
@@ -11,7 +15,45 @@ const ARRONDISSEMENTS_BY_COMMUNE: Record<string, number> = {
   "01.511.01.0": 4,  // Tanger
 };
 
-export function assertDataset(h: Hierarchy, units2014: Map<string, Hcp2014Unit>): void {
+export const KNOWN_UNMAPPED = new Set([
+  // relation 5962436 holds a single admin_centre node and no ways
+  "04.281.05.11", // Sidi Mohamed Benmansour
+]);
+
+export function checkGeometry(
+  communes: { code: string; nameFr: string; codeDigits: string }[],
+  osm: Map<string, OsmFeature>,
+): string[] {
+  const fail: string[] = [];
+  for (const c of communes) {
+    const f = osm.get(c.codeDigits);
+    if (!f) {
+      if (!KNOWN_UNMAPPED.has(c.code)) {
+        fail.push(`${c.nameFr} (${c.code}) has no geometry and is not on the unmapped allowlist`);
+      }
+      continue;
+    }
+    if (f.outer.length === 0) {
+      fail.push(`${c.nameFr} has no outer ring`);
+      continue;
+    }
+    const largest = f.outer.reduce((a, b) => (ringArea(a) >= ringArea(b) ? a : b));
+    if (!pointInRing([f.centroid.lng, f.centroid.lat], largest)) {
+      fail.push(`${c.nameFr} has an interior point outside its own boundary`);
+    }
+    const [w, s, e, n] = f.bbox;
+    if (!(w >= -18 && e <= 0 && s >= 20 && n <= 37)) {
+      fail.push(`${c.nameFr} has a bbox outside Morocco: ${f.bbox.join(", ")}`);
+    }
+  }
+  return fail;
+}
+
+export function assertDataset(
+  h: Hierarchy,
+  units2014: Map<string, Hcp2014Unit>,
+  osm: Map<string, OsmFeature> = new Map(),
+): void {
   const fail: string[] = [];
   const check = (ok: boolean, message: string) => { if (!ok) fail.push(message); };
 
@@ -94,6 +136,16 @@ export function assertDataset(h: Hierarchy, units2014: Map<string, Hcp2014Unit>)
       `${c.nameFr} is ${c.type} in 2024 but ${prior.kind} in 2014`);
   }
   check(shared === 1290, `expected 1290 codes shared with 2014, got ${shared}`);
+
+  // Geometry checks only run when geometry was built. They assert what is
+  // structurally true rather than how many communes currently carry a tag:
+  // OSM changes daily and a tag count is not a build gate.
+  if (osm.size > 0) {
+    for (const message of checkGeometry(h.communes, osm)) check(false, message);
+    for (const a of findAnomalies([...osm.values()])) {
+      check(false, `geometry anomaly ${a.kind} on ${a.code}: ${a.detail}`);
+    }
+  }
 
   if (fail.length > 0) throw new Error(`dataset assertions failed:\n  ${fail.join("\n  ")}`);
 }

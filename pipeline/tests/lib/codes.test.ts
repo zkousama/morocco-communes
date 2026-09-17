@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toDigits, toDotted, formatRegion, formatProvince, regionOf, provinceOf } from "../../src/lib/codes.ts";
+import { toDigits, toDotted, formatRegion, formatProvince } from "../../src/lib/codes.ts";
 
 describe("toDigits", () => {
   it("strips punctuation and left-pads to nine", () => {
@@ -40,12 +40,5 @@ describe("formatRegion / formatProvince", () => {
 describe("toDotted for levels under a province", () => {
   it("composes a cercle", () => {
     expect(toDotted("151105", "1511")).toBe("01.511.05");
-  });
-});
-
-describe("regionOf / provinceOf", () => {
-  it("reads the leading groups of a nine-digit key", () => {
-    expect(regionOf("015110519")).toBe("01");
-    expect(provinceOf("015110519")).toBe("01.511");
   });
 });

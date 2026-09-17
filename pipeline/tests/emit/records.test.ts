@@ -120,3 +120,51 @@ describe("toRecords", () => {
     expect(any.provenance.population2024).toBe("hcp-2024");
   });
 });
+
+describe("toRecords with geometry", () => {
+  const withGeometry = toRecords(
+    h,
+    units2014,
+    new Map([
+      [
+        "015110519",
+        {
+          codeDigits: "015110519",
+          relationId: 424242,
+          wikidata: "Q123",
+          centroid: { lat: 35.66, lng: -5.83 },
+          bbox: [-5.9, 35.6, -5.7, 35.7] as [number, number, number, number],
+          outer: [[[-5.9, 35.6], [-5.7, 35.6], [-5.7, 35.7], [-5.9, 35.6]]] as [number, number][][],
+          inner: [],
+        },
+      ],
+    ]),
+  );
+
+  it("attaches the centroid, bbox and OSM identifiers where a feature exists", () => {
+    const c = withGeometry.communes.find((x) => x.codeDigits === "015110519")!;
+    expect(c.centroid).toEqual({ lat: 35.66, lng: -5.83 });
+    expect(c.bbox).toEqual([-5.9, 35.6, -5.7, 35.7]);
+    expect(c.osm).toEqual({ relationId: 424242, wikidata: "Q123" });
+    expect(c.provenance.geometry).toBe("osm-odbl");
+  });
+
+  it("leaves a commune with no feature null rather than guessing a point", () => {
+    const c = withGeometry.communes.find((x) => x.codeDigits !== "015110519")!;
+    expect(c.centroid).toBeNull();
+    expect(c.bbox).toBeNull();
+    expect(c.osm).toBeNull();
+    expect(c.provenance.geometry).toBeNull();
+  });
+
+  it("takes no name from OpenStreetMap", () => {
+    const c = withGeometry.communes.find((x) => x.codeDigits === "015110519")!;
+    expect(Object.keys(c.name).sort()).toEqual(["ar", "fr"]);
+  });
+
+  it("keeps working with no geometry at all, so the attribute build is unaffected", () => {
+    const plain = toRecords(h, units2014);
+    expect(plain.communes.length).toBe(1503);
+    expect(plain.communes.every((c) => c.centroid === null)).toBe(true);
+  });
+});
