@@ -45,7 +45,18 @@ export function assertDataset(h: Hierarchy, units2014: Map<string, Hcp2014Unit>)
     check(tally[code] === expected, `commune ${code} has ${tally[code] ?? 0} arrondissements, expected ${expected}`);
   }
 
-  for (const [level, units] of Object.entries(h) as [string, { code: string }[]][]) {
+  // Listed explicitly rather than walked with Object.entries and a cast. A cast would
+  // turn a future non-array field on Hierarchy into a raw TypeError thrown from inside
+  // this function, which is the one thing it must never do: every problem has to arrive
+  // through check() so the caller gets the whole list at once.
+  const levels: [string, { code: string }[]][] = [
+    ["regions", h.regions],
+    ["provinces", h.provinces],
+    ["cercles", h.cercles],
+    ["communes", h.communes],
+    ["arrondissements", h.arrondissements],
+  ];
+  for (const [level, units] of levels) {
     const seen = new Set<string>();
     for (const u of units) {
       check(!seen.has(u.code), `duplicate code ${u.code} in ${level}`);
