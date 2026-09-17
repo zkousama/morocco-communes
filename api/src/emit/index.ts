@@ -1,0 +1,40 @@
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { emitTree, HEADERS_FILE, type Tree } from "./static.ts";
+import type { Dataset } from "../lib/dataset.ts";
+
+const DATA = "data/v1";
+const OUT = "dist";
+
+async function readDataset(): Promise<Dataset> {
+  const level = async (name: string) =>
+    JSON.parse(await readFile(join(DATA, "attributes", `${name}.json`), "utf8")) as never[];
+  return {
+    regions: await level("regions"),
+    provinces: await level("provinces"),
+    cercles: await level("cercles"),
+    communes: await level("communes"),
+    arrondissements: await level("arrondissements"),
+    sources: JSON.parse(await readFile(join(DATA, "sources.json"), "utf8")),
+  };
+}
+
+export async function writeTree(tree: Tree, outDir: string): Promise<void> {
+  for (const [path, body] of tree) {
+    // Compact, because every byte is served on every request and clients pipe through
+    // jq anyway. The committed dataset under /data is the indented, readable copy.
+    const file = join(outDir, path);
+    await mkdir(dirname(file), { recursive: true });
+    await writeFile(file, JSON.stringify(body));
+  }
+  await writeFile(join(outDir, "_headers"), HEADERS_FILE);
+}
+
+const dataset = await readDataset();
+const tree = emitTree(dataset);
+// A stale file from a previous shape would be served as if it were current, so the
+// output directory is rebuilt rather than merged into.
+await rm(OUT, { recursive: true, force: true });
+await writeTree(tree, OUT);
+await cp(DATA, join(OUT, "data", "v1"), { recursive: true });
+console.log(`wrote ${tree.size} API files and the dataset to ${OUT}/`);

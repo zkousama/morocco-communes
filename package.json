@@ -8,7 +8,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "dataset:build": "node --experimental-strip-types pipeline/src/index.ts"
+    "dataset:build": "node --experimental-strip-types pipeline/src/index.ts",
+    "api:build": "node --experimental-strip-types api/src/emit/index.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

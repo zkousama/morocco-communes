@@ -9,7 +9,14 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["pipeline/src", "pipeline/tests"]
+  "include": [
+    "pipeline/src",
+    "pipeline/tests",
+    "api/src",
+    "api/tests"
+  ]
 }
