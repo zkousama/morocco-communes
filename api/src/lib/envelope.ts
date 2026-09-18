@@ -57,13 +57,17 @@ export function pageMeta(base: string, page: number, totalPages: number): Links 
   };
 }
 
-export const PROBLEM_BASE = "https://morocco-communes-api.workers.dev/problems";
+/**
+ * Where each problem type is described, on the site the API is served beside. A problem's
+ * `type` is this page on the request's own origin with the kind as the fragment, so it
+ * resolves on every deployment without the hostname written into the code.
+ */
+export const PROBLEM_PAGE = "/docs/api/";
 
-const PROBLEMS = {
+export const PROBLEMS = {
   "not-found": { status: 404, title: "Resource not found" },
   "invalid-code": { status: 400, title: "Malformed geographic code" },
   "invalid-query": { status: 400, title: "Invalid query parameter" },
-  "not-acceptable": { status: 406, title: "Unsupported response format" },
 } as const;
 
 export type ProblemKind = keyof typeof PROBLEMS;
@@ -81,7 +85,7 @@ export interface Problem {
  * exists" (404) from "this is not a code at all" (400) — a distinction a client needs in
  * order to know whether retrying with a different spelling could help.
  */
-export function problem(kind: ProblemKind, detail: string, instance: string): Problem {
+export function problem(kind: ProblemKind, detail: string, instance: string, origin: string): Problem {
   const { status, title } = PROBLEMS[kind];
-  return { type: `${PROBLEM_BASE}/${kind}`, title, status, detail, instance };
+  return { type: `${origin}${PROBLEM_PAGE}#${kind}`, title, status, detail, instance };
 }

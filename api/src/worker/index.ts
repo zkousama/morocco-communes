@@ -53,8 +53,8 @@ const json = (body: Envelope<unknown>, tier: "computed" | "alias") =>
     },
   });
 
-const fail = (kind: ProblemKind, detail: string, instance: string) => {
-  const body = problem(kind, detail, instance);
+const fail = (url: URL, kind: ProblemKind, detail: string, instance: string) => {
+  const body = problem(kind, detail, instance, url.origin);
   return new Response(JSON.stringify(body), {
     status: body.status,
     headers: { "content-type": "application/problem+json", "x-api-tier": "computed" },
@@ -72,14 +72,14 @@ app.get("/api/search", (c) => {
   const url = new URL(c.req.url);
   const q = url.searchParams.get("q");
   if (q === null || q.trim() === "") {
-    return fail("invalid-query", "q is required and cannot be empty", url.pathname + url.search);
+    return fail(url, "invalid-query", "q is required and cannot be empty", url.pathname + url.search);
   }
   if (q.length > QUERY.maxLength) {
-    return fail("invalid-query", `q is at most ${QUERY.maxLength} characters`, url.pathname + url.search);
+    return fail(url, "invalid-query", `q is at most ${QUERY.maxLength} characters`, url.pathname + url.search);
   }
   const limit = intParam(url.searchParams.get("limit") ?? undefined, LIMIT.default, LIMIT.max);
   if (limit === null) {
-    return fail("invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, url.pathname + url.search);
+    return fail(url, "invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, url.pathname + url.search);
   }
   const requested = url.searchParams.get("levels");
   let levels: Level[] | undefined;
@@ -88,7 +88,7 @@ app.get("/api/search", (c) => {
     const parts = requested.split(",").map((s) => s.trim()).filter((s) => s !== "");
     const unknown = parts.filter((p) => !LEVELS.includes(p as Level));
     if (unknown.length > 0) {
-      return fail("invalid-query", `unknown level(s): ${unknown.join(", ")}`, url.pathname + url.search);
+      return fail(url, "invalid-query", `unknown level(s): ${unknown.join(", ")}`, url.pathname + url.search);
     }
     if (parts.length > 0) levels = parts as Level[];
   }
@@ -108,19 +108,19 @@ app.get("/api/communes/near", (c) => {
   const lat = coordinate("lat");
   const lng = coordinate("lng");
   if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
-    return fail("invalid-query", "lat is required and must be between -90 and 90", instance);
+    return fail(url, "invalid-query", "lat is required and must be between -90 and 90", instance);
   }
   if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
-    return fail("invalid-query", "lng is required and must be between -180 and 180", instance);
+    return fail(url, "invalid-query", "lng is required and must be between -180 and 180", instance);
   }
   const radiusRaw = url.searchParams.get("radius");
   const radius = radiusRaw === null ? RADIUS_KM.default : Number(radiusRaw);
   if (!Number.isFinite(radius) || radius <= 0 || radius > RADIUS_KM.max) {
-    return fail("invalid-query", `radius must be a number in km, above 0 and at most ${RADIUS_KM.max}`, instance);
+    return fail(url, "invalid-query", `radius must be a number in km, above 0 and at most ${RADIUS_KM.max}`, instance);
   }
   const limit = intParam(url.searchParams.get("limit") ?? undefined, LIMIT.default, LIMIT.max);
   if (limit === null) {
-    return fail("invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, instance);
+    return fail(url, "invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, instance);
   }
   const hits = near(index, lat, lng, radius, limit);
   return json(
@@ -144,11 +144,11 @@ app.get("/api/communes", async (c) => {
     // A name search answers on its own; a filter beside it would be silently ignored.
     const beside = ["region", "province", "cercle", "type", "page"].filter((k) => url.searchParams.has(k));
     if (beside.length > 0) {
-      return fail("invalid-query", `q cannot be combined with ${beside.join(", ")}`, instance);
+      return fail(url, "invalid-query", `q cannot be combined with ${beside.join(", ")}`, instance);
     }
-    if (text.trim() === "") return fail("invalid-query", "q cannot be empty", instance);
+    if (text.trim() === "") return fail(url, "invalid-query", "q cannot be empty", instance);
     if (text.length > QUERY.maxLength) {
-      return fail("invalid-query", `q is at most ${QUERY.maxLength} characters`, instance);
+      return fail(url, "invalid-query", `q is at most ${QUERY.maxLength} characters`, instance);
     }
     const hits = search(index, text, { levels: ["commune"], limit: 10 });
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
@@ -166,14 +166,14 @@ app.get("/api/communes", async (c) => {
     },
     lookup,
   );
-  if ("error" in parsed) return fail(parsed.error.kind, parsed.error.detail, instance);
+  if ("error" in parsed) return fail(url, parsed.error.kind, parsed.error.detail, instance);
   const { query } = parsed;
   const { page } = query;
 
   const direct = aliasPath(query);
   if (direct) {
     const asset = await c.env.ASSETS.fetch(new Request(new URL(direct, url)));
-    if (!asset.ok) return fail("not-found", `no page ${page} for this filter`, instance);
+    if (!asset.ok) return fail(url, "not-found", `no page ${page} for this filter`, instance);
     return new Response(asset.body, {
       headers: {
         "content-type": "application/json",
@@ -188,7 +188,7 @@ app.get("/api/communes", async (c) => {
 
   // Past the last page is a 404 here as it is for the single-filter files above.
   const listed = await listCommunes(query, fetchJsonFrom(c.env, url));
-  if (!listed) return fail("not-found", `no page ${page} for this filter`, instance);
+  if (!listed) return fail(url, "not-found", `no page ${page} for this filter`, instance);
   const { rows, meta } = listed;
   const link = (n: number) => {
     const next = new URL(url);
@@ -213,17 +213,17 @@ app.get("/api/communes", async (c) => {
 app.get("/api/:collection/:id", async (c) => {
   const url = new URL(c.req.url);
   const { collection, id } = c.req.param();
-  if (id.endsWith(".json")) return fail("not-found", `${url.pathname} does not exist`, url.pathname);
+  if (id.endsWith(".json")) return fail(url, "not-found", `${url.pathname} does not exist`, url.pathname);
 
   const found = resolve(lookup, id);
-  if (found.kind === "malformed") return fail("invalid-code", `${id} is not a geographic code`, url.pathname);
-  if (found.kind === "absent") return fail("not-found", `no unit has code ${id}`, url.pathname);
+  if (found.kind === "malformed") return fail(url, "invalid-code", `${id} is not a geographic code`, url.pathname);
+  if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
 
   const canonical = `/api/${collection}/${found.code}.json`;
   const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
   if (!asset.ok) {
     const home = `/api/${COLLECTIONS[found.level]}/${found.code}.json`;
-    return fail("not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
+    return fail(url, "not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
   }
   return new Response(asset.body, {
     headers: {
@@ -240,7 +240,7 @@ app.get("/api/:collection", async (c) => {
   const url = new URL(c.req.url);
   const canonical = `/api/${c.req.param("collection")}.json`;
   const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
-  if (!asset.ok) return fail("not-found", `${url.pathname} does not exist`, url.pathname);
+  if (!asset.ok) return fail(url, "not-found", `${url.pathname} does not exist`, url.pathname);
   return new Response(asset.body, {
     headers: {
       "content-type": "application/json",
@@ -282,7 +282,7 @@ const NOT_FOUND_PAGES: [prefix: string, page: string][] = [
 app.notFound(async (c) => {
   const url = new URL(c.req.url);
   if (url.pathname.startsWith("/api/") || url.pathname === "/api") {
-    return fail("not-found", `${url.pathname} is not an endpoint of this API`, url.pathname);
+    return fail(url, "not-found", `${url.pathname} is not an endpoint of this API`, url.pathname);
   }
   const page = NOT_FOUND_PAGES.find(([prefix]) => url.pathname.startsWith(prefix))?.[1] ?? "/404";
   const asset = await c.env.ASSETS.fetch(new Request(new URL(page, url)));

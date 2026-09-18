@@ -222,8 +222,8 @@ changes.
 uncompressed against a 64 MiB limit, and `dist/` is 3,878 files against a 20,000 limit.
 Wrangler's own count reads higher because it includes directories.
 
-`PROBLEM_BASE` in `api/src/lib/envelope.ts` holds the `type` URI prefix for problem
-documents; point it at the real hostname once there is one.
+A problem document's `type` is `/docs/api/#<kind>` on the origin the request came in on,
+so it points at the error's description on whichever deployment answered.
 
 ## Two things the runtime decides, not the docs
 

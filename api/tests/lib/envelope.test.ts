@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { envelope, paginate, pageMeta, problem, PROBLEM_BASE } from "../../src/lib/envelope.ts";
+import { envelope, paginate, pageMeta, problem } from "../../src/lib/envelope.ts";
 
 describe("envelope", () => {
   it("always carries the dataset version, so a cached response can be dated", () => {
@@ -61,18 +61,18 @@ describe("pageMeta links", () => {
 
 describe("problem", () => {
   it("distinguishes a code that does not exist from one that is malformed", () => {
-    const missing = problem("not-found", "No commune has code 99.999.99.99", "/api/communes/99.999.99.99");
+    const missing = problem("not-found", "No commune has code 99.999.99.99", "/api/communes/99.999.99.99", "https://x.test");
     expect(missing.status).toBe(404);
-    expect(missing.type).toBe(`${PROBLEM_BASE}/not-found`);
+    expect(missing.type).toBe("https://x.test/docs/api/#not-found");
     expect(missing.instance).toBe("/api/communes/99.999.99.99");
 
-    const malformed = problem("invalid-code", "banana is not an HCP code", "/api/communes/banana");
+    const malformed = problem("invalid-code", "banana is not an HCP code", "/api/communes/banana", "https://x.test");
     expect(malformed.status).toBe(400);
-    expect(malformed.type).toBe(`${PROBLEM_BASE}/invalid-code`);
+    expect(malformed.type).toBe("https://x.test/docs/api/#invalid-code");
   });
 
   it("carries every RFC 9457 member, so a client can render it without guessing", () => {
-    const p = problem("invalid-query", "radius must be a number", "/api/communes/near?radius=x");
+    const p = problem("invalid-query", "radius must be a number", "/api/communes/near?radius=x", "https://x.test");
     expect(Object.keys(p).sort()).toEqual(["detail", "instance", "status", "title", "type"]);
     expect(p.title.length).toBeGreaterThan(0);
   });
