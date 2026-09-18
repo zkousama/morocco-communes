@@ -110,11 +110,16 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               in: "query",
               schema: { type: "integer", minimum: 1, maximum: PAGE.max, default: PAGE.default },
             },
-            { name: "q", in: "query", description: "Search communes by name, returning up to 10 matches.", schema: { type: "string" } },
+            {
+              name: "q",
+              in: "query",
+              description: "Search communes by name, returning up to 10 matches. Takes no other parameter.",
+              schema: { type: "string", minLength: 1 },
+            },
           ],
           responses: {
             "200": ok("A page of communes.", { type: "array", items: ref("Commune") }),
-            "400": problem("A filter is not a valid code or names the wrong kind of unit, or type or page is out of range."),
+            "400": problem("A filter is not a valid code or names the wrong kind of unit, type or page is out of range, or q is given with a filter."),
             "404": problem("A filter names a unit that does not exist, or the page is past the last."),
           },
         },

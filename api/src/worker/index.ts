@@ -137,7 +137,13 @@ app.get("/api/communes", async (c) => {
   const url = new URL(c.req.url);
   const instance = url.pathname + url.search;
   const text = url.searchParams.get("q");
-  if (text) {
+  if (text !== null) {
+    // A name search answers on its own; a filter beside it would be silently ignored.
+    const beside = ["region", "province", "cercle", "type", "page"].filter((k) => url.searchParams.has(k));
+    if (beside.length > 0) {
+      return fail("invalid-query", `q cannot be combined with ${beside.join(", ")}`, instance);
+    }
+    if (text.trim() === "") return fail("invalid-query", "q cannot be empty", instance);
     const hits = search(index, text, { levels: ["commune"], limit: 10 });
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
   }
