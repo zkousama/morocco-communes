@@ -114,8 +114,8 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           ],
           responses: {
             "200": ok("A page of communes.", { type: "array", items: ref("Commune") }),
-            "400": problem("A filter is not a valid code, or type or page is out of range."),
-            "404": problem("A filter names a unit that does not exist."),
+            "400": problem("A filter is not a valid code or names the wrong kind of unit, or type or page is out of range."),
+            "404": problem("A filter names a unit that does not exist, or the page is past the last."),
           },
         },
       },
