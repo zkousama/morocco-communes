@@ -3,7 +3,7 @@ import { CfWorkerJsonSchemaValidator } from "@modelcontextprotocol/sdk/validatio
 import { z } from "zod";
 import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
 import { LIMIT, PAGE, RADIUS_KM } from "../lib/params.ts";
-import { resolve, type Lookup } from "../lib/resolve.ts";
+import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 
 export interface McpDeps {
@@ -156,8 +156,20 @@ export function createMcpServer(deps: McpDeps): McpServer {
       const found = resolve(lookup, id);
       if (found.kind === "malformed") return fail(`${id} is not a code or a slug.`);
       if (found.kind === "absent") return fail(`No unit has the identifier ${id}. Call search to find its code.`);
+      if (found.level === "arrondissement") {
+        // An arrondissement sits inside a commune, so the useful answer is that commune.
+        const body = await fetchJson(`/api/arrondissements/${found.code}.json`);
+        const parent = (body?.data as unknown as { communeCode: string | null } | undefined)?.communeCode;
+        if (parent) {
+          return fail(`${id} is an arrondissement of ${nameOf.get(parent) ?? parent}. Call get_commune with ${parent}.`);
+        }
+        return fail(`${id} is an arrondissement, not a commune.`);
+      }
       if (found.level !== "commune") {
-        return fail(`${id} is a ${found.level}, not a commune. Use list_communes to list the communes inside it.`);
+        return fail(
+          `${id} is ${withArticle(found.level)}, not a commune. ` +
+            `Call list_communes with ${found.level}: "${found.code}" to list its communes.`,
+        );
       }
       const body = await fetchJson(`/api/communes/${found.code}.json`);
       if (!body) return fail(`The record for ${found.code} could not be read.`);

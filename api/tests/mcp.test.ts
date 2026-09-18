@@ -102,6 +102,12 @@ describe("the MCP server, through a real client", () => {
     expect(text(r)).toContain("list_communes");
   });
 
+  it("names the commune an arrondissement belongs to", async () => {
+    const r = await call("get_commune", { id: "01.511.01.05" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toBe("01.511.01.05 is an arrondissement of Tanger. Call get_commune with 01.511.01.0.");
+  });
+
   it("points to search when an identifier names nothing", async () => {
     const r = await call("get_commune", { id: "nowhere-town" });
     expect(r.isError).toBe(true);

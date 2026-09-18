@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
 import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
-import { aliasPath, buildLookup, resolve } from "../lib/resolve.ts";
+import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
 import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
@@ -27,6 +27,15 @@ const fetchJsonFrom = (env: Env, base: URL): FetchJson => async (path) => {
 };
 
 const LEVELS: Level[] = ["commune", "arrondissement", "province", "region", "cercle"];
+
+/** Where each level's records live, to point a request at the right collection. */
+const COLLECTIONS: Record<Level, string> = {
+  commune: "communes",
+  arrondissement: "arrondissements",
+  province: "provinces",
+  region: "regions",
+  cercle: "cercles",
+};
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -200,7 +209,8 @@ app.get("/api/:collection/:id", async (c) => {
   const canonical = `/api/${collection}/${found.code}.json`;
   const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
   if (!asset.ok) {
-    return fail("not-found", `${found.code} is a ${found.level}, which /api/${collection} does not hold`, url.pathname);
+    const home = `/api/${COLLECTIONS[found.level]}/${found.code}.json`;
+    return fail("not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
   }
   return new Response(asset.body, {
     headers: {
