@@ -10,9 +10,10 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { LEVELS, ui } from "../src/i18n/ui.ts";
 
-const source = process.argv[2];
+const partial = process.argv.includes("--partial");
+const source = process.argv.slice(2).find((a) => !a.startsWith("--"));
 if (!source) {
-  console.error("usage: pnpm site:apply <file.json>");
+  console.error("usage: pnpm site:apply <file.json> [--partial]");
   process.exit(1);
 }
 
@@ -28,12 +29,15 @@ try {
   process.exit(1);
 }
 
-const expected = [
+const allKeys = [
   ...Object.keys(LEVELS.en).map((k) => `levels.${k}`),
   ...Object.keys(ui.en).map((k) => `ui.${k}`),
 ];
+// A partial reply covers only the keys it names; a full one must cover all of them.
+const expected = partial ? allKeys.filter((k) => k in parsed) : allKeys;
 
 const problems: string[] = [];
+if (partial && expected.length === 0) problems.push("the reply names none of the known keys");
 for (const key of expected) {
   const value = parsed[key];
   if (value === undefined) problems.push(`missing: ${key}`);
@@ -41,15 +45,21 @@ for (const key of expected) {
   else if (value.trim() === "") problems.push(`empty: ${key}`);
 }
 for (const key of Object.keys(parsed)) {
-  if (!expected.includes(key)) problems.push(`unknown key: ${key}`);
+  if (!allKeys.includes(key)) problems.push(`unknown key: ${key}`);
 }
 
 // Every number in the English has to survive into the translation, in the same order.
 // Grouping is stripped before comparing: the separator legitimately differs by locale,
 // so 3,852 in English is 3 852 in French and in Darija.
+// Single digits are skipped: every language spells some of them out — the English "2
+// distributions" is "jouj distributions" in Darija — and they are not what this guards.
+// Populations, years, percentiles and counts are all two digits or more.
 const numbersIn = (s: string) =>
-  (s.match(/\d[\d\s.,\u202f\u00a0]*\d|\d/g) ?? []).map((n) => n.replace(/\D/g, ""));
+  (s.match(/\d[\d\s.,\u202f\u00a0]*\d|\d/g) ?? [])
+    .map((n) => n.replace(/\D/g, ""))
+    .filter((n) => n.length > 1);
 for (const [key, english] of Object.entries(ui.en)) {
+  if (!expected.includes(`ui.${key}`)) continue;
   const got = parsed[`ui.${key}`];
   if (typeof got !== "string") continue;
   const want = numbersIn(String(english));
@@ -59,6 +69,18 @@ for (const [key, english] of Object.entries(ui.en)) {
   }
 }
 
+// A placeholder is filled in at render time, so one that is translated or dropped loses
+// its number from the page without any error. Each {name} in the English must survive.
+const placeholders = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort();
+for (const [key, english] of Object.entries(ui.en)) {
+  if (!expected.includes(`ui.${key}`)) continue;
+  const got = parsed[`ui.${key}`];
+  if (typeof got !== "string") continue;
+  const want = placeholders(String(english)).join(" ");
+  const have = placeholders(got).join(" ");
+  if (want !== have) problems.push(`placeholders changed in ui.${key}: expected ${want || "none"}, got ${have || "none"}`);
+}
+
 if (problems.length > 0) {
   console.error(`the reply does not line up with the English:\n  ${problems.join("\n  ")}`);
   process.exit(1);
@@ -66,17 +88,23 @@ if (problems.length > 0) {
 
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
+const current = (key: string): string =>
+  key.startsWith("levels.")
+    ? (LEVELS.ary as Record<string, string>)[key.slice("levels.".length)] ?? ""
+    : (ui.ary as Record<string, string>)[key.slice("ui.".length)] ?? "";
+const resolved = (key: string) => (key in parsed ? parsed[key]! : current(key));
+
 const levelLine =
   "  ary: { " +
   Object.keys(LEVELS.en)
-    .map((k) => `${k}: "${esc(parsed[`levels.${k}`]!)}"`)
+    .map((k) => `${k}: "${esc(resolved(`levels.${k}`))}"`)
     .join(", ") +
   " },";
 
 const uiBlock =
   "\n  ary: {\n" +
   Object.keys(ui.en)
-    .map((k) => `    ${k}: "${esc(parsed[`ui.${k}`]!)}",`)
+    .map((k) => `    ${k}: "${esc(resolved(`ui.${k}`))}",`)
     .join("\n") +
   "\n  },\n";
 
@@ -94,5 +122,5 @@ if (end === -1) throw new Error("could not find the end of the ary block");
 file = file.slice(0, start) + uiBlock.replace(/\n$/, "") + file.slice(end + "\n  },".length);
 
 await writeFile(path, file);
-console.log(`applied ${expected.length} strings to ${path}`);
+console.log(`applied ${expected.length} strings to ${path}${partial ? ", leaving the rest as they were" : ""}`);
 console.log("now run: pnpm typecheck && pnpm build");

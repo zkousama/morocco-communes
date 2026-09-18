@@ -64,6 +64,34 @@ const NOTES: Record<string, string> = {
   spreadUnchanged: "Row label in the box plot. The communes whose code never changed.",
   spreadCrosswalk: "Row label in the box plot. The communes the crosswalk had to match.",
   chartSpreadNote: "Note under the chart, explaining how to read a box plot and what it shows.",
+  notFoundTitle: "Heading of the page shown for an address that does not exist.",
+  notFoundBody: "One line on that page. Keep /api/ exactly as written.",
+  notFoundHome: "Link back to the home page. A short action.",
+  dlCommunes: "Row label in the download list: the communes file.",
+  dlRegions: "Row label in the download list.",
+  dlProvinces: "Row label in the download list. Both kinds of unit at that tier.",
+  dlCercles: "Row label in the download list.",
+  dlArrondissements: "Row label in the download list.",
+  dlBoundaries: "Row label above 12 links, one boundary file per région.",
+  dlCrosswalk: "Row label for the file matching 2014 communes to 2024 ones.",
+  dlSources: "Row label for the file recording where each source came from and when.",
+  refHeading: "Section heading above the parameter tables.",
+  refBody: "One or two lines under that heading. Keep data, meta, links and RFC 9457 as written.",
+  refParam: "Table column header.",
+  refDefault: "Table column header: the value used when a parameter is left out.",
+  refRequired: "Shown in the default column for a parameter that must be given. One word.",
+  refAll: "Shown in the default column when every level is included. One word.",
+  pQ: "Describes the search text parameter.",
+  pLevels: "Describes a parameter listing which levels to include.",
+  pLimit: "Describes the result count. Keep {max} exactly: the number is filled in.",
+  pLat: "Describes the latitude parameter.",
+  pLng: "Describes the longitude parameter.",
+  pRadius: "Describes the search radius. Keep {max} exactly: the number is filled in.",
+  pUnit: "Describes filtering by région, province or cercle.",
+  pType: "Describes the type filter. Keep urban and rural as written: they are the values.",
+  pPage: "Describes the page parameter. Keep {per} exactly: the number is filled in.",
+  pCommunesQ: "Describes a search limited to communes.",
+  srSpread: "Read aloud by a screen reader for one row of the box plot. Keep every {placeholder} exactly.",
   footerData: "Footer credit line.",
   footerGeometry: "Footer credit line.",
   repo: "Link label to the source repository. One or two words.",
@@ -85,6 +113,21 @@ const KEEP = [
   "OpenStreetMap", "Open Database Licence", "Haut-Commissariat au Plan",
   "Fez", "Fès", "Port Lyautey", "Kénitra", "Dakhla-Oued Ed-Dahab", "Oriental",
 ];
+
+/**
+ * --keys=ui.a,ui.b limits the brief to those strings, for a pass over new ones that must
+ * not re-translate the ones already corrected by hand. Without it, every string is in.
+ */
+const only = process.argv.find((a) => a.startsWith("--keys="))?.slice("--keys=".length).split(",").filter(Boolean);
+const wanted = (key: string) => !only || only.includes(key);
+const levelKeys = Object.keys(LEVELS.en).filter((k) => wanted(`levels.${k}`));
+const uiKeys = Object.keys(ui.en).filter((k) => wanted(`ui.${k}`));
+const total = levelKeys.length + uiKeys.length;
+const exists = (key: string) =>
+  (key.startsWith("ui.") && key.slice("ui.".length) in ui.en) ||
+  (key.startsWith("levels.") && key.slice("levels.".length) in LEVELS.en);
+const unknown = (only ?? []).filter((key) => !exists(key));
+if (unknown.length > 0) throw new Error(`no such key: ${unknown.join(", ")}`);
 
 const lines: string[] = [];
 const w = (s = "") => lines.push(s);
@@ -122,10 +165,24 @@ w("   doubles in length breaks it. Headings and button labels especially.");
 w("6. **Sentence case**, not title case. No exclamation marks.");
 w("7. Where the English is a heading of two or three words, so is the Darija.");
 w();
+w("### Settled usage");
+w();
+w("These were corrected by a native speaker. Follow them exactly.");
+w();
+w("- **No article** on these borrowed words, ever: `request`, `slug`, `response`, `repo`,");
+w("  `dataset`, `site`. Write `had request`, never `had l-request`.");
+w("- **Take `l-`** when definite: `API`, `file`, `code`, `crosswalk`, `query`, `header`,");
+w("  `folder`, `filters`, `match`. Definiteness still decides: `ykhtar file` is picking");
+w("  *a* file, so it stays bare; `l-file li fih l-jawab` is *the* file, so it takes it.");
+w("- Spell the preposition *from* as `mn`, never `men`.");
+w("- Say `Codes`, not `Rmooz`.");
+w("- `record` stays in English.");
+w("- `iqlim` is a province and `amala` is a préfecture. They are different things.");
+w();
 w("## How to reply");
 w();
 w("Reply with **one JSON object and nothing else** — no commentary, no markdown fence.");
-w("Use exactly the keys given below, all 59 of them. Escape quotes properly.");
+w(`Use exactly the keys given below, all ${total} of them. Escape quotes properly.`);
 w();
 w("```");
 w("{");
@@ -142,7 +199,7 @@ w("### Administrative tiers");
 w();
 w("These five are single words that appear as labels under numbers and beside names.");
 w();
-for (const [key, value] of Object.entries(LEVELS.en)) {
+for (const [key, value] of Object.entries(LEVELS.en).filter(([k]) => levelKeys.includes(k))) {
   w(`**\`levels.${key}\`** — ${LEVEL_NOTES[key] ?? ""}`);
   w();
   w("> " + value);
@@ -150,7 +207,7 @@ for (const [key, value] of Object.entries(LEVELS.en)) {
 }
 w("### Interface");
 w();
-for (const [key, value] of Object.entries(ui.en)) {
+for (const [key, value] of Object.entries(ui.en).filter(([k]) => uiKeys.includes(k))) {
   w(`**\`ui.${key}\`** — ${NOTES[key] ?? ""}`);
   w();
   w("> " + String(value).replace(/\n/g, " "));
@@ -158,6 +215,4 @@ for (const [key, value] of Object.entries(ui.en)) {
 }
 
 await writeFile("site/src/i18n/BRIEF.md", lines.join("\n"));
-console.log(
-  `brief: ${Object.keys(ui.en).length + Object.keys(LEVELS.en).length} strings -> site/src/i18n/BRIEF.md`,
-);
+console.log(`brief: ${total} strings${only ? " (subset)" : ""} -> site/src/i18n/BRIEF.md`);
