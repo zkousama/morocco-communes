@@ -45,8 +45,8 @@ Régions, provinces and cercles carry the population HCP publishes for them dire
 rather than a sum over their children. A parent can legitimately differ from the sum of
 its parts.
 
-`urbanCentres` is a list. 160 communes have one, three have several, and 164 exist in
-total.
+`urbanCentres` is a list. 160 communes have at least one, 3 of them have several, and 164
+exist in total.
 
 ## Three fields come from OpenStreetMap
 
