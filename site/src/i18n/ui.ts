@@ -17,9 +17,12 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
  */
 export const HTML_LANG: Record<Locale, string> = { en: "en", fr: "fr", ary: "ary-Latn" };
 
-/** `/` for English, `/fr/` and `/ar/` for the others. */
+/** The URL segment for each locale. Darija's is a word rather than its language code. */
+export const SEGMENT: Record<Locale, string> = { en: "", fr: "fr", ary: "darija" };
+
+/** `/` for English, `/fr/` and `/darija/` for the others. */
 export const path = (locale: Locale, rest = "") =>
-  locale === "en" ? `/${rest}` : `/${locale}/${rest}`;
+  SEGMENT[locale] === "" ? `/${rest}` : `/${SEGMENT[locale]}/${rest}`;
 
 /** Levels, named as a reader of the census would name them. */
 export const LEVELS: Record<Locale, Record<string, string>> = {
