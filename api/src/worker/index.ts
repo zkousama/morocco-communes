@@ -4,6 +4,7 @@ import rawIndex from "../../generated/search-index.json";
 import { envelope, paginate, PER_PAGE, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, narrowestSource, resolve, type FilterQuery } from "../lib/resolve.ts";
+import { LIMIT, PAGE, RADIUS_KM } from "../lib/params.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -17,8 +18,6 @@ interface Env {
 }
 
 const LEVELS: Level[] = ["commune", "arrondissement", "province", "region", "cercle"];
-const MAX_LIMIT = 50;
-const MAX_RADIUS_KM = 100;
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -55,9 +54,9 @@ app.get("/api/search", (c) => {
   if (q === null || q.trim() === "") {
     return fail("invalid-query", "q is required and cannot be empty", url.pathname + url.search);
   }
-  const limit = intParam(url.searchParams.get("limit") ?? undefined, 10, MAX_LIMIT);
+  const limit = intParam(url.searchParams.get("limit") ?? undefined, LIMIT.default, LIMIT.max);
   if (limit === null) {
-    return fail("invalid-query", `limit must be a whole number between 1 and ${MAX_LIMIT}`, url.pathname + url.search);
+    return fail("invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, url.pathname + url.search);
   }
   const requested = url.searchParams.get("levels");
   let levels: Level[] | undefined;
@@ -85,13 +84,13 @@ app.get("/api/communes/near", (c) => {
     return fail("invalid-query", "lng is required and must be between -180 and 180", instance);
   }
   const radiusRaw = url.searchParams.get("radius");
-  const radius = radiusRaw === null ? 10 : Number(radiusRaw);
-  if (!Number.isFinite(radius) || radius <= 0 || radius > MAX_RADIUS_KM) {
-    return fail("invalid-query", `radius must be a number in km, above 0 and at most ${MAX_RADIUS_KM}`, instance);
+  const radius = radiusRaw === null ? RADIUS_KM.default : Number(radiusRaw);
+  if (!Number.isFinite(radius) || radius <= 0 || radius > RADIUS_KM.max) {
+    return fail("invalid-query", `radius must be a number in km, above 0 and at most ${RADIUS_KM.max}`, instance);
   }
-  const limit = intParam(url.searchParams.get("limit") ?? undefined, 10, MAX_LIMIT);
+  const limit = intParam(url.searchParams.get("limit") ?? undefined, LIMIT.default, LIMIT.max);
   if (limit === null) {
-    return fail("invalid-query", `limit must be a whole number between 1 and ${MAX_LIMIT}`, instance);
+    return fail("invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, instance);
   }
   const hits = near(index, lat, lng, radius, limit);
   return json(
@@ -116,7 +115,7 @@ app.get("/api/communes", async (c) => {
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
   }
 
-  const page = intParam(url.searchParams.get("page") ?? undefined, 1, 10_000);
+  const page = intParam(url.searchParams.get("page") ?? undefined, PAGE.default, PAGE.max);
   if (page === null) return fail("invalid-query", "page must be a whole number from 1", instance);
 
   const type = url.searchParams.get("type");

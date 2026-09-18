@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Playground from "./Playground.tsx";
 import Charts from "./Charts.astro";
+import Reference from "./Reference.astro";
 import { LEVELS, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { aspect } from "../generated/outline";
@@ -110,6 +111,12 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     <h2>{copy.tryHeading}</h2>
     <p>{copy.tryBody}</p>
     <Playground copy={copy} client:load />
+  </section>
+
+  <section class="band">
+    <h2>{copy.refHeading}</h2>
+    <p>{copy.refBody}</p>
+    <Reference locale={locale} />
   </section>
 
   <section class="band">

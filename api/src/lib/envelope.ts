@@ -19,7 +19,8 @@ export interface Envelope<T> {
   links: Links;
 }
 
-export const PER_PAGE = 50;
+export { PER_PAGE } from "./params.ts";
+import { PER_PAGE } from "./params.ts";
 
 /**
  * `prev` and `next` are always present, null at the ends. An absent key and a null one
