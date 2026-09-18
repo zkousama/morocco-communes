@@ -7,7 +7,7 @@ import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts"
 import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { LIMIT, RADIUS_KM } from "../lib/params.ts";
+import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -73,6 +73,9 @@ app.get("/api/search", (c) => {
   const q = url.searchParams.get("q");
   if (q === null || q.trim() === "") {
     return fail("invalid-query", "q is required and cannot be empty", url.pathname + url.search);
+  }
+  if (q.length > QUERY.maxLength) {
+    return fail("invalid-query", `q is at most ${QUERY.maxLength} characters`, url.pathname + url.search);
   }
   const limit = intParam(url.searchParams.get("limit") ?? undefined, LIMIT.default, LIMIT.max);
   if (limit === null) {
@@ -144,6 +147,9 @@ app.get("/api/communes", async (c) => {
       return fail("invalid-query", `q cannot be combined with ${beside.join(", ")}`, instance);
     }
     if (text.trim() === "") return fail("invalid-query", "q cannot be empty", instance);
+    if (text.length > QUERY.maxLength) {
+      return fail("invalid-query", `q is at most ${QUERY.maxLength} characters`, instance);
+    }
     const hits = search(index, text, { levels: ["commune"], limit: 10 });
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
   }

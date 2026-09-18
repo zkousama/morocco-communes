@@ -163,6 +163,14 @@ describe("the MCP server, through a real client", () => {
     expect(text(r)).toBe("no province has code 99.999.");
   });
 
+  it("refuses a search query longer than any name could need", async () => {
+    const r = await call("search", { query: "a".repeat(101) }).catch((e: Error) => ({
+      isError: true,
+      content: [{ type: "text", text: e.message }],
+    }));
+    expect(r.isError).toBe(true);
+  });
+
   it("refuses an out-of-range limit rather than clamping it", async () => {
     const r = await call("search", { query: "tanger", limit: 999 }).catch((e: Error) => ({
       isError: true,

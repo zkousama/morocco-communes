@@ -1,4 +1,4 @@
-import { LIMIT, PAGE, PER_PAGE, RADIUS_KM } from "./lib/params.ts";
+import { LIMIT, PAGE, PER_PAGE, QUERY, RADIUS_KM } from "./lib/params.ts";
 
 /**
  * The OpenAPI 3.1 description of the API, built from the same limits the Worker enforces,
@@ -56,7 +56,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           description:
             "Matches French names, Arabic names and slugs. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
           parameters: [
-            { name: "q", in: "query", required: true, description: "Text to find.", schema: { type: "string", minLength: 1 }, example: "tanger" },
+            { name: "q", in: "query", required: true, description: "Text to find.", schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength }, example: "tanger" },
             {
               name: "levels",
               in: "query",
@@ -68,7 +68,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           ],
           responses: {
             "200": ok("Matches, best first.", { type: "array", items: ref("SearchHit") }),
-            "400": problem("q is missing, or a parameter is out of range."),
+            "400": problem("q is missing or too long, or a parameter is out of range."),
           },
         },
       },
@@ -114,7 +114,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               name: "q",
               in: "query",
               description: "Search communes by name, returning up to 10 matches. Takes no other parameter.",
-              schema: { type: "string", minLength: 1 },
+              schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength },
             },
           ],
           responses: {

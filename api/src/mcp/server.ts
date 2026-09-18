@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CfWorkerJsonSchemaValidator } from "@modelcontextprotocol/sdk/validation/cfworker";
 import { z } from "zod";
 import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
-import { LIMIT, PAGE, RADIUS_KM } from "../lib/params.ts";
+import { LIMIT, PAGE, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 
@@ -100,7 +100,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "Takes French or Arabic, a slug, or another name a place is known by: Fez finds Fès, Mogador finds Essaouira. " +
         "Returns codes; pass a commune's code to get_commune for its population and parents.",
       inputSchema: {
-        query: z.string().min(1).describe("The name to look for, in French, Arabic or as a slug."),
+        query: z.string().min(1).max(QUERY.maxLength).describe("The name to look for, in French, Arabic or as a slug."),
         levels: z.array(z.enum(LEVELS)).optional().describe("Only these levels. Every level when left out."),
         limit: z
           .number()

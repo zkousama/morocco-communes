@@ -142,6 +142,7 @@ for (const [path, status] of [
   ["/api/communes?region=01&page=4", 404],
   ["/api/communes?region=01&type=rural&page=4", 404],
   ["/api/communes/01.511.01.05", 404],
+  [`/api/search?q=${"a".repeat(101)}`, 400],
   ["/api/communes?q=tanger&region=03", 400],
   ["/api/communes?q=", 400],
   ["/api/nonsense", 404],

@@ -1,5 +1,5 @@
 ---
-import { LIMIT, PER_PAGE, RADIUS_KM } from "../../../api/src/lib/params.ts";
+import { LIMIT, PER_PAGE, QUERY, RADIUS_KM } from "../../../api/src/lib/params.ts";
 import { t, type Locale } from "../i18n/ui";
 
 interface Props {
@@ -16,7 +16,7 @@ const routes = [
   {
     path: "/api/search",
     params: [
-      { name: "q", value: copy.refRequired, required: true, text: copy.pQ },
+      { name: "q", value: copy.refRequired, required: true, text: fill(copy.pQ, { max: QUERY.maxLength }) },
       { name: "levels", value: copy.refAll, text: copy.pLevels },
       { name: "limit", value: String(LIMIT.default), text: fill(copy.pLimit, { max: LIMIT.max }) },
     ],
