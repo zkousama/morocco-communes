@@ -1,0 +1,107 @@
+---
+import { escapeHtml } from "../lib/highlight";
+import { t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+  /** The text as it should be copied. */
+  code?: string;
+  /** Pre-rendered markup, for JSON coloured at build time. Its text is what's copied. */
+  html?: string;
+  label?: string;
+  /** Caps the height, for a long response that would otherwise run for pages. */
+  tall?: boolean;
+}
+const { locale, code = "", html, label, tall = false } = Astro.props;
+const copy = t(locale);
+---
+
+<figure class="code">
+  <figcaption>
+    <span>{label}</span>
+    <button type="button" data-copy data-label={copy.copy} data-done={copy.copied}>{copy.copy}</button>
+  </figcaption>
+  <pre class:list={{ tall }}><code set:html={html ?? escapeHtml(code)} /></pre>
+</figure>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-copy]")) {
+    button.addEventListener("click", async () => {
+      const text = button.closest("figure")?.querySelector("code")?.textContent ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = button.dataset.done ?? "";
+        setTimeout(() => (button.textContent = button.dataset.label ?? ""), 1600);
+      } catch {
+        // Clipboard access needs a secure context and a user gesture; without them the
+        // text is still there to select by hand.
+      }
+    });
+  }
+</script>
+
+<style>
+  .code {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--well);
+    min-width: 0;
+  }
+
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  button {
+    font: inherit;
+    color: var(--quiet);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.05rem 0.6rem;
+    cursor: pointer;
+  }
+
+  button:hover {
+    color: var(--ink);
+    border-color: var(--quiet);
+  }
+
+  pre {
+    margin: 0;
+    padding: 0.85rem 0.9rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    line-height: 1.6;
+    font-variant-ligatures: none;
+    tab-size: 2;
+  }
+
+  pre.tall {
+    max-height: 26rem;
+    overflow-y: auto;
+  }
+
+  /* JSON, coloured by what each token is. Text tokens keep the page's ink roles. */
+  pre :global(.j-k) {
+    color: var(--ink);
+  }
+  pre :global(.j-s) {
+    color: var(--code-string);
+  }
+  pre :global(.j-n) {
+    color: var(--code-number);
+  }
+  pre :global(.j-l) {
+    color: var(--quiet);
+  }
+</style>

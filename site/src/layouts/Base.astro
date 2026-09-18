@@ -3,9 +3,20 @@ import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from ".
 
 interface Props {
   locale: Locale;
+  /** The page's path after the locale prefix, so switching language keeps the page. */
+  route?: string;
+  /** A page's own title and summary. The home page has neither, and uses the site's. */
+  title?: string;
+  description?: string;
 }
-const { locale } = Astro.props;
+const { locale, route = "", title, description } = Astro.props;
 const copy = t(locale);
+const sections = [
+  { route: "docs/api/", label: copy.navApi },
+  { route: "docs/mcp/", label: copy.navMcp },
+  { route: "docs/components/", label: copy.navComponents },
+  { route: "docs/npm/", label: copy.navNpm },
+];
 const site = Astro.site;
 const absolute = (p: string) => (site ? new URL(p, site).href : null);
 const canonical = absolute(Astro.url.pathname);
@@ -22,17 +33,17 @@ const themes = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{copy.title}</title>
-    <meta name="description" content={copy.tagline} />
+    <title>{title ? `${title} · ${copy.title}` : copy.title}</title>
+    <meta name="description" content={description ?? copy.tagline} />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={copy.title} />
-    <meta property="og:title" content={copy.tagline} />
-    <meta property="og:description" content={copy.intro} />
+    <meta property="og:title" content={title ?? copy.tagline} />
+    <meta property="og:description" content={description ?? copy.intro} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={copy.tagline} />
-    <meta name="twitter:description" content={copy.intro} />
+    <meta name="twitter:title" content={title ?? copy.tagline} />
+    <meta name="twitter:description" content={description ?? copy.intro} />
     {canonical && <link rel="canonical" href={canonical} />}
     {canonical && <meta property="og:url" content={canonical} />}
     {ogImage && <meta property="og:image" content={ogImage} />}
@@ -43,10 +54,10 @@ const themes = [
     {
       site &&
         LOCALES.map((l) => (
-          <link rel="alternate" hreflang={l} href={absolute(path(l))!} />
+          <link rel="alternate" hreflang={l} href={absolute(path(l, route))!} />
         ))
     }
-    {site && <link rel="alternate" hreflang="x-default" href={absolute(path("en"))!} />}
+    {site && <link rel="alternate" hreflang="x-default" href={absolute(path("en", route))!} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -69,10 +80,15 @@ const themes = [
   <body>
     <header class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
+      <nav class="sections" aria-label={copy.navLabel}>
+        {sections.map((s) => (
+          <a href={path(locale, s.route)} aria-current={s.route === route ? "page" : undefined}>{s.label}</a>
+        ))}
+      </nav>
       <div class="controls">
         <nav class="tongues" aria-label={copy.language}>
           {LOCALES.map((l) => (
-            <a href={path(l)} hreflang={l} aria-current={l === locale ? "page" : undefined}>
+            <a href={path(l, route)} hreflang={l} lang={l} aria-current={l === locale ? "page" : undefined}>
               {LOCALE_NAMES[l]}
             </a>
           ))}
@@ -157,6 +173,12 @@ const themes = [
         --chart-up: #0f8266;
         --chart-down: #b3781b;
 
+        /* Code sits in a well a shade off the page. Its string and number colours are
+           darker than the brass and green above, to hold 4.5:1 on the well. */
+        --well: #ebe8e0;
+        --code-string: #7a5f1c;
+        --code-number: #0c7059;
+
         --display: "Instrument Serif", Georgia, "Times New Roman", serif;
         --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
         --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -181,6 +203,9 @@ const themes = [
           --brass: #cfa64a;
           --chart-up: #40a687;
           --chart-down: #b98a2c;
+          --well: #20221c;
+          --code-string: #cfa64a;
+          --code-number: #5bb898;
         }
       }
 
@@ -192,6 +217,9 @@ const themes = [
         --brass: #cfa64a;
         --chart-up: #40a687;
         --chart-down: #b98a2c;
+        --well: #20221c;
+        --code-string: #cfa64a;
+        --code-number: #5bb898;
       }
 
       *,
@@ -287,6 +315,31 @@ const themes = [
         font-size: var(--t-md);
         letter-spacing: 0.002em;
         text-decoration: none;
+      }
+
+      .sections {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.25rem;
+        margin-inline-end: auto;
+        font-size: var(--t-sm);
+      }
+
+      .sections a {
+        color: var(--quiet);
+        text-decoration: none;
+      }
+
+      .sections a:hover,
+      .sections a[aria-current="page"] {
+        color: var(--ink);
+      }
+
+      .sections a[aria-current="page"] {
+        text-decoration: underline;
+        text-decoration-color: var(--brass);
+        text-decoration-thickness: 2px;
+        text-underline-offset: 0.3em;
       }
 
       .controls {

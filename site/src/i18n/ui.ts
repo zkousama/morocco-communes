@@ -28,6 +28,14 @@ export const ui = {
   en: {
     title: "Morocco communes",
     language: "Language",
+    navLabel: "Documentation",
+    navApi: "API",
+    navMcp: "MCP",
+    navComponents: "Components",
+    navNpm: "npm",
+    copy: "Copy",
+    copied: "Copied",
+    onThisPage: "On this page",
     tagline: "Morocco’s 1,503 communes, as open data.",
     intro:
       "Official HCP codes, names in French and Arabic, population from the 2024 and 2014 censuses, and a boundary for every commune but one. Free to use, and free to run.",
@@ -135,6 +143,14 @@ export const ui = {
   fr: {
     title: "Communes du Maroc",
     language: "Langue",
+    navLabel: "Documentation",
+    navApi: "API",
+    navMcp: "MCP",
+    navComponents: "Composants",
+    navNpm: "npm",
+    copy: "Copier",
+    copied: "Copié",
+    onThisPage: "Sur cette page",
     tagline: "Les 1 503 communes du Maroc, en données ouvertes.",
     intro:
       "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, et une limite pour chaque commune sauf une. Libre d’usage, et gratuit à héberger.",

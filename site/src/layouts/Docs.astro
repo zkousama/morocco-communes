@@ -1,0 +1,165 @@
+---
+import Base from "./Base.astro";
+import { t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+  route: string;
+  title: string;
+  description: string;
+  lede: string;
+  /** The page's sections, for the contents list beside it on a wide screen. */
+  toc: { id: string; label: string }[];
+}
+const { locale, route, title, description, lede, toc } = Astro.props;
+const copy = t(locale);
+---
+
+<Base locale={locale} route={route} title={title} description={description}>
+  <div class="docs">
+    <nav class="toc" aria-label={copy.onThisPage}>
+      <p>{copy.onThisPage}</p>
+      <ol>
+        {toc.map((item) => <li><a href={`#${item.id}`}>{item.label}</a></li>)}
+      </ol>
+    </nav>
+    <article class="doc">
+      <header>
+        <h1>{title}</h1>
+        <p class="lede">{lede}</p>
+      </header>
+      <slot />
+    </article>
+  </div>
+</Base>
+
+<style>
+  .docs {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    padding-top: clamp(1rem, 3vw, 2.5rem);
+  }
+
+  .toc {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+    font-size: var(--t-sm);
+  }
+
+  .toc p {
+    margin: 0 0 0.6rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .toc a {
+    display: block;
+    padding-inline-start: 0.85rem;
+    color: var(--quiet);
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    color: var(--ink);
+  }
+
+  /* On a narrow screen the contents list would push the page below the fold, and the
+     masthead already links every page. */
+  @media (max-width: 56rem) {
+    .docs {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .toc {
+      display: none;
+    }
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(var(--t-xl), 5vw, var(--t-2xl));
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.9rem;
+  }
+
+  .lede {
+    font-size: var(--t-md);
+    line-height: 1.45;
+    color: var(--quiet);
+    max-width: 42ch;
+    margin-bottom: 0;
+  }
+
+  /* Shared by every docs page's content, which lives in the pages rather than here. */
+  .doc :global(section) {
+    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+    scroll-margin-top: 1rem;
+  }
+
+  .doc :global(h2) {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    font-weight: 400;
+    margin: 0 0 0.6rem;
+  }
+
+  .doc :global(h3) {
+    font-size: var(--t-base);
+    font-weight: 500;
+    margin: 2rem 0 0.5rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .doc :global(section > p),
+  .doc :global(.note) {
+    color: var(--quiet);
+  }
+
+  .doc :global(.scroll) {
+    overflow-x: auto;
+    margin: 0.75rem 0 1.25rem;
+  }
+
+  .doc :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+  }
+
+  .doc :global(th) {
+    text-align: start;
+    font-weight: 400;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    padding: 0 1rem 0.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  .doc :global(td) {
+    padding: 0.55rem 1rem 0.55rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  .doc :global(td.mono),
+  .doc :global(th.mono) {
+    white-space: nowrap;
+  }
+
+  .doc :global(.quiet) {
+    color: var(--quiet);
+  }
+</style>
