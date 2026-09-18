@@ -4,6 +4,7 @@ import { topology } from "topojson-server";
 import { pointInRing } from "../geo/point.ts";
 import type { OsmFeature } from "../build/osmJoin.ts";
 import type { Ring } from "../geo/rings.ts";
+import { checkHoles, coverageHoles, type TopologyLike } from "../geo/holes.ts";
 
 export interface GeoJsonFeature {
   type: "Feature";
@@ -152,6 +153,13 @@ export async function writeGeometry(
       throw new Error(
         `région ${regionCode}: ${collapsed.length} ring(s) collapsed under quantisation:\n  ${collapsed.join("\n  ")}`,
       );
+    }
+
+    // Land inside the région that no commune covers. Checked on the emitted topology,
+    // where a shared border is one arc, because that is what makes a hole's edge visible.
+    const holes = checkHoles(regionCode, coverageHoles(topo as unknown as TopologyLike));
+    if (holes.length > 0) {
+      throw new Error(`région ${regionCode}: the commune coverage changed:\n  ${holes.join("\n  ")}`);
     }
 
     // ODbL requires attribution to travel with the data. A single .topojson served on its

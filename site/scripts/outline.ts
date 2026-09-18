@@ -14,6 +14,7 @@
  */
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { coverageHoles, type TopologyLike } from "../../pipeline/src/geo/holes.ts";
 
 const GEOMETRY = "data/v1/geometry";
 const OUT = "site/src/generated/outline.ts";
@@ -116,11 +117,13 @@ for (const file of files) {
       }
     }
   }
-  // An arc used an odd number of times is on the région's edge: a shared internal border
-  // is traversed once from each side and cancels. Verified against the data — 333 of
-  // these are traced identically by two régions, and no arc is used more than twice.
+  // An arc used an odd number of times has a commune on one side only. Most are the
+  // région's edge — 333 are traced identically by two régions — but the edge of a hole in
+  // the commune coverage is one-sided too, and drawing it here would draw a région border
+  // around land that is inside the région. Those arcs are skipped.
+  const holeArcs = new Set(coverageHoles(topo as unknown as TopologyLike).flatMap((h) => h.arcs));
   for (const [index, count] of uses) {
-    if (count % 2 === 1) regionArcs.push(arcs[index]!);
+    if (count % 2 === 1 && !holeArcs.has(index)) regionArcs.push(arcs[index]!);
   }
 }
 
