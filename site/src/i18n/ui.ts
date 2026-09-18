@@ -18,6 +18,12 @@ export const LEVELS: Record<Locale, Record<string, string>> = {
   fr: { region: "région", province: "province", prefecture: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
 };
 
+/** The same levels counted, for the tally under the map. The 83 are provinces and préfectures both. */
+export const COUNTED: Record<Locale, Record<"region" | "province" | "cercle" | "commune" | "arrondissement", string>> = {
+  en: { region: "régions", province: "provinces and préfectures", cercle: "cercles", commune: "communes", arrondissement: "arrondissements" },
+  fr: { region: "régions", province: "provinces et préfectures", cercle: "cercles", commune: "communes", arrondissement: "arrondissements" },
+};
+
 export const ui = {
   en: {
     title: "Morocco communes",

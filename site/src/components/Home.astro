@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import Playground from "./Playground.tsx";
 import Charts from "./Charts.astro";
 import Reference from "./Reference.astro";
-import { LEVELS, t, type Locale } from "../i18n/ui";
+import { COUNTED, LEVELS, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { aspect } from "../generated/outline";
 import { downloads } from "../generated/downloads";
@@ -14,6 +14,7 @@ interface Props {
 const { locale } = Astro.props;
 const copy = t(locale);
 const levels = LEVELS[locale];
+const counted = COUNTED[locale];
 
 // French groups thousands with a thin space, English with a comma.
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
@@ -64,11 +65,11 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     </figure>
 
     <dl class="tally">
-        <div><dt>{group.format(counts.regions)}</dt><dd>{levels.region}</dd></div>
-        <div><dt>{group.format(counts.provinces)}</dt><dd>{levels.province}</dd></div>
-        <div><dt>{group.format(counts.cercles)}</dt><dd>{levels.cercle}</dd></div>
-        <div><dt>{group.format(counts.communes)}</dt><dd>{levels.commune}</dd></div>
-        <div><dt>{group.format(counts.arrondissements)}</dt><dd>{levels.arrondissement}</dd></div>
+        <div><dt>{group.format(counts.regions)}</dt><dd>{counted.region}</dd></div>
+        <div><dt>{group.format(counts.provinces)}</dt><dd>{counted.province}</dd></div>
+        <div><dt>{group.format(counts.cercles)}</dt><dd>{counted.cercle}</dd></div>
+        <div><dt>{group.format(counts.communes)}</dt><dd>{counted.commune}</dd></div>
+        <div><dt>{group.format(counts.arrondissements)}</dt><dd>{counted.arrondissement}</dd></div>
     </dl>
   </section>
 
