@@ -191,7 +191,7 @@ export const ui = {
     title: "Jama'at lmghrib",
     language: "Logha",
     tagline: "1,503 jama'a flmghrib, b sifat open data.",
-    intro: "Codes rasmiyin men HCP, smayat b lfransawiya w larbiya, sokkan mn ihsa 2024 w 2014, w lhdod d kol jama'a mn ghir whda. Faboor fl-istima'l w faboor fl-khdma.",
+    intro: "Codes rasmiyin mn HCP, smayat b lfransawiya w larbiya, sokkan mn ihsa 2024 w 2014, w lhdod d kol jama'a mn ghir whda. Faboor fl-istima'l w faboor fl-khdma.",
     mapCaption: "Kol 1,502 hdod, mrsoomin mn l-files li katservi had l-API.",
     mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
     codeHeading: "Kifach kaytqra l-code",
