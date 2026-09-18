@@ -16,9 +16,6 @@ const levels = LEVELS[locale];
 // Darija here is written with comma grouping, like the English, so only French differs.
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
-/** Depth is the dot count, so the indent is the code's own structure. */
-const depthOf = (code: string) => code.split(".").length - 1;
-
 const tiers = [
   { name: copy.tierPre, body: copy.tierPreBody, header: copy.tierPreHeader },
   { name: copy.tierAlias, body: copy.tierAliasBody, header: "X-Api-Tier: alias" },
@@ -80,7 +77,7 @@ GET /data/v1/sources.json`;
       <tbody>
         {chain.map((entry) => (
           <tr>
-            <td class="mono code" style={`--depth:${depthOf(entry.code)}`}>{entry.code}</td>
+            <td class="mono code">{entry.code}</td>
             <td class="name">
               <span>{entry.fr}</span>
               <span class="level">{levels[entry.level]}</span>
@@ -270,9 +267,10 @@ GET /data/v1/sources.json`;
     border-bottom: 0;
   }
 
-  /* Indent grows with the dots, so the shape of the column is the hierarchy. */
+  /* Flush left, so the shared prefix lines up down the column: 01, then 01.511, then
+     01.511.05. Indenting by depth looked like a tree but pushed those apart, and the
+     code already says how deep it is — the dots are the depth. */
   .ladder .code {
-    padding-inline-start: calc(var(--depth) * 1.15rem);
     padding-inline-end: 1.5rem;
     white-space: nowrap;
     color: var(--brass);
@@ -363,7 +361,6 @@ GET /data/v1/sources.json`;
 
   @media (max-width: 40rem) {
     .ladder .code {
-      padding-inline-start: calc(var(--depth) * 0.7rem);
       padding-inline-end: 1rem;
     }
   }
