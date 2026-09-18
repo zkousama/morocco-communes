@@ -5,6 +5,7 @@ import Charts from "./Charts.astro";
 import { LEVELS, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { aspect } from "../generated/outline";
+import { downloads } from "../generated/downloads";
 
 interface Props {
   locale: Locale;
@@ -30,11 +31,20 @@ GET /api/communes/01.511.01.0/arrondissements.json
 GET /api/communes/type/urban/page/1.json
 GET /api/version.json`;
 
-const dataFiles = `GET /data/v1/attributes/communes.json
-GET /data/v1/attributes/communes.csv
-GET /data/v1/geometry/01.topojson
-GET /data/v1/crosswalk/crosswalk.json
-GET /data/v1/sources.json`;
+// French writes octets; everyone else here writes bytes.
+const units = locale === "fr" ? ["o", "Ko", "Mo"] : ["B", "KB", "MB"];
+const numberIn = locale === "fr" ? "fr-FR" : "en-GB";
+const size = (bytes: number) => {
+  // Decimal units, since KB and MB are what they are labelled; a file manager agrees.
+  if (bytes < 1000) return `${bytes} ${units[0]}`;
+  if (bytes < 1_000_000) {
+    return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 0 }).format(bytes / 1000)} ${units[1]}`;
+  }
+  return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 1 }).format(bytes / 1_000_000)} ${units[2]}`;
+};
+
+/** The pre-rendered routes, each a link to the file that answers it. */
+const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, ""));
 ---
 
 <Base locale={locale}>
@@ -114,13 +124,34 @@ GET /data/v1/sources.json`;
         </li>
       ))}
     </ol>
-    <pre class="routes">{prerendered}</pre>
+    <ul class="routes">
+      {routeLines.map((route) => (
+        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
+      ))}
+    </ul>
   </section>
 
   <section class="band">
     <h2>{copy.dataHeading}</h2>
     <p>{copy.dataBody}</p>
-    <pre class="routes">{dataFiles}</pre>
+    <ul class="downloads">
+      {downloads.map((group) => (
+        <li class:list={["dl", { wide: group.files.length > 2 }]}>
+          <span class="dl-name">
+            {copy[group.key]}
+            {group.licence === "odbl" && <span class="dl-licence">ODbL</span>}
+          </span>
+          <span class="dl-files">
+            {group.files.map((file) => (
+              <a href={file.href}>
+                <span class="dl-label">{file.label}</span>
+                <span class="dl-size">{size(file.bytes)}</span>
+              </a>
+            ))}
+          </span>
+        </li>
+      ))}
+    </ul>
   </section>
 </Base>
 
@@ -345,19 +376,122 @@ GET /data/v1/sources.json`;
     font-size: var(--t-sm);
   }
 
-  pre.routes {
+  /* Routes and downloads are links now, so a reader can open the real response. */
+  ul.routes {
+    list-style: none;
     margin: 1.75rem 0 0;
     padding: 1.1rem 1.25rem;
-    background: var(--canvas);
-    color: #b9cfc5;
-    border-radius: 3px;
-    overflow-x: auto;
+    background: var(--plate);
+    border-radius: 4px;
     font-family: var(--mono);
     font-size: var(--t-xs);
-    line-height: 1.85;
-    direction: ltr;
-    text-align: left;
+    line-height: 1.9;
+    overflow-x: auto;
   }
+
+  ul.routes li {
+    white-space: nowrap;
+  }
+
+  ul.routes .verb {
+    color: var(--plate-quiet);
+  }
+
+  ul.routes a {
+    color: var(--plate-accent);
+    text-decoration: none;
+  }
+
+  ul.routes a:hover {
+    text-decoration: underline;
+  }
+
+  .downloads {
+    list-style: none;
+    padding: 0;
+    margin: 1.75rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 2.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .dl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* A block, not a column flexbox: combined with the wrap on .dl, the flex version spread
+     the région rows a hundred pixels apart. */
+  .dl.wide {
+    grid-column: 1 / -1;
+    display: block;
+  }
+
+  .dl.wide .dl-name {
+    display: block;
+    margin-bottom: 0.55rem;
+  }
+
+  .dl-name {
+    font-size: var(--t-sm);
+  }
+
+  .dl-licence {
+    margin-inline-start: 0.5rem;
+    font-size: var(--t-xs);
+    color: var(--brass);
+  }
+
+  .dl-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    font-size: var(--t-sm);
+  }
+
+  .dl.wide .dl-files {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.3rem 1.5rem;
+  }
+
+  .dl-files a {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: baseline;
+    justify-content: space-between;
+    text-decoration: none;
+  }
+
+  .dl-label {
+    text-decoration: underline;
+    text-decoration-color: var(--brass);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .dl-files a:hover .dl-label {
+    color: var(--brass);
+  }
+
+  .dl-size {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 40rem) {
+    .downloads {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
 
   @media (max-width: 40rem) {
     .ladder .code {
