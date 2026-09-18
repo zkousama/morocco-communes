@@ -1,6 +1,25 @@
 import { createSignal, For, Show } from "solid-js";
 
-type Copy = Record<string, string>;
+/** The strings this island shows. Only these are serialised into the page for it. */
+export const PLAYGROUND_KEYS = [
+  "searchTab",
+  "searchHint",
+  "nearTab",
+  "nearHint",
+  "lookupTab",
+  "lookupHint",
+  "fieldQuery",
+  "fieldRadius",
+  "fieldIdentifier",
+  "run",
+  "running",
+  "request",
+  "tier",
+  "failed",
+  "emptyState",
+] as const;
+
+type Copy = Record<(typeof PLAYGROUND_KEYS)[number], string>;
 
 interface Props {
   copy: Copy;
@@ -70,9 +89,9 @@ export default function Playground(props: Props) {
   };
 
   const tabs: { id: Mode; label: string; hint: string }[] = [
-    { id: "search", label: props.copy.searchTab!, hint: props.copy.searchHint! },
-    { id: "near", label: props.copy.nearTab!, hint: props.copy.nearHint! },
-    { id: "lookup", label: props.copy.lookupTab!, hint: props.copy.lookupHint! },
+    { id: "search", label: props.copy.searchTab, hint: props.copy.searchHint },
+    { id: "near", label: props.copy.nearTab, hint: props.copy.nearHint },
+    { id: "lookup", label: props.copy.lookupTab, hint: props.copy.lookupHint },
   ];
 
   const examples = () =>

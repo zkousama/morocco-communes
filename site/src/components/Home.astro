@@ -1,6 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
-import Playground from "./Playground.tsx";
+import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
 import Reference from "./Reference.astro";
 import { COUNTED, LEVELS, t, type Locale } from "../i18n/ui";
@@ -15,6 +15,11 @@ const { locale } = Astro.props;
 const copy = t(locale);
 const levels = LEVELS[locale];
 const counted = COUNTED[locale];
+// The island's props are written into the page, so it gets its own strings, not all of them.
+const playgroundCopy = Object.fromEntries(PLAYGROUND_KEYS.map((key) => [key, copy[key]])) as Record<
+  (typeof PLAYGROUND_KEYS)[number],
+  string
+>;
 
 // French groups thousands with a thin space, English with a comma.
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
@@ -111,7 +116,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
   <section class="band">
     <h2>{copy.tryHeading}</h2>
     <p>{copy.tryBody}</p>
-    <Playground copy={copy} client:load />
+    <Playground copy={playgroundCopy} client:load />
   </section>
 
   <section class="band">
