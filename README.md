@@ -86,10 +86,8 @@ Full reference: [`api/README.md`](api/README.md).
 
 ## The docs site
 
-`site/` is an Astro site in English, French and Moroccan Darija, with a light and dark
-theme and a control to pick either or follow the system. Darija is written in Latin
-letters and keeps the technical vocabulary in English, because that is what those words
-are in practice. It builds to static HTML, and the only JavaScript is a
+`site/` is an Astro site in English and French, with a light and dark theme and a control
+to pick either or follow the system. It builds to static HTML, and the only JavaScript is a
 Solid island for the playground, which issues live queries against whatever it is deployed
 beside and shows the request URL and the `X-Api-Tier` of the response.
 
@@ -107,8 +105,7 @@ Everything drawn on it comes out of `data/v1` at build time, by three scripts un
 
 The charts are inline SVG and CSS, so they need no JavaScript and no charting library.
 
-Arabic names are in the data and Arabic queries work; the interface itself is in Latin
-script throughout.
+Arabic names are in the data and Arabic queries work; the interface is English and French.
 
 It's static because nothing in it needs a server, so the hand-written Worker stays
 the only Worker and the pages cost nothing to serve.

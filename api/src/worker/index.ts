@@ -246,7 +246,6 @@ app.all("/mcp", async (c) => {
  */
 const NOT_FOUND_PAGES: [prefix: string, page: string][] = [
   ["/fr/", "/fr/404/"],
-  ["/darija/", "/darija/404/"],
 ];
 
 app.notFound(async (c) => {

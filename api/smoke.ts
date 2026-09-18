@@ -176,7 +176,6 @@ console.log("\nnot found, for a person rather than a client");
 for (const [path, marker] of [
   ["/about", "No page here"],
   ["/fr/nulle-part", "Aucune page ici"],
-  ["/darija/walo", "Walo hna"],
 ] as const) {
   const response = await fetch(base + path);
   const text = await response.text();

@@ -1,5 +1,5 @@
 ---
-import { AUTHOR, HTML_LANG, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
+import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
 
 interface Props {
   locale: Locale;
@@ -18,7 +18,7 @@ const themes = [
 ---
 
 <!doctype html>
-<html lang={HTML_LANG[locale]}>
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -43,7 +43,7 @@ const themes = [
     {
       site &&
         LOCALES.map((l) => (
-          <link rel="alternate" hreflang={HTML_LANG[l]} href={absolute(path(l))!} />
+          <link rel="alternate" hreflang={l} href={absolute(path(l))!} />
         ))
     }
     {site && <link rel="alternate" hreflang="x-default" href={absolute(path("en"))!} />}
@@ -72,7 +72,7 @@ const themes = [
       <div class="controls">
         <nav class="tongues" aria-label={copy.language}>
           {LOCALES.map((l) => (
-            <a href={path(l)} hreflang={HTML_LANG[l]} aria-current={l === locale ? "page" : undefined}>
+            <a href={path(l)} hreflang={l} aria-current={l === locale ? "page" : undefined}>
               {LOCALE_NAMES[l]}
             </a>
           ))}

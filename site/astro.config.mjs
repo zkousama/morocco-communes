@@ -16,9 +16,7 @@ export default defineConfig({
   integrations: [solid()],
   i18n: {
     defaultLocale: "en",
-    // Darija's URL is a word people recognise; its language code stays the standard
-    // ISO 639-3 one, which is what browsers and search engines read.
-    locales: ["en", "fr", { path: "darija", codes: ["ary"] }],
+    locales: ["en", "fr"],
     routing: { prefixDefaultLocale: false },
   },
   devToolbar: { enabled: false },

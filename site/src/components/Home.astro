@@ -15,7 +15,7 @@ const { locale } = Astro.props;
 const copy = t(locale);
 const levels = LEVELS[locale];
 
-// Darija here is written with comma grouping, like the English, so only French differs.
+// French groups thousands with a thin space, English with a comma.
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
 const tiers = [

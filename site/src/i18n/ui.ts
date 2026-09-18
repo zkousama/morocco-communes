@@ -1,32 +1,21 @@
-export type Locale = "en" | "fr" | "ary";
+export type Locale = "en" | "fr";
 
 /** Resolves once the repository is pushed under this name; zkousama is the GitHub account. */
 export const REPO_URL = "https://github.com/zkousama/morocco-communes-api";
 export const AUTHOR = { name: "Ousama", url: "https://github.com/zkousama" };
 
-export const LOCALES: Locale[] = ["en", "fr", "ary"];
-export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français", ary: "Darija" };
+export const LOCALES: Locale[] = ["en", "fr"];
+export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
 
-/**
- * Darija is written here in Latin letters, the way Moroccans write it online, and keeps
- * the technical vocabulary in English because that is what the words are in practice —
- * nobody says "ترويسة" for a header. `ary` is the ISO 639-3 code for Moroccan Arabic;
- * the script is Latin, so the page stays left to right.
- */
-export const HTML_LANG: Record<Locale, string> = { en: "en", fr: "fr", ary: "ary-Latn" };
 
-/** The URL segment for each locale. Darija's is a word rather than its language code. */
-export const SEGMENT: Record<Locale, string> = { en: "", fr: "fr", ary: "darija" };
-
-/** `/` for English, `/fr/` and `/darija/` for the others. */
+/** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
-  SEGMENT[locale] === "" ? `/${rest}` : `/${SEGMENT[locale]}/${rest}`;
+  locale === "en" ? `/${rest}` : `/${locale}/${rest}`;
 
 /** Levels, named as a reader of the census would name them. */
 export const LEVELS: Record<Locale, Record<string, string>> = {
   en: { region: "région", province: "province", prefecture: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
   fr: { region: "région", province: "province", prefecture: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
-  ary: { region: "jiha", province: "iqlim", prefecture: "amala", cercle: "dayira", commune: "jama'a", arrondissement: "moqata'a" },
 };
 
 export const ui = {
@@ -244,92 +233,6 @@ export const ui = {
     repo: "Code source",
   },
 
-  ary: {
-    title: "Jama'at lmghrib",
-    language: "Logha",
-    tagline: "1,503 jama'a flmghrib, b sifat open data.",
-    intro: "Codes rasmiyin mn HCP, smayat b lfransawiya w larbiya, sokkan mn ihsa 2024 w 2014, w lhdod d kol jama'a mn ghir whda. Faboor fl-istima'l w faboor fl-khdma.",
-    mapCaption: "Kol 1,502 hdod, mrsoomin mn l-files li katservi had l-API.",
-    codeHeading: "Kifach kaytqra l-code",
-    codeBody: "L-code hwa trtib l-idari. Kol mjmoo'a d larqam katsmi mstawwa, dakchi alach l-code d jama'a fih nit l-iqlim w l-jiha dyalha. Dwayir kaynin ghir foq ljama'at lqarawiya; jama'a hadariya tqdr tkun fiha moqata'at f blasthom.",
-    colPopulation: "Sokkan, 2024",
-    tryHeading: "Jrb query",
-    tryBody: "Kol request lteht katmchi l had l-API w katrja' bla tbddil.",
-    tiersHeading: "Fin kaytjawb request",
-    tiersBody: "Tlata d lblays, w l-header X-Api-Tier f kol response kaybin ina whda. Aghlabiya d requests ma kaywslo l hta code.",
-    tierPreHeader: "Bla header, hit walo ma kheddam",
-    tierPre: "File f CDN",
-    tierPreBody: "3,852 responses mktobin mlli kaysawbo site. Hta haja ma katkhdm bach tservihom, dakchi alach ma kayqamo b walo w kaytsnndo l ay traffic.",
-    tierAlias: "Rewrite l dak l-file",
-    tierAliasBody: "L-query string ma ymknch ykhtar file, dakchi alach requests li mktobin hakda kaythwlo l l-file li fih l-jawab aslan, w response katsmih.",
-    tierComputed: "Mhsoub f l-waqt",
-    tierComputedBody: "L-bhth, l-queries b d-dayira, w l-filters li ma kaynin f hta file wahd. Hado homa requests l-wahdin li kaykhllso chi haja.",
-    dataHeading: "Khod kolchi",
-    dataBody: "Dataset fih versions f repo, dakchi alach ymkn ytkheddem bla had l-API ga'. Licences mbdlin ela hsab l-folder: l-khasayis jayin mn l-ihsa, w l-hdod fihom share-alike.",
-    searchTab: "Qllb",
-    searchHint: "Fransawiya, arbiya, ola slug. Accents, chkal d alef w ta-marbuta kaytsawaw, w lblays ymkn tlqahom b smayat khrin li ma'rofin bihom — Fez katlqa Fès, Port Lyautey katlqa Kénitra.",
-    nearTab: "Qrib",
-    nearHint: "Jama'at f dayira d noqta, li qrab homa l-owwlin.",
-    lookupTab: "Chouf",
-    lookupHint: "Jama'a whda b l-code ola b slug. Rb'a d toroq d lktaba, kolhom kaywslo l nfs record.",
-    fieldQuery: "Qllb ela",
-    fieldRadius: "Dayira b km",
-    fieldIdentifier: "Code ola slug",
-    run: "Kheddem",
-    running: "Kheddam",
-    request: "Request",
-    tier: "Jawab mn",
-    emptyState: "Khtar mital ola kteb query, mn ba'd kheddmo.",
-    failed: "Dak request ma kmlch. Chof wach l-API kheddam, w awd jrb.",
-    theme: "Theme",
-    themeAuto: "Auto",
-    themeLight: "Dawi",
-    themeDark: "Mdlm",
-    chartsHeading: "Chno kaybino larqam",
-    chartsBody: "Tlata d lhwayej mofidin qbl ma tbni b hadchi, kol whda makhoda mn dataset machi mktoba b jnbha.",
-    chartChange: "L-janoub kaytammr",
-    chartChangeBody: "Tbddal d sokkan ela hsab l-jiha bin ihsa 2014 w 2024.",
-    chartChangeNote: "Dakhla-Oued Ed-Dahab zad b ktr mn nss. Oriental hya l-jiha l-wahda li nqsat. Jouj larqam mjmoo'in mn ljama'at li f kol whda, machi series d jiha bohdha.",
-    chartSize: "Aghlab ljama'at sghar",
-    chartSizeBody: "Ljama'at ela hsab sokkan d 2024.",
-    chartSpread: "Wach l-crosswalk shih",
-    chartSpreadBody: "207 jama'a tbdlo larqam dyalhom b islah 2015, dakchi alach sokkan dyalhom d 2014 kan khasshom ytlaqaw b smya w l-iqsa machi ytqraw mn code ma tbdlch. Kon kano had l-matchat ghaltin, kon zyadathom tfreqat b chkl akhor.",
-    spreadUnchanged: "Code ma tbdlch mn 2014",
-    spreadCrosswalk: "Tbdlo larqam, mtlaqyin b l-crosswalk",
-    srSpread: "median {median}, n-nss l-wstani mn {p25} hta {p75}, mn l-10th hta l-90th percentile mn {p10} hta {p90}",
-    chartSpreadNote: "L-khet kayched mn l-10th tal 90th percentile, l-carré mn 25th tal 75th, w l-khet l-wstani hwa median. Had jouj distributions mhotin qrib foq ba'dhom, hada dalil bli had l-match mzyan — machi ithbat qa'te, w l-fhamat d kol zoj kayna f data/v1/crosswalk.",
-    refHeading: "Parameters",
-    refBody:
-      "Routes li fihom query string, m'a l-default w l-hdod dyalhom. Kol response fiha data, meta w links, w ila kan chi ghalat kayrj'a problem document RFC 9457.",
-    refParam: "Parameter",
-    refDefault: "Default",
-    refRequired: "lazem",
-    refAll: "kolchi",
-    pQ: "Chno katqllb ela, b lfransawiya, larbiya ola b slug",
-    pLevels: "L-mstawayat li bghiti, mfroqin b virgule",
-    pLimit: "Chhal mn natija, hta {max}",
-    pLat: "Latitude d noqta",
-    pLng: "Longitude d noqta",
-    pRadius: "L-masafa b km, hta {max}",
-    pUnit: "Jiha, iqlim ola dayira, b l-code ola b slug",
-    pType: "urban ola rural",
-    pPage: "Raqm s-safha, {per} jama'a f kol safha",
-    pCommunesQ: "Kayqllb ghir f jama'at",
-    dlCommunes: "Jama'at",
-    dlRegions: "Jihat",
-    dlProvinces: "Aqalim w amalat",
-    dlCercles: "Dwayir",
-    dlArrondissements: "Moqata'at",
-    dlBoundaries: "Hdod, file wahd l kol jiha",
-    dlCrosswalk: "L-crosswalk bin 2014 w 2024",
-    dlSources: "Masadir w tawarikh dyalhom",
-    notFoundTitle: "Walo hna",
-    notFoundBody: "Ma kayn walo f had l-adresse. L-API kayna f /api/.",
-    notFoundHome: "Rja' l l-bdaya",
-    footerData: "Codes w sokkan mn Haut-Commissariat au Plan, RGPH 2024 w RGPH 2014.",
-    footerGeometry: "Hdod mn l-moucharikin f OpenStreetMap, tht Open Database Licence.",
-    repo: "Source",
-  },
 } as const;
 
 export const t = (locale: Locale) => ui[locale];

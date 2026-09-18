@@ -7,7 +7,7 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-// Darija here is written with comma grouping, like the English, so only French differs.
+// French groups thousands with a thin space, English with a comma.
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
 /* Chart 1: percent change per région, diverging from a zero axis. The axis sits where
