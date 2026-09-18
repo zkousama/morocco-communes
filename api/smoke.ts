@@ -132,6 +132,20 @@ for (const [path, status] of [
     `got ${r.status}`);
 }
 
+console.log("\nfor programs and agents");
+{
+  const response = await fetch(base + "/api/openapi.json");
+  const spec = (await response.json()) as { openapi?: string; paths?: object };
+  check("/api/openapi.json is an OpenAPI 3.1 document",
+    response.status === 200 && spec.openapi === "3.1.0" && Object.keys(spec.paths ?? {}).length > 0);
+}
+{
+  const response = await fetch(base + "/llms.txt");
+  const text = await response.text();
+  check("/llms.txt is served as text and links the spec",
+    response.status === 200 && text.startsWith("# ") && text.includes("/api/openapi.json"));
+}
+
 console.log("\nnot found, for a person rather than a client");
 for (const [path, marker] of [
   ["/about", "No page here"],

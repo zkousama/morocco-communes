@@ -71,9 +71,21 @@ const routes = [
       </table>
     </section>
   ))}
+  <p class="machine">
+    <a href="/api/openapi.json">OpenAPI</a>
+    <a href="/llms.txt">llms.txt</a>
+  </p>
 </div>
 
 <style>
+  /* The same reference, for programs and agents rather than people. */
+  .machine {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+    font-size: var(--t-sm);
+  }
+
   .ref {
     display: grid;
     gap: 2rem;

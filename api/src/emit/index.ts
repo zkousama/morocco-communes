@@ -2,6 +2,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { emitTree, HEADERS_FILE, type Tree } from "./static.ts";
 import { buildIndex } from "./searchIndex.ts";
+import { buildOpenApi } from "../openapi.ts";
 import type { Dataset } from "../lib/dataset.ts";
 
 const DATA = "data/v1";
@@ -54,6 +55,10 @@ for (const owned of ["api", "data", "_headers"]) {
   await rm(join(OUT, owned), { recursive: true, force: true });
 }
 await writeTree(tree, OUT);
+// The spec an agent framework turns into tools. SITE_URL, when the deployed origin is
+// known, makes the server URL absolute; without it a relative one still resolves.
+const spec = buildOpenApi({ version, serverUrl: process.env.SITE_URL || undefined });
+await writeFile(join(OUT, "api", "openapi.json"), JSON.stringify(spec, null, 2));
 await cp(DATA, join(OUT, "data", "v1"), { recursive: true });
 console.log(
   `wrote ${tree.size} API files and the dataset to ${OUT}/, ` +
