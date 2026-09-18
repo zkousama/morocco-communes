@@ -215,7 +215,7 @@ export const ui = {
     nearTab: "Qrib",
     nearHint: "Jama'at f dayira d noqta, li qrab homa l-owwlin.",
     lookupTab: "Chouf",
-    lookupHint: "Jama'a whda b l-code ola b slug. B tlata d toroq w b rbatha katwssl l nfs record.",
+    lookupHint: "Jama'a whda b l-code ola b slug. Rb'a d toroq d lktaba, kolhom kaywslo l nfs record.",
     fieldQuery: "Qllb ela",
     fieldRadius: "Dayira b km",
     fieldIdentifier: "Code ola slug",
