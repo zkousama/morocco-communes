@@ -41,21 +41,37 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
   return { query };
 }
 
+interface ListedCommune {
+  type: string;
+  parents: { region: string; province: string; cercle: string | null };
+}
+
 /**
  * Every commune a multi-filter query selects: the smallest pre-rendered list that
- * contains the answer, filtered by type. At most 6 pages for a région.
+ * contains the answer, filtered by everything else the query names. At most 6 pages for
+ * a région.
+ *
+ * Each filter is checked against every row, not only the one that picked the list:
+ * `region=01&province=04.421` reads the province's list, and has to come back empty
+ * rather than as that province's communes.
  */
-export async function collectCommunes(query: FilterQuery, fetchJson: FetchJson): Promise<{ type: string }[]> {
+export async function collectCommunes(query: FilterQuery, fetchJson: FetchJson): Promise<ListedCommune[]> {
   const base = narrowestSource(query);
-  const rows: { type: string }[] = [];
+  const rows: ListedCommune[] = [];
   let pages = 1;
   for (let p = 1; p <= pages; p++) {
     const body = await fetchJson(`${base}/${p}.json`);
     if (!body) break;
     pages = body.meta.totalPages ?? 1;
-    rows.push(...(body.data as { type: string }[]));
+    rows.push(...(body.data as ListedCommune[]));
   }
-  return query.type ? rows.filter((r) => r.type === query.type) : rows;
+  return rows.filter(
+    (r) =>
+      (query.region === undefined || r.parents.region === query.region) &&
+      (query.province === undefined || r.parents.province === query.province) &&
+      (query.cercle === undefined || r.parents.cercle === query.cercle) &&
+      (query.type === undefined || r.type === query.type),
+  );
 }
 
 /** One page of the communes a query selects, from a single file when one holds it. */

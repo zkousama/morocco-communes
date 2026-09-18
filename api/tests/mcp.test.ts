@@ -129,6 +129,14 @@ describe("the MCP server, through a real client", () => {
     expect((r.structuredContent!.communes as unknown[]).length).toBe(50);
   });
 
+  it("applies every filter, not only the one that picked the list", async () => {
+    // Province 04.421 is in région 04, so asking for it inside région 01 finds nothing.
+    const r = await call("list_communes", { region: "01", province: "04.421" });
+    expect(r.structuredContent).toMatchObject({ total: 0, page: 1, total_pages: 1 });
+    const both = await call("list_communes", { region: "01", province: "01.511" });
+    expect(both.structuredContent).toMatchObject({ total: 12 });
+  });
+
   it("rejects a filter that names nothing, in the API's own words", async () => {
     const r = await call("list_communes", { province: "99.999" });
     expect(r.isError).toBe(true);

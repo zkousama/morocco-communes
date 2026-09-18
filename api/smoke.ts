@@ -116,6 +116,12 @@ console.log("\ncomputed tier — answers no file holds");
       (urban.body?.meta?.total ?? 0) + (rural.body?.meta?.total ?? 0) === (all.body?.meta?.total ?? -1),
     `all=${all.body?.meta?.total} urban=${urban.body?.meta?.total} rural=${rural.body?.meta?.total}`);
 }
+{
+  // Province 04.421 is in région 04: the province's list is read, and every row filtered out.
+  const r = await get("/api/communes?region=01&province=04.421");
+  check("filters that contradict each other find nothing",
+    r.status === 200 && r.body?.meta?.total === 0, `status=${r.status} total=${r.body?.meta?.total}`);
+}
 
 console.log("\nproblem documents");
 for (const [path, status] of [
