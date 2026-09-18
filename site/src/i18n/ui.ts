@@ -37,7 +37,6 @@ export const ui = {
     intro:
       "Official HCP codes, names in French and Arabic, population from the 2024 and 2014 censuses, and a boundary for every commune but one. Free to use, and free to run.",
     mapCaption: "All 1,502 boundaries, drawn from the files this API serves.",
-    mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
 
     codeHeading: "How a code reads",
     codeBody:
@@ -145,7 +144,6 @@ export const ui = {
     intro:
       "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, et une limite pour chaque commune sauf une. Libre d’usage, et gratuit à héberger.",
     mapCaption: "Les 1 502 limites, tracées depuis les fichiers que cette API sert.",
-    mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
 
     codeHeading: "Comment se lit un code",
     codeBody:
@@ -252,7 +250,6 @@ export const ui = {
     tagline: "1,503 jama'a flmghrib, b sifat open data.",
     intro: "Codes rasmiyin mn HCP, smayat b lfransawiya w larbiya, sokkan mn ihsa 2024 w 2014, w lhdod d kol jama'a mn ghir whda. Faboor fl-istima'l w faboor fl-khdma.",
     mapCaption: "Kol 1,502 hdod, mrsoomin mn l-files li katservi had l-API.",
-    mapSource: "data/v1/geometry · OpenStreetMap, ODbL",
     codeHeading: "Kifach kaytqra l-code",
     codeBody: "L-code hwa trtib l-idari. Kol mjmoo'a d larqam katsmi mstawwa, dakchi alach l-code d jama'a fih nit l-iqlim w l-jiha dyalha. Dwayir kaynin ghir foq ljama'at lqarawiya; jama'a hadariya tqdr tkun fiha moqata'at f blasthom.",
     colPopulation: "Sokkan, 2024",

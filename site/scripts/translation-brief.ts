@@ -20,7 +20,6 @@ const NOTES: Record<string, string> = {
   tagline: "The headline, set large in a serif. Keep it short and declarative.",
   intro: "The paragraph under the headline.",
   mapCaption: "Caption under the map of Morocco.",
-  mapSource: "Source line under the map. Leave this one exactly as it is.",
   codeHeading: "Section heading.",
   codeBody: "Explains that the geographic code encodes the administrative hierarchy.",
   colPopulation: "Table column header.",

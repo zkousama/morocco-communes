@@ -150,6 +150,13 @@ const themes = [
         --plate-accent: #7fcfae;
         --plate-warn: #d8a83e;
 
+        /* Charts sit on the page, so their colours follow its theme. A diverging pair,
+           checked with the dataviz validator against each surface: lightness band,
+           chroma floor, colour-blind separation (protan ΔE 9.1 here, 10.7 in dark) and
+           3:1 contrast. The neutral midpoint is the rule colour. */
+        --chart-up: #0f8266;
+        --chart-down: #b3781b;
+
         --display: "Instrument Serif", Georgia, "Times New Roman", serif;
         --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
         --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -172,6 +179,8 @@ const themes = [
           --quiet: #9d9a8d;
           --rule: #313329;
           --brass: #cfa64a;
+          --chart-up: #40a687;
+          --chart-down: #b98a2c;
         }
       }
 
@@ -181,6 +190,8 @@ const themes = [
         --quiet: #9d9a8d;
         --rule: #313329;
         --brass: #cfa64a;
+        --chart-up: #40a687;
+        --chart-down: #b98a2c;
       }
 
       *,

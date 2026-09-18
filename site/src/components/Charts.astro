@@ -35,7 +35,7 @@ const spoken = (row: (typeof spread)[number]) =>
 ---
 
 <div class="charts">
-  <figure class="chart plate">
+  <figure class="chart">
     <figcaption>
       <h3>{copy.chartChange}</h3>
       <p>{copy.chartChangeBody}</p>
@@ -55,14 +55,14 @@ const spoken = (row: (typeof spread)[number]) =>
               }
             ></span>
           </span>
-          <span class="rval mono">{region.pct >= 0 ? "+" : "−"}{Math.abs(region.pct).toFixed(1)}%</span>
+          <span class="rval">{region.pct >= 0 ? "+" : "−"}{Math.abs(region.pct).toFixed(1)}%</span>
         </li>
       ))}
     </ul>
     <p class="note">{copy.chartChangeNote}</p>
   </figure>
 
-  <figure class="chart plate">
+  <figure class="chart">
     <figcaption>
       <h3>{copy.chartSize}</h3>
       <p>{copy.chartSizeBody}</p>
@@ -71,7 +71,7 @@ const spoken = (row: (typeof spread)[number]) =>
       {sizes.map((bucket) => (
         <li>
           <span class="sr-only">{bucket.label}: {group.format(bucket.count)}</span>
-          <span class="hcount mono" aria-hidden="true">{group.format(bucket.count)}</span>
+          <span class="hcount" aria-hidden="true">{group.format(bucket.count)}</span>
           <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`} aria-hidden="true"></span>
           <span class="hlabel" aria-hidden="true">{bucket.label}</span>
         </li>
@@ -79,7 +79,7 @@ const spoken = (row: (typeof spread)[number]) =>
     </ul>
   </figure>
 
-  <figure class="chart plate wide">
+  <figure class="chart wide">
     <figcaption>
       <h3>{copy.chartSpread}</h3>
       <p>{copy.chartSpreadBody}</p>
@@ -89,7 +89,7 @@ const spoken = (row: (typeof spread)[number]) =>
         <>
           <span class="rangename">
             {row.basis === "exact_code" ? copy.spreadUnchanged : copy.spreadCrosswalk}
-            <span class="mono n">{group.format(row.count)}</span>
+            <span class="n">{group.format(row.count)}</span>
             <span class="sr-only">: {spoken(row)}</span>
           </span>
           <span class="rangetrack" aria-hidden="true">
@@ -111,7 +111,7 @@ const spoken = (row: (typeof spread)[number]) =>
       <span class="spacer" aria-hidden="true"></span>
       <span class="scalebar" aria-hidden="true">
         {ticks.map((tick) => (
-          <span style={`inset-inline-start:${scale(tick)}%`} class="mono">{tick > 0 ? `+${tick}` : tick}%</span>
+          <span style={`inset-inline-start:${scale(tick)}%`} class="tick-label">{tick > 0 ? `+${tick}` : tick}%</span>
         ))}
       </span>
     </div>
@@ -123,7 +123,7 @@ const spoken = (row: (typeof spread)[number]) =>
   .charts {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 2.75rem 3rem;
     margin-top: 1.75rem;
   }
 
@@ -131,11 +131,15 @@ const spoken = (row: (typeof spread)[number]) =>
     grid-column: 1 / -1;
   }
 
+  /* On the page ground, not a panel: the map is the one dark field, and four identical
+     panels read as a card grid. A rule on top separates each chart instead. */
   .chart {
     margin: 0;
     display: flex;
     flex-direction: column;
     gap: 1.4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
   }
 
   .chart figcaption {
@@ -147,20 +151,20 @@ const spoken = (row: (typeof spread)[number]) =>
     font-family: var(--display);
     font-size: var(--t-md);
     font-weight: 400;
-    color: var(--plate-ink);
+    color: var(--ink);
     letter-spacing: -0.01em;
   }
 
   .chart figcaption p {
     margin: 0;
-    color: var(--plate-quiet);
+    color: var(--quiet);
     font-size: var(--t-sm);
     max-width: 52ch;
   }
 
   .chart .note {
     margin: 0;
-    color: var(--plate-quiet);
+    color: var(--quiet);
     font-size: var(--t-xs);
     max-width: 62ch;
   }
@@ -184,7 +188,7 @@ const spoken = (row: (typeof spread)[number]) =>
 
   .rname {
     font-size: var(--t-xs);
-    color: var(--plate-ink);
+    color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -201,30 +205,35 @@ const spoken = (row: (typeof spread)[number]) =>
     top: -0.1rem;
     bottom: -0.1rem;
     width: 1px;
-    background: var(--plate-rule);
+    background: var(--rule);
   }
 
   .bar {
     position: absolute;
     top: 0;
     bottom: 0;
-    border-radius: 1px;
     min-width: 2px;
   }
 
+  /* Rounded at the data end, flat where the bar leaves the zero axis. */
   .bar.up {
-    background: var(--plate-accent);
+    background: var(--chart-up);
+    border-start-end-radius: 4px;
+    border-end-end-radius: 4px;
   }
 
   .bar.down {
-    background: var(--plate-warn);
+    background: var(--chart-down);
+    border-start-start-radius: 4px;
+    border-end-start-radius: 4px;
   }
 
   .rval {
     font-size: var(--t-xs);
     text-align: end;
-    color: var(--plate-quiet);
+    color: var(--quiet);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   /* Histogram --------------------------------------------------------------- */
@@ -250,21 +259,21 @@ const spoken = (row: (typeof spread)[number]) =>
 
   .hcount {
     font-size: var(--t-xs);
-    color: var(--plate-quiet);
+    color: var(--quiet);
     font-variant-numeric: tabular-nums;
   }
 
   .hbar {
     display: block;
     flex: 0 0 auto;
-    background: var(--plate-accent);
-    border-radius: 1px 1px 0 0;
+    background: var(--chart-up);
+    border-radius: 4px 4px 0 0;
     min-height: 2px;
   }
 
   .hlabel {
     font-size: var(--t-xs);
-    color: var(--plate-quiet);
+    color: var(--quiet);
     white-space: nowrap;
   }
 
@@ -279,14 +288,15 @@ const spoken = (row: (typeof spread)[number]) =>
 
   .rangename {
     font-size: var(--t-sm);
-    color: var(--plate-ink);
+    color: var(--ink);
     line-height: 1.4;
   }
 
   .rangename .n {
     font-size: var(--t-xs);
-    color: var(--plate-quiet);
+    color: var(--quiet);
     margin-inline-start: 0.5rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .rangetrack {
@@ -300,18 +310,18 @@ const spoken = (row: (typeof spread)[number]) =>
     top: 0;
     bottom: 0;
     width: 1px;
-    background: var(--plate-rule);
+    background: var(--rule);
   }
 
   .tick.zeroline {
-    background: var(--plate-quiet);
+    background: var(--quiet);
   }
 
   .whisker {
     position: absolute;
     top: 50%;
     height: 1px;
-    background: var(--plate-accent);
+    background: var(--chart-up);
     transform: translateY(-50%);
   }
 
@@ -319,9 +329,9 @@ const spoken = (row: (typeof spread)[number]) =>
     position: absolute;
     top: 0.3rem;
     bottom: 0.3rem;
-    background: var(--plate-accent);
-    opacity: 0.32;
-    border-radius: 1px;
+    background: var(--chart-up);
+    opacity: 0.28;
+    border-radius: 3px;
   }
 
   /* Reads against the box it sits inside, which the accent colour would not. */
@@ -330,7 +340,7 @@ const spoken = (row: (typeof spread)[number]) =>
     top: 0.1rem;
     bottom: 0.1rem;
     width: 2px;
-    background: var(--plate-ink);
+    background: var(--ink);
   }
 
   .scalebar {
@@ -343,8 +353,9 @@ const spoken = (row: (typeof spread)[number]) =>
     position: absolute;
     transform: translateX(-50%);
     font-size: var(--t-xs);
-    color: var(--plate-quiet);
+    color: var(--quiet);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 
   @media (max-width: 62rem) {

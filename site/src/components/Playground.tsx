@@ -173,9 +173,8 @@ export default function Playground(props: Props) {
             <>
               <p class="pg-res">
                 <span>{props.copy.tier}</span>
-                <code>
-                  {r().status} · {r().tier}
-                </code>
+                <code>{r().tier}</code>
+                <code class={r().status < 400 ? "pg-status ok" : "pg-status bad"}>{r().status}</code>
               </p>
               <pre>{r().body}</pre>
             </>
@@ -303,6 +302,9 @@ export default function Playground(props: Props) {
         }
         .pg-res { margin-top: 1.1rem; }
         .pg-res code { color: var(--brass); }
+        .pg-res .pg-status { color: var(--quiet); }
+        .pg-res .pg-status.ok { color: var(--chart-up); }
+        .pg-res .pg-status.bad { color: var(--chart-down); }
 
         .pg-idle {
           color: var(--quiet);

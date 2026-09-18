@@ -59,7 +59,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
       <img src="/morocco.svg" alt={copy.mapCaption} width="1000" height={Math.round(1000 * aspect)} />
       <figcaption>
         <span>{copy.mapCaption}</span>
-        <span class="mono">{copy.mapSource}</span>
+        <span>© OpenStreetMap contributors, ODbL</span>
       </figcaption>
     </figure>
 
@@ -93,7 +93,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
               <span>{entry.fr}</span>
               <span class="level">{levels[entry.level]}</span>
             </td>
-            <td class="num mono">{entry.population === null ? "—" : group.format(entry.population)}</td>
+            <td class="num">{entry.population === null ? "—" : group.format(entry.population)}</td>
           </tr>
         ))}
       </tbody>
