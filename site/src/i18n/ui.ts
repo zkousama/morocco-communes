@@ -101,6 +101,7 @@ export const ui = {
       "207 communes were renumbered by the 2015 reform, so their 2014 population had to be matched by name and elimination rather than read off an unchanged code. If those matches were wrong, their implied growth would scatter differently.",
     spreadUnchanged: "Code unchanged since 2014",
     spreadCrosswalk: "Renumbered, matched by the crosswalk",
+    srSpread: "median {median}, middle half {p25} to {p75}, 10th to 90th percentile {p10} to {p90}",
     chartSpreadNote:
       "Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The 2 distributions sit almost on top of each other, which is evidence the matching is sound, though not proof. The reasoning for each pair is in data/v1/crosswalk.",
 
@@ -208,6 +209,7 @@ export const ui = {
       "207 communes ont été renumérotées par la réforme de 2015 : leur population de 2014 a dû être appariée par nom et par élimination, faute d’un code inchangé. Si ces appariements étaient faux, leur croissance se disperserait autrement.",
     spreadUnchanged: "Code inchangé depuis 2014",
     spreadCrosswalk: "Renuméroté, apparié par le crosswalk",
+    srSpread: "médiane {median}, moitié centrale de {p25} à {p75}, du 10e au 90e centile de {p10} à {p90}",
     chartSpreadNote:
       "La barre couvre les 10e à 90e centiles, le bloc les 25e à 75e, le trait la médiane. Les deux distributions se superposent presque : c’est l’indice que l’appariement tient — ce n’est pas une preuve, et le raisonnement par paire est dans data/v1/crosswalk.",
 
@@ -297,6 +299,7 @@ export const ui = {
     chartSpreadBody: "207 jama'a tbdlo larqam dyalhom b islah 2015, dakchi alach sokkan dyalhom d 2014 kan khasshom ytlaqaw b smya w l-iqsa machi ytqraw mn code ma tbdlch. Kon kano had l-matchat ghaltin, kon zyadathom tfreqat b chkl akhor.",
     spreadUnchanged: "Code ma tbdlch mn 2014",
     spreadCrosswalk: "Tbdlo larqam, mtlaqyin b l-crosswalk",
+    srSpread: "median {median}, n-nss l-wstani mn {p25} hta {p75}, mn l-10th hta l-90th percentile mn {p10} hta {p90}",
     chartSpreadNote: "L-khet kayched mn l-10th tal 90th percentile, l-carré mn 25th tal 75th, w l-khet l-wstani hwa median. Had jouj distributions mhotin qrib foq ba'dhom, hada dalil bli had l-match mzyan — machi ithbat qa'te, w l-fhamat d kol zoj kayna f data/v1/crosswalk.",
     refHeading: "Parameters",
     refBody:

@@ -27,6 +27,11 @@ const hi = Math.max(...spread.map((s) => s.p90));
 const pad = (hi - lo) * 0.08;
 const scale = (v: number) => ((v - (lo - pad)) / (hi - lo + pad * 2)) * 100;
 const ticks = [-20, -10, 0, 10, 20];
+const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`;
+const spoken = (row: (typeof spread)[number]) =>
+  copy.srSpread.replace(/\{(\w+)\}/g, (_, key: string) =>
+    signed((row as unknown as Record<string, number>)[key] ?? 0),
+  );
 ---
 
 <div class="charts">
@@ -39,7 +44,7 @@ const ticks = [-20, -10, 0, 10, 20];
       {change.map((region) => (
         <li>
           <span class="rname">{region.name}</span>
-          <span class="track">
+          <span class="track" aria-hidden="true">
             <span class="axis" style={`inset-inline-start:${zero}%`}></span>
             <span
               class:list={["bar", region.pct >= 0 ? "up" : "down"]}
@@ -65,9 +70,10 @@ const ticks = [-20, -10, 0, 10, 20];
     <ul class="histogram">
       {sizes.map((bucket) => (
         <li>
-          <span class="hcount mono">{group.format(bucket.count)}</span>
-          <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`}></span>
-          <span class="hlabel">{bucket.label}</span>
+          <span class="sr-only">{bucket.label}: {group.format(bucket.count)}</span>
+          <span class="hcount mono" aria-hidden="true">{group.format(bucket.count)}</span>
+          <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`} aria-hidden="true"></span>
+          <span class="hlabel" aria-hidden="true">{bucket.label}</span>
         </li>
       ))}
     </ul>
@@ -84,8 +90,9 @@ const ticks = [-20, -10, 0, 10, 20];
           <span class="rangename">
             {row.basis === "exact_code" ? copy.spreadUnchanged : copy.spreadCrosswalk}
             <span class="mono n">{group.format(row.count)}</span>
+            <span class="sr-only">: {spoken(row)}</span>
           </span>
-          <span class="rangetrack">
+          <span class="rangetrack" aria-hidden="true">
             {ticks.map((tick) => (
               <span class:list={["tick", { zeroline: tick === 0 }]} style={`inset-inline-start:${scale(tick)}%`}></span>
             ))}
