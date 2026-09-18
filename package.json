@@ -19,7 +19,8 @@
     "build": "pnpm site:build && pnpm api:build",
     "site:data": "node --experimental-strip-types site/scripts/outline.ts && node --experimental-strip-types site/scripts/hierarchy.ts && node --experimental-strip-types site/scripts/charts.ts",
     "site:brief": "node --experimental-strip-types site/scripts/translation-brief.ts",
-    "site:apply": "node --experimental-strip-types site/scripts/apply-translation.ts"
+    "site:apply": "node --experimental-strip-types site/scripts/apply-translation.ts",
+    "site:og": "node --experimental-strip-types site/scripts/og.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

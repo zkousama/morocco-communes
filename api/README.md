@@ -159,11 +159,21 @@ Needs a Cloudflare account. The free plan covers all of this — 100,000 Worker 
 day, and requests to static assets are free and unlimited.
 
 ```sh
-pnpm api:build                      # emits dist/ and api/generated/search-index.json
-pnpm exec wrangler login            # once
+pnpm exec wrangler login                        # once
+SITE_URL=https://<your-deployment> pnpm build   # the site, then the API tree
 pnpm exec wrangler deploy
 pnpm api:smoke https://<your-deployment>
 ```
+
+`SITE_URL` is what makes link previews work. LinkedIn, X and Slack need an absolute URL
+for the preview image and the canonical link, and the hostname only exists once the
+Worker is deployed — so the first deploy is built without it, and the second, with the
+hostname known, is built with it. Without it the pages build fine and those tags are
+simply left out.
+
+`site/public/og.png` is the preview image. It is committed rather than built, because
+rendering it needs Chrome; regenerate it with `pnpm site:og` when the map or the headline
+changes.
 
 `wrangler deploy --dry-run` checks the bundle without an account. The Worker is 706 KiB
 uncompressed against a 64 MiB limit, and `dist/` is 3,878 files against a 20,000 limit.

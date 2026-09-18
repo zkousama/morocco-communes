@@ -6,6 +6,10 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
+const site = Astro.site;
+const absolute = (p: string) => (site ? new URL(p, site).href : null);
+const canonical = absolute(Astro.url.pathname);
+const ogImage = absolute("/og.png");
 const themes = [
   { id: "auto", label: copy.themeAuto },
   { id: "light", label: copy.themeLight },
@@ -21,6 +25,28 @@ const themes = [
     <title>{copy.title}</title>
     <meta name="description" content={copy.tagline} />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={copy.title} />
+    <meta property="og:title" content={copy.tagline} />
+    <meta property="og:description" content={copy.intro} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={copy.tagline} />
+    <meta name="twitter:description" content={copy.intro} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:width" content="1200" />}
+    {ogImage && <meta property="og:image:height" content="630" />}
+    {ogImage && <meta property="og:image:alt" content={copy.mapCaption} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    {
+      site &&
+        LOCALES.map((l) => (
+          <link rel="alternate" hreflang={HTML_LANG[l]} href={absolute(path(l))!} />
+        ))
+    }
+    {site && <link rel="alternate" hreflang="x-default" href={absolute(path("en"))!} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
