@@ -1,0 +1,377 @@
+---
+import Docs from "../../layouts/Docs.astro";
+import Code from "../Code.astro";
+import { reference } from "../../generated/reference";
+import { docs, SPEC_FR } from "../../i18n/docs";
+import { highlightJson } from "../../lib/highlight";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const d = docs[locale].api;
+
+interface Schema {
+  type?: string;
+  enum?: string[];
+  minimum?: number;
+  maximum?: number;
+  exclusiveMinimum?: number;
+  default?: unknown;
+}
+interface Param {
+  name: string;
+  in: string;
+  required?: boolean;
+  description?: string;
+  schema: Schema;
+}
+interface Operation {
+  operationId: string;
+  summary: string;
+  description?: string;
+  parameters?: Param[];
+  responses: Record<string, { description: string }>;
+}
+
+// The English page speaks the spec's own words. The French one reads each line from the
+// translation map, and every key the spec implies has to be there, with none left over.
+const used = new Set<string>();
+const say = (key: string, english: string) => {
+  if (locale === "en") return english;
+  used.add(key);
+  const french = SPEC_FR[key];
+  if (!french) throw new Error(`SPEC_FR has no ${key}; the spec says "${english}"`);
+  return french;
+};
+
+const operations = reference.operations.map(({ path, method, op }) => {
+  const o = op as unknown as Operation;
+  const id = o.operationId;
+  return {
+    id,
+    path,
+    method: method.toUpperCase(),
+    summary: say(`${id}.summary`, o.summary),
+    description: o.description ? say(`${id}.description`, o.description) : null,
+    params: (o.parameters ?? []).map((p) => ({
+      ...p,
+      description: p.description ? say(`${id}.param.${p.name}`, p.description) : "",
+    })),
+    responses: Object.entries(o.responses).map(([status, r]) => ({
+      status,
+      text: say(`${id}.${status}`, r.description),
+    })),
+    example: (reference.examples as Record<string, { request: string; body: unknown; cut?: { shown: number; total: number } }>)[id]!,
+  };
+});
+
+if (locale === "fr") {
+  const stale = Object.keys(SPEC_FR).filter((key) => !used.has(key));
+  if (stale.length > 0) throw new Error(`SPEC_FR names what the spec no longer has: ${stale.join(", ")}`);
+}
+
+/** A parameter's type and bounds, in interval notation, which reads the same in both languages. */
+const typeOf = (s: Schema) => {
+  if (s.enum) return s.enum.join(" | ");
+  const lo = s.minimum !== undefined ? `[${s.minimum}` : s.exclusiveMinimum !== undefined ? `(${s.exclusiveMinimum}` : null;
+  const range = lo !== null && s.maximum !== undefined ? ` ${lo}, ${s.maximum}]` : "";
+  return `${s.type ?? ""}${range}`.replace(/-/g, "−");
+};
+
+const origin = Astro.site?.origin ?? null;
+const identifiers = ["01.511.01.0", "001511010", "1511010", "tanger"];
+const fill = (text: string, values: Record<string, number>) =>
+  text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? ""));
+const errors = Object.entries(reference.errors as Record<string, { status: number; title: string }>);
+
+const toc = [
+  { id: "basics", label: d.basics },
+  { id: "routes", label: d.routes },
+  { id: "files", label: d.files },
+  { id: "errors", label: d.errors },
+];
+---
+
+<Docs locale={locale} route="docs/api/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
+  <section id="basics">
+    <h2>{d.basics}</h2>
+    <dl class="basics">
+      <div>
+        <dt>{d.baseUrl}</dt>
+        <dd>
+          {origin ? <code>{origin}</code> : <span class="quiet">{d.baseUrlLocal}</span>}.
+          {" "}{d.baseUrlBody}
+        </dd>
+      </div>
+      <div>
+        <dt>{d.identifiers}</dt>
+        <dd>
+          {d.identifiersBody}{" "}
+          {identifiers.map((id, i) => (
+            <>{i > 0 && ", "}<code>{id}</code></>
+          ))}.
+        </dd>
+      </div>
+      <div><dt>{d.shape}</dt><dd set:html={inline(d.shapeBody)} /></div>
+      <div><dt>{d.cost}</dt><dd set:html={inline(d.costBody)} /></div>
+      <div>
+        <dt>{d.spec}</dt>
+        <dd>{d.specBody} <a href="/api/openapi.json"><code>/api/openapi.json</code></a></dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="routes">
+    <h2>{d.routes}</h2>
+    <ul class="index">
+      {operations.map((op) => (
+        <li><a href={`#${op.id}`}><span class="verb">{op.method}</span> <code>{op.path}</code></a></li>
+      ))}
+    </ul>
+
+    {operations.map((op) => (
+      <article class="route" id={op.id}>
+        <h3><span class="verb">{op.method}</span> <code>{op.path}</code></h3>
+        <p class="summary">{op.summary}</p>
+        {op.description && <p class="quiet" set:html={inline(op.description)} />}
+
+        {op.params.length > 0 && (
+          <div class="scroll">
+            <table class="params">
+              <thead>
+                <tr>
+                  <th scope="col">{d.parameter}</th>
+                  <th scope="col">{d.type}</th>
+                  <th scope="col">{d.default}</th>
+                  <th scope="col"><span class="sr-only">{d.parameter}</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {op.params.map((p) => (
+                  <tr>
+                    <td class="mono">{p.name}</td>
+                    <td class="mono quiet">{typeOf(p.schema)}</td>
+                    <td class:list={["mono", { required: p.required }]}>
+                      {p.required ? d.required : p.schema.default !== undefined ? String(p.schema.default) : ""}
+                    </td>
+                    <td set:html={inline(p.description)} />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <ul class="responses" aria-label={d.responses}>
+          {op.responses.map((r) => (
+            <li>
+              {r.status.startsWith("2") ? (
+                <span class="mono status">{r.status}</span>
+              ) : (
+                <a class="mono status" href="#errors">{r.status}</a>
+              )}
+              <span set:html={inline(r.text)} />
+            </li>
+          ))}
+        </ul>
+
+        <Code locale={locale} label={`${d.example} · GET ${op.example.request}`} html={highlightJson(op.example.body)} tall />
+        {op.example.cut && <p class="note cut">{fill(d.cutNote, op.example.cut)}</p>}
+      </article>
+    ))}
+  </section>
+
+  <section id="files">
+    <h2>{d.files}</h2>
+    <p set:html={inline(d.filesBody)} />
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{d.path}</th>
+            <th scope="col">{d.holds}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reference.files.map((f) => (
+            <tr>
+              <td class="mono"><a href={f.example}>{f.pattern}</a></td>
+              <td>{d.filesWhat[f.key as keyof typeof d.filesWhat]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="errors">
+    <h2>{d.errors}</h2>
+    <p set:html={inline(d.errorsBody)} />
+    <dl class="errors">
+      {errors.map(([kind, e]) => (
+        <div id={kind}>
+          <dt><code>{kind}</code> <span class="mono quiet">{e.status}</span></dt>
+          <dd>
+            <span class="title">{e.title}.</span> {d.errorWhen[kind]}
+          </dd>
+        </div>
+      ))}
+    </dl>
+    <Code locale={locale} label={d.errorExample} html={highlightJson(reference.errorExample)} />
+  </section>
+</Docs>
+
+<style>
+  .basics,
+  .errors {
+    margin: 1rem 0 0;
+    display: grid;
+    gap: 0;
+  }
+
+  .basics > div,
+  .errors > div {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: 0.25rem 1.5rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 1rem;
+  }
+
+  .basics > div:last-child,
+  .errors > div:last-child {
+    border-bottom: 0;
+  }
+
+  dt {
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .errors {
+    margin-bottom: 1.5rem;
+  }
+
+  .errors > div:target {
+    background: var(--well);
+  }
+
+  .errors .title {
+    font-weight: 500;
+  }
+
+  @media (max-width: 40rem) {
+    .basics > div,
+    .errors > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .index {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    columns: 2 18rem;
+    column-gap: 2rem;
+    font-size: var(--t-sm);
+  }
+
+  .index li {
+    padding: 0.2rem 0;
+    break-inside: avoid;
+  }
+
+  .index a {
+    text-decoration: none;
+  }
+
+  .index a:hover code {
+    color: var(--brass);
+  }
+
+  .verb {
+    font-family: var(--mono);
+    font-size: 0.82em;
+    color: var(--quiet);
+    margin-inline-end: 0.35rem;
+  }
+
+  .route {
+    padding-top: 2.5rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .route h3 {
+    margin: 0 0 0.35rem;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  .route h3 code {
+    font-size: 0.95em;
+  }
+
+  .summary {
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+  }
+
+  .required {
+    color: var(--brass);
+  }
+
+  .responses {
+    list-style: none;
+    margin: 0.5rem 0 1.25rem;
+    padding: 0;
+    font-size: var(--t-sm);
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .responses li {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .status {
+    color: var(--quiet);
+  }
+
+  .cut {
+    margin-top: -0.75rem;
+    font-size: var(--t-xs);
+  }
+
+  /* Four columns leave the description a sliver on a phone, so each row stacks: name,
+     type and default on a line, the description under them. */
+  @media (max-width: 40rem) {
+    .params thead {
+      display: none;
+    }
+    .params tr {
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr);
+      column-gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .params td {
+      padding: 0;
+      border: 0;
+    }
+    .params td:last-child {
+      grid-column: 1 / -1;
+      padding-top: 0.2rem;
+    }
+  }
+</style>
