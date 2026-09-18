@@ -137,6 +137,14 @@ describe("the MCP server, through a real client", () => {
     expect(both.structuredContent).toMatchObject({ total: 12 });
   });
 
+  it("refuses a page past the last, whether or not one file answers the filter", async () => {
+    for (const filter of [{ region: "01" }, { region: "01", type: "rural" }]) {
+      const r = await call("list_communes", { ...filter, page: 9 });
+      expect(r.isError, JSON.stringify(filter)).toBe(true);
+      expect(text(r)).toBe("There is no page 9 for these filters.");
+    }
+  });
+
   it("says so when a filter is given the wrong kind of unit", async () => {
     const r = await call("list_communes", { region: "01.511" });
     expect(r.isError).toBe(true);

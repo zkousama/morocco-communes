@@ -79,7 +79,11 @@ export async function collectCommunes(query: FilterQuery, fetchJson: FetchJson):
   );
 }
 
-/** One page of the communes a query selects, from a single file when one holds it. */
+/**
+ * One page of the communes a query selects, from a single file when one holds it, or null
+ * past the last page. A filter that matches nothing still has a page 1, empty, the same
+ * as the pre-rendered lists.
+ */
 export async function listCommunes(
   query: FilterQuery,
   fetchJson: FetchJson,
@@ -91,5 +95,6 @@ export async function listCommunes(
     return { rows: body.data, meta: body.meta as PageMeta };
   }
   const { slice, meta } = paginate(await collectCommunes(query, fetchJson), query.page, PER_PAGE);
+  if (query.page > meta.totalPages) return null;
   return { rows: slice, meta };
 }

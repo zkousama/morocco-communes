@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
-import { envelope, paginate, PER_PAGE, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
+import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, resolve } from "../lib/resolve.ts";
-import { collectCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
+import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, RADIUS_KM } from "../lib/params.ts";
@@ -164,15 +164,17 @@ app.get("/api/communes", async (c) => {
     });
   }
 
-  const filtered = await collectCommunes(query, fetchJsonFrom(c.env, url));
-  const { slice, meta } = paginate(filtered, page, PER_PAGE);
+  // Past the last page is a 404 here as it is for the single-filter files above.
+  const listed = await listCommunes(query, fetchJsonFrom(c.env, url));
+  if (!listed) return fail("not-found", `no page ${page} for this filter`, instance);
+  const { rows, meta } = listed;
   const link = (n: number) => {
     const next = new URL(url);
     next.searchParams.set("page", String(n));
     return next.pathname + next.search;
   };
   return json(
-    envelope(slice, {
+    envelope(rows, {
       self: instance,
       prev: page > 1 ? link(page - 1) : null,
       next: page < meta.totalPages ? link(page + 1) : null,

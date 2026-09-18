@@ -133,6 +133,8 @@ for (const [path, status] of [
   ["/api/communes/near?lng=-7.59", 400],
   ["/api/communes/near?lat=&lng=-7.59", 400],
   ["/api/communes?region=01.511", 400],
+  ["/api/communes?region=01&page=4", 404],
+  ["/api/communes?region=01&type=rural&page=4", 404],
   ["/api/nonsense", 404],
 ] as const) {
   const r = await get(path);
