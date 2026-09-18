@@ -3,8 +3,11 @@ import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
 import { envelope, paginate, PER_PAGE, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
-import { aliasPath, buildLookup, narrowestSource, resolve, type FilterQuery } from "../lib/resolve.ts";
-import { LIMIT, PAGE, RADIUS_KM } from "../lib/params.ts";
+import { aliasPath, buildLookup, resolve } from "../lib/resolve.ts";
+import { collectCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
+import { createMcpServer } from "../mcp/server.ts";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { LIMIT, RADIUS_KM } from "../lib/params.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -17,11 +20,19 @@ interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
 }
 
+/** Reads a pre-rendered file through the asset binding, the way a client would. */
+const fetchJsonFrom = (env: Env, base: URL): FetchJson => async (path) => {
+  const asset = await env.ASSETS.fetch(new Request(new URL(path, base)));
+  return asset.ok ? ((await asset.json()) as Envelope<unknown[]>) : null;
+};
+
 const LEVELS: Level[] = ["commune", "arrondissement", "province", "region", "cercle"];
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.use("/*", cors({ origin: "*", allowMethods: ["GET", "OPTIONS"] }));
+// POST is for /mcp: MCP clients send JSON-RPC as POST requests, and a browser-based one
+// would otherwise be refused at the preflight before reaching the server.
+app.use("/*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
 
 /** Worker responses do not inherit the asset tier's _headers, so the tier is labelled here. */
 const json = (body: Envelope<unknown>, tier: "computed" | "alias") =>
@@ -115,24 +126,21 @@ app.get("/api/communes", async (c) => {
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
   }
 
-  const page = intParam(url.searchParams.get("page") ?? undefined, PAGE.default, PAGE.max);
-  if (page === null) return fail("invalid-query", "page must be a whole number from 1", instance);
-
-  const type = url.searchParams.get("type");
-  if (type !== null && type !== "urban" && type !== "rural") {
-    return fail("invalid-query", "type must be urban or rural", instance);
-  }
-
-  const query: FilterQuery = { page };
-  for (const key of ["region", "province", "cercle"] as const) {
-    const raw = url.searchParams.get(key);
-    if (raw === null) continue;
-    const found = resolve(lookup, raw);
-    if (found.kind === "malformed") return fail("invalid-code", `${raw} is not a geographic code`, instance);
-    if (found.kind === "absent") return fail("not-found", `no ${key} has code ${raw}`, instance);
-    query[key] = found.code;
-  }
-  if (type !== null) query.type = type;
+  // Parsed by the same function the MCP tool uses, so both reject the same input.
+  const pageRaw = url.searchParams.get("page");
+  const parsed = parseFilter(
+    {
+      region: url.searchParams.get("region") ?? undefined,
+      province: url.searchParams.get("province") ?? undefined,
+      cercle: url.searchParams.get("cercle") ?? undefined,
+      type: url.searchParams.get("type") ?? undefined,
+      page: pageRaw === null ? undefined : /^[0-9]+$/.test(pageRaw) ? Number(pageRaw) : Number.NaN,
+    },
+    lookup,
+  );
+  if ("error" in parsed) return fail(parsed.error.kind, parsed.error.detail, instance);
+  const { query } = parsed;
+  const { page } = query;
 
   const direct = aliasPath(query);
   if (direct) {
@@ -150,17 +158,7 @@ app.get("/api/communes", async (c) => {
     });
   }
 
-  const base = narrowestSource(query);
-  const rows: { type: string }[] = [];
-  let pages = 1;
-  for (let p = 1; p <= pages; p++) {
-    const asset = await c.env.ASSETS.fetch(new Request(new URL(`${base}/${p}.json`, url)));
-    if (!asset.ok) break;
-    const body = (await asset.json()) as Envelope<{ type: string }[]>;
-    pages = body.meta.totalPages ?? 1;
-    rows.push(...body.data);
-  }
-  const filtered = query.type ? rows.filter((r) => r.type === query.type) : rows;
+  const filtered = await collectCommunes(query, fetchJsonFrom(c.env, url));
   const { slice, meta } = paginate(filtered, page, PER_PAGE);
   const link = (n: number) => {
     const next = new URL(url);
@@ -220,6 +218,25 @@ app.get("/api/:collection", async (c) => {
       "content-location": canonical,
     },
   });
+});
+
+/**
+ * MCP over Streamable HTTP, stateless: a fresh server and transport per request, answering
+ * in plain JSON rather than holding a stream open, which is what a Worker is suited to.
+ * The tools read the same pre-rendered files the API serves, so an agent and a client get
+ * the same answer to the same question.
+ */
+app.all("/mcp", async (c) => {
+  const server = createMcpServer({ index, lookup, fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)) });
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
+  await server.connect(transport);
+  const response = await transport.handleRequest(c.req.raw);
+  const headers = new Headers(response.headers);
+  headers.set("x-api-tier", "computed");
+  return new Response(response.body, { status: response.status, headers });
 });
 
 /**

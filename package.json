@@ -36,7 +36,10 @@
     "wrangler": "^4.134.0"
   },
   "dependencies": {
-    "hono": "^4.13.8"
+    "@cfworker/json-schema": "^4.1.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "hono": "^4.13.8",
+    "zod": "^4.6.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

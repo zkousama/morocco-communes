@@ -146,6 +146,32 @@ console.log("\nfor programs and agents");
     response.status === 200 && text.startsWith("# ") && text.includes("/api/openapi.json"));
 }
 
+console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is checking");
+{
+  const rpc = async (method: string, params: unknown) => {
+    const response = await fetch(base + "/mcp", {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    });
+    return { status: response.status, body: (await response.json()) as { result?: Record<string, never> } };
+  };
+  const init = await rpc("initialize", {
+    protocolVersion: "2025-06-18",
+    capabilities: {},
+    clientInfo: { name: "smoke", version: "1" },
+  });
+  check("/mcp initialize negotiates a protocol and offers tools",
+    init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
+  const list = await rpc("tools/list", {});
+  const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
+  check("/mcp lists the 4 tools", names.join(",") === "communes_near,get_commune,list_communes,search", names.join(","));
+  const call = await rpc("tools/call", { name: "get_commune", arguments: { id: "tanger" } });
+  const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
+  check("/mcp get_commune answers with the parent named",
+    commune?.code === "01.511.01.0" && commune.province.name === "Tanger-Assilah", JSON.stringify(commune)?.slice(0, 80));
+}
+
 console.log("\nnot found, for a person rather than a client");
 for (const [path, marker] of [
   ["/about", "No page here"],
