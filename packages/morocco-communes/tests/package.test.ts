@@ -1,0 +1,85 @@
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
+
+const HERE = "packages/morocco-communes";
+// dist/ is built by this test, so its types don't exist yet when the project is
+// type-checked. The last test checks them the way a consumer would.
+interface Unit {
+  code: string;
+  name: { fr: string; ar: string };
+  type?: string;
+}
+let pkg: Record<"regions" | "provinces" | "cercles" | "communes" | "arrondissements", Unit[]> & {
+  version: string;
+  getCommune(key: string): Unit | undefined;
+  provincesOf(code: string): Unit[];
+  cerclesOf(code: string): Unit[];
+  communesOf(code: string): Unit[];
+  arrondissementsOf(code: string): Unit[];
+};
+
+beforeAll(async () => {
+  execFileSync("node", ["--experimental-strip-types", join(HERE, "build.ts")], { stdio: "pipe" });
+  pkg = await import(resolve(HERE, "dist/index.js"));
+}, 30_000);
+
+const attributes = (name: string) =>
+  JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as { code: string }[];
+
+describe("the npm package", () => {
+  it("holds every unit of the dataset", () => {
+    for (const name of ["regions", "provinces", "cercles", "communes", "arrondissements"] as const) {
+      expect(pkg[name].map((u) => u.code), name).toEqual(attributes(name).map((u) => u.code));
+    }
+  });
+
+  it("leaves out every field that comes from OpenStreetMap", () => {
+    const text = readFileSync(join(HERE, "dist/communes.js"), "utf8");
+    for (const key of ['"centroid"', '"bbox"', '"osm"', '"geometry"']) expect(text).not.toContain(key);
+  });
+
+  it("finds a commune by code or by slug", () => {
+    expect(pkg.getCommune("01.511.01.0")?.name.fr).toBe("Tanger");
+    expect(pkg.getCommune("tanger")?.code).toBe("01.511.01.0");
+    expect(pkg.getCommune("nowhere")).toBeUndefined();
+  });
+
+  it("walks the hierarchy the way the API does", () => {
+    expect(pkg.provincesOf("01")).toHaveLength(8);
+    expect(pkg.communesOf("01.511")).toHaveLength(12);
+    expect(pkg.communesOf("01")).toHaveLength(146);
+    expect(pkg.cerclesOf("01.511").map((c) => c.code).sort()).toEqual(["01.511.03", "01.511.05"]);
+    expect(pkg.arrondissementsOf("01.511.01.0")).toHaveLength(4);
+  });
+
+  it("shares its version with the dataset", () => {
+    const sources = JSON.parse(readFileSync("data/v1/sources.json", "utf8")) as { datasetVersion: string };
+    expect(pkg.version).toBe(sources.datasetVersion);
+  });
+
+  it("type-checks for a consumer", () => {
+    const dir = mkdtempSync(join(tmpdir(), "morocco-communes-"));
+    const dist = resolve(HERE, "dist");
+    writeFileSync(
+      join(dir, "use.ts"),
+      `import { communes, getCommune, provincesOf, type Commune } from "${dist}/index.js";
+import regions from "${dist}/regions.js";
+const first: Commune = communes[0]!;
+const code: string = first.code;
+const urban: boolean = getCommune("tanger")?.type === "urban";
+const names: string[] = provincesOf(regions[0]!.code).map((p) => p.name.ar);
+// @ts-expect-error a commune has no centroid in this package
+first.centroid;
+export { code, urban, names };
+`,
+    );
+    execFileSync(
+      "pnpm",
+      ["exec", "tsc", "--noEmit", "--strict", "--module", "nodenext", "--moduleResolution", "nodenext", "--target", "es2022", join(dir, "use.ts")],
+      { stdio: "pipe" },
+    );
+  }, 60_000);
+});

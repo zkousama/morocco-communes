@@ -1,0 +1,55 @@
+{
+  "name": "morocco-communes",
+  "version": "1.0.0",
+  "description": "Morocco's régions, provinces, cercles, communes and arrondissements, with HCP codes, French and Arabic names, and 2024 census population.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./regions": {
+      "types": "./dist/regions.d.ts",
+      "default": "./dist/regions.js"
+    },
+    "./provinces": {
+      "types": "./dist/provinces.d.ts",
+      "default": "./dist/provinces.js"
+    },
+    "./cercles": {
+      "types": "./dist/cercles.d.ts",
+      "default": "./dist/cercles.js"
+    },
+    "./communes": {
+      "types": "./dist/communes.d.ts",
+      "default": "./dist/communes.js"
+    },
+    "./arrondissements": {
+      "types": "./dist/arrondissements.d.ts",
+      "default": "./dist/arrondissements.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "keywords": [
+    "morocco",
+    "maroc",
+    "communes",
+    "regions",
+    "provinces",
+    "hcp",
+    "census",
+    "rgph"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Ousama (https://github.com/zkousama)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zkousama/morocco-communes-api.git",
+    "directory": "packages/morocco-communes"
+  },
+  "homepage": "https://github.com/zkousama/morocco-communes-api/tree/main/packages/morocco-communes"
+}

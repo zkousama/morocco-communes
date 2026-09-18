@@ -19,7 +19,9 @@
     "pipeline/src",
     "pipeline/tests",
     "api/src",
-    "api/tests"
+    "api/tests",
+    "packages/morocco-communes/build.ts",
+    "packages/morocco-communes/tests"
   ],
   "exclude": [
     "site",
