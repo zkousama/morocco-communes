@@ -20,6 +20,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 ## API
 
 - [OpenAPI spec](${at("/api/openapi.json")}): every route, parameter, limit and response shape
+- [MCP server](${at("/mcp")}): Streamable HTTP, no key, with the tools search, get_commune, communes_near and list_communes
 - [Search](${at("/api/search?q=tanger")}): any unit by French or Arabic name, by slug, or by another name it goes by
 - [Nearby](${at("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15")}): communes within a radius of a point, nearest first
 - [One commune](${at("/api/communes/tanger")}): by any spelling of its identifier

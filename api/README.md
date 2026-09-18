@@ -11,7 +11,7 @@ Every response is JSON, enveloped as:
 ```
 
 `prev` and `next` are always present, `null` at the ends. `page`, `perPage`, `total` and
-`totalPages` appear on lists that paginate, which is the commune lists and nothing else —
+`totalPages` appear on lists that paginate, which is the commune lists and nothing else:
 83 provinces and 213 cercles ship whole.
 
 ## The three tiers
@@ -62,8 +62,8 @@ them answer with an empty `data` and `totalPages: 1` rather than a 404.
 
 ## Alias
 
-A query string cannot select a file — an asset store is a manifest keyed by path — so
-these shapes go through the Worker, which resolves them to the file that already holds
+An asset store is a manifest keyed by path, so a query string can't select a file. These
+shapes go through the Worker, which resolves them to the file that already holds
 the answer:
 
 | Request | Resolves to |
@@ -113,7 +113,7 @@ useful trigram with `Fès`, and `Mogador` shares none with `Essaouira`. Those co
 list of 17 exonyms and pre-1956 administrative names in `api/src/lib/exonyms.ts`, each
 carrying where the name comes from and each checked against the dataset when the index is
 built. An entry pointing at a code no unit has, or naming something that is already a real
-name, fails the build — `Anfa` is both Casablanca's historical name and one of its
+name, fails the build. `Anfa` is both Casablanca's historical name and one of its
 arrondissements, and the arrondissement keeps it.
 
 ### `GET /api/communes/near`
@@ -126,14 +126,57 @@ arrondissements, and the arrondissement keeps it.
 | `limit` | 10 | 1 to 50 |
 
 Distances are haversine against commune centroids, nearest first. The centroid is a
-pole of inaccessibility, not a mean of vertices, so it falls inside the commune.
+pole of inaccessibility, the point furthest from any edge, so it falls inside the commune.
 Sidi Mohamed Benmansour has no centroid and can never be returned.
 
 ### Filter combinations
 
 `/api/communes` with more than one of `region`, `province`, `cercle`, `type` is computed:
-the Worker narrows to the smallest pre-rendered list and filters it. Bounded by design —
+the Worker narrows to the smallest pre-rendered list and filters it. The work is bounded:
 a cercle is one page, a province at most two, a région at most six.
+
+## MCP
+
+`/mcp` is an MCP server, so Claude, Claude Code and other MCP clients can call the data as
+tools instead of reading the docs. It speaks Streamable HTTP, needs no key, and keeps no
+session: each request gets a fresh server that answers in plain JSON.
+
+| Tool | Does |
+|---|---|
+| `search` | finds any unit by French or Arabic name, slug, or another name it goes by |
+| `get_commune` | one commune's names, type, parents, 2024 and 2014 population, and a point inside it |
+| `communes_near` | communes within a radius of a point, nearest first |
+| `list_communes` | communes by région, province, cercle or type, 50 to a page |
+
+All four are read-only and say so in their annotations, so a client can call them without
+asking each time. A commune comes back with its région, province and cercle named, not just
+coded, and a tool that cannot answer says why and what to call instead: asking
+`get_commune` for a province's code gets pointed to `list_communes`.
+
+The tools read the same pre-rendered files the API serves, and `list_communes` goes through
+the same filter code as `/api/communes`, so an agent and an HTTP client get the same answer
+to the same question.
+
+To connect, once the Worker is deployed:
+
+```sh
+claude mcp add --transport http morocco-communes https://<your-deployment>/mcp
+```
+
+From the Claude API, the MCP connector takes the URL directly; the request needs both
+halves, the server and a toolset naming it, with the `mcp-client-2025-11-20` beta:
+
+```json
+{
+  "model": "claude-opus-5",
+  "mcp_servers": [{ "type": "url", "url": "https://<your-deployment>/mcp", "name": "morocco-communes" }],
+  "tools": [{ "type": "mcp_toolset", "mcp_server_name": "morocco-communes" }]
+}
+```
+
+A full request costs 1 to 2 ms of CPU, server construction included, against the 10 ms each
+request gets. `pnpm api:smoke` checks it in raw JSON-RPC, and it has been exercised with the
+MCP SDK's client over HTTP and with the MCP Inspector.
 
 ## Errors
 
@@ -155,7 +198,7 @@ will not help.
 
 ## Deploying
 
-Needs a Cloudflare account. The free plan covers all of this — 100,000 Worker requests a
+Needs a Cloudflare account. The free plan covers all of this: 100,000 Worker requests a
 day, and requests to static assets are free and unlimited.
 
 ```sh
@@ -167,7 +210,7 @@ pnpm api:smoke https://<your-deployment>
 
 `SITE_URL` is what makes link previews work. LinkedIn, X and Slack need an absolute URL
 for the preview image and the canonical link, and the hostname only exists once the
-Worker is deployed — so the first deploy is built without it, and the second, with the
+Worker is deployed, so the first deploy is built without it, and the second, with the
 hostname known, is built with it. Without it the pages build fine and those tags are
 simply left out.
 
@@ -186,8 +229,8 @@ documents; point it at the real hostname once there is one.
 
 Both were measured against `wrangler dev`, and `pnpm api:smoke` re-checks them:
 
-- The asset store serves a file with a dotted basename like `01.511.01.0.json` as
-  `application/json`, which is why the pre-rendered files carry a `.json` suffix.
+- The pre-rendered files carry a `.json` suffix because the asset store infers the type
+  from it: a dotted basename like `01.511.01.0.json` is served as `application/json`.
 - `_headers` does not apply to Worker responses, so the Worker sets CORS itself. It does
-  override `Content-Type`, which is how the `.topojson` files get one — the asset store
-  does not know the extension and serves them with no type at all.
+  override `Content-Type`. The asset store doesn't know the `.topojson` extension and would
+  serve those files with no type at all, so a `_headers` rule gives them one.

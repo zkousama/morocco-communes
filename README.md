@@ -16,12 +16,12 @@ shows the working.
 | Directory | Holds | Licence |
 |---|---|---|
 | `attributes/` | every unit, JSON and CSV | HCP, attributed |
-| `geometry/` | one TopoJSON per région | **ODbL** — share-alike |
+| `geometry/` | one TopoJSON per région | **ODbL**, share-alike |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, attributed |
-| `sources.json` | each source's digest, licence and vintage | — |
+| `sources.json` | each source's digest, licence and vintage | |
 
 The licences differ by directory and `geometry/` carries its own LICENSE. Three fields on
-each commune — `centroid`, `bbox` and `osm` — come from OpenStreetMap and are ODbL too;
+each commune (`centroid`, `bbox` and `osm`) come from OpenStreetMap and are ODbL too;
 `provenance.geometry` marks them.
 
 Rebuild it with `pnpm dataset:build`. From the same cache the output is byte-identical.
@@ -30,7 +30,7 @@ Rebuild it with `pnpm dataset:build`. From the same cache the output is byte-ide
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered** — 3,852 files written at build time and served straight from
+**Pre-rendered.** 3,852 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -44,7 +44,7 @@ GET /api/arrondissements/01.511.01.05.json   GET /api/version.json
 GET /data/v1/**
 ```
 
-**Alias** — the query-string and extensionless shapes. A path-keyed asset store can't
+**Alias.** The query-string and extensionless shapes. A path-keyed asset store can't
 match on a query string, so the Worker resolves these to the file that already holds the
 answer and names it in `Content-Location`:
 
@@ -53,7 +53,7 @@ GET /api/communes?province=01.511&page=1     GET /api/communes?type=urban
 GET /api/communes/tanger                     GET /api/communes/001511010
 ```
 
-**Computed** — the answers no file holds:
+**Computed.** The answers no file holds:
 
 ```
 GET /api/search?q=tanger&levels=commune&limit=10
@@ -75,29 +75,32 @@ Full reference: [`api/README.md`](api/README.md).
 
 ### For programs and agents
 
-- **`/api/openapi.json`** — an OpenAPI 3.1 description of every route, built from the
+- **`/api/openapi.json`**: an OpenAPI 3.1 description of every route, built from the
   same module the Worker reads its limits from, so the defaults and bounds it states are
   the ones enforced. Most agent frameworks turn it into tools directly.
-- **`/llms.txt`** — a short markdown map of the API and the dataset, in the llmstxt.org
+- **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
+- **`/mcp`**: an MCP server with 4 read-only tools (`search`, `get_commune`,
+  `communes_near`, `list_communes`), so Claude, Claude Code and other MCP clients can query
+  the data directly. How to connect is in [`api/README.md`](api/README.md#mcp).
 
 ## The docs site
 
 `site/` is an Astro site in English, French and Moroccan Darija, with a light and dark
 theme and a control to pick either or follow the system. Darija is written in Latin
 letters and keeps the technical vocabulary in English, because that is what those words
-are in practice. It builds to static HTML — the only JavaScript is a
+are in practice. It builds to static HTML, and the only JavaScript is a
 Solid island for the playground, which issues live queries against whatever it is deployed
 beside and shows the request URL and the `X-Api-Tier` of the response.
 
 Everything drawn on it comes out of `data/v1` at build time, by three scripts under
 `site/scripts/`:
 
-- `outline.ts` — the hero. All 1,502 commune boundaries, decoded from the TopoJSON,
+- `outline.ts` draws the hero: All 1,502 commune boundaries, decoded from the TopoJSON,
   projected and simplified to a tolerance that stays under a device pixel at the size it
-  renders. It is the dataset, not an illustration of it.
-- `hierarchy.ts` — the code ladder, a real chain from région down to arrondissement.
-- `charts.ts` — population change per région, the distribution of commune sizes, and the
+  renders, straight from the files the API serves.
+- `hierarchy.ts` builds the code ladder, a real chain from région down to arrondissement.
+- `charts.ts` computes population change per région, the distribution of commune sizes, and the
   growth spread of the 207 crosswalked communes against the 1,286 whose code never
   changed. That last one is the reconciliation checking itself: the two distributions sit
   almost on top of each other.
@@ -107,7 +110,7 @@ The charts are inline SVG and CSS, so they need no JavaScript and no charting li
 Arabic names are in the data and Arabic queries work; the interface itself is in Latin
 script throughout.
 
-It is static on purpose: nothing in it needs a server, so the hand-written Worker stays
+It's static because nothing in it needs a server, so the hand-written Worker stays
 the only Worker and the pages cost nothing to serve.
 
 ## Running it
@@ -125,7 +128,7 @@ The order inside `pnpm build` matters: Astro clears its output directory, so the
 builds first and the API tree is emitted into the same `dist/` afterwards.
 
 `pnpm site:dev` runs Astro alone with hot reload, but the playground has no API to call
-that way — use `pnpm api:dev` to see both.
+that way; use `pnpm api:dev` to see both.
 
 Node 22 or newer. Deploying needs a Cloudflare account; see `api/README.md`.
 
@@ -152,13 +155,14 @@ evidence for every pairing, so each row can be checked rather than taken on trus
 
 ## Credits and prior work
 
-- **Haut-Commissariat au Plan** — RGPH 2024 and RGPH 2014, the source of every code, name
+- **Haut-Commissariat au Plan**: RGPH 2024 and RGPH 2014, the source of every code, name
   and population figure.
-- **OpenStreetMap contributors** — every boundary, centroid and bounding box, under ODbL.
+- **OpenStreetMap contributors**: every boundary, centroid and bounding box, under ODbL.
 - [mahdiboughrous/moroccan-administrative-division-data](https://github.com/mahdiboughrous/moroccan-administrative-division-data)
-  and [zeys/regionsPrefecturesProvincesCommunesMaroc](https://github.com/zeys/regionsPrefecturesProvincesCommunesMaroc)
-  — earlier open lists of the divisions, used to cross-check this one.
-- [tn-municipality-api](https://tn-municipality-api.vercel.app) — the Tunisian project
+  and [zeys/regionsPrefecturesProvincesCommunesMaroc](https://github.com/zeys/regionsPrefecturesProvincesCommunesMaroc):
+  earlier open lists of the divisions. The audit this dataset began with measured both
+  against the census.
+- [tn-municipality-api](https://tn-municipality-api.vercel.app), the Tunisian project
   this is modelled on.
 
 ## Licence
