@@ -81,12 +81,13 @@ app.get("/api/search", (c) => {
   const requested = url.searchParams.get("levels");
   let levels: Level[] | undefined;
   if (requested) {
-    const parts = requested.split(",").map((s) => s.trim());
+    // Empty entries name no level, so levels=commune, reads as levels=commune.
+    const parts = requested.split(",").map((s) => s.trim()).filter((s) => s !== "");
     const unknown = parts.filter((p) => !LEVELS.includes(p as Level));
     if (unknown.length > 0) {
       return fail("invalid-query", `unknown level(s): ${unknown.join(", ")}`, url.pathname + url.search);
     }
-    levels = parts as Level[];
+    if (parts.length > 0) levels = parts as Level[];
   }
   const hits = search(index, q, { levels, limit });
   return json(envelope(hits, { self: url.pathname + url.search }, { total: hits.length }), "computed");

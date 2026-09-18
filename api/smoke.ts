@@ -123,6 +123,12 @@ console.log("\ncomputed tier — answers no file holds");
     r.status === 200 && r.body?.meta?.total === 0, `status=${r.status} total=${r.body?.meta?.total}`);
 }
 
+{
+  const r = await get("/api/search?q=tanger&levels=commune,");
+  check("/api/search reads a trailing comma in levels as nothing",
+    r.status === 200 && (r.body?.data ?? []).length > 0, `status=${r.status}`);
+}
+
 console.log("\nproblem documents");
 for (const [path, status] of [
   ["/api/communes/99.999.99.99", 404],
