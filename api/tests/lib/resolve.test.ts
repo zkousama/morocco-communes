@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildIndex } from "../../src/emit/searchIndex.ts";
-import { aliasPath, buildLookup, narrowestSource, resolve } from "../../src/lib/resolve.ts";
+import { aliasPath, buildLookup, narrowestSource, resolve, withArticle } from "../../src/lib/resolve.ts";
 
 const rd = (n: string) => JSON.parse(readFileSync(`data/v1/attributes/${n}.json`, "utf8")) as never[];
 const index = buildIndex("1.0.0", [
@@ -80,5 +80,13 @@ describe("narrowestSource", () => {
     expect(narrowestSource({ province: "01.511", region: "01", page: 1 })).toContain("/provinces/");
     expect(narrowestSource({ region: "01", type: "urban", page: 1 })).toContain("/regions/");
     expect(narrowestSource({ type: "rural", page: 1 })).toBe("/api/communes/type/rural/page");
+  });
+});
+
+describe("withArticle", () => {
+  it("writes an before the one level that starts with a vowel", () => {
+    expect(withArticle("arrondissement")).toBe("an arrondissement");
+    expect(withArticle("province")).toBe("a province");
+    expect(withArticle("region")).toBe("a region");
   });
 });

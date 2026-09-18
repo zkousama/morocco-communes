@@ -137,6 +137,12 @@ describe("the MCP server, through a real client", () => {
     expect(both.structuredContent).toMatchObject({ total: 12 });
   });
 
+  it("says so when a filter is given the wrong kind of unit", async () => {
+    const r = await call("list_communes", { region: "01.511" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toBe("01.511 is a province, not a region.");
+  });
+
   it("rejects a filter that names nothing, in the API's own words", async () => {
     const r = await call("list_communes", { province: "99.999" });
     expect(r.isError).toBe(true);

@@ -52,6 +52,9 @@ export function resolve(
   return { kind: "absent" };
 }
 
+/** "a province", "an arrondissement": a level as a sentence names it. */
+export const withArticle = (level: Level) => `${/^[aeiou]/.test(level) ? "an" : "a"} ${level}`;
+
 export interface FilterQuery {
   region?: string;
   province?: string;

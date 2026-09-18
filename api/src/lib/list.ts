@@ -1,6 +1,6 @@
 import { paginate, type Envelope, type PageMeta } from "./envelope.ts";
 import { PAGE, PER_PAGE } from "./params.ts";
-import { aliasPath, narrowestSource, resolve, type FilterQuery, type Lookup } from "./resolve.ts";
+import { aliasPath, narrowestSource, resolve, withArticle, type FilterQuery, type Lookup } from "./resolve.ts";
 
 /** Reads a pre-rendered file as JSON, or null when there is no such file. */
 export type FetchJson = (path: string) => Promise<Envelope<unknown[]> | null>;
@@ -35,6 +35,11 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
     const found = resolve(lookup, raw);
     if (found.kind === "malformed") return { error: { kind: "invalid-code", detail: `${raw} is not a geographic code` } };
     if (found.kind === "absent") return { error: { kind: "not-found", detail: `no ${key} has code ${raw}` } };
+    // A code of the wrong level would otherwise address a path that does not exist and
+    // come back as a missing page, which says nothing about what went wrong.
+    if (found.level !== key) {
+      return { error: { kind: "invalid-query", detail: `${raw} is ${withArticle(found.level)}, not a ${key}` } };
+    }
     query[key] = found.code;
   }
   if (input.type !== undefined) query.type = input.type as "urban" | "rural";
