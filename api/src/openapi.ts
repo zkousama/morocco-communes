@@ -56,7 +56,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           description:
             "Matches French names, Arabic names and slugs. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
           parameters: [
-            { name: "q", in: "query", required: true, description: "Text to find.", schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength }, example: "tanger" },
+            { name: "q", in: "query", required: true, description: `Text to find, up to ${QUERY.maxLength} characters.`, schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength }, example: "tanger" },
             {
               name: "levels",
               in: "query",
@@ -78,8 +78,8 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           summary: "Communes within a radius of a point",
           description: "Distance is measured to each commune's centroid, nearest first.",
           parameters: [
-            { name: "lat", in: "query", required: true, schema: { type: "number", minimum: -90, maximum: 90 }, example: 33.5731 },
-            { name: "lng", in: "query", required: true, schema: { type: "number", minimum: -180, maximum: 180 }, example: -7.5898 },
+            { name: "lat", in: "query", required: true, description: "Latitude, in degrees.", schema: { type: "number", minimum: -90, maximum: 90 }, example: 33.5731 },
+            { name: "lng", in: "query", required: true, description: "Longitude, in degrees.", schema: { type: "number", minimum: -180, maximum: 180 }, example: -7.5898 },
             {
               name: "radius",
               in: "query",
@@ -104,16 +104,17 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             { name: "region", in: "query", description: "A région, by code or slug.", schema: { type: "string" }, example: "01" },
             { name: "province", in: "query", description: "A province or préfecture, by code or slug.", schema: { type: "string" }, example: "01.511" },
             { name: "cercle", in: "query", description: "A cercle, by code or slug.", schema: { type: "string" } },
-            { name: "type", in: "query", schema: { type: "string", enum: ["urban", "rural"] } },
+            { name: "type", in: "query", description: "Urban or rural communes only.", schema: { type: "string", enum: ["urban", "rural"] } },
             {
               name: "page",
               in: "query",
+              description: "Page number, from 1.",
               schema: { type: "integer", minimum: 1, maximum: PAGE.max, default: PAGE.default },
             },
             {
               name: "q",
               in: "query",
-              description: "Search communes by name, returning up to 10 matches. Takes no other parameter.",
+              description: `Search communes by name, up to ${QUERY.maxLength} characters, returning up to 10 matches. Takes no other parameter.`,
               schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength },
             },
           ],
