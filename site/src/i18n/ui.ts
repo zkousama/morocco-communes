@@ -48,14 +48,14 @@ export const ui = {
 
     tiersHeading: "Where a request is answered",
     tiersBody:
-      "Three places, and the X-Api-Tier header on every response says which one. Most requests never reach any code at all.",
+      "3 places, and the X-Api-Tier header on every response says which one. Most requests never reach any code at all.",
     tierPreHeader: "no header, because nothing ran",
     tierPre: "A file on the CDN",
     tierPreBody:
       "3,852 responses are written when the site is built. Nothing runs to serve them, so they cost nothing and hold up under any amount of traffic.",
     tierAlias: "A rewrite to that file",
     tierAliasBody:
-      "A query string cannot pick a file, so requests written that way are resolved to the file that already holds the answer, and the response names it.",
+      "A query string can't pick a file, so requests written that way are resolved to the file that already holds the answer, and the response names it.",
     tierComputed: "Worked out on the spot",
     tierComputedBody:
       "Search, radius queries, and filter combinations no single file covers. These are the only requests that spend anything.",
@@ -66,11 +66,11 @@ export const ui = {
 
     searchTab: "Search",
     searchHint:
-      "French, Arabic, or a slug. Accents, the alef variants and ta-marbuta all fold, and places are findable by the other names they go by — Fez finds Fès, Port Lyautey finds Kénitra.",
+      "French, Arabic, or a slug. Accents, the alef variants and ta-marbuta all fold, and places are findable by the other names they go by: Fez finds Fès, Port Lyautey finds Kénitra.",
     nearTab: "Nearby",
     nearHint: "Communes within a radius of a point, nearest first.",
     lookupTab: "Lookup",
-    lookupHint: "One commune by code or slug. All four ways of writing it reach the same record.",
+    lookupHint: "One commune by code or slug. All 4 ways of writing it reach the same record.",
     fieldQuery: "Search for",
     fieldRadius: "Radius in km",
     fieldIdentifier: "Code or slug",
@@ -79,7 +79,7 @@ export const ui = {
     request: "Request",
     tier: "Answered by",
     emptyState: "Pick an example or type a query, then run it.",
-    failed: "That request did not complete. Check the API is running, then try again.",
+    failed: "That request didn't complete. Check the API is running, then try again.",
 
     theme: "Theme",
     themeAuto: "Auto",
@@ -88,7 +88,7 @@ export const ui = {
 
     chartsHeading: "What the numbers show",
     chartsBody:
-      "Three things worth knowing before you build on this, each drawn from the dataset rather than written down beside it.",
+      "3 things to know before you build on this, each drawn from the dataset.",
     chartChange: "The south is filling up",
     chartChangeBody: "Population change by région between the 2014 and 2024 censuses.",
     chartChangeNote:
@@ -101,7 +101,7 @@ export const ui = {
     spreadUnchanged: "Code unchanged since 2014",
     spreadCrosswalk: "Renumbered, matched by the crosswalk",
     chartSpreadNote:
-      "Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The two distributions sit almost on top of each other, which is the evidence that the matching is sound — it is not proof, and the per-pair reasoning is in data/v1/crosswalk.",
+      "Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The 2 distributions sit almost on top of each other, which is evidence the matching is sound, though not proof. The reasoning for each pair is in data/v1/crosswalk.",
 
     footerData: "Codes and population from the Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014.",
     footerGeometry: "Boundaries from OpenStreetMap contributors, under the Open Database Licence.",
