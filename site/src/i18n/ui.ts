@@ -104,6 +104,9 @@ export const ui = {
     chartSpreadNote:
       "Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The 2 distributions sit almost on top of each other, which is evidence the matching is sound, though not proof. The reasoning for each pair is in data/v1/crosswalk.",
 
+    notFoundTitle: "No page here",
+    notFoundBody: "Nothing lives at this address. If you were after the API, its routes start with /api/.",
+    notFoundHome: "Go to the home page",
     footerData: "Codes and population from the Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014.",
     footerGeometry: "Boundaries from OpenStreetMap contributors, under the Open Database Licence.",
     repo: "Source",
@@ -183,6 +186,9 @@ export const ui = {
     chartSpreadNote:
       "La barre couvre les 10e à 90e centiles, le bloc les 25e à 75e, le trait la médiane. Les deux distributions se superposent presque : c’est l’indice que l’appariement tient — ce n’est pas une preuve, et le raisonnement par paire est dans data/v1/crosswalk.",
 
+    notFoundTitle: "Aucune page ici",
+    notFoundBody: "Rien ne se trouve à cette adresse. Si vous cherchiez l’API, ses routes commencent par /api/.",
+    notFoundHome: "Aller à l’accueil",
     footerData: "Codes et population : Haut-Commissariat au Plan, RGPH 2024 et RGPH 2014.",
     footerGeometry: "Limites : contributeurs d’OpenStreetMap, sous licence Open Database.",
     repo: "Code source",
@@ -242,6 +248,9 @@ export const ui = {
     spreadUnchanged: "Code ma tbdlch mn 2014",
     spreadCrosswalk: "Tbdlo larqam, mtlaqyin b l-crosswalk",
     chartSpreadNote: "L-khet kayched mn l-10th tal 90th percentile, l-carré mn 25th tal 75th, w l-khet l-wstani hwa median. Had jouj distributions mhotin qrib foq ba'dhom, hada dalil bli had l-match mzyan — machi ithbat qa'te, w l-fhamat d kol zoj kayna f data/v1/crosswalk.",
+    notFoundTitle: "Walo hna",
+    notFoundBody: "Ma kayn walo f had l-adresse. L-API kayna f /api/.",
+    notFoundHome: "Rja' l l-bdaya",
     footerData: "Codes w sokkan mn Haut-Commissariat au Plan, RGPH 2024 w RGPH 2014.",
     footerGeometry: "Hdod mn l-moucharikin f OpenStreetMap, tht Open Database Licence.",
     repo: "Source",

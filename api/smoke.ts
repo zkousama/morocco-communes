@@ -132,5 +132,18 @@ for (const [path, status] of [
     `got ${r.status}`);
 }
 
+console.log("\nnot found, for a person rather than a client");
+for (const [path, marker] of [
+  ["/about", "No page here"],
+  ["/fr/nulle-part", "Aucune page ici"],
+  ["/darija/walo", "Walo hna"],
+] as const) {
+  const response = await fetch(base + path);
+  const text = await response.text();
+  check(`${path} -> 404 page`,
+    response.status === 404 && (response.headers.get("content-type") ?? "").includes("text/html") && text.includes(marker),
+    `status=${response.status} ct=${response.headers.get("content-type")}`);
+}
+
 console.log(`\n${failures === 0 ? "all probes passed" : `${failures} probe(s) failed`}`);
 process.exit(failures === 0 ? 0 : 1);

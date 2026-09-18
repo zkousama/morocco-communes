@@ -223,9 +223,27 @@ app.get("/api/:collection", async (c) => {
   });
 });
 
-app.notFound((c) => {
+/**
+ * Two audiences reach this. A client calling /api/* that got a path wrong wants a problem
+ * document it can parse; a person who mistyped a page wants a page. Anything outside /api
+ * gets the site's own 404, in the language of the section they were in.
+ */
+const NOT_FOUND_PAGES: [prefix: string, page: string][] = [
+  ["/fr/", "/fr/404/"],
+  ["/darija/", "/darija/404/"],
+];
+
+app.notFound(async (c) => {
   const url = new URL(c.req.url);
-  return fail("not-found", `${url.pathname} is not an endpoint of this API`, url.pathname);
+  if (url.pathname.startsWith("/api/") || url.pathname === "/api") {
+    return fail("not-found", `${url.pathname} is not an endpoint of this API`, url.pathname);
+  }
+  const page = NOT_FOUND_PAGES.find(([prefix]) => url.pathname.startsWith(prefix))?.[1] ?? "/404";
+  const asset = await c.env.ASSETS.fetch(new Request(new URL(page, url)));
+  return new Response(asset.body, {
+    status: 404,
+    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },
+  });
 });
 
 export default app;

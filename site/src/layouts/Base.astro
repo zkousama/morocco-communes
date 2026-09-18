@@ -341,11 +341,14 @@ const themes = [
 
       /* Footer -------------------------------------------------------------- */
 
+      /* The gutter is margin rather than padding, so the rule on top stops where the
+         content does instead of running past it into the gutter. */
       footer {
-        width: 100%;
-        max-width: 74rem;
+        --gutter: clamp(1rem, 4vw, 2.5rem);
+        width: calc(100% - 2 * var(--gutter));
+        max-width: calc(74rem - 2 * var(--gutter));
         margin: 0 auto;
-        padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
+        padding: 2rem 0 4rem;
         border-top: 1px solid var(--rule);
         color: var(--quiet);
         font-size: var(--t-sm);
