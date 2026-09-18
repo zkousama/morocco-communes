@@ -1,5 +1,5 @@
 ---
-import { HTML_LANG, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
+import { AUTHOR, HTML_LANG, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
 
 interface Props {
   locale: Locale;
@@ -65,9 +65,14 @@ const themes = [
     </main>
 
     <footer>
-      <p>{copy.footerData}</p>
-      <p>{copy.footerGeometry}</p>
-      {REPO_URL ? <p><a href={REPO_URL}>{copy.repo}</a></p> : null}
+      <div class="credits">
+        <p>{copy.footerData}</p>
+        <p>{copy.footerGeometry}</p>
+      </div>
+      <div class="made">
+        <p>© {new Date().getFullYear()} <a href={AUTHOR.url}>{AUTHOR.name}</a></p>
+        <p><a href={REPO_URL}>{copy.repo}</a></p>
+      </div>
     </footer>
 
     <script is:inline>
@@ -318,11 +323,33 @@ const themes = [
         border-top: 1px solid var(--rule);
         color: var(--quiet);
         font-size: var(--t-sm);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 3rem;
+        justify-content: space-between;
       }
 
       footer p {
         margin: 0 0 0.35rem;
         max-width: 70ch;
+      }
+
+      footer .made {
+        text-align: end;
+      }
+
+      footer a {
+        color: var(--quiet);
+      }
+
+      footer a:hover {
+        color: var(--ink);
+      }
+
+      @media (max-width: 40rem) {
+        footer .made {
+          text-align: start;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {

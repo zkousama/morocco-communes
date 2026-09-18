@@ -1,10 +1,8 @@
 export type Locale = "en" | "fr" | "ary";
 
-/**
- * Set this once the repository is public. Empty means the footer link is left out
- * rather than pointing somewhere that does not exist.
- */
-export const REPO_URL = "";
+/** Resolves once the repository is pushed under this name; zkousama is the GitHub account. */
+export const REPO_URL = "https://github.com/zkousama/morocco-communes-api";
+export const AUTHOR = { name: "Ousama", url: "https://github.com/zkousama" };
 
 export const LOCALES: Locale[] = ["en", "fr", "ary"];
 export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français", ary: "Darija" };
