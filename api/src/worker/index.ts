@@ -86,8 +86,14 @@ app.get("/api/search", (c) => {
 app.get("/api/communes/near", (c) => {
   const url = new URL(c.req.url);
   const instance = url.pathname + url.search;
-  const lat = Number(url.searchParams.get("lat"));
-  const lng = Number(url.searchParams.get("lng"));
+  // Number(null) and Number("") are both 0, a valid coordinate, so one left out has to be
+  // caught before it is converted.
+  const coordinate = (name: string) => {
+    const raw = url.searchParams.get(name);
+    return raw === null || raw.trim() === "" ? Number.NaN : Number(raw);
+  };
+  const lat = coordinate("lat");
+  const lng = coordinate("lng");
   if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
     return fail("invalid-query", "lat is required and must be between -90 and 90", instance);
   }
