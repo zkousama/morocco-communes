@@ -99,7 +99,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "listCommunes",
           summary: "List communes, optionally filtered",
           description:
-            `Paginated, ${PER_PAGE} communes to a page. Filters combine. When \`q\` is given it searches communes by name instead, and the other filters and \`page\` are ignored.`,
+            `Paginated, ${PER_PAGE} communes to a page. Filters combine. \`q\` searches communes by name instead, and can't be given with a filter or \`page\`.`,
           parameters: [
             { name: "region", in: "query", description: "A région, by code or slug.", schema: { type: "string" }, example: "01" },
             { name: "province", in: "query", description: "A province or préfecture, by code or slug.", schema: { type: "string" }, example: "01.511" },
