@@ -49,7 +49,8 @@ const change = regions
 /* 2. How big a commune actually is. ------------------------------------------ */
 
 const EDGES = [0, 2000, 5000, 10000, 25000, 50000, 100000, Infinity];
-const LABELS = ["under 2k", "2–5k", "5–10k", "10–25k", "25–50k", "50–100k", "over 100k"];
+// Language-neutral on purpose: these read the same in every locale the site has.
+const LABELS = ["<2k", "2–5k", "5–10k", "10–25k", "25–50k", "50–100k", "100k+"];
 const sizes = EDGES.slice(0, -1).map((lo, i) => {
   const hi = EDGES[i + 1]!;
   return {
@@ -75,15 +76,14 @@ const quantiles = (values: number[]) => {
   return { p10: at(0.1), p25: at(0.25), median: at(0.5), p75: at(0.75), p90: at(0.9) };
 };
 
-const BASES = [
-  { basis: "exact_code", label: "Code unchanged since 2014" },
-  { basis: "crosswalk", label: "Renumbered, matched by the crosswalk" },
-];
-const spread = BASES.map(({ basis, label }) => {
+// The label lives in site/src/i18n/ui.ts, keyed on the basis, so it is translated like
+// everything else the reader sees.
+const BASES = ["exact_code", "crosswalk"] as const;
+const spread = BASES.map((basis) => {
   const pct = communes
     .filter((c) => c.population.change?.basis === basis)
     .map((c) => c.population.change!.pct);
-  return { basis, label, count: pct.length, ...quantiles(pct) };
+  return { basis, count: pct.length, ...quantiles(pct) };
 });
 
 /* 4. Urban communes are a small minority everywhere. ------------------------- */

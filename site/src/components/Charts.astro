@@ -7,10 +7,8 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-// fr-MA groups with a dot — "4.030.222" — which is the Moroccan convention but reads as a
-// decimal to anyone else, and disagrees with the copy beside it. fr-FR's thin space is
-// unambiguous in every locale that is not comma-grouped.
-const group = new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR");
+// Darija here is written with comma grouping, like the English, so only French differs.
+const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
 /* Chart 1: percent change per région, diverging from a zero axis. The axis sits where
    the data puts it — one région shrank, and barely, so the gutter left of zero is thin. */
@@ -84,7 +82,7 @@ const ticks = [-20, -10, 0, 10, 20];
       {spread.map((row) => (
         <>
           <span class="rangename">
-            {row.label}
+            {row.basis === "exact_code" ? copy.spreadUnchanged : copy.spreadCrosswalk}
             <span class="mono n">{group.format(row.count)}</span>
           </span>
           <span class="rangetrack">

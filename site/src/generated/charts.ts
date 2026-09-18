@@ -88,7 +88,7 @@ export const change = [
 
 export const sizes = [
   {
-    "label": "under 2k",
+    "label": "<2k",
     "count": 64
   },
   {
@@ -112,7 +112,7 @@ export const sizes = [
     "count": 56
   },
   {
-    "label": "over 100k",
+    "label": "100k+",
     "count": 48
   }
 ];
@@ -120,7 +120,6 @@ export const sizes = [
 export const spread = [
   {
     "basis": "exact_code",
-    "label": "Code unchanged since 2014",
     "count": 1286,
     "p10": -17.95,
     "p25": -10.82,
@@ -130,7 +129,6 @@ export const spread = [
   },
   {
     "basis": "crosswalk",
-    "label": "Renumbered, matched by the crosswalk",
     "count": 207,
     "p10": -19.05,
     "p25": -11.81,

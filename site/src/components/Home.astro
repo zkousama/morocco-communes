@@ -13,10 +13,8 @@ const { locale } = Astro.props;
 const copy = t(locale);
 const levels = LEVELS[locale];
 
-// fr-MA groups with a dot — "4.030.222" — which is the Moroccan convention but reads as a
-// decimal to anyone else, and disagrees with the copy beside it. fr-FR's thin space is
-// unambiguous in every locale that is not comma-grouped.
-const group = new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR");
+// Darija here is written with comma grouping, like the English, so only French differs.
+const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
 /** Depth is the dot count, so the indent is the code's own structure. */
 const depthOf = (code: string) => code.split(".").length - 1;

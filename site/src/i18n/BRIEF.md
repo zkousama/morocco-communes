@@ -269,6 +269,14 @@ These five are single words that appear as labels under numbers and beside names
 
 > 207 communes were renumbered by the 2015 reform, so their 2014 population had to be matched by name and elimination rather than read off an unchanged code. If those matches were wrong, their implied growth would scatter differently.
 
+**`ui.spreadUnchanged`** — Row label in the box plot. The communes whose code never changed.
+
+> Code unchanged since 2014
+
+**`ui.spreadCrosswalk`** — Row label in the box plot. The communes the crosswalk had to match.
+
+> Renumbered, matched by the crosswalk
+
 **`ui.chartSpreadNote`** — Note under the chart, explaining how to read a box plot and what it shows.
 
 > Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The two distributions sit almost on top of each other, which is the evidence that the matching is sound — it is not proof, and the per-pair reasoning is in data/v1/crosswalk.

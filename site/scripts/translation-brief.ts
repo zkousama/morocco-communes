@@ -61,6 +61,8 @@ const NOTES: Record<string, string> = {
   chartSizeBody: "One line saying what the chart plots.",
   chartSpread: "Chart title.",
   chartSpreadBody: "Explains why the chart exists.",
+  spreadUnchanged: "Row label in the box plot. The communes whose code never changed.",
+  spreadCrosswalk: "Row label in the box plot. The communes the crosswalk had to match.",
   chartSpreadNote: "Note under the chart, explaining how to read a box plot and what it shows.",
   footerData: "Footer credit line.",
   footerGeometry: "Footer credit line.",
