@@ -10,6 +10,7 @@ const ATTR = "data/v1/attributes";
 
 interface Row {
   code: string;
+  type?: string;
   name: { fr: string; ar: string };
   population?: { "2024"?: { total: number | null } };
   parents?: { province: string; cercle: string | null };
@@ -50,7 +51,10 @@ const entry = (row: Row, level: string) => ({
 
 const chain = [
   entry(pick(regions, REGION), "region"),
-  entry(pick(provinces, PROVINCE), "province"),
+  // Tanger-Assilah is a préfecture, not a province. The tier holds 62 provinces, 13
+  // préfectures and 8 préfectures d'arrondissements, so labelling every row with one
+  // generic name would make the ladder say something untrue about this one.
+  entry(pick(provinces, PROVINCE), pick(provinces, PROVINCE).type ?? "province"),
   entry(pick(cercles, CERCLE), "cercle"),
   entry(rural, "commune"),
   entry(pick(communes, URBAN), "commune"),

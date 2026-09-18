@@ -17,7 +17,7 @@ export const chain: Entry[] = [
   },
   {
     "code": "01.511",
-    "level": "province",
+    "level": "prefecture",
     "fr": "Tanger-Assilah",
     "ar": "طنجة-أصيلة",
     "population": 1494413

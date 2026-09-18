@@ -71,7 +71,8 @@ const NOTES: Record<string, string> = {
 
 const LEVEL_NOTES: Record<string, string> = {
   region: "The largest administrative tier. Morocco has 12.",
-  province: "The tier below a région. Called a province or a préfecture.",
+  province: "The tier below a région, as a generic name. 62 of the 83 are provinces.",
+  prefecture: "The same tier when the unit is specifically a préfecture. 13 of the 83 are.",
   cercle: "An intermediate tier that sits above rural communes only.",
   commune: "The tier this whole project is about.",
   arrondissement: "A district inside one of the six largest cities.",

@@ -23,9 +23,9 @@ export const path = (locale: Locale, rest = "") =>
 
 /** Levels, named as a reader of the census would name them. */
 export const LEVELS: Record<Locale, Record<string, string>> = {
-  en: { region: "région", province: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
-  fr: { region: "région", province: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
-  ary: { region: "jiha", province: "iqlim", cercle: "dayira", commune: "jama'a", arrondissement: "moqata'a" },
+  en: { region: "région", province: "province", prefecture: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
+  fr: { region: "région", province: "province", prefecture: "préfecture", cercle: "cercle", commune: "commune", arrondissement: "arrondissement" },
+  ary: { region: "jiha", province: "iqlim", prefecture: "amala", cercle: "dayira", commune: "jama'a", arrondissement: "moqata'a" },
 };
 
 export const ui = {
@@ -203,7 +203,7 @@ export const ui = {
     tiersBody: "Tlata d lblays, w l-header X-Api-Tier f kol response kaybin ina whda. Aghlabiya d requests ma kaywslo l hta code.",
     tierPreHeader: "Bla header, hit walo ma kheddam",
     tierPre: "File f CDN",
-    tierPreBody: "3,852 responses mktobin mlli kaysawbo site. Hta haja ma katkhdm bach tservihom, dakchi alach ma kayqamo b walo w kaytsnndo l ay trafique.",
+    tierPreBody: "3,852 responses mktobin mlli kaysawbo site. Hta haja ma katkhdm bach tservihom, dakchi alach ma kayqamo b walo w kaytsnndo l ay traffic.",
     tierAlias: "Rewrite l dak l-file",
     tierAliasBody: "L-query string ma ymknch ykhtar file, dakchi alach requests li mktobin hakda kaythwlo l l-file li fih l-jawab aslan, w response katsmih.",
     tierComputed: "Mhsoub f l-waqt",
@@ -215,7 +215,7 @@ export const ui = {
     nearTab: "Qrib",
     nearHint: "Jama'at f dayira d noqta, li qrab homa l-owwlin.",
     lookupTab: "Chouf",
-    lookupHint: "Jama'a whda b l-code ola b slug. B tlata d toroq w b rbatha katwssl l nfs l-khedma.",
+    lookupHint: "Jama'a whda b l-code ola b slug. B tlata d toroq w b rbatha katwssl l nfs record.",
     fieldQuery: "Qllb ela",
     fieldRadius: "Dayira b km",
     fieldIdentifier: "Code ola slug",
@@ -237,7 +237,7 @@ export const ui = {
     chartSize: "Aghlab ljama'at sghar",
     chartSizeBody: "Ljama'at ela hsab sokkan d 2024.",
     chartSpread: "Wach l-crosswalk shih",
-    chartSpreadBody: "207 jama'a tbdlo larqam dyalhom b islah 2015, dakchi alach sokkan dyalhom d 2014 kan khasshom ytlaqaw b smya w l-iqsa machi ytpqraw mn code ma tbdlch. Kon kano had l-matchat ghaltin, kon zyadathom tfreqat b chkl akhor.",
+    chartSpreadBody: "207 jama'a tbdlo larqam dyalhom b islah 2015, dakchi alach sokkan dyalhom d 2014 kan khasshom ytlaqaw b smya w l-iqsa machi ytqraw mn code ma tbdlch. Kon kano had l-matchat ghaltin, kon zyadathom tfreqat b chkl akhor.",
     spreadUnchanged: "Code ma tbdlch mn 2014",
     spreadCrosswalk: "Tbdlo larqam, mtlaqyin b l-crosswalk",
     chartSpreadNote: "L-khet kayched mn l-10th tal 90th percentile, l-carré mn 25th tal 75th, w l-khet l-wstani hwa median. Had jouj distributions mhotin qrib foq ba'dhom, hada dalil bli had l-match mzyan — machi ithbat qa'te, w l-fhamat d kol zoj kayna f data/v1/crosswalk.",

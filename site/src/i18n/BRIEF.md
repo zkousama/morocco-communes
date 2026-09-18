@@ -51,7 +51,11 @@ These five are single words that appear as labels under numbers and beside names
 
 > région
 
-**`levels.province`** — The tier below a région. Called a province or a préfecture.
+**`levels.province`** — The tier below a région, as a generic name. 62 of the 83 are provinces.
+
+> province
+
+**`levels.prefecture`** — The same tier when the unit is specifically a préfecture. 13 of the 83 are.
 
 > préfecture
 
