@@ -206,6 +206,36 @@ const { locale, route, title, description, trail, arabic, lede } = Astro.props;
     }
   }
 
+  /* In the data: each file a page's figures come from, with a label saying what it is. */
+  .place :global(.data) {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.4rem 1.5rem;
+    margin: 0.75rem 0 1.25rem;
+    font-size: var(--t-sm);
+  }
+
+  .place :global(.data > div) {
+    display: contents;
+  }
+
+  .place :global(.data dt) {
+    color: var(--quiet);
+  }
+
+  .place :global(.data dd) {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .place :global(.report) {
+    font-size: var(--t-sm);
+  }
+
+  .place :global(.report a) {
+    color: var(--quiet);
+  }
+
   .place :global(.links) {
     display: flex;
     flex-wrap: wrap;

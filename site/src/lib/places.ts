@@ -16,6 +16,7 @@ interface Name {
 
 export interface Region {
   code: string;
+  codeDigits: string;
   name: Name;
   slug: string;
   population: { "2024": { total: number; households: number | null } };
@@ -25,6 +26,7 @@ export interface Region {
 
 export interface Province {
   code: string;
+  codeDigits: string;
   name: Name;
   slug: string;
   type: "province" | "prefecture" | "prefecture_of_arrondissements";

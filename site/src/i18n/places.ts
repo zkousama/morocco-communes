@@ -229,7 +229,7 @@ export const places = {
       darija: "Darija", tachelhit: "Tachelhit", tamazight: "Tamazight", tarifit: "Tarifit", hassania: "Hassania",
       arabic: "Arabe", french: "Français", english: "Anglais", amazighTifinagh: "Amazigh, en tifinagh",
     },
-    census: "Recensement",
+    census: "Chiffres du recensement",
     peopleMore: "Ce que mesure chaque chiffre",
   },
 } satisfies Record<Locale, unknown>;
