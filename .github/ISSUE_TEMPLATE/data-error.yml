@@ -1,0 +1,36 @@
+name: Something in the data is wrong
+description: A name, a figure, a parent or a boundary that doesn't match reality or its source.
+labels: [data]
+body:
+  - type: input
+    id: unit
+    attributes:
+      label: Which unit
+      description: Its code or its name, as the API gives it.
+      placeholder: 01.511.01.0, or Tanger
+    validations:
+      required: true
+  - type: dropdown
+    id: field
+    attributes:
+      label: What's wrong
+      options:
+        - French name
+        - Arabic name
+        - Population
+        - Région, province or cercle
+        - Boundary or area
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: What it says, and what it should say
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Where the right value comes from
+      description: An HCP publication, an official decree, an OpenStreetMap relation, or anything else that settles it.

@@ -190,6 +190,13 @@ evidence for every pairing, so each row can be checked rather than taken on trus
 - [tn-municipality-api](https://tn-municipality-api.vercel.app), the Tunisian project
   this is modelled on.
 
+## Citing it, and correcting it
+
+`CITATION.cff` holds the citation, which GitHub shows as "Cite this repository". A wrong
+name, figure or boundary can be reported with the data issue form, which asks for the
+source that settles it. Every push runs the tests, builds everything and probes it
+under `wrangler dev`.
+
 ## Licence
 
 Code is MIT. The data licences are per directory, as above.

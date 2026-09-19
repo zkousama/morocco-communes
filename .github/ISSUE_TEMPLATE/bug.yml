@@ -1,0 +1,17 @@
+name: The API or the site does something wrong
+description: A request that answers wrongly, an error that shouldn't happen, or a page that breaks.
+labels: [bug]
+body:
+  - type: input
+    id: request
+    attributes:
+      label: The request or the page
+      placeholder: GET /api/communes?region=01&sort=-population
+    validations:
+      required: true
+  - type: textarea
+    id: got
+    attributes:
+      label: What came back, and what you expected
+    validations:
+      required: true
