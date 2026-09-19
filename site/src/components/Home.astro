@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
-import { COUNTED, LEVELS, path, t, type Locale } from "../i18n/ui";
+import { AUTHOR, COUNTED, LEVELS, path, REPO_URL, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { aspect } from "../generated/outline";
 import { downloads } from "../generated/downloads";
@@ -58,11 +58,47 @@ const ways = [
   { route: "docs/npm/", name: copy.navNpm, text: copy.useNpm },
 ];
 
+// What Google Dataset Search reads. It needs absolute URLs, so it's only written when the
+// deployed origin is known, and only on the English page, so the dataset is listed once.
+const site = Astro.site;
+const n = new Intl.NumberFormat("en-GB");
+const dataset =
+  site && locale === "en"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        name: "Morocco communes",
+        description:
+          `Morocco's ${counts.regions} régions, ${counts.provinces} provinces and préfectures, ${counts.cercles} cercles, ` +
+          `${n.format(counts.communes)} communes and ${counts.arrondissements} arrondissements, with official HCP ` +
+          "geographic codes, names in French and Arabic, population from the 2014 and 2024 censuses, and commune " +
+          "boundaries from OpenStreetMap.",
+        url: new URL("/", site).href,
+        sameAs: REPO_URL,
+        version: reference.version,
+        isAccessibleForFree: true,
+        creator: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url },
+        creditText: "Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014. Boundaries © OpenStreetMap contributors, ODbL.",
+        keywords: ["Morocco", "Maroc", "communes", "régions", "provinces", "census", "RGPH 2024", "HCP"],
+        spatialCoverage: { "@type": "Place", name: "Morocco" },
+        temporalCoverage: "2014/2024",
+        distribution: downloads.flatMap((g) =>
+          g.files.map((f) => ({
+            "@type": "DataDownload",
+            name: `${copy[g.key as keyof typeof copy]}: ${f.label}`,
+            encodingFormat: f.href.endsWith(".csv") ? "text/csv" : f.href.endsWith(".geojson") ? "application/geo+json" : "application/json",
+            contentUrl: new URL(f.href, site).href,
+          })),
+        ),
+      }
+    : null;
+
 /** The pre-rendered routes, each a link to the file that answers it. */
 const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, ""));
 ---
 
 <Base locale={locale}>
+  {dataset && <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(dataset)} />}
   <section class="hero">
     <div class="hero-words">
       <h1>{copy.tagline}</h1>

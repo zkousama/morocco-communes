@@ -248,6 +248,15 @@ changes.
 
 `wrangler deploy --dry-run` checks the bundle without an account. The Worker is 2,190 KiB
 uncompressed against a 64 MiB limit, and `dist/` is 5,718 files against a 20,000 limit.
+
+Two more things a build can take:
+
+- `CF_ANALYTICS_TOKEN` turns on Cloudflare Web Analytics, which sets no cookies. The
+  token is in the Cloudflare dashboard under Web Analytics, once the site is added there.
+- With `SITE_URL` set, the build also writes `dist/server.json`, this server's entry for the
+  official MCP Registry. Publish it with `mcp-publisher login github`, then
+  `mcp-publisher publish dist/server.json`. Glama and PulseMCP pick up what the registry
+  lists; Smithery and mcp.so take their own submissions.
 Wrangler's own count reads higher because it includes directories.
 
 A problem document's `type` is `/docs/api/#<kind>` on the origin the request came in on,

@@ -10,6 +10,8 @@ interface Props {
   description?: string;
 }
 const { locale, route = "", title, description } = Astro.props;
+// Cloudflare Web Analytics, when a token is given at build time. It sets no cookies.
+const analytics = process.env.CF_ANALYTICS_TOKEN;
 const copy = t(locale);
 const sections = [
   { route: "docs/api/", label: copy.navApi },
@@ -58,6 +60,8 @@ const themes = [
         ))
     }
     {site && <link rel="alternate" hreflang="x-default" href={absolute(path("en", route))!} />}
+    {site && <link rel="sitemap" href="/sitemap.xml" />}
+    <slot name="head" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -116,6 +120,17 @@ const themes = [
         <p><a href={REPO_URL}>{copy.repo}</a></p>
       </div>
     </footer>
+
+    {
+      analytics && (
+        <script
+          is:inline
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({ token: analytics })}
+        />
+      )
+    }
 
     <script is:inline>
       (function () {
