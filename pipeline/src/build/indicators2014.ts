@@ -1,6 +1,7 @@
 import { slugify } from "../lib/slug.ts";
 import { AREAS, SEXES, type Area, type Sex } from "../sources/indicatorFields.ts";
-import { HOUSEHOLD_FIELDS_2014, peopleColumns2014, type Indicator2014Row } from "../sources/hcp2014Indicators.ts";
+import { type Indicator2014Row } from "../sources/hcp2014Indicators.ts";
+import { HOUSEHOLD_FIELDS_2014_ALL, peopleColumns2014All } from "../sources/censusFields.ts";
 import { applicable, hcpCode, nest, type IndicatorRecord, type Topics } from "./indicators.ts";
 
 /**
@@ -75,7 +76,7 @@ const SAME_PLACE = 0.5;
 
 /** The legal population the row carries, which the population workbook publishes too. */
 const legalPopulation = (row: Indicator2014Row): number | null => {
-  const cell = row.people.total.all[peopleColumns2014("all").findIndex((f) => f.topic === "population" && f.key === "legal")];
+  const cell = row.people.total.all[peopleColumns2014All("all").findIndex((f) => f.topic === "population" && f.key === "legal")];
   return typeof cell === "number" ? cell : null;
 };
 
@@ -84,11 +85,11 @@ const blockOf = (row: Indicator2014Row): Indicator2014Block => ({
     AREAS.map((area) => {
       const blocks = SEXES.map((sex) => [sex, row.people[area][sex]] as const);
       if (!blocks.some(([, cells]) => applicable(cells))) return [area, null];
-      return [area, Object.fromEntries(blocks.map(([sex, cells]) => [sex, nest(peopleColumns2014(sex), cells)]))];
+      return [area, Object.fromEntries(blocks.map(([sex, cells]) => [sex, nest(peopleColumns2014All(sex), cells)]))];
     }),
   ) as Indicator2014Block["people"],
   households: Object.fromEntries(
-    AREAS.map((area) => [area, applicable(row.households[area]) ? nest(HOUSEHOLD_FIELDS_2014, row.households[area]) : null]),
+    AREAS.map((area) => [area, applicable(row.households[area]) ? nest(HOUSEHOLD_FIELDS_2014_ALL, row.households[area]) : null]),
   ) as Indicator2014Block["households"],
 });
 

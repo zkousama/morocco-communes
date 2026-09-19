@@ -202,12 +202,14 @@ come from `admin_level=10` relations the same way, all of them, and each has to 
 inside its commune and the set has to cover the city.
 
 HCP's indicators workbook lists the same units under the same codes, so it joins by code:
-every one of the 1,852 units and the 164 urban centres. Each column is named after the
+every one of the 1,852 units and the 164 urban centres. Commuting comes in a workbook of
+its own for each census, with the same units in the same order, and is joined row by row
+before anything is placed. Each column is named after the
 heading HCP gives it, and the build refuses the workbook if a heading has moved. It then
 checks that each unit's population and household count equal the population file's and
 that the figures add up. `indicators/README.md` has the details.
 
-The 2014 census published the same kind of figures, in two workbooks of its own, and they
+The 2014 census published the same kind of figures, in workbooks of its own, and they
 land on the units of today: 1,965 of the 1,979 rows, by code, through the crosswalk, or by
 name inside a commune. 65 fields ask what 2024 asks and can be subtracted from it; the
 rest changed base or categories, and each says how. `indicators/2014/README.md` has the

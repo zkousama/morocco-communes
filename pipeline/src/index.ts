@@ -14,6 +14,8 @@ import { writeCrosswalk } from "./emit/crosswalk.ts";
 import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/sources.ts";
 import { parseHcpIndicators } from "./sources/hcpIndicators.ts";
 import { parseHcp2014Indicators } from "./sources/hcp2014Indicators.ts";
+import { parseHcp2014Mobility, parseHcpCommute2024 } from "./sources/hcpMobility.ts";
+import { joinCensus2014, joinCensus2024 } from "./sources/censusFields.ts";
 import { buildIndicators } from "./build/indicators.ts";
 import { buildIndicators2014 } from "./build/indicators2014.ts";
 import { checkIndicators } from "./validate/indicators.ts";
@@ -115,7 +117,13 @@ type Counted = { code: string; population: { "2024": { total: number | null; hou
 const published = new Map(
   (Object.values(records) as Counted[][]).flat().map((u) => [u.code, { population: u.population["2024"].total, households: u.population["2024"].households }]),
 );
-const indicators = buildIndicators(parseHcpIndicators(sources.get("hcp-2024-indicators")!), records as never);
+// Each census comes in more than one workbook: the indicators, and commuting in its own.
+// They list the same units in the same order, and are joined row by row before anything
+// is placed on the dataset.
+const indicators = buildIndicators(
+  joinCensus2024(parseHcpIndicators(sources.get("hcp-2024-indicators")!), parseHcpCommute2024(sources.get("hcp-2024-commute")!)),
+  records as never,
+);
 const indicatorProblems = checkIndicators(indicators, published);
 if (indicatorProblems.length > 0) {
   throw new Error(`the indicators don't hold together:\n  ${indicatorProblems.slice(0, 40).join("\n  ")}${indicatorProblems.length > 40 ? `\n  and ${indicatorProblems.length - 40} more` : ""}`);
@@ -127,9 +135,9 @@ console.log(`indicators: ${indicators.length} rows, ${indicators.filter((r) => r
 // The same indicators from the 2014 census, on the units the dataset publishes today.
 // A unit HCP counted then and doesn't count now keeps no figures here; it is listed,
 // with its reason, in the unplaced file beside them.
-const rows2014 = parseHcp2014Indicators(
-  sources.get("hcp-2014-indicators-people")!,
-  sources.get("hcp-2014-indicators-households")!,
+const rows2014 = joinCensus2014(
+  parseHcp2014Indicators(sources.get("hcp-2014-indicators-people")!, sources.get("hcp-2014-indicators-households")!),
+  parseHcp2014Mobility(sources.get("hcp-2014-mobility")!),
 );
 const population2014 = new Map(records.communes.map((c) => [c.code, c.population["2014"]]));
 const placed2014 = buildIndicators2014(

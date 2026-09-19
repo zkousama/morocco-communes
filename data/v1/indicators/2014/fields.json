@@ -880,6 +880,590 @@
         "female"
       ],
       "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "commute.employed",
+      "column": "commute_employed",
+      "topic": "commute",
+      "key": "employed",
+      "label": "Employed people aged 15 and over",
+      "heading": "",
+      "category": "Population active occupée de 15 ans et plus",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census counts the settled employed population, which leaves out people who move with the seasons."
+    },
+    {
+      "path": "workplace.atHome",
+      "column": "workplace_at_home",
+      "topic": "workplace",
+      "key": "atHome",
+      "label": "At home",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "À domicile",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.ownNeighbourhood",
+      "column": "workplace_own_neighbourhood",
+      "topic": "workplace",
+      "key": "ownNeighbourhood",
+      "label": "Their own neighbourhood or douar",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Quartier/Douar de résidence",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.otherNeighbourhood",
+      "column": "workplace_other_neighbourhood",
+      "topic": "workplace",
+      "key": "otherNeighbourhood",
+      "label": "Another neighbourhood or douar in their commune",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Autre quartier/douar dans la commune de résidence",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.otherCommune",
+      "column": "workplace_other_commune",
+      "topic": "workplace",
+      "key": "otherCommune",
+      "label": "Another commune in their province",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Autre commune dans la province de résidence",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.otherProvince",
+      "column": "workplace_other_province",
+      "topic": "workplace",
+      "key": "otherProvince",
+      "label": "Another province",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Autre province",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.noFixedPlace",
+      "column": "workplace_no_fixed_place",
+      "topic": "workplace",
+      "key": "noFixedPlace",
+      "label": "No fixed place",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Lieu non fixe",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.elsewhere",
+      "column": "workplace_elsewhere",
+      "topic": "workplace",
+      "key": "elsewhere",
+      "label": "Somewhere else",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Autre lieu",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "workplace.undetermined",
+      "column": "workplace_undetermined",
+      "topic": "workplace",
+      "key": "undetermined",
+      "label": "Not stated",
+      "heading": "Population active occupée de 15 ans et plus selon le lieu de travail",
+      "category": "Non déterminé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.walking",
+      "column": "commute_walking",
+      "topic": "commute",
+      "key": "walking",
+      "label": "On foot",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Marche à pied",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.walking"
+    },
+    {
+      "path": "commute.bikeOrMotorcycle",
+      "column": "commute_bike_or_motorcycle",
+      "topic": "commute",
+      "key": "bikeOrMotorcycle",
+      "label": "Bicycle or motorcycle",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Bicyclette / Motocycle",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.bikeOrMotorcycle"
+    },
+    {
+      "path": "commute.privateCar",
+      "column": "commute_private_car",
+      "topic": "commute",
+      "key": "privateCar",
+      "label": "Private car",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Voiture privée",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.privateCar"
+    },
+    {
+      "path": "commute.bus",
+      "column": "commute_bus",
+      "topic": "commute",
+      "key": "bus",
+      "label": "Bus",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Bus",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.bus"
+    },
+    {
+      "path": "commute.taxi",
+      "column": "commute_taxi",
+      "topic": "commute",
+      "key": "taxi",
+      "label": "Taxi",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Taxi",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.taxi"
+    },
+    {
+      "path": "commute.employerTransport",
+      "column": "commute_employer_transport",
+      "topic": "commute",
+      "key": "employerTransport",
+      "label": "Transport laid on by the employer",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Transport de personnel",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.employerTransport"
+    },
+    {
+      "path": "commute.train",
+      "column": "commute_train",
+      "topic": "commute",
+      "key": "train",
+      "label": "Train",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Train",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.train"
+    },
+    {
+      "path": "commute.tram",
+      "column": "commute_tram",
+      "topic": "commute",
+      "key": "tram",
+      "label": "Tram",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Tram",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "commute.tram"
+    },
+    {
+      "path": "commute.other",
+      "column": "commute_other",
+      "topic": "commute",
+      "key": "other",
+      "label": "Another way",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Autre",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census counts informal transport and animals on their own, which in 2014 fell under this."
+    },
+    {
+      "path": "commute.worksAtHome",
+      "column": "commute_works_at_home",
+      "topic": "commute",
+      "key": "worksAtHome",
+      "label": "Works at home",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Personne travaillant à son domicile",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census asks instead whether a person travels to work at all, which covers more than working at home."
+    },
+    {
+      "path": "commute.undetermined",
+      "column": "commute_undetermined",
+      "topic": "commute",
+      "key": "undetermined",
+      "label": "Not stated",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Non déterminé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 workbook has no such category."
+    },
+    {
+      "path": "study.students",
+      "column": "study_students",
+      "topic": "study",
+      "key": "students",
+      "label": "People in education",
+      "heading": "Population active occupée de 15 ans et plus selon le mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Population scolarisée",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "study.ownNeighbourhood",
+      "column": "study_own_neighbourhood",
+      "topic": "study",
+      "key": "ownNeighbourhood",
+      "label": "Their own neighbourhood or douar",
+      "heading": "Population scolarisée selon le lieu d'étude",
+      "category": "Quartier/Douar de résidence",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "study.otherNeighbourhood",
+      "column": "study_other_neighbourhood",
+      "topic": "study",
+      "key": "otherNeighbourhood",
+      "label": "Another neighbourhood or douar in their commune",
+      "heading": "Population scolarisée selon le lieu d'étude",
+      "category": "Autre quartier/douar dans la commune de résidence",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "study.otherCommune",
+      "column": "study_other_commune",
+      "topic": "study",
+      "key": "otherCommune",
+      "label": "Another commune in their province",
+      "heading": "Population scolarisée selon le lieu d'étude",
+      "category": "Autre commune dans la province de résidence",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "study.otherProvince",
+      "column": "study_other_province",
+      "topic": "study",
+      "key": "otherProvince",
+      "label": "Another province",
+      "heading": "Population scolarisée selon le lieu d'étude",
+      "category": "Autre province",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "study.elsewhere",
+      "column": "study_elsewhere",
+      "topic": "study",
+      "key": "elsewhere",
+      "label": "Somewhere else",
+      "heading": "Population scolarisée selon le lieu d'étude",
+      "category": "Autre lieu",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "study.undetermined",
+      "column": "study_undetermined",
+      "topic": "study",
+      "key": "undetermined",
+      "label": "Not stated",
+      "heading": "Population scolarisée selon le lieu d'étude",
+      "category": "Non déterminé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.walking",
+      "column": "study_commute_walking",
+      "topic": "studyCommute",
+      "key": "walking",
+      "label": "On foot",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Marche à pied",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.bikeOrMotorcycle",
+      "column": "study_commute_bike_or_motorcycle",
+      "topic": "studyCommute",
+      "key": "bikeOrMotorcycle",
+      "label": "Bicycle or motorcycle",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Bicyclette / Motocycle",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.privateCar",
+      "column": "study_commute_private_car",
+      "topic": "studyCommute",
+      "key": "privateCar",
+      "label": "Private car",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Voiture privée",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.bus",
+      "column": "study_commute_bus",
+      "topic": "studyCommute",
+      "key": "bus",
+      "label": "Bus",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Bus",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.taxi",
+      "column": "study_commute_taxi",
+      "topic": "studyCommute",
+      "key": "taxi",
+      "label": "Taxi",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Taxi",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.schoolTransport",
+      "column": "study_commute_school_transport",
+      "topic": "studyCommute",
+      "key": "schoolTransport",
+      "label": "School transport",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Transport scolaire",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.train",
+      "column": "study_commute_train",
+      "topic": "studyCommute",
+      "key": "train",
+      "label": "Train",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Train",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.tram",
+      "column": "study_commute_tram",
+      "topic": "studyCommute",
+      "key": "tram",
+      "label": "Tram",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Tram",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.other",
+      "column": "study_commute_other",
+      "topic": "studyCommute",
+      "key": "other",
+      "label": "Another way",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Autre",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "studyCommute.undetermined",
+      "column": "study_commute_undetermined",
+      "topic": "studyCommute",
+      "key": "undetermined",
+      "label": "Not stated",
+      "heading": "Population scolarisée selon le mode de transport utilisé pour se rendre sur le lieu d'études",
+      "category": "Non déterminé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "Asked in 2014 and not in 2024."
     }
   ],
   "households": [
@@ -1166,7 +1750,8 @@
       "heading": "Mode d'évacuation des déchets ménagers",
       "category": "Bac à ordures de la commune",
       "unit": "percent",
-      "comparableTo": "householdWaste.municipalBin"
+      "comparableTo": "householdWaste.municipalBin",
+      "note": "2014 had one category for everything that isn't a bin or a truck. The 2024 census counts waste dumped in the open on its own."
     },
     {
       "path": "householdWaste.truck",
@@ -1177,7 +1762,8 @@
       "heading": "Mode d'évacuation des déchets ménagers",
       "category": "Camion commun ou privé",
       "unit": "percent",
-      "comparableTo": "householdWaste.truck"
+      "comparableTo": "householdWaste.truck",
+      "note": "2014 had one category for everything that isn't a bin or a truck. The 2024 census counts waste dumped in the open on its own."
     },
     {
       "path": "householdWaste.otherOrOpen",
@@ -1187,7 +1773,8 @@
       "label": "Dumped in the open, or another way",
       "heading": "Mode d'évacuation des déchets ménagers",
       "category": "Autre",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "2014 had one category for everything that isn't a bin or a truck. The 2024 census counts waste dumped in the open on its own."
     },
     {
       "path": "cookingFuel.gas",
@@ -1252,7 +1839,8 @@
       "label": "Television",
       "heading": "Autres équipements ménagers",
       "category": "Télévision",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.radio",
@@ -1262,7 +1850,8 @@
       "label": "Radio",
       "heading": "Autres équipements ménagers",
       "category": "Radio",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.mobilePhone",
@@ -1272,7 +1861,8 @@
       "label": "Mobile phone",
       "heading": "Autres équipements ménagers",
       "category": "Téléphone portable",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.landline",
@@ -1282,7 +1872,8 @@
       "label": "Landline",
       "heading": "Autres équipements ménagers",
       "category": "Téléphone fixe",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.internet",
@@ -1292,7 +1883,8 @@
       "label": "Internet at home",
       "heading": "Autres équipements ménagers",
       "category": "Internet",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.computer",
@@ -1302,7 +1894,8 @@
       "label": "Computer",
       "heading": "Autres équipements ménagers",
       "category": "Ordinateur",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.satelliteDish",
@@ -1312,7 +1905,8 @@
       "label": "Satellite dish",
       "heading": "Autres équipements ménagers",
       "category": "Parabole",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "equipment.refrigerator",
@@ -1322,7 +1916,8 @@
       "label": "Refrigerator",
       "heading": "Autres équipements ménagers",
       "category": "Réfrigérateur",
-      "unit": "percent"
+      "unit": "percent",
+      "note": "What a household owned, asked in 2014 and not in 2024."
     },
     {
       "path": "households.distanceToPavedRoadKm",

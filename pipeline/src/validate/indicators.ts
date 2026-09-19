@@ -1,4 +1,5 @@
-import { AREAS, HOUSEHOLD_FIELDS, PEOPLE_FIELDS, SEXES } from "../sources/hcpIndicators.ts";
+import { AREAS, HOUSEHOLD_FIELDS, SEXES } from "../sources/hcpIndicators.ts";
+import { PEOPLE_FIELDS_ALL } from "../sources/censusFields.ts";
 import type { IndicatorRecord, Topics } from "../build/indicators.ts";
 
 /**
@@ -24,11 +25,13 @@ export function checkIndicators(
   const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance + 1e-9;
 
   const shares = (topics: Topics, topic: string, parts: number) => {
-    const values = Object.values(topics[topic] ?? {}).slice(0, parts);
+    const values = Object.values(topics[topic] ?? {}).slice(-parts);
     if (values.length !== parts || !values.every(num)) return null;
     return values.reduce((a, b) => a + b, 0);
   };
-  const PEOPLE_SHARES: [string, number][] = [["age", 16], ["education", 6], ["employmentStatus", 8]];
+  // The commuting shares sit under a count of the people they cover, so they are read from
+  // the end of the topic rather than the start.
+  const PEOPLE_SHARES: [string, number][] = [["age", 16], ["education", 6], ["employmentStatus", 8], ["commute", 12]];
   const HOUSEHOLD_SHARES = ["dwellingType", "occupancy", "dwellingAge", "wastewater", "householdWaste", "cookingFuel"];
 
   for (const r of records) {
@@ -125,7 +128,7 @@ export function checkIndicators(
     if (num(th) && num(uh) && num(rh) && uh + rh !== th) say(r, `urban ${uh} and rural ${rh} households don't make ${th}`);
 
     // Every value in range for what it measures.
-    const check = (topics: Topics, fields: typeof PEOPLE_FIELDS, where: string) => {
+    const check = (topics: Topics, fields: typeof PEOPLE_FIELDS_ALL, where: string) => {
       for (const f of fields) {
         const v = topics[f.topic]?.[f.key];
         if (!num(v)) continue;
@@ -144,7 +147,7 @@ export function checkIndicators(
     };
     for (const area of AREAS) {
       const people = r.people[area];
-      if (people) for (const sex of SEXES) check(people[sex], PEOPLE_FIELDS.filter((f) => f.sexes.includes(sex)), `${area}/${sex}`);
+      if (people) for (const sex of SEXES) check(people[sex], PEOPLE_FIELDS_ALL.filter((f) => f.sexes.includes(sex)), `${area}/${sex}`);
       const homes = r.households[area];
       if (homes) check(homes, HOUSEHOLD_FIELDS, area);
     }

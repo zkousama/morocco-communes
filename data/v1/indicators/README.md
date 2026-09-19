@@ -16,6 +16,12 @@ force and unemployment, and employment status. Each is given for everyone, for m
 for women, except the legal population and the sex split, which are for everyone, and
 fertility, which is for everyone and for women.
 
+Getting to work: how many employed people there are and the share using each way of
+getting to work, from HCP's own workbook on the subject,
+[Indicateurs communaux Mode de transport domicile-lieu de travail des actifs occupés](https://www.hcp.ma/file/248301/).
+It counts the settled employed population, so its count falls a little short of the number
+in work.
+
 About households: how many there are, their average size, how many are sedentary, people
 per room, dwelling type, occupancy, the dwelling's age, amenities, wastewater, household
 waste, cooking fuel and the distance to a paved road.
@@ -30,7 +36,8 @@ Both come for the whole unit, its urban part and its rural part.
 - `people.csv` has a row per unit, area and sex, and `households.csv` a row per unit and
   area. Both start with a UTF-8 byte-order mark, for Excel.
 - `fields.json` lists every field with its path, its CSV column, an English label, HCP's
-  heading and category for it, its unit and the sexes it's given for, and HCP's notes.
+  heading and category for it, its unit and the sexes it's given for, and HCP's notes. It
+  covers both workbooks, the indicators and commuting, in that order.
 
 A record, cut short:
 

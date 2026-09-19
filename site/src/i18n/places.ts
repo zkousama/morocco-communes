@@ -117,6 +117,13 @@ export const places = {
       darija: "Darija", tachelhit: "Tachelhit", tamazight: "Tamazight", tarifit: "Tarifit", hassania: "Hassania",
       arabic: "Arabic", french: "French", english: "English", amazighTifinagh: "Amazigh, in Tifinagh",
     },
+    commute: "Getting to work",
+    commuteBody: "How employed people get to work.",
+    commuteBodyThen: "How employed people get to work. The outline is the same share in 2014.",
+    commuteNames: {
+      walking: "On foot", privateCar: "Private car", taxi: "Taxi", bus: "Bus",
+      bikeOrMotorcycle: "Bike or motorcycle", employerTransport: "Employer’s transport",
+    },
     census: "Census figures",
     peopleMore: "What each figure means",
   },
@@ -234,6 +241,13 @@ export const places = {
     languageNames: {
       darija: "Darija", tachelhit: "Tachelhit", tamazight: "Tamazight", tarifit: "Tarifit", hassania: "Hassania",
       arabic: "Arabe", french: "Français", english: "Anglais", amazighTifinagh: "Amazigh, en tifinagh",
+    },
+    commute: "Aller au travail",
+    commuteBody: "Comment les actifs occupés se rendent au travail.",
+    commuteBodyThen: "Comment les actifs occupés se rendent au travail. Le trait donne la même part en 2014.",
+    commuteNames: {
+      walking: "À pied", privateCar: "Voiture privée", taxi: "Taxi", bus: "Bus",
+      bikeOrMotorcycle: "Vélo ou moto", employerTransport: "Transport de l’employeur",
     },
     census: "Chiffres du recensement",
     peopleMore: "Ce que mesure chaque chiffre",

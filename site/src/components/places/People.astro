@@ -85,6 +85,18 @@ const bars = (topic: string, keys: string[]) =>
 const used = bars("localLanguages", ["darija", "tachelhit", "tamazight", "tarifit", "hassania"]);
 const read = bars("languagesReadAndWritten", ["arabic", "french", "english", "amazighTifinagh"]);
 const names = p.languageNames as Record<string, string>;
+
+// How people get to work: the modes both censuses asked about, so each bar can carry the
+// 2014 share behind it the way the pyramid does.
+const MODES = ["walking", "privateCar", "taxi", "bus", "bikeOrMotorcycle", "employerTransport"];
+const commuteNames = p.commuteNames as Record<string, string>;
+const commute = MODES.map((key) => ({
+  key,
+  value: figure(all, `commute.${key}`),
+  then: figure(before?.people.total?.all, `commute.${key}`),
+}))
+  .filter((b): b is { key: string; value: number; then: number | null } => b.value !== null)
+  .sort((a, b) => b.value - a.value);
 ---
 
 <section class="people">
@@ -167,6 +179,24 @@ const names = p.languageNames as Record<string, string>;
                 <ul class="bars">
                   {read.map((b) => (
                     <li><span class="label">{names[b.key]}</span><span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span><span class="value">{pct(b.value)}</span></li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {commute.length > 0 && (
+              <>
+                <h3>{p.commute}</h3>
+                <p class="note">{commute.some((b) => b.then !== null) ? p.commuteBodyThen : p.commuteBody}</p>
+                <ul class="bars">
+                  {commute.map((b) => (
+                    <li>
+                      <span class="label">{commuteNames[b.key]}</span>
+                      <span class="track">
+                        <span class="bar" style={`--w: ${b.value}%`} />
+                        {b.then !== null && <span class="ghost" style={`--w: ${b.then}%`} />}
+                      </span>
+                      <span class="value">{pct(b.value)}</span>
+                    </li>
                   ))}
                 </ul>
               </>
@@ -339,6 +369,17 @@ const names = p.languageNames as Record<string, string>;
     font-size: var(--t-sm);
   }
 
+  /* The same share in 2014, as an outline the 2024 bar sits inside or runs past. */
+  .bars .ghost {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--w);
+    border: 1px solid var(--quiet);
+    border-radius: 3px;
+    opacity: 0.55;
+  }
+
   .bars li {
     display: grid;
     grid-template-columns: 9.5rem minmax(0, 1fr) 3.5rem;
@@ -347,6 +388,7 @@ const names = p.languageNames as Record<string, string>;
   }
 
   .bars .track {
+    position: relative;
     height: 0.7rem;
     border-radius: 3px;
     background: var(--rule);

@@ -103,7 +103,7 @@ export const downloads = [
       {
         "label": "people.csv",
         "href": "/data/v1/indicators/people.csv",
-        "bytes": 4240349
+        "bytes": 4867006
       },
       {
         "label": "households.csv",
@@ -113,22 +113,22 @@ export const downloads = [
       {
         "label": "communes.json",
         "href": "/data/v1/indicators/communes.json",
-        "bytes": 14171495
+        "bytes": 16147233
       },
       {
         "label": "provinces.json",
         "href": "/data/v1/indicators/provinces.json",
-        "bytes": 1076631
+        "bytes": 1229188
       },
       {
         "label": "regions.json",
         "href": "/data/v1/indicators/regions.json",
-        "bytes": 163239
+        "bytes": 186311
       },
       {
         "label": "fields.json",
         "href": "/data/v1/indicators/fields.json",
-        "bytes": 35531
+        "bytes": 40514
       }
     ]
   },
@@ -139,7 +139,7 @@ export const downloads = [
       {
         "label": "people.csv",
         "href": "/data/v1/indicators/2014/people.csv",
-        "bytes": 3544903
+        "bytes": 6259178
       },
       {
         "label": "households.csv",
@@ -149,22 +149,22 @@ export const downloads = [
       {
         "label": "communes.json",
         "href": "/data/v1/indicators/2014/communes.json",
-        "bytes": 12894656
+        "bytes": 26207244
       },
       {
         "label": "provinces.json",
         "href": "/data/v1/indicators/2014/provinces.json",
-        "bytes": 974528
+        "bytes": 1520045
       },
       {
         "label": "regions.json",
         "href": "/data/v1/indicators/2014/regions.json",
-        "bytes": 148395
+        "bytes": 222366
       },
       {
         "label": "fields.json",
         "href": "/data/v1/indicators/2014/fields.json",
-        "bytes": 40124
+        "bytes": 58429
       },
       {
         "label": "unplaced.json",
@@ -333,7 +333,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 2723
+        "bytes": 3737
       }
     ]
   }

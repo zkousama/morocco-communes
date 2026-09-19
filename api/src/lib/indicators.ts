@@ -1,5 +1,9 @@
-import { HOUSEHOLD_FIELDS, PEOPLE_FIELDS } from "../../../pipeline/src/sources/indicatorFields.ts";
-import { HOUSEHOLD_FIELDS_2014, PEOPLE_FIELDS_2014 } from "../../../pipeline/src/sources/indicator2014Fields.ts";
+import {
+  HOUSEHOLD_FIELDS_2014_ALL as HOUSEHOLD_FIELDS_2014,
+  HOUSEHOLD_FIELDS_ALL as HOUSEHOLD_FIELDS,
+  PEOPLE_FIELDS_2014_ALL as PEOPLE_FIELDS_2014,
+  PEOPLE_FIELDS_ALL as PEOPLE_FIELDS,
+} from "../../../pipeline/src/sources/censusFields.ts";
 
 /** A topic's figures by key, as the dataset stores them. Null where HCP publishes none. */
 export type Topics = Record<string, Record<string, number | null>>;

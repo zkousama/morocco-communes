@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { AREAS, HOUSEHOLD_FIELDS, PEOPLE_FIELDS, SEXES, type Field } from "../sources/hcpIndicators.ts";
+import { AREAS, SEXES, type Field } from "../sources/hcpIndicators.ts";
+import { HOUSEHOLD_FIELDS_ALL as HOUSEHOLD_FIELDS, PEOPLE_FIELDS_ALL as PEOPLE_FIELDS } from "../sources/censusFields.ts";
 import type { IndicatorRecord, Level } from "../build/indicators.ts";
 import { toCsv } from "./csv.ts";
 

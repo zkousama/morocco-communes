@@ -1,5 +1,6 @@
 import { AREAS, SEXES, type Area } from "../sources/indicatorFields.ts";
-import { HOUSEHOLD_FIELDS_2014, PEOPLE_FIELDS_2014, type Field2014 } from "../sources/indicator2014Fields.ts";
+import type { Field2014 } from "../sources/indicator2014Fields.ts";
+import { HOUSEHOLD_FIELDS_2014_ALL, PEOPLE_FIELDS_2014_ALL } from "../sources/censusFields.ts";
 import type { Topics } from "../build/indicators.ts";
 import type { Indicator2014Block } from "../build/indicators2014.ts";
 
@@ -22,15 +23,15 @@ export function checkIndicators2014(
   const num = (v: number | null | undefined): v is number => typeof v === "number";
   const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance + 1e-9;
 
-  const PEOPLE_SHARES = ["age", "maritalStatus", "languageCombinations", "education", "employmentStatus"];
+  const PEOPLE_SHARES = ["age", "maritalStatus", "languageCombinations", "education", "employmentStatus", "workplace", "commute", "study", "studyCommute"];
   const HOUSEHOLD_SHARES = ["dwellingType", "occupancy", "dwellingAge", "wastewater", "householdWaste"];
-  const partsOf = (fields: Field2014[], topic: string) => fields.filter((f) => f.topic === topic && f.unit === "percent").length;
+  /** A topic's shares, leaving out the counts and averages it also carries. */
+  const shareKeys = (fields: Field2014[], topic: string) =>
+    fields.filter((f) => f.topic === topic && f.unit === "percent").map((f) => f.key);
 
-  const sumOf = (topics: Topics, topic: string, parts: number) => {
-    const values = Object.entries(topics[topic] ?? {})
-      .filter(([key]) => key !== "singulateMeanAgeAtMarriage")
-      .map(([, v]) => v);
-    if (values.length !== parts || !values.every(num)) return null;
+  const sumOf = (block: Record<string, number | null>, keys: string[]) => {
+    const values = keys.map((key) => block[key]);
+    if (!values.every(num)) return null;
     return values.reduce((a, b) => a + b, 0);
   };
 
@@ -75,22 +76,31 @@ export function checkIndicators2014(
         say(`${area}: average household ${averageSize}, the counts give ${(all / count).toFixed(2)}`);
       }
       for (const topic of HOUSEHOLD_SHARES) {
-        const parts = partsOf(HOUSEHOLD_FIELDS_2014, topic);
-        const sum = sumOf(homes, topic, parts);
-        if (sum !== null && sum > 0 && !near(sum, 100, 0.05 * parts)) say(`${area}: ${topic} sums to ${sum.toFixed(1)}`);
+        const keys = shareKeys(HOUSEHOLD_FIELDS_2014_ALL, topic);
+        const sum = sumOf(homes[topic] ?? {}, keys);
+        if (sum !== null && sum > 0 && !near(sum, 100, 0.05 * keys.length)) say(`${area}: ${topic} sums to ${sum.toFixed(1)}`);
       }
 
       for (const sex of SEXES) {
         const t = people[sex];
         for (const topic of PEOPLE_SHARES) {
-          const parts = partsOf(PEOPLE_FIELDS_2014, topic);
-          const sum = sumOf(t, topic, parts);
-          if (sum !== null && sum > 0 && !near(sum, 100, 0.05 * parts)) say(`${area}/${sex}: ${topic} sums to ${sum.toFixed(1)}`);
+          const keys = shareKeys(PEOPLE_FIELDS_2014_ALL, topic);
+          const sum = sumOf(t[topic] ?? {}, keys);
+          if (sum !== null && sum > 0 && !near(sum, 100, 0.05 * keys.length)) say(`${area}/${sex}: ${topic} sums to ${sum.toFixed(1)}`);
         }
         // In 2014 everyone outside the labour force counted as inactive, children with
         // the rest, so the two together are the whole municipal population.
         const municipal = t.population?.municipal;
+        const commuting = t.commute?.employed;
+        const students = t.study?.students;
+        if (num(commuting) && num(municipal) && commuting > municipal) {
+          say(`${area}/${sex}: ${commuting} people commuting, more than the ${municipal} counted`);
+        }
+        if (num(students) && num(municipal) && students > municipal) {
+          say(`${area}/${sex}: ${students} people in education, more than the ${municipal} counted`);
+        }
         const { active, inactive } = t.labour ?? {};
+        if (num(active) && num(commuting) && commuting > active) say(`${area}/${sex}: more people commuting than in the labour force`);
         if (num(active) && num(inactive) && num(municipal) && active + inactive !== municipal) {
           say(`${area}/${sex}: ${active} active and ${inactive} inactive make ${active + inactive}, not the ${municipal} people counted`);
         }
@@ -127,9 +137,9 @@ export function checkIndicators2014(
     };
     for (const area of AREAS) {
       const people = block.people[area];
-      if (people) for (const sex of SEXES) check(people[sex], PEOPLE_FIELDS_2014.filter((f) => f.sexes.includes(sex)), `${area}/${sex}`);
+      if (people) for (const sex of SEXES) check(people[sex], PEOPLE_FIELDS_2014_ALL.filter((f) => f.sexes.includes(sex)), `${area}/${sex}`);
       const homes = block.households[area];
-      if (homes) check(homes, HOUSEHOLD_FIELDS_2014, area);
+      if (homes) check(homes, HOUSEHOLD_FIELDS_2014_ALL, area);
     }
   }
 

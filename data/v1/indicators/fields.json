@@ -950,6 +950,200 @@
         "male",
         "female"
       ]
+    },
+    {
+      "path": "commute.employed",
+      "column": "commute_employed",
+      "topic": "commute",
+      "key": "employed",
+      "label": "Employed people aged 15 and over, settled",
+      "heading": "Population sédentaire active occupée de 15 ans et plus",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.walking",
+      "column": "commute_walking",
+      "topic": "commute",
+      "key": "walking",
+      "label": "On foot",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "À pieds",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.bikeOrMotorcycle",
+      "column": "commute_bike_or_motorcycle",
+      "topic": "commute",
+      "key": "bikeOrMotorcycle",
+      "label": "Bicycle or motorcycle",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Motocycle/ Bicyclette",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.privateCar",
+      "column": "commute_private_car",
+      "topic": "commute",
+      "key": "privateCar",
+      "label": "Private car",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Voiture privée",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.bus",
+      "column": "commute_bus",
+      "topic": "commute",
+      "key": "bus",
+      "label": "Bus",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Bus",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.taxi",
+      "column": "commute_taxi",
+      "topic": "commute",
+      "key": "taxi",
+      "label": "Taxi",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Taxi",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.employerTransport",
+      "column": "commute_employer_transport",
+      "topic": "commute",
+      "key": "employerTransport",
+      "label": "Transport laid on by the employer",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Transport de l'employeur / Etablissement",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.train",
+      "column": "commute_train",
+      "topic": "commute",
+      "key": "train",
+      "label": "Train",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Train",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.tram",
+      "column": "commute_tram",
+      "topic": "commute",
+      "key": "tram",
+      "label": "Tram",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Tram",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.informalTransport",
+      "column": "commute_informal_transport",
+      "topic": "commute",
+      "key": "informalTransport",
+      "label": "Informal transport",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Transport informel",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.animal",
+      "column": "commute_animal",
+      "topic": "commute",
+      "key": "animal",
+      "label": "Animal",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Animaux",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.other",
+      "column": "commute_other",
+      "topic": "commute",
+      "key": "other",
+      "label": "Another way",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Autre",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "commute.noTravel",
+      "column": "commute_no_travel",
+      "topic": "commute",
+      "key": "noTravel",
+      "label": "Doesn’t travel to work",
+      "heading": "Mode de transport utilisé pour se rendre sur le lieu de travail",
+      "category": "Ne se déplace pas",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
     }
   ],
   "households": [

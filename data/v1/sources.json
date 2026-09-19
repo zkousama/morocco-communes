@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.2.0",
+  "datasetVersion": "1.3.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -34,6 +34,20 @@
       "url": "https://www.hcp.ma/file/230042/",
       "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les ménages et les conditions d'habitation. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "2fde794a15d0d98889875316666d918f1044f8055610bfb909d056a15fe878a1",
+      "retrievedAt": "2026-09-19"
+    },
+    {
+      "id": "hcp-2024-commute",
+      "url": "https://www.hcp.ma/file/248301/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2024, Indicateurs communaux sur le mode de transport domicile-lieu de travail des actifs occupés. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "30e8fc0047fe7ada2cb1db36e127e8d31966da2e775183b9bb0c7eeffd540027",
+      "retrievedAt": "2026-09-19"
+    },
+    {
+      "id": "hcp-2014-mobility",
+      "url": "https://www.hcp.ma/file/230011/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur la mobilité et le transport par commune. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "ed3c24c0c9dba69cac98c03bf27235211ffdf66e6edd97a84b61d9f0c64aa957",
       "retrievedAt": "2026-09-19"
     },
     {

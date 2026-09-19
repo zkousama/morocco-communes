@@ -2,13 +2,13 @@ import {
   AREAS,
   HOUSEHOLD_FIELDS,
   SEXES,
-  peopleColumns,
   type Area,
   type Cell,
   type Field,
   type IndicatorRow,
   type Sex,
 } from "../sources/hcpIndicators.ts";
+import { peopleColumnsAll } from "../sources/censusFields.ts";
 
 export type Level = "country" | "region" | "province" | "cercle" | "commune" | "arrondissement" | "urbanCentre";
 
@@ -89,7 +89,7 @@ export function buildIndicators(rows: IndicatorRow[], units: Units): IndicatorRe
       AREAS.map((area) => {
         const blocks = SEXES.map((sex) => [sex, row.people[area][sex]] as const);
         if (!blocks.some(([, cells]) => applicable(cells))) return [area, null];
-        return [area, Object.fromEntries(blocks.map(([sex, cells]) => [sex, nest(peopleColumns(sex), cells)]))];
+        return [area, Object.fromEntries(blocks.map(([sex, cells]) => [sex, nest(peopleColumnsAll(sex), cells)]))];
       }),
     ) as IndicatorRecord["people"];
     const households = Object.fromEntries(

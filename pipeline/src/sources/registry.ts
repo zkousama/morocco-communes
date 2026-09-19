@@ -2,7 +2,7 @@
  * The dataset's own version, independent of the API's. Major for a breaking schema
  * change, minor for an added field, patch for a correction. Bumped deliberately.
  */
-export const DATASET_VERSION = "1.2.0";
+export const DATASET_VERSION = "1.3.0";
 
 export interface SourceSpec {
   id: string;
@@ -41,5 +41,17 @@ export const SOURCES: SourceSpec[] = [
     url: "https://www.hcp.ma/file/230042/",
     filename: "hcp-indicateurs-2014-menages.xlsx",
     licence: "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les ménages et les conditions d'habitation. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+  },
+  {
+    id: "hcp-2024-commute",
+    url: "https://www.hcp.ma/file/248301/",
+    filename: "hcp-transport-2024.xlsx",
+    licence: "Haut-Commissariat au Plan, RGPH 2024, Indicateurs communaux sur le mode de transport domicile-lieu de travail des actifs occupés. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+  },
+  {
+    id: "hcp-2014-mobility",
+    url: "https://www.hcp.ma/file/230011/",
+    filename: "hcp-mobilite-2014.xlsx",
+    licence: "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur la mobilité et le transport par commune. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
   },
 ];

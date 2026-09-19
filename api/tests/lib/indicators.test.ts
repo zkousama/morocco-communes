@@ -23,10 +23,11 @@ const table = buildIndicatorTable(records.filter((r) => r.level === "commune"));
 
 describe("the indicator paths", () => {
   it("cover every people figure for everyone and every household figure", () => {
-    expect(INDICATOR_PATHS).toHaveLength(65 + 36);
+    expect(INDICATOR_PATHS).toHaveLength(65 + 13 + 36);
     expect(INDICATOR_PATHS).toContain("labour.unemploymentRate");
     expect(INDICATOR_PATHS).toContain("amenities.runningWater");
     expect(INDICATOR_PATHS).toContain("age.75+");
+    expect(INDICATOR_PATHS).toContain("commute.walking");
   });
 
   it("explain a wrong one in terms a model can act on", () => {

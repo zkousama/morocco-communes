@@ -1,7 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { AREAS, SEXES } from "../sources/indicatorFields.ts";
-import { HOUSEHOLD_FIELDS_2014, PEOPLE_FIELDS_2014, type Field2014 } from "../sources/indicator2014Fields.ts";
+import type { Field2014 } from "../sources/indicator2014Fields.ts";
+import { HOUSEHOLD_FIELDS_2014_ALL as HOUSEHOLD_FIELDS_2014, PEOPLE_FIELDS_2014_ALL as PEOPLE_FIELDS_2014 } from "../sources/censusFields.ts";
 import type { IndicatorRecord, Level } from "../build/indicators.ts";
 import type { Indicator2014Block, Unplaced2014 } from "../build/indicators2014.ts";
 import { columnOf, pathOf } from "./indicators.ts";

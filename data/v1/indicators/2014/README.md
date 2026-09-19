@@ -1,9 +1,10 @@
 # 2014 census indicators
 
 The same kind of figures from the census before, on the units the dataset publishes
-today. HCP publishes them in two workbooks,
-[Indicateurs sur la population selon les résultats du RGPH 2014](https://www.hcp.ma/file/230045/)
-and [Indicateurs sur les ménages et les conditions d'habitation selon les résultats du RGPH 2014](https://www.hcp.ma/file/230042/).
+today. HCP publishes them in three workbooks,
+[Indicateurs sur la population](https://www.hcp.ma/file/230045/),
+[Indicateurs sur les ménages et les conditions d'habitation](https://www.hcp.ma/file/230042/)
+and [Indicateurs sur la mobilité et le transport](https://www.hcp.ma/file/230011/).
 
 ## What's in it
 
@@ -13,6 +14,10 @@ from 10, the combinations of languages literate people read and write, level of 
 the local languages people use, the labour force, activity and unemployment, and
 employment status. Each is given for everyone, for men and for women, except the legal
 population, which is for everyone.
+
+Getting about: how many people are in work and how they get there, where they work, and
+for people in education, where they study and how they get there. The 2024 census asks
+only how people in work get there.
 
 About households: how many there are, their average size, dwelling type, people per room,
 occupancy, the dwelling's age, amenities, wastewater, household waste, cooking fuel, the
