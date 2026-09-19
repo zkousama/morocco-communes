@@ -17,6 +17,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The pipeline's tests read HCP's workbooks, which aren't committed.
+      - run: pnpm dataset:fetch
       - run: pnpm check
       - run: pnpm build
       # The smoke probes need the Worker and the files together, as wrangler dev serves them.

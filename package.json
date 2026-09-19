@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dataset:build": "node --experimental-strip-types pipeline/src/index.ts",
+    "dataset:fetch": "node --experimental-strip-types pipeline/src/fetchSources.ts",
     "api:build": "node --experimental-strip-types api/src/emit/index.ts",
     "api:dev": "wrangler dev --port 8788",
     "api:smoke": "node --experimental-strip-types api/smoke.ts",
