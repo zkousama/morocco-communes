@@ -72,7 +72,8 @@ describe("emitIndicators", () => {
   emitIndicators(tree, records);
 
   it("writes a file for the country and for every unit", () => {
-    expect(tree.size).toBe(1 + 12 + 83 + 213 + 1503 + 41);
+    expect(tree.size).toBe(1 + 12 + 83 + 213 + 1503 + 41 + 2);
+    expect((tree.get("/api/provinces/indicators.json")!.data as unknown[]).length).toBe(83);
     expect(tree.has("/api/indicators.json")).toBe(true);
     expect(tree.has("/api/cercles/01.511.05/indicators.json")).toBe(true);
     expect(tree.has("/api/arrondissements/01.511.01.05/indicators.json")).toBe(true);

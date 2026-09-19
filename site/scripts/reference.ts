@@ -190,6 +190,8 @@ const files = [
   { key: "arrondissementBoundary", pattern: "/api/arrondissements/{code}/boundary.geojson", example: "/api/arrondissements/01.511.01.05/boundary.geojson" },
   { key: "provinceBoundary", pattern: "/api/provinces/{code}/boundary.geojson", example: "/api/provinces/01.511/boundary.geojson" },
   { key: "regionBoundary", pattern: "/api/regions/{code}/boundary.geojson", example: "/api/regions/01/boundary.geojson" },
+  { key: "regionsIndicators", pattern: "/api/regions/indicators.json", example: "/api/regions/indicators.json" },
+  { key: "provincesIndicators", pattern: "/api/provinces/indicators.json", example: "/api/provinces/indicators.json" },
   { key: "tiles", pattern: "/api/tiles/{z}/{x}/{y}.json", example: tilePath(geometry.tileIndex.leaf[0]!) },
 ] as const;
 const written = new Set([

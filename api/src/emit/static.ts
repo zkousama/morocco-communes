@@ -133,7 +133,9 @@ const COLLECTION: Record<string, string> = {
 /**
  * HCP's census indicators, a file per unit beside its record, and the country's at
  * /api/indicators.json. A commune's file carries its urban centres' figures too, since a
- * centre has no record of its own.
+ * centre has no record of its own. The 12 régions and the 83 provinces also come as one
+ * file each, to compare them: reading them one at a time would take more subrequests than
+ * a Worker on the free plan gets.
  */
 export function emitIndicators(tree: Tree, records: IndicatorRecord[]): void {
   const put = (path: string, data: unknown) => {
@@ -153,6 +155,12 @@ export function emitIndicators(tree: Tree, records: IndicatorRecord[]): void {
     const collection = COLLECTION[r.level];
     if (!collection) throw new Error(`no collection for ${r.level}`);
     put(api(`${collection}/${r.code}/indicators.json`), r.level === "commune" ? { ...r, urbanCentres: centres.get(r.code!) ?? [] } : r);
+  }
+  for (const [level, collection] of [["region", "regions"], ["province", "provinces"]] as const) {
+    const rows = records.filter((r) => r.level === level);
+    const path = api(`${collection}/indicators.json`);
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(rows, { self: path }, { total: rows.length }));
   }
 }
 

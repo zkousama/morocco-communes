@@ -124,7 +124,10 @@ describe("the MCP server, through a real client", () => {
   it("names the commune an arrondissement belongs to", async () => {
     const r = await call("get_commune", { id: "01.511.01.05" });
     expect(r.isError).toBe(true);
-    expect(text(r)).toBe("01.511.01.05 is an arrondissement of Tanger. Call get_commune with 01.511.01.0.");
+    expect(text(r)).toBe(
+      "01.511.01.05 is the arrondissement Mghogha of Tanger, with 252656 people in 2024. " +
+        "get_indicators with unit 01.511.01.05 has its census figures, and get_commune with 01.511.01.0 gives Tanger.",
+    );
   });
 
   it("points to search when an identifier names nothing", async () => {
@@ -257,11 +260,13 @@ describe("the MCP server, through a real client", () => {
 
 describe("get_indicators", () => {
   type Figures = Record<string, { people?: Record<string, Record<string, Record<string, number | null>>>; households?: Record<string, Record<string, number | null>> } | null>;
-  const figures = (r: Result) => r.structuredContent!.figures as Figures;
+  type Found = { unit: Record<string, unknown>; figures: Figures }[];
+  const results = (r: Result) => r.structuredContent!.results as Found;
+  const figures = (r: Result) => results(r)[0]!.figures;
 
   it("gives a commune's figures for everyone, by default", async () => {
     const r = await call("get_indicators", { unit: "tanger" });
-    expect(r.structuredContent!.unit).toMatchObject({ code: "01.511.01.0", level: "commune", name_fr: "Tanger" });
+    expect(results(r)[0]!.unit).toMatchObject({ code: "01.511.01.0", level: "commune", name_fr: "Tanger" });
     const total = figures(r).total!;
     expect(total.people!.all!.labour!.unemploymentRate).toBe(15.3);
     expect(total.households!.amenities!.runningWater).toBe(98.8);
@@ -271,7 +276,7 @@ describe("get_indicators", () => {
 
   it("gives Morocco's when no unit is named", async () => {
     const r = await call("get_indicators", { topics: ["fertility"] });
-    expect(r.structuredContent!.unit).toMatchObject({ code: null, level: "country" });
+    expect(results(r)[0]!.unit).toMatchObject({ code: null, level: "country" });
     expect(figures(r).total!.people!.all!.fertility!.totalFertilityRate).toBe(1.97);
     expect(figures(r).total!.households).toBeUndefined();
   });
@@ -288,8 +293,21 @@ describe("get_indicators", () => {
 
   it("works for a province too", async () => {
     const r = await call("get_indicators", { unit: "01.511", topics: ["households"] });
-    expect(r.structuredContent!.unit).toMatchObject({ level: "province" });
+    expect(results(r)[0]!.unit).toMatchObject({ level: "province" });
     expect(figures(r).total!.households!.households!.count).toBeGreaterThan(0);
+  });
+
+  it("gives every région at once, to compare them", async () => {
+    const r = await call("get_indicators", { level: "region", topics: ["labour"], sex: "female" });
+    expect(results(r)).toHaveLength(12);
+    expect(results(r).every((x) => typeof (x.figures.total!.people!.female!.labour!.activityRate) === "number")).toBe(true);
+  });
+
+  it("takes the level to tell a province from the commune of the same name", async () => {
+    const commune = await call("get_indicators", { unit: "tiznit", topics: ["households"] });
+    const province = await call("get_indicators", { unit: "tiznit", level: "province", topics: ["households"] });
+    expect(results(commune)[0]!.unit).toMatchObject({ level: "commune" });
+    expect(results(province)[0]!.unit).toMatchObject({ level: "province", code: "09.581" });
   });
 
   it("refuses a topic it doesn't have", async () => {
@@ -298,6 +316,28 @@ describe("get_indicators", () => {
       content: [{ type: "text", text: e.message }],
     }));
     expect(r.isError).toBe(true);
+  });
+});
+
+describe("the eval's findings", () => {
+  it("lists a city's arrondissements with get_commune, most populous first", async () => {
+    const r = await call("get_commune", { id: "casablanca" });
+    const parts = r.structuredContent!.arrondissements as { name_fr: string; population_2024: number }[];
+    expect(parts).toHaveLength(16);
+    expect(parts[0]).toMatchObject({ name_fr: "Sidi Moumen", population_2024: 551443 });
+    expect((await call("get_commune", { id: "tafraout" })).structuredContent!.arrondissements).toEqual([]);
+  });
+
+  it("gives an arrondissement's population when asked for it as a commune", async () => {
+    const r = await call("get_commune", { id: "agdal-riyad" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("with 70435 people in 2024");
+  });
+
+  it("reads a province filter as the province, where a commune shares its name", async () => {
+    const r = await call("list_communes", { province: "tiznit" });
+    expect(r.isError).toBeFalsy();
+    expect((r.structuredContent!.communes as { province: { code: string } }[]).every((c) => c.province.code === "09.581")).toBe(true);
   });
 });
 

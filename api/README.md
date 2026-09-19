@@ -60,6 +60,8 @@ GET /api/arrondissements/:code.json
 GET /api/arrondissements/:code/boundary.geojson
 GET /api/arrondissements/:code/indicators.json
 GET /api/indicators.json
+GET /api/regions/indicators.json
+GET /api/provinces/indicators.json
 GET /api/tiles/:z/:x/:y.json
 GET /data/v1/**
 ```
@@ -82,8 +84,9 @@ Every unit has HCP's 2024 census indicators beside its record, at `indicators.js
 Morocco's are at `/api/indicators.json`: age, marital status, fertility, disability,
 schooling, literacy and languages, education and work, and each household's dwelling,
 amenities, wastewater, waste and cooking fuel, for the whole unit, its urban and its rural
-part, and for men and women. A commune's file carries its urban centres' figures too.
-`/data/v1/indicators/README.md` says how to read them, and `fields.json` there names every
+part, and for men and women. A commune's file carries its urban centres' figures too, and
+`/api/regions/indicators.json` and `/api/provinces/indicators.json` hold every région's and
+every province's, to compare them in one request. `/data/v1/indicators/README.md` says how to read them, and `fields.json` there names every
 field with HCP's heading for it.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
@@ -223,11 +226,11 @@ session: each request gets a fresh server that answers in plain JSON.
 | Tool | Does |
 |---|---|
 | `search` | finds any unit by French or Arabic name, slug, or another name it goes by |
-| `get_commune` | one commune's names, type, parents, 2024 and 2014 population, and a point inside it |
+| `get_commune` | one commune's names, type, parents, 2024 and 2014 population, a point inside it, and a city's arrondissements |
 | `communes_near` | communes within a radius of a point, nearest first |
 | `commune_at` | the commune whose boundary contains a point |
 | `list_communes` | communes by région, province, cercle or type, 50 to a page, sorted by any figure or indicator |
-| `get_indicators` | HCP's 2024 census figures for Morocco or any unit, by topic, area and sex |
+| `get_indicators` | HCP's 2024 census figures for Morocco, any unit, or every région or province at once, by topic, area and sex |
 
 All six are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just

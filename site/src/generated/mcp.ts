@@ -50,7 +50,7 @@ export const mcp = {
     {
       "name": "get_commune",
       "title": "Get one commune",
-      "description": "One commune's names, type, région, province and cercle, 2024 and 2014 population, the change between them, and a point inside it. Identify it by HCP code (01.511.01.0), the code as digits, or a slug (tanger).",
+      "description": "One commune's names, type, région, province and cercle, 2024 and 2014 population, the change between them, and a point inside it, and in the 6 cities divided into them, its arrondissements with their population. Identify it by HCP code (01.511.01.0), the code as digits, or a slug (tanger).",
       "params": [
         {
           "name": "id",
@@ -221,7 +221,7 @@ export const mcp = {
     {
       "name": "get_indicators",
       "title": "Census indicators",
-      "description": "HCP's figures from the 2024 census for Morocco or any région, province or préfecture, cercle, commune or arrondissement: age, marital status, fertility, disability, schooling, illiteracy, the languages people read and write and the local languages they use, education, work and employment status, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel. Shares and rates are percentages from 0 to 100. Most of these come from the long questionnaire, which went to a random 20% of households in communes of 2,000 households or more, so there they're estimates. Null means HCP publishes no figure there. To rank communes by one figure, call list_communes with sort set to its path.",
+      "description": "HCP's figures from the 2024 census for Morocco or any région, province or préfecture, cercle, commune or arrondissement: age, marital status, fertility, disability, schooling, illiteracy, the languages people read and write and the local languages they use, education, work and employment status, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel. Shares and rates are percentages from 0 to 100. Most of these come from the long questionnaire, which went to a random 20% of households in communes of 2,000 households or more, so there they're estimates. Null means HCP publishes no figure there. To rank communes by one figure, call list_communes with sort set to its path; to compare the régions or the provinces, give level without a unit and get them all at once.",
       "params": [
         {
           "name": "unit",
@@ -230,6 +230,21 @@ export const mcp = {
             "description": "A région, province or préfecture, cercle, commune or arrondissement, by code or slug. Morocco as a whole when left out.",
             "type": "string",
             "minLength": 1
+          }
+        },
+        {
+          "name": "level",
+          "required": false,
+          "schema": {
+            "description": "With a unit, the level it's at, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune. Without a unit, region or province gives every one of that level.",
+            "type": "string",
+            "enum": [
+              "commune",
+              "arrondissement",
+              "province",
+              "region",
+              "cercle"
+            ]
           }
         },
         {

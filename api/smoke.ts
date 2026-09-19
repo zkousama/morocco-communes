@@ -57,6 +57,7 @@ for (const path of [
   "/api/communes/01.511.01.0/arrondissements.json",
   "/api/communes/01.511.01.0/indicators.json",
   "/api/regions/01/indicators.json",
+  "/api/provinces/indicators.json",
   "/api/indicators.json",
   "/data/v1/indicators/fields.json",
 ]) {
@@ -95,6 +96,8 @@ for (const [path, expected] of [
   ["/api/communes/001511010", "/api/communes/01.511.01.0.json"],
   ["/api/communes/tanger", "/api/communes/01.511.01.0.json"],
   ["/api/communes/tanger/indicators", "/api/communes/01.511.01.0/indicators.json"],
+  ["/api/provinces/tiznit", "/api/provinces/09.581.json"],
+  ["/api/communes?province=tiznit", "/api/provinces/09.581/communes/page/1.json"],
   ["/api/provinces/01.511/indicators", "/api/provinces/01.511/indicators.json"],
   ["/api/indicators", "/api/indicators.json"],
   ["/api/regions", "/api/regions.json"],
@@ -248,8 +251,8 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
   check("/mcp get_commune answers with the parent named",
     commune?.code === "01.511.01.0" && commune.province.name === "Tanger-Assilah", JSON.stringify(commune)?.slice(0, 80));
   const figures = await rpc("tools/call", { name: "get_indicators", arguments: { unit: "tanger", topics: ["labour"] } });
-  const total = (figures.body.result?.structuredContent as { figures?: { total?: { people?: { all?: { labour?: { unemploymentRate: number } } } } } } | undefined)
-    ?.figures?.total;
+  const total = (figures.body.result?.structuredContent as { results?: { figures: { total?: { people?: { all?: { labour?: { unemploymentRate: number } } } } } }[] } | undefined)
+    ?.results?.[0]?.figures.total;
   check("/mcp get_indicators reads a commune's census figures",
     total?.people?.all?.labour?.unemploymentRate === 15.3, JSON.stringify(total)?.slice(0, 80));
 }

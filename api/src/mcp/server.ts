@@ -175,23 +175,34 @@ export function createMcpServer(deps: McpDeps): McpServer {
       title: "Get one commune",
       description:
         "One commune's names, type, région, province and cercle, 2024 and 2014 population, the change between them, " +
-        "and a point inside it. Identify it by HCP code (01.511.01.0), the code as digits, or a slug (tanger).",
+        "and a point inside it, and in the 6 cities divided into them, its arrondissements with their population. " +
+        "Identify it by HCP code (01.511.01.0), the code as digits, or a slug (tanger).",
       inputSchema: {
         id: z.string().min(1).describe("An HCP code, the code as digits, or a slug."),
       },
-      outputSchema: { commune: communeShape },
+      outputSchema: {
+        commune: communeShape,
+        arrondissements: z
+          .array(z.object({ code: z.string(), name_fr: z.string(), name_ar: z.string(), population_2024: z.number().nullable() }))
+          .describe("Casablanca, Rabat, Fès, Marrakech, Salé and Tanger's arrondissements, most populous first; empty elsewhere."),
+      },
       annotations: READ_ONLY,
     },
     async ({ id }) => {
-      const found = resolve(lookup, id);
+      const found = resolve(lookup, id, "commune");
       if (found.kind === "malformed") return fail(`${id} is not a code or a slug.`);
       if (found.kind === "absent") return fail(`No unit has the identifier ${id}. Call search to find its code.`);
       if (found.level === "arrondissement") {
-        // An arrondissement sits inside a commune, so the useful answer is that commune.
+        // An arrondissement sits inside a commune, so the answer names both, with the
+        // arrondissement's own population, which is often what was asked.
         const body = await fetchJson(`/api/arrondissements/${found.code}.json`);
-        const parent = (body?.data as unknown as { communeCode: string | null } | undefined)?.communeCode;
-        if (parent) {
-          return fail(`${id} is an arrondissement of ${nameOf.get(parent) ?? parent}. Call get_commune with ${parent}.`);
+        const record = body?.data as unknown as { communeCode: string | null; name: { fr: string }; population: { "2024": { total: number | null } } } | undefined;
+        if (record?.communeCode) {
+          const city = nameOf.get(record.communeCode) ?? record.communeCode;
+          return fail(
+            `${id} is the arrondissement ${record.name.fr} of ${city}, with ${record.population["2024"].total} people in 2024. ` +
+              `get_indicators with unit ${found.code} has its census figures, and get_commune with ${record.communeCode} gives ${city}.`,
+          );
         }
         return fail(`${id} is an arrondissement, not a commune.`);
       }
@@ -203,7 +214,17 @@ export function createMcpServer(deps: McpDeps): McpServer {
       }
       const body = await fetchJson(`/api/communes/${found.code}.json`);
       if (!body) return fail(`The record for ${found.code} could not be read.`);
-      return ok({ commune: trim(body.data as unknown as CommuneRecord) });
+      const parts = ((await fetchJson(`/api/communes/${found.code}/arrondissements.json`))?.data ?? []) as unknown as {
+        code: string;
+        name: { fr: string; ar: string };
+        population: { "2024": { total: number | null } };
+      }[];
+      return ok({
+        commune: trim(body.data as unknown as CommuneRecord),
+        arrondissements: parts
+          .map((a) => ({ code: a.code, name_fr: a.name.fr, name_ar: a.name.ar, population_2024: a.population["2024"].total }))
+          .sort((a, b) => (b.population_2024 ?? 0) - (a.population_2024 ?? 0)),
+      });
     },
   );
 
@@ -368,13 +389,21 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "education, work and employment status, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel. " +
         "Shares and rates are percentages from 0 to 100. Most of these come from the long questionnaire, which went to a random 20% of households " +
         "in communes of 2,000 households or more, so there they're estimates. Null means HCP publishes no figure there. " +
-        "To rank communes by one figure, call list_communes with sort set to its path.",
+        "To rank communes by one figure, call list_communes with sort set to its path; to compare the régions or the provinces, " +
+        "give level without a unit and get them all at once.",
       inputSchema: {
         unit: z
           .string()
           .min(1)
           .optional()
           .describe("A région, province or préfecture, cercle, commune or arrondissement, by code or slug. Morocco as a whole when left out."),
+        level: z
+          .enum(LEVELS)
+          .optional()
+          .describe(
+            "With a unit, the level it's at, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune. " +
+              "Without a unit, region or province gives every one of that level.",
+          ),
         topics: z.array(z.enum(TOPIC_NAMES)).optional().describe("Only these topics. Every topic when left out."),
         area: z
           .enum([...AREAS, "each"])
@@ -386,38 +415,52 @@ export function createMcpServer(deps: McpDeps): McpServer {
           .describe("Everyone (all), men, women, or each of the three. all when left out. Household figures have no sex."),
       },
       outputSchema: {
-        unit: z.object({
-          code: z.string().nullable(),
-          level: z.string(),
-          name_fr: z.string(),
-          name_ar: z.string().nullable(),
-        }),
-        from_local_administration: z
-          .boolean()
-          .describe("HCP collected this unit's figures from the local administration, as its population moves with the seasons; only the counts are published."),
-        figures: z
-          .record(z.string(), z.record(z.string(), z.unknown()).nullable())
-          .describe("By area: people by sex, then households, each by topic and key. Null for an area the unit doesn't have."),
+        results: z.array(
+          z.object({
+            unit: z.object({
+              code: z.string().nullable(),
+              level: z.string(),
+              name_fr: z.string(),
+              name_ar: z.string().nullable(),
+            }),
+            from_local_administration: z
+              .boolean()
+              .describe("HCP collected this unit's figures from the local administration, as its population moves with the seasons; only the counts are published."),
+            figures: z
+              .record(z.string(), z.record(z.string(), z.unknown()).nullable())
+              .describe("By area: people by sex, then households, each by topic and key. Null for an area the unit doesn't have."),
+          }),
+        ),
       },
       annotations: READ_ONLY,
     },
-    async ({ unit, topics, area, sex }) => {
-      let path = "/api/indicators.json";
+    async ({ unit, level, topics, area, sex }) => {
+      let records: IndicatorRecord[];
       if (unit !== undefined) {
-        const found = resolve(lookup, unit);
+        const found = resolve(lookup, unit, level);
         if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
         if (found.kind === "absent") return fail(`No unit has the identifier ${unit}. Call search to find its code.`);
-        path = `/api/${COLLECTION[found.level]}/${found.code}/indicators.json`;
+        const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/indicators.json`);
+        if (!body) return fail(`The indicators for ${unit} could not be read.`);
+        records = [body.data as unknown as IndicatorRecord];
+      } else if (level !== undefined) {
+        if (level !== "region" && level !== "province") {
+          return fail(`Without a unit, level can be region or province. To rank communes by a figure, call list_communes with sort.`);
+        }
+        const body = await fetchJson(`/api/${COLLECTION[level]}/indicators.json`);
+        if (!body) return fail(`The indicators for every ${level} could not be read.`);
+        records = body.data as unknown as IndicatorRecord[];
+      } else {
+        const body = await fetchJson("/api/indicators.json");
+        if (!body) return fail("The indicators for Morocco could not be read.");
+        records = [body.data as unknown as IndicatorRecord];
       }
-      const body = await fetchJson(path);
-      if (!body) return fail(`The indicators for ${unit ?? "Morocco"} could not be read.`);
-      const record = body.data as unknown as IndicatorRecord;
 
       // In HCP's order, whatever order the topics were asked in.
       const pick = (t: Topics) => (topics ? Object.fromEntries(Object.entries(t).filter(([k]) => topics.includes(k))) : t);
       const areas = area === "each" ? AREAS : [area ?? "total"];
       const sexes = sex === "each" ? SEXES : [sex ?? "all"];
-      const figures = Object.fromEntries(
+      const figuresOf = (record: IndicatorRecord) => Object.fromEntries(
         areas.map((a) => {
           const people = record.people[a as (typeof AREAS)[number]];
           const homes = record.households[a as (typeof AREAS)[number]];
@@ -434,9 +477,11 @@ export function createMcpServer(deps: McpDeps): McpServer {
         }),
       );
       return ok({
-        unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
-        from_local_administration: record.fromLocalAdministration,
-        figures,
+        results: records.map((record) => ({
+          unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
+          from_local_administration: record.fromLocalAdministration,
+          figures: figuresOf(record),
+        })),
       });
     },
   );
