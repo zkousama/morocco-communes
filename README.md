@@ -82,17 +82,31 @@ Full reference: [`api/README.md`](api/README.md).
   shape, for an LLM reading the site.
 - **`/mcp`**: an MCP server with 4 read-only tools (`search`, `get_commune`,
   `communes_near`, `list_communes`), so Claude, Claude Code and other MCP clients can query
-  the data directly. How to connect is in [`api/README.md`](api/README.md#mcp).
+  the data directly. The site's `/docs/mcp/` page has the setup for each client.
+
+### In a form, or offline
+
+- **`/components/commune-picker.js`**: a custom element that fills a région, a province
+  and a commune `<select>` from the static files, so a form posts the commune's HCP code.
+  It's served with open CORS, and `/docs/components/` has a React version beside it.
+- **`morocco-communes`**: the dataset as an npm package, in `packages/morocco-communes/`.
+  Codes, names, parents and population as ES modules with types, one per level, and
+  without the OpenStreetMap fields, so it carries no ODbL terms. `pnpm npm:build` builds
+  it from `data/v1`, and the package takes the dataset's version number.
 
 ## The docs site
 
 `site/` is an Astro site in English and French, with a light and dark theme and a control
-to pick either or follow the system. It builds to static HTML, and the only JavaScript is a
-Solid island for the playground, which issues live queries against whatever it is deployed
-beside and shows the request URL and the `X-Api-Tier` of the response.
+to pick either or follow the system. It builds to static HTML. Its JavaScript is a Solid
+island for the playground, which issues live queries against whatever it is deployed beside
+and shows the request URL and the `X-Api-Tier` of the response, plus the picker on the
+components page and the copy buttons.
 
-Everything drawn on it comes out of `data/v1` at build time, by three scripts under
-`site/scripts/`:
+Beside the home page are 4 docs pages: an API reference, the MCP setup, the components and
+the npm package.
+
+Everything on it that describes the data or the API is generated at build time, by the
+scripts under `site/scripts/`:
 
 - `outline.ts` draws the hero: All 1,502 commune boundaries, decoded from the TopoJSON,
   projected and simplified to a tolerance that stays under a device pixel at the size it
@@ -102,6 +116,13 @@ Everything drawn on it comes out of `data/v1` at build time, by three scripts un
   growth spread of the 207 crosswalked communes against the 1,286 whose code never
   changed. That last one is the reconciliation checking itself: the two distributions sit
   almost on top of each other.
+
+- `downloads.ts` lists the files under `data/v1` with their real sizes, and fails the
+  build on a file that isn't there.
+- `reference.ts` builds the API reference from `buildOpenApi`, with each example a real
+  response from the emitted files or the Worker's own functions, and lists the MCP tools
+  by connecting a client to the server. The French page reads a translation of each line
+  of the spec, and the build fails when one is missing or left over.
 
 The charts are inline SVG and CSS, so they need no JavaScript and no charting library.
 
