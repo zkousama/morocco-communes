@@ -83,7 +83,7 @@ const themes = [
     </script>
   </head>
   <body>
-    <header class="masthead">
+    <header class="site-header">
       <div class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
       <nav class="sections" aria-label={copy.navLabel}>
@@ -156,7 +156,7 @@ const themes = [
       // anchors to clear; on a phone, where it's tall, it slides away while reading down
       // and comes back on the way up.
       (function () {
-        var bar = document.querySelector(".masthead");
+        var bar = document.querySelector(".site-header");
         if (!bar) return;
         var root = document.documentElement;
         var publish = function () {
@@ -349,6 +349,20 @@ const themes = [
         -webkit-text-size-adjust: 100%;
       }
 
+      /* A big screen is read from further away. Sizes are in rem, so a larger root scales
+         the type, the spacing and the 74rem column together. */
+      @media (min-width: 1800px) {
+        html {
+          font-size: 106.25%;
+        }
+      }
+
+      @media (min-width: 2300px) {
+        html {
+          font-size: 118.75%;
+        }
+      }
+
       body {
         margin: 0;
         background: var(--paper);
@@ -419,7 +433,7 @@ const themes = [
         scroll-padding-top: calc(var(--bar-h, 4.5rem) + 1rem);
       }
 
-      .masthead {
+      .site-header {
         position: sticky;
         top: 0;
         z-index: 20;
@@ -429,11 +443,11 @@ const themes = [
         transition: transform 0.2s ease, border-color 0.2s ease;
       }
 
-      .masthead.scrolled {
+      .site-header.scrolled {
         border-bottom-color: var(--rule);
       }
 
-      .masthead.away {
+      .site-header.away {
         transform: translateY(-100%);
       }
 
