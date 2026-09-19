@@ -38,8 +38,38 @@ function textOf(node: unknown): string {
   return "";
 }
 
+/**
+ * Unzipping a workbook is a third of a second for HCP's indicators file, and the parser
+ * reads six sheets from it, so each workbook is unzipped once.
+ */
+const unzipped = new WeakMap<Uint8Array, ReturnType<typeof unzipSync>>();
+const filesOf = (bytes: Uint8Array) => {
+  let files = unzipped.get(bytes);
+  if (!files) unzipped.set(bytes, (files = unzipSync(bytes)));
+  return files;
+};
+
+const ENTITY = /&(?:#x([0-9a-f]+)|#(\d+)|(amp|lt|gt|quot|apos));/gi;
+const NAMED: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+const decode = (text: string) =>
+  text.replace(ENTITY, (_, hex: string, dec: string, name: string) =>
+    hex ? String.fromCodePoint(parseInt(hex, 16)) : dec ? String.fromCodePoint(Number(dec)) : NAMED[name.toLowerCase()]!,
+  );
+
+const ROW = /<row\b[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g;
+const CELL = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+const REF = /\br="([A-Z]+)\d*"/;
+const TYPE = /\bt="([^"]*)"/;
+const VALUE = /<v>([\s\S]*?)<\/v>/;
+
+/**
+ * A sheet's cells, read with patterns rather than a DOM. A worksheet is one flat run of
+ * <row> and <c> elements, and a general XML parser took over four seconds on each 14 MB
+ * sheet of the indicators workbook. The shared strings, which carry rich text and
+ * xml:space, still go through the parser.
+ */
 export function readSheetRows(bytes: Uint8Array, sheetIndex = 1): (string | null)[][] {
-  const files = unzipSync(bytes);
+  const files = filesOf(bytes);
 
   const sharedStrings: string[] = [];
   const sstFile = files["xl/sharedStrings.xml"];
@@ -50,17 +80,21 @@ export function readSheetRows(bytes: Uint8Array, sheetIndex = 1): (string | null
 
   const sheetFile = files[`xl/worksheets/sheet${sheetIndex}.xml`];
   if (!sheetFile) throw new Error(`sheet${sheetIndex}.xml not present in workbook`);
-  const sheetData = parser.parse(strFromU8(sheetFile))?.worksheet?.sheetData;
+  const xml = strFromU8(sheetFile);
+  const start = xml.indexOf("<sheetData");
+  const end = xml.indexOf("</sheetData>");
+  const data = start < 0 ? "" : xml.slice(start, end < 0 ? undefined : end);
 
   const out: (string | null)[][] = [];
-  for (const row of sheetData?.row ?? []) {
+  for (const row of data.matchAll(ROW)) {
     const cells = new Map<number, string>();
-    for (const cell of row.c ?? []) {
-      const ref = cell["@r"];
+    for (const cell of (row[1] ?? "").matchAll(CELL)) {
+      const attributes = cell[1]!;
+      const ref = REF.exec(attributes)?.[1];
       if (!ref) continue;
-      const raw = cell.v;
-      if (raw === undefined || raw === null) continue;
-      const value = cell["@t"] === "s" ? sharedStrings[Number(raw)] ?? "" : String(raw);
+      const raw = VALUE.exec(cell[2] ?? "")?.[1];
+      if (raw === undefined) continue;
+      const value = TYPE.exec(attributes)?.[1] === "s" ? sharedStrings[Number(raw)] ?? "" : decode(raw);
       cells.set(columnIndex(ref), value);
     }
     const width = cells.size === 0 ? 0 : Math.max(...cells.keys()) + 1;
