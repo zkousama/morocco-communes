@@ -210,32 +210,6 @@ that the figures add up. `indicators/README.md` has the details.
 current code. `crosswalk/` reconciles them in two deterministic passes and records the
 evidence for every pairing, so each row can be checked rather than taken on trust.
 
-## How it compares
-
-Checked in September 2026, against each source's own files and licence.
-
-| Source | What it has | Licence and limits |
-|---|---|---|
-| [Wikidata](https://www.wikidata.org/wiki/Property:P11958) | the 2024 code for 1,495 of the 1,503 communes, Arabic names, and 2024 population equal to HCP's for 1,488; a boundary for 13 | CC0 |
-| [OCHA HDX](https://data.humdata.org/dataset/cod-ab-mar) | région and province boundaries from HCP, on UN p-codes, for 10 of the 12 régions | CC BY-IGO |
-| [geoBoundaries](https://www.geoboundaries.org/) | région and province boundaries from OpenStreetMap, as of 2017 | ODbL |
-| [GADM 4.1](https://gadm.org/) | 1,515 commune polygons on the map before the 2015 reform, without codes | no commercial use without permission |
-| [GeoNames](https://www.geonames.org/) | points for 1,794 places at commune level, on its own codes, with older population figures | CC BY 4.0; 1,000 credits an hour |
-| [Nominatim](https://nominatim.org/) | live OpenStreetMap, each commune's HCP code included | ODbL; 1 request a second |
-| [HCP](https://www.hcp.ma/downloads/RGPH-2024_t22752.html) | the census itself, as spreadsheets | CC BY 4.0 terms |
-| lists on GitHub and npm | régions and cities, or communes without codes or population | varies, some without a licence |
-
-What only this has: a boundary for every commune but one on the 2024 codes, the 2014 to
-2024 reconciliation, HCP's 2024 indicators for every unit, and an API that finds a place by
-any spelling, by a point or by distance, with no key. Its static answers have no rate
-limit, and a computed one takes about a millisecond of CPU.
-
-Where another source fits better: Wikidata's CC0 asks less than CC BY and ODbL. HDX's
-province boundaries come from HCP, where these come from OpenStreetMap, which leaves one
-commune without a boundary and 88 km² near Ifrane uncovered. HCP's 2014 commune polygons on
-its map site are official, if older. Nominatim reads OpenStreetMap live, where this is a
-snapshot.
-
 ## Credits and prior work
 
 - **Haut-Commissariat au Plan**: RGPH 2024 and RGPH 2014, the source of every code, name,

@@ -219,30 +219,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
       ))}
     </ul>
   </section>
-
-  <section class="band">
-    <h2>{copy.compareHeading}</h2>
-    <p>{copy.compareBody}</p>
-    <table class="compare">
-      <thead>
-        <tr>
-          <th scope="col">{copy.compareSource}</th>
-          <th scope="col">{copy.compareHas}</th>
-          <th scope="col">{copy.compareTerms}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {copy.compareRows.map((row) => (
-          <tr>
-            <th scope="row"><a href={row.href}>{row.name}</a></th>
-            <td>{row.has}</td>
-            <td class="terms">{row.terms}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    <p class="only">{copy.compareOnly}</p>
-  </section>
 </Base>
 
 <style>
@@ -601,66 +577,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 
   .dl-files a:hover .dl-label {
     color: var(--brass);
-  }
-
-  /* Other sources: three columns, stacked on a phone. */
-  .compare {
-    width: 100%;
-    margin-top: 1.25rem;
-    border-collapse: collapse;
-    font-size: var(--t-sm);
-  }
-
-  .compare thead th {
-    text-align: start;
-    font-weight: 400;
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    padding: 0 1.25rem 0.55rem 0;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .compare tbody th,
-  .compare td {
-    padding: 0.65rem 1.25rem 0.65rem 0;
-    border-bottom: 1px solid var(--rule);
-    text-align: start;
-    vertical-align: baseline;
-  }
-
-  .compare tbody th {
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .compare .terms {
-    color: var(--quiet);
-    min-width: 12rem;
-  }
-
-  .only {
-    margin-top: 1.25rem;
-    max-width: var(--measure);
-  }
-
-  @media (max-width: 40rem) {
-    .compare thead {
-      display: none;
-    }
-    .compare tr {
-      display: grid;
-      gap: 0.2rem;
-      padding: 0.65rem 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .compare tbody th,
-    .compare td {
-      padding: 0;
-      border: 0;
-    }
-    .compare .terms {
-      min-width: 0;
-    }
   }
 
   .dl-size {
