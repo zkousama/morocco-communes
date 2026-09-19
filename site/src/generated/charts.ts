@@ -214,10 +214,10 @@ export const urban = [
 ];
 
 export const half = {
-  "communes": 71,
+  "communes": 121,
   "total": 1503,
-  "peopleShare": 50.1,
-  "landShare": 0.83
+  "peopleShare": 50,
+  "landShare": 0.45
 };
 
 export const shrinking = [

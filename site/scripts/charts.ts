@@ -97,19 +97,22 @@ const urban = regions
   })
   .sort((a, b) => b.urban / b.total - a.urban / a.total);
 
-/* 5. Where people live: how few communes hold half of them, on how little land. */
+/* 5. Where people live: how little land holds half of them. Densest first, since that
+   finds the least land that does; taking the most populous first would count the wide
+   rural edges of big communes. That way, half the people live on 0.83% of the land,
+   and 1.37% without the 2 southern régions, where densest first gives 0.45% and 0.73%. */
 
-const byPeople = [...communes].sort((a, b) => (b.population["2024"].total ?? 0) - (a.population["2024"].total ?? 0));
+const byDensity = [...communes].sort((a, b) => (b.density ?? -1) - (a.density ?? -1));
 const people = communes.reduce((s, c) => s + (c.population["2024"].total ?? 0), 0);
 const land = communes.reduce((s, c) => s + (c.areaKm2 ?? 0), 0);
 let held = 0;
 let count = 0;
-while (held < people / 2) held += byPeople[count++]!.population["2024"].total ?? 0;
+while (held < people / 2) held += byDensity[count++]!.population["2024"].total ?? 0;
 const half = {
   communes: count,
   total: communes.length,
   peopleShare: Number(((held / people) * 100).toFixed(1)),
-  landShare: Number(((byPeople.slice(0, count).reduce((s, c) => s + (c.areaKm2 ?? 0), 0) / land) * 100).toFixed(2)),
+  landShare: Number(((byDensity.slice(0, count).reduce((s, c) => s + (c.areaKm2 ?? 0), 0) / land) * 100).toFixed(2)),
 };
 
 /* 6. Which communes lost people, urban and rural apart. ---------------------- */

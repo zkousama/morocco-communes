@@ -138,7 +138,7 @@ scripts under `site/scripts/`:
   colours were checked for contrast and colour-blind separation in both themes.
 - `hierarchy.ts` builds the code ladder, a real chain from région down to arrondissement.
 - `charts.ts` computes population change per région, the distribution of commune sizes,
-  how few communes hold half the population, how many communes lost people, and the growth
+  how little land half the population lives on, how many communes lost people, and the growth
   spread of the 207 crosswalked communes against the 1,286 whose code never changed. That
   last one is the reconciliation checking itself: the two distributions sit almost on top
   of each other.

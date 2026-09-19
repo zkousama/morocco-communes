@@ -134,7 +134,7 @@ export const ui = {
     chartSpreadBody:
       "207 communes were renumbered by the 2015 reform, so their 2014 population had to be matched by name and elimination rather than read off an unchanged code. If those matches were wrong, their implied growth would scatter differently.",
     chartHalf: "Half the people, under 1% of the land",
-    chartHalfBody: "The {n} most populous communes, against the other {rest}.",
+    chartHalfBody: "The {n} densest communes, against the other {rest}.",
     halfPeople: "Share of the population, 2024",
     halfLand: "Share of the land",
     chartShrank: "Most communes lost people",
@@ -280,7 +280,7 @@ export const ui = {
     chartSpreadBody:
       "207 communes ont été renumérotées par la réforme de 2015 : leur population de 2014 a dû être appariée par nom et par élimination, faute d’un code inchangé. Si ces appariements étaient faux, leur croissance se disperserait autrement.",
     chartHalf: "La moitié des habitants sur moins de 1 % du territoire",
-    chartHalfBody: "Les {n} communes les plus peuplées, face aux {rest} autres.",
+    chartHalfBody: "Les {n} communes les plus denses, face aux {rest} autres.",
     halfPeople: "Part de la population, 2024",
     halfLand: "Part du territoire",
     chartShrank: "La plupart des communes ont perdu des habitants",
