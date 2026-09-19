@@ -20,6 +20,10 @@ export interface CommuneRecord {
   urbanCentres: { name: string; population: number | null }[];
   centroid: { lat: number; lng: number } | null;
   bbox: [number, number, number, number] | null;
+  /** From the boundary, so ODbL like it. Null where there's no boundary. */
+  areaKm2: number | null;
+  /** People per km² in 2024: the census over the boundary's area. */
+  density: number | null;
   osm: { relationId: number; wikidata: string | null } | null;
   provenance: { name: string; population2024: string; population2014: string | null; geometry: string | null };
 }
@@ -208,6 +212,8 @@ export function toRecords(
       })),
       centroid: geo?.centroid ?? null,
       bbox: geo?.bbox ?? null,
+      areaKm2: geo ? Number(geo.areaKm2.toFixed(2)) : null,
+      density: geo && now !== null ? Number((now / geo.areaKm2).toFixed(2)) : null,
       osm: geo ? { relationId: geo.relationId, wikidata: geo.wikidata } : null,
       provenance: {
         name: "hcp-2024",

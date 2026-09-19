@@ -134,6 +134,7 @@ describe("toRecords with geometry", () => {
           wikidata: "Q123",
           centroid: { lat: 35.66, lng: -5.83 },
           bbox: [-5.9, 35.6, -5.7, 35.7] as [number, number, number, number],
+          areaKm2: 202.5,
           outer: [[[-5.9, 35.6], [-5.7, 35.6], [-5.7, 35.7], [-5.9, 35.6]]] as [number, number][][],
           inner: [],
         },
@@ -147,6 +148,15 @@ describe("toRecords with geometry", () => {
     expect(c.bbox).toEqual([-5.9, 35.6, -5.7, 35.7]);
     expect(c.osm).toEqual({ relationId: 424242, wikidata: "Q123" });
     expect(c.provenance.geometry).toBe("osm-odbl");
+  });
+
+  it("gives the area, and the density it implies, only where a boundary exists", () => {
+    const c = withGeometry.communes.find((x) => x.codeDigits === "015110519")!;
+    expect(c.areaKm2).toBe(202.5);
+    expect(c.density).toBe(Number((c.population["2024"].total! / 202.5).toFixed(2)));
+    const bare = withGeometry.communes.find((x) => x.codeDigits !== "015110519")!;
+    expect(bare.areaKm2).toBeNull();
+    expect(bare.density).toBeNull();
   });
 
   it("leaves a commune with no feature null rather than guessing a point", () => {

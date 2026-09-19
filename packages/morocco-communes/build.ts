@@ -2,8 +2,8 @@
  * Builds the npm package from data/v1: every unit with its code, names, parents and
  * population, as plain ES modules with types.
  *
- * The 3 fields that come from OpenStreetMap (centroid, bbox and the OSM id) are left out,
- * and so are the boundaries. They're under ODbL, whose share-alike terms would then cover
+ * The fields that come from OpenStreetMap (centroid, bbox, the OSM id, area and density)
+ * are left out, and so are the boundaries. They're under ODbL, whose share-alike terms would then cover
  * the package; everything here is census data, attributed.
  *
  *   node --experimental-strip-types packages/morocco-communes/build.ts

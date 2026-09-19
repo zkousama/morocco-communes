@@ -1,4 +1,4 @@
-code_2024,code_2014,name_2024,name_2014,name_ar_2024,name_ar_2014,method,normalised_name_match,candidates_in_province,population_2024,population_2014,population_ratio
+﻿code_2024,code_2014,name_2024,name_2014,name_ar_2024,name_ar_2014,method,normalised_name_match,candidates_in_province,population_2024,population_2014,population_ratio
 01.051.11.01,01.051.05.01,Ait Kamra,Ait Kamra,آيت قمرة,أيت قمرة,exact_name_in_province,true,3,8269,7685,1.076
 01.051.11.07,01.051.05.07,Bni Abdellah,Bni Abdallah,بني عبد الله,بني عبد الله,sole_remaining_in_province,false,1,4939,5983,0.8255
 01.051.11.09,01.051.05.09,Bni Hadifa,Bni Hadifa,بني حذيفة,بني حذيفة,exact_name_in_province,true,5,4723,5594,0.8443

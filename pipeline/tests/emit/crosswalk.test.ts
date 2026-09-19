@@ -33,7 +33,8 @@ describe("writeCrosswalk", () => {
     expect(json.map((r) => r.code2024)).toEqual(["01.051.11.01", "01.051.11.03"]);
 
     const csv = await readFile(join(dir, "2014-2024.csv"), "utf8");
-    const lines = csv.trim().split("\n");
+    expect(csv.startsWith("\uFEFF")).toBe(true);
+    const lines = csv.slice(1).trim().split("\n");
     expect(lines[0]).toBe(
       "code_2024,code_2014,name_2024,name_2014,name_ar_2024,name_ar_2014,method,normalised_name_match,candidates_in_province,population_2024,population_2014,population_ratio",
     );

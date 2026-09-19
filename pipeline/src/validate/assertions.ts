@@ -46,6 +46,11 @@ export function checkGeometry(
     if (!(w >= -18 && e <= 0 && s >= 20 && n <= 37)) {
       fail.push(`${c.nameFr} has a bbox outside Morocco: ${f.bbox.join(", ")}`);
     }
+    // The smallest communes, Méchouar de Casablanca and Moulay Yacoub, are under half a km²;
+    // the largest run to tens of thousands. Outside that, the rings are wrong.
+    if (!(f.areaKm2 > 0.1 && f.areaKm2 < 60_000)) {
+      fail.push(`${c.nameFr} has an area of ${f.areaKm2} km², which no commune has`);
+    }
   }
   return fail;
 }

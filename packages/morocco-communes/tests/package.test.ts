@@ -46,7 +46,9 @@ describe("the npm package", () => {
 
   it("leaves out every field that comes from OpenStreetMap", () => {
     const text = readFileSync(join(HERE, "dist/communes.js"), "utf8");
-    for (const key of ['"centroid"', '"bbox"', '"osm"', '"geometry"']) expect(text).not.toContain(key);
+    for (const key of ['"centroid"', '"bbox"', '"osm"', '"areaKm2"', '"density"', '"geometry"']) {
+      expect(text).not.toContain(key);
+    }
   });
 
   it("finds a commune by code or by slug", () => {

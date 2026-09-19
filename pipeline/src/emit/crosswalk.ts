@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { BOM } from "./csv.ts";
 import { join } from "node:path";
 import type { CrosswalkRow } from "../build/crosswalk.ts";
 
@@ -29,5 +30,5 @@ export async function writeCrosswalk(rows: CrosswalkRow[], dir: string): Promise
       r.evidence.population2024, r.evidence.population2014, r.evidence.populationRatio,
     ].map(cell).join(","));
   }
-  await writeFile(join(dir, "2014-2024.csv"), `${lines.join("\n")}\n`);
+  await writeFile(join(dir, "2014-2024.csv"), `${BOM}${lines.join("\n")}\n`);
 }

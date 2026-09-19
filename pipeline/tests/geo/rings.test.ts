@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleRings, isClosed, ringArea, type Ring } from "../../src/geo/rings.ts";
+import { assembleRings, isClosed, ringArea, sphericalArea, type Ring } from "../../src/geo/rings.ts";
 
 const pt = (lon: number, lat: number) => ({ lat, lon });
 
@@ -90,5 +90,24 @@ describe("ringArea", () => {
     expect(ringArea(unit)).toBeCloseTo(1);
     expect(ringArea(larger)).toBeCloseTo(4);
     expect(ringArea([...unit].reverse() as Ring)).toBeCloseTo(1);
+  });
+});
+
+describe("sphericalArea", () => {
+  it("measures a one-degree square at the equator as the sphere does", () => {
+    // R² × Δλ × sin(1°), with R the WGS 84 equatorial radius.
+    const square: Ring = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]];
+    expect(sphericalArea(square)).toBeCloseTo(12_391.4, 0);
+  });
+
+  it("shrinks the same square with the cosine of its latitude", () => {
+    const north: Ring = [[0, 34], [1, 34], [1, 35], [0, 35], [0, 34]];
+    const ratio = sphericalArea(north) / sphericalArea([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
+    expect(ratio).toBeCloseTo(Math.cos((34.5 * Math.PI) / 180), 2);
+  });
+
+  it("doesn't depend on which way the ring runs", () => {
+    const ring: Ring = [[-6, 34], [-5, 34], [-5, 35], [-6, 35], [-6, 34]];
+    expect(sphericalArea([...ring].reverse())).toBeCloseTo(sphericalArea(ring), 6);
   });
 });

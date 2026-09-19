@@ -1,5 +1,5 @@
 import { toDigits } from "../lib/codes.ts";
-import { assembleRings, isClosed, type Ring } from "../geo/rings.ts";
+import { assembleRings, isClosed, sphericalArea, type Ring } from "../geo/rings.ts";
 import { boundingBox, interiorPoint } from "../geo/point.ts";
 import type { OverpassRelation } from "../sources/overpass.ts";
 
@@ -9,6 +9,8 @@ export interface OsmFeature {
   wikidata: string | null;
   centroid: { lat: number; lng: number };
   bbox: [number, number, number, number];
+  /** The outer rings' area less the holes', in km². */
+  areaKm2: number;
   outer: Ring[];
   inner: Ring[];
 }
@@ -78,6 +80,8 @@ export function joinOsm(
       wikidata: relation.tags["wikidata"] ?? null,
       centroid: interiorPoint(outer, inner),
       bbox: boundingBox(outer),
+      areaKm2:
+        outer.reduce((sum, r) => sum + sphericalArea(r), 0) - inner.reduce((sum, r) => sum + sphericalArea(r), 0),
       outer,
       inner,
     });

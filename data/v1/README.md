@@ -41,6 +41,9 @@ is `null` for these four alone, while `provenance.population2014` still reads
 number by one of the three routes above. `communes.csv` cannot express the difference, so
 use the JSON when it matters.
 
+Each level has a CSV beside its JSON. They start with a UTF-8 byte-order mark, which is
+what makes Excel read the Arabic names and the accents correctly; other tools skip it.
+
 Régions, provinces and cercles carry the population HCP publishes for them directly,
 rather than a sum over their children. A parent can legitimately differ from the sum of
 its parts.
@@ -48,11 +51,17 @@ its parts.
 `urbanCentres` is a list. 160 communes have at least one, 3 of them have several, and 164
 exist in total.
 
-## Three fields come from OpenStreetMap
+## Five fields come from OpenStreetMap
 
-`centroid`, `bbox` and `osm` are derived from OpenStreetMap and are therefore **ODbL**,
-not HCP. `provenance.geometry` reads `osm-odbl` on every record carrying them, and `null`
-where OSM holds no boundary. Redistributing a modified version of those three fields takes
-on ODbL's share-alike obligation; nothing else in this directory does.
+`centroid`, `bbox`, `osm`, `areaKm2` and `density` are derived from OpenStreetMap and are
+therefore **ODbL**, not HCP. `provenance.geometry` reads `osm-odbl` on every record
+carrying them, and `null` where OSM holds no boundary. Redistributing a modified version
+of those fields takes on ODbL's share-alike obligation; nothing else in this directory
+does.
+
+`areaKm2` is measured on the sphere from the full-resolution boundary, holes taken out,
+and `density` is the 2024 population over it, in people per km². Together the boundaries
+cover 685,281 km². The smallest communes are under half a km²: Moulay Yacoub, and
+Méchouar de Casablanca around the royal palace.
 
 The boundaries themselves are in `../geometry/`, which carries its own LICENSE.

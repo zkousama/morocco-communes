@@ -8,6 +8,7 @@ const feature = (codeDigits: string): OsmFeature => ({
   wikidata: null,
   centroid: { lat: 2, lng: 2 },
   bbox: [0, 0, 4, 4],
+  areaKm2: 1,
   outer: [[[0, 0], [4, 0], [4, 4], [0, 0]]],
   inner: [],
 });

@@ -20,9 +20,10 @@ shows the working.
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, attributed |
 | `sources.json` | each source's digest, licence and vintage | |
 
-The licences differ by directory and `geometry/` carries its own LICENSE. Three fields on
-each commune (`centroid`, `bbox` and `osm`) come from OpenStreetMap and are ODbL too;
-`provenance.geometry` marks them.
+The licences differ by directory and `geometry/` carries its own LICENSE. Five fields on
+each commune (`centroid`, `bbox`, `osm`, `areaKm2` and `density`) come from OpenStreetMap
+and are ODbL too; `provenance.geometry` marks them. Every level has a CSV that opens
+cleanly in Excel, Arabic included.
 
 Rebuild it with `pnpm dataset:build`. From the same cache the output is byte-identical.
 
@@ -169,7 +170,7 @@ Boundaries come from OpenStreetMap `admin_level=8` relations, joined to HCP on t
 `ref:MA:HCP` tag that all 1,503 carry. Overpass returns each boundary as unordered way
 fragments, so the rings are stitched end to end before anything is emitted. 1,502 of the
 1,503 come through: Sidi Mohamed Benmansour's relation has no closeable outer ring, so it
-ships with a null `centroid`, `bbox` and `osm` rather than a repaired guess.
+ships with its geometry fields null rather than a repaired guess.
 
 207 communes were renumbered by the 2015 reform and have no 2014 figure under their
 current code. `crosswalk/` reconciles them in two deterministic passes and records the

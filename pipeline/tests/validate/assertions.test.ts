@@ -52,6 +52,7 @@ describe("checkGeometry", () => {
     wikidata: null,
     centroid: { lat: 34.5, lng: -5.5 },
     bbox: [-6, 34, -5, 35] as [number, number, number, number],
+    areaKm2: 10_188,
     outer: [square],
     inner: [],
   };
@@ -65,6 +66,12 @@ describe("checkGeometry", () => {
     const fail = checkGeometry([commune], new Map([["015110519", off]]));
     expect(fail).toHaveLength(1);
     expect(fail[0]).toContain("outside its own boundary");
+  });
+
+  it("catches an area no commune could have", () => {
+    const fail = checkGeometry([commune], new Map([["015110519", { ...good, areaKm2: 0.01 }]]));
+    expect(fail).toHaveLength(1);
+    expect(fail[0]).toContain("km²");
   });
 
   it("catches a bounding box outside Morocco", () => {

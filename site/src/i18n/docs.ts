@@ -180,7 +180,7 @@ export const docs = {
       ],
       left: "What it leaves out",
       leftBody:
-        "Boundaries, and the centroid, bounding box and OpenStreetMap id drawn from them, are under ODbL, so they stay in the downloads and the API. The same goes for households and the rest of the census tables.",
+        "Boundaries, and everything drawn from them (the centroid, bounding box, OpenStreetMap id, area and density), are under ODbL, so they stay in the downloads and the API. The same goes for households and the rest of the census tables.",
       licence: "Licence",
       licenceBody: "The code is MIT. The data is from the Haut-Commissariat au Plan (RGPH 2024 and 2014); credit it when you publish it.",
     },
@@ -329,7 +329,7 @@ export const docs = {
       ],
       left: "Ce qu’il laisse de côté",
       leftBody:
-        "Les limites, et le centroïde, l’emprise et l’identifiant OpenStreetMap qui en sont tirés, sont sous ODbL : ils restent dans les téléchargements et l’API. Les ménages et le reste des tableaux du recensement aussi.",
+        "Les limites, et tout ce qui en est tiré (centroïde, emprise, identifiant OpenStreetMap, superficie et densité), sont sous ODbL : ils restent dans les téléchargements et l’API. Les ménages et le reste des tableaux du recensement aussi.",
       licence: "Licence",
       licenceBody: "Le code est sous MIT. Les données viennent du Haut-Commissariat au Plan (RGPH 2024 et 2014) ; citez-le quand vous les publiez.",
     },

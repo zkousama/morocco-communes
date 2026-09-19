@@ -52,6 +52,27 @@ export function isClosed(ring: Ring): boolean {
   return ring.length > 3 && same(ring[0]!, ring[ring.length - 1]!);
 }
 
+// WGS 84's equatorial radius, in km, the sphere most GIS tools compute areas on.
+const EARTH_RADIUS_KM = 6378.137;
+
+/**
+ * A ring's area on the sphere, in km², by the Chamberlain–Duquette formula: exact for the
+ * spherical polygon whose edges run along lines of constant latitude between vertices,
+ * which at a commune's scale is within a fraction of a percent of the geodesic answer.
+ */
+export function sphericalArea(ring: Ring): number {
+  const rad = Math.PI / 180;
+  const n = ring.length;
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const [lngA] = ring[(i + n - 1) % n]!;
+    const [, lat] = ring[i]!;
+    const [lngC] = ring[(i + 1) % n]!;
+    sum += (lngC - lngA) * rad * Math.sin(lat * rad);
+  }
+  return Math.abs((sum * EARTH_RADIUS_KM * EARTH_RADIUS_KM) / 2);
+}
+
 /** Shoelace area in squared degrees. Only ever used to compare rings with each other. */
 export function ringArea(ring: Ring): number {
   let sum = 0;
