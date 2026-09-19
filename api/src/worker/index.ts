@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
+import rawTiles from "../../generated/tile-index.json";
 import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
@@ -8,6 +9,7 @@ import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
+import { communeIn, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } from "../lib/locate.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -15,6 +17,7 @@ import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
 // whole design over budget.
 const index = rawIndex as unknown as SearchIndex;
 const lookup = buildLookup(index);
+const tileIndex = prepareIndex(rawTiles as TileIndex);
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -96,9 +99,8 @@ app.get("/api/search", (c) => {
   return json(envelope(hits, { self: url.pathname + url.search }, { total: hits.length }), "computed");
 });
 
-app.get("/api/communes/near", (c) => {
-  const url = new URL(c.req.url);
-  const instance = url.pathname + url.search;
+/** lat and lng from a query string, or the problem with them. */
+function point(url: URL): { lat: number; lng: number } | { error: string } {
   // Number(null) and Number("") are both 0, a valid coordinate, so one left out has to be
   // caught before it is converted.
   const coordinate = (name: string) => {
@@ -107,12 +109,49 @@ app.get("/api/communes/near", (c) => {
   };
   const lat = coordinate("lat");
   const lng = coordinate("lng");
-  if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
-    return fail(url, "invalid-query", "lat is required and must be between -90 and 90", instance);
-  }
-  if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
-    return fail(url, "invalid-query", "lng is required and must be between -180 and 180", instance);
-  }
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90) return { error: "lat is required and must be between -90 and 90" };
+  if (!Number.isFinite(lng) || lng < -180 || lng > 180) return { error: "lng is required and must be between -180 and 180" };
+  return { lat, lng };
+}
+
+/**
+ * The commune whose boundary contains a point. The tile index says which one file to
+ * read; the answer is the commune's own record, the same bytes /api/communes/<code>.json
+ * serves.
+ */
+app.get("/api/communes/at", async (c) => {
+  const url = new URL(c.req.url);
+  const instance = url.pathname + url.search;
+  const at = point(url);
+  if ("error" in at) return fail(url, "invalid-query", at.error, instance);
+  const none = () =>
+    fail(url, "not-found", `no commune boundary contains ${at.lat}, ${at.lng}`, instance);
+
+  const key = tileAt(tileIndex, at.lat, at.lng);
+  if (!key) return none();
+  const tile = await c.env.ASSETS.fetch(new Request(new URL(tilePath(key), url)));
+  if (!tile.ok) return none();
+  const code = communeIn((await tile.json()) as Tile, at.lat, at.lng);
+  if (!code) return none();
+
+  const canonical = `/api/communes/${code}.json`;
+  const record = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
+  return new Response(record.body, {
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "public, max-age=300",
+      "x-api-tier": "computed",
+      "content-location": canonical,
+    },
+  });
+});
+
+app.get("/api/communes/near", (c) => {
+  const url = new URL(c.req.url);
+  const instance = url.pathname + url.search;
+  const at = point(url);
+  if ("error" in at) return fail(url, "invalid-query", at.error, instance);
+  const { lat, lng } = at;
   const radiusRaw = url.searchParams.get("radius");
   const radius = radiusRaw === null ? RADIUS_KM.default : Number(radiusRaw);
   if (!Number.isFinite(radius) || radius <= 0 || radius > RADIUS_KM.max) {
@@ -258,7 +297,7 @@ app.get("/api/:collection", async (c) => {
  * the same answer to the same question.
  */
 app.all("/mcp", async (c) => {
-  const server = createMcpServer({ index, lookup, fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)) });
+  const server = createMcpServer({ index, lookup, tiles: tileIndex, fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)) });
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,

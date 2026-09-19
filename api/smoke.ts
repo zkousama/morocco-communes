@@ -65,6 +65,13 @@ for (const path of [
   check("/data/v1/geometry/01.topojson is typed by _headers",
     r.status === 200 && r.contentType.includes("json"), `ct=${r.contentType}`);
 }
+for (const path of ["/data/v1/geometry/01.geojson", "/api/communes/01.511.01.0/boundary.geojson"]) {
+  const r = await get(path);
+  check(`${path} is served as GeoJSON`,
+    r.status === 200 && r.contentType.includes("application/geo+json") && r.cors === "*" &&
+      (r.body?.type === "FeatureCollection" || r.body?.type === "Feature"),
+    `status=${r.status} ct=${r.contentType} cors=${r.cors}`);
+}
 
 console.log("\nalias tier — the Worker rewrites to a pre-rendered file");
 for (const [path, expected] of [
@@ -117,6 +124,14 @@ console.log("\ncomputed tier — answers no file holds");
     `all=${all.body?.meta?.total} urban=${urban.body?.meta?.total} rural=${rural.body?.meta?.total}`);
 }
 {
+  // Tangier's old medina, answered from one tile.
+  const r = await get("/api/communes/at?lat=35.786&lng=-5.8125");
+  check("/api/communes/at finds the commune that contains a point",
+    r.status === 200 && r.tier === "computed" && r.body?.data?.code === "01.511.01.0" &&
+      r.contentLocation === "/api/communes/01.511.01.0.json",
+    `status=${r.status} code=${r.body?.data?.code}`);
+}
+{
   // Province 04.421 is in région 04: the province's list is read, and every row filtered out.
   const r = await get("/api/communes?region=01&province=04.421");
   check("filters that contradict each other find nothing",
@@ -142,6 +157,8 @@ for (const [path, status] of [
   ["/api/communes?region=01&page=4", 404],
   ["/api/communes?region=01&type=rural&page=4", 404],
   ["/api/communes/01.511.01.05", 404],
+  ["/api/communes/at?lat=36.5&lng=-12", 404],
+  ["/api/communes/at?lat=35.786", 400],
   [`/api/search?q=${"a".repeat(101)}`, 400],
   ["/api/communes?q=tanger&region=03", 400],
   ["/api/communes?q=", 400],
@@ -186,7 +203,7 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
   const list = await rpc("tools/list", {});
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
-  check("/mcp lists the 4 tools", names.join(",") === "communes_near,get_commune,list_communes,search", names.join(","));
+  check("/mcp lists the 5 tools", names.join(",") === "commune_at,communes_near,get_commune,list_communes,search", names.join(","));
   const call = await rpc("tools/call", { name: "get_commune", arguments: { id: "tanger" } });
   const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
   check("/mcp get_commune answers with the parent named",

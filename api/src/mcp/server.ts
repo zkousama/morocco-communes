@@ -5,12 +5,15 @@ import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
 import { LIMIT, PAGE, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
+import { communeIn, tileAt, tilePath, type PreparedIndex, type Tile } from "../lib/locate.ts";
 
 export interface McpDeps {
   index: SearchIndex;
   lookup: Lookup;
   /** Reads a pre-rendered API file, so a tool answers from the same files the API serves. */
   fetchJson: FetchJson;
+  /** Which boundary tiles exist, for finding the commune at a point. */
+  tiles: PreparedIndex;
 }
 
 const LEVELS = ["commune", "arrondissement", "province", "region", "cercle"] as const satisfies readonly Level[];
@@ -22,7 +25,8 @@ const INSTRUCTIONS =
   "Morocco's administrative divisions: régions, provinces and préfectures, cercles, communes and arrondissements, " +
   "with HCP census population for 2024 and 2014 and OpenStreetMap boundaries. " +
   "Units are identified by HCP geographic codes such as 01.511.01.0, and a slug such as tanger works wherever a code does. " +
-  "To answer a question about a named place, call search first to get its code.";
+  "To answer a question about a named place, call search first to get its code. " +
+  "For coordinates, commune_at gives the commune that contains them.";
 
 interface CommuneRecord {
   code: string;
@@ -59,7 +63,7 @@ const communeShape = z.object({
  * concurrent requests an isolate can take would mix up their JSON-RPC ids.
  */
 export function createMcpServer(deps: McpDeps): McpServer {
-  const { index, lookup, fetchJson } = deps;
+  const { index, lookup, fetchJson, tiles } = deps;
 
   // Parent codes are named from the search index, which already holds every unit, so a
   // model can say which province a commune is in without a second call.
@@ -183,7 +187,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       title: "Communes near a point",
       description:
         "Communes within a radius of a point, nearest first. Distance is measured to each commune's centroid, " +
-        "so the nearest commune is not always the one that contains the point.",
+        "so the nearest commune is not always the one that contains the point: commune_at gives that one.",
       inputSchema: {
         lat: z.number().min(-90).max(90).describe("Latitude, in degrees."),
         lng: z.number().min(-180).max(180).describe("Longitude, in degrees."),
@@ -225,6 +229,36 @@ export function createMcpServer(deps: McpDeps): McpServer {
           distance_km: h.distanceKm,
         })),
       });
+    },
+  );
+
+  server.registerTool(
+    "commune_at",
+    {
+      title: "Commune at a point",
+      description:
+        "The commune whose boundary contains a point, with its names, type, parents and population. " +
+        "Use it to turn coordinates, from a map or a device, into a commune. " +
+        "Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+      inputSchema: {
+        lat: z.number().min(-90).max(90).describe("Latitude, in degrees."),
+        lng: z.number().min(-180).max(180).describe("Longitude, in degrees."),
+      },
+      outputSchema: { commune: communeShape },
+      annotations: READ_ONLY,
+    },
+    async ({ lat, lng }) => {
+      const key = tileAt(tiles, lat, lng);
+      const tile = key ? ((await fetchJson(tilePath(key))) as unknown as Tile | null) : null;
+      const code = tile ? communeIn(tile, lat, lng) : null;
+      if (!code) {
+        return fail(
+          `No commune boundary contains ${lat}, ${lng}. It may be outside Morocco or at sea; communes_near finds the closest communes.`,
+        );
+      }
+      const body = await fetchJson(`/api/communes/${code}.json`);
+      if (!body) return fail(`The record for ${code} could not be read.`);
+      return ok({ commune: trim(body.data as unknown as CommuneRecord) });
     },
   );
 

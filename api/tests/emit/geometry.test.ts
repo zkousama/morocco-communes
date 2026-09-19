@@ -1,0 +1,116 @@
+import { readFileSync } from "node:fs";
+import { beforeAll, describe, expect, it } from "vitest";
+import { buildGeometry, type Geometry } from "../../src/emit/geometry.ts";
+import { clipRing } from "../../src/emit/tiles.ts";
+import { communeIn, prepareIndex, tileAt, type PreparedIndex } from "../../src/lib/locate.ts";
+
+interface Commune {
+  code: string;
+  codeDigits: string;
+  name: { fr: string; ar: string };
+  type: string;
+  centroid: { lat: number; lng: number } | null;
+}
+const communes = JSON.parse(readFileSync("data/v1/attributes/communes.json", "utf8")) as Commune[];
+
+let geometry: Geometry;
+let index: PreparedIndex;
+beforeAll(async () => {
+  geometry = await buildGeometry("data/v1", communes);
+  index = prepareIndex(geometry.tileIndex);
+  uncut = [...geometry.communes].map(([code, feature]) => {
+    const g = feature.geometry;
+    const rings = (g.type === "Polygon" ? g.coordinates : g.coordinates.flat()) as [number, number][][];
+    const xs = rings.flat().map((p) => p[0]);
+    const ys = rings.flat().map((p) => p[1]);
+    return { code, rings, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
+  });
+}, 30_000);
+
+const locate = (lat: number, lng: number) => {
+  const key = tileAt(index, lat, lng);
+  return key ? communeIn(geometry.tiles.get(key)!, lat, lng) : null;
+};
+
+/** The slow way: every ring of every commune, uncut, skipping only those whose box misses. */
+let uncut: { code: string; rings: [number, number][][]; box: [number, number, number, number] }[] = [];
+const bruteForce = (lat: number, lng: number) => {
+  for (const { code, rings, box } of uncut) {
+    if (lng < box[0] || lng > box[2] || lat < box[1] || lat > box[3]) continue;
+    let inside = false;
+    for (const ring of rings) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i]!;
+        const [xj, yj] = ring[j]!;
+        if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+      }
+    }
+    if (inside) return code;
+  }
+  return null;
+};
+
+/** A seeded generator, so a failure can be run again. */
+const random = (seed: number) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+
+describe("clipRing", () => {
+  it("cuts a square down to the part inside a rectangle", () => {
+    const square: [number, number][] = [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]];
+    expect(clipRing(square, [2, -1, 6, 3])).toEqual([[2, 3], [2, 0], [4, 0], [4, 3]]);
+    expect(clipRing(square, [5, 5, 6, 6])).toEqual([]);
+  });
+});
+
+describe("the boundary tiles", () => {
+  it("find each commune at the point the dataset gives as inside it", () => {
+    const wrong = communes
+      .filter((c) => c.centroid)
+      .filter((c) => locate(c.centroid!.lat, c.centroid!.lng) !== c.code)
+      .map((c) => c.code);
+    expect(wrong).toEqual([]);
+  });
+
+  it("agree with a test against the uncut boundaries at random points", () => {
+    const next = random(20260919);
+    const areas: [number, number, number, number, number][] = [
+      // The whole country, then the dense north-west where the tiles are cut finest.
+      [20.7, 35.95, -17.2, -0.95, 3000],
+      [33.4, 34.1, -7.8, -6.7, 2000],
+    ];
+    const differ: string[] = [];
+    for (const [s, n, w, e, count] of areas) {
+      for (let i = 0; i < count; i++) {
+        const lat = s + next() * (n - s);
+        const lng = w + next() * (e - w);
+        const a = locate(lat, lng);
+        const b = bruteForce(lat, lng);
+        if (a !== b) differ.push(`${lat.toFixed(5)},${lng.toFixed(5)}: ${a} vs ${b}`);
+      }
+    }
+    expect(differ).toEqual([]);
+  }, 30_000);
+
+  it("find nothing at sea or outside the country", () => {
+    expect(locate(36.5, -12)).toBeNull();
+    expect(locate(48.85, 2.35)).toBeNull();
+  });
+});
+
+describe("the GeoJSON", () => {
+  it("has a closed boundary for every commune but one", () => {
+    expect(geometry.communes.size).toBe(1502);
+    for (const [code, feature] of geometry.communes) {
+      const g = feature.geometry;
+      for (const ring of g.type === "Polygon" ? g.coordinates : g.coordinates.flat()) {
+        expect(ring.length, code).toBeGreaterThanOrEqual(4);
+        expect(ring[0], code).toEqual(ring[ring.length - 1]);
+      }
+    }
+  });
+
+  it("puts each commune in its own région's file", () => {
+    for (const [region, collection] of geometry.regions) {
+      for (const f of collection.features) expect(f.properties.code.slice(0, 2), f.properties.code).toBe(region);
+    }
+  });
+});

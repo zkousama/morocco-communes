@@ -6,6 +6,8 @@ import { createMcpServer } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
 import { emitTree } from "../src/emit/static.ts";
 import { buildLookup } from "../src/lib/resolve.ts";
+import { buildGeometry } from "../src/emit/geometry.ts";
+import { prepareIndex, tilePath } from "../src/lib/locate.ts";
 import type { Envelope } from "../src/lib/envelope.ts";
 import type { Dataset } from "../src/lib/dataset.ts";
 
@@ -26,13 +28,15 @@ const index = buildIndex("1.0.0", [
   { level: "cercle", rows: dataset.cercles as never[] },
 ]);
 // The tools read the same pre-rendered files the API serves, here straight from the tree.
-const tree = emitTree(dataset);
+const tree: Map<string, unknown> = emitTree(dataset);
+const geometry = await buildGeometry("data/v1", dataset.communes as never[]);
+for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 const fetchJson = async (path: string) => (tree.get(path) as Envelope<unknown[]> | undefined) ?? null;
 
 let client: Client;
 
 beforeAll(async () => {
-  const server = createMcpServer({ index, lookup: buildLookup(index), fetchJson });
+  const server = createMcpServer({ index, lookup: buildLookup(index), fetchJson, tiles: prepareIndex(geometry.tileIndex) });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await server.connect(serverSide);
   client = new Client({ name: "test", version: "1.0.0" });
@@ -45,9 +49,9 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 4 read-only tools", async () => {
+  it("offers 5 read-only tools", async () => {
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name).sort()).toEqual(["communes_near", "get_commune", "list_communes", "search"]);
+    expect(tools.map((t) => t.name).sort()).toEqual(["commune_at", "communes_near", "get_commune", "list_communes", "search"]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
       expect(tool.description!.length, tool.name).toBeGreaterThan(40);
@@ -121,6 +125,19 @@ describe("the MCP server, through a real client", () => {
     for (let i = 1; i < results.length; i++) {
       expect(results[i]!.distance_km).toBeGreaterThanOrEqual(results[i - 1]!.distance_km);
     }
+  });
+
+  it("finds the commune that contains a point", async () => {
+    // Tangier's old medina.
+    const r = await call("commune_at", { lat: 35.786, lng: -5.8125 });
+    expect(r.isError).toBeFalsy();
+    expect((r.structuredContent!.commune as { code: string }).code).toBe("01.511.01.0");
+  });
+
+  it("says so when no boundary contains a point", async () => {
+    const r = await call("commune_at", { lat: 36.5, lng: -12 });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("communes_near");
   });
 
   it("lists communes by combined filters, matching the HTTP API", async () => {

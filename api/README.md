@@ -47,14 +47,21 @@ GET /api/communes/page/:n.json
 GET /api/communes/type/:urban|rural/page/:n.json
 GET /api/communes/:code.json
 GET /api/communes/:code/arrondissements.json
+GET /api/communes/:code/boundary.geojson
 GET /api/arrondissements.json
 GET /api/arrondissements/:code.json
+GET /api/tiles/:z/:x/:y.json
 GET /data/v1/**
 ```
 
 `:code` is the canonical dotted form: `01` for a région, `01.511` for a province,
 `01.511.05` for a cercle, `01.511.01.0` for a commune, `01.511.01.05` for an
 arrondissement.
+
+The GeoJSON is written by the build from the committed TopoJSON: each commune's boundary as a
+Feature at `boundary.geojson`, and each région as a FeatureCollection at
+`/data/v1/geometry/:code.geojson`. Both carry the ODbL attribution. The tiles are those
+boundaries cut up for `/api/communes/at`, below.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of
@@ -127,7 +134,27 @@ arrondissements, and the arrondissement keeps it.
 
 Distances are haversine against commune centroids, nearest first. The centroid is a
 pole of inaccessibility, the point furthest from any edge, so it falls inside the commune.
-Sidi Mohamed Benmansour has no centroid and can never be returned.
+Sidi Mohamed Benmansour has no centroid and can never be returned. For the commune a point
+is actually in, use `/api/communes/at`.
+
+### `GET /api/communes/at`
+
+| Parameter | Default | Notes |
+|---|---|---|
+| `lat` | required | -90 to 90 |
+| `lng` | required | -180 to 180 |
+
+The commune whose boundary contains the point, answered with that commune's own record and
+its path in `Content-Location`. A point that no boundary contains is a 404: outside
+Morocco, at sea, in Sidi Mohamed Benmansour, which has no boundary, or in the 88 km² gap
+near Ifrane.
+
+The boundaries are cut at build time into square tiles. A tile starts at one degree and
+splits in four while its clipped boundaries hold more than 2,500 points, so a city is cut
+fine and the desert stays in large pieces: 302 tiles, none over 30 KB, and a 4 KB index
+of which ones exist that the Worker holds in memory. A lookup reads one tile and tests the
+few polygons in it, in well under a millisecond. The tests check it against the uncut
+boundaries at 5,000 random points, and at every commune's inside point.
 
 ### Filter combinations
 
@@ -146,9 +173,10 @@ session: each request gets a fresh server that answers in plain JSON.
 | `search` | finds any unit by French or Arabic name, slug, or another name it goes by |
 | `get_commune` | one commune's names, type, parents, 2024 and 2014 population, and a point inside it |
 | `communes_near` | communes within a radius of a point, nearest first |
+| `commune_at` | the commune whose boundary contains a point |
 | `list_communes` | communes by région, province, cercle or type, 50 to a page |
 
-All four are read-only and say so in their annotations, so a client can call them without
+All five are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just
 coded, and a tool that cannot answer says why and what to call instead: asking
 `get_commune` for a province's code gets pointed to `list_communes`.
@@ -218,8 +246,8 @@ simply left out.
 rendering it needs Chrome; regenerate it with `pnpm site:og` when the map or the headline
 changes.
 
-`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 706 KiB
-uncompressed against a 64 MiB limit, and `dist/` is 3,878 files against a 20,000 limit.
+`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 2,190 KiB
+uncompressed against a 64 MiB limit, and `dist/` is 5,718 files against a 20,000 limit.
 Wrangler's own count reads higher because it includes directories.
 
 A problem document's `type` is `/docs/api/#<kind>` on the origin the request came in on,

@@ -20,6 +20,12 @@ export const HEADERS_FILE = `/api/*
 /data/v1/geometry/*.topojson
   Content-Type: application/json
 
+/data/v1/geometry/*.geojson
+  Content-Type: application/geo+json
+
+/api/communes/*/boundary.geojson
+  Content-Type: application/geo+json
+
 /components/*
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400

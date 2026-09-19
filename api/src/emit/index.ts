@@ -3,11 +3,14 @@ import { dirname, join } from "node:path";
 import { emitTree, HEADERS_FILE, type Tree } from "./static.ts";
 import { buildIndex } from "./searchIndex.ts";
 import { buildOpenApi } from "../openapi.ts";
+import { buildGeometry } from "./geometry.ts";
+import { tilePath } from "../lib/locate.ts";
 import type { Dataset } from "../lib/dataset.ts";
 
 const DATA = "data/v1";
 const OUT = "dist";
 const INDEX_OUT = "api/generated/search-index.json";
+const TILE_INDEX_OUT = "api/generated/tile-index.json";
 
 async function readDataset(): Promise<Dataset> {
   const level = async (name: string) =>
@@ -48,6 +51,9 @@ const index = buildIndex(version, [
   { level: "cercle", rows: dataset.cercles as never[] },
 ]);
 await writeFile(INDEX_OUT, `${JSON.stringify(index)}\n`);
+const geometry = await buildGeometry(DATA, dataset.communes as never[]);
+// Committed for the same reason, and small: it only says which tiles exist.
+await writeFile(TILE_INDEX_OUT, `${JSON.stringify(geometry.tileIndex)}\n`);
 // A stale file from a previous shape would be served as if it were current, so these are
 // rebuilt rather than merged into. Only these: the site builds into the same dist/ and
 // this step runs second, so clearing the whole directory would delete its output.
@@ -60,7 +66,18 @@ await writeTree(tree, OUT);
 const spec = buildOpenApi({ version, serverUrl: process.env.SITE_URL || undefined });
 await writeFile(join(OUT, "api", "openapi.json"), JSON.stringify(spec, null, 2));
 await cp(DATA, join(OUT, "data", "v1"), { recursive: true });
+
+// Written from the committed TopoJSON rather than committed themselves: GeoJSON repeats
+// every shared border, and these are derived, so they're rebuilt on every deploy.
+const put = async (path: string, body: unknown) => {
+  await mkdir(dirname(join(OUT, path)), { recursive: true });
+  await writeFile(join(OUT, path), JSON.stringify(body));
+};
+for (const [region, collection] of geometry.regions) await put(`/data/v1/geometry/${region}.geojson`, collection);
+for (const [code, feature] of geometry.communes) await put(`/api/communes/${code}/boundary.geojson`, feature);
+for (const [key, tile] of geometry.tiles) await put(tilePath(key), tile);
 console.log(
-  `wrote ${tree.size} API files and the dataset to ${OUT}/, ` +
+  `wrote ${tree.size} API files, ${geometry.communes.size + geometry.regions.size} GeoJSON files, ` +
+    `${geometry.tiles.size} tiles and the dataset to ${OUT}/, ` +
     `and a ${index.entries.length}-entry search index to ${INDEX_OUT}`,
 );
