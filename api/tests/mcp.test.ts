@@ -4,7 +4,9 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
-import { emitTree } from "../src/emit/static.ts";
+import { emitIndicators, emitTree } from "../src/emit/static.ts";
+import { readIndicators } from "../src/emit/indicators.ts";
+import { buildIndicatorTable } from "../src/lib/indicators.ts";
 import { buildLookup } from "../src/lib/resolve.ts";
 import { buildGeometry } from "../src/emit/geometry.ts";
 import { prepareIndex, tilePath } from "../src/lib/locate.ts";
@@ -30,6 +32,8 @@ const index = buildIndex("1.0.0", [
 ]);
 // The tools read the same pre-rendered files the API serves, here straight from the tree.
 const tree: Map<string, unknown> = emitTree(dataset);
+const indicatorRecords = await readIndicators("data/v1");
+emitIndicators(tree as never, indicatorRecords);
 const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 for (const [code, group] of geometry.arrondissementsByCommune) tree.set(`/api/communes/${code}/arrondissements.geojson`, group);
@@ -44,6 +48,7 @@ beforeAll(async () => {
     fetchJson,
     tiles: prepareIndex(geometry.tileIndex),
     communes: dataset.communes as never[],
+    indicators: buildIndicatorTable(indicatorRecords.filter((r) => r.level === "commune")),
   });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await server.connect(serverSide);
@@ -57,9 +62,11 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 5 read-only tools", async () => {
+  it("offers 6 read-only tools", async () => {
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name).sort()).toEqual(["commune_at", "communes_near", "get_commune", "list_communes", "search"]);
+    expect(tools.map((t) => t.name).sort()).toEqual([
+      "commune_at", "communes_near", "get_commune", "get_indicators", "list_communes", "search",
+    ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
       expect(tool.description!.length, tool.name).toBeGreaterThan(40);
@@ -245,6 +252,68 @@ describe("the MCP server, through a real client", () => {
       content: [{ type: "text", text: e.message }],
     }));
     expect(r.isError).toBe(true);
+  });
+});
+
+describe("get_indicators", () => {
+  type Figures = Record<string, { people?: Record<string, Record<string, Record<string, number | null>>>; households?: Record<string, Record<string, number | null>> } | null>;
+  const figures = (r: Result) => r.structuredContent!.figures as Figures;
+
+  it("gives a commune's figures for everyone, by default", async () => {
+    const r = await call("get_indicators", { unit: "tanger" });
+    expect(r.structuredContent!.unit).toMatchObject({ code: "01.511.01.0", level: "commune", name_fr: "Tanger" });
+    const total = figures(r).total!;
+    expect(total.people!.all!.labour!.unemploymentRate).toBe(15.3);
+    expect(total.households!.amenities!.runningWater).toBe(98.8);
+    expect(Object.keys(figures(r))).toEqual(["total"]);
+    expect(Object.keys(total.people!)).toEqual(["all"]);
+  });
+
+  it("gives Morocco's when no unit is named", async () => {
+    const r = await call("get_indicators", { topics: ["fertility"] });
+    expect(r.structuredContent!.unit).toMatchObject({ code: null, level: "country" });
+    expect(figures(r).total!.people!.all!.fertility!.totalFertilityRate).toBe(1.97);
+    expect(figures(r).total!.households).toBeUndefined();
+  });
+
+  it("splits by area and sex, and says when a unit has no urban part", async () => {
+    const r = await call("get_indicators", { unit: "01.511.05.19", area: "each", sex: "each", topics: ["labour", "illiteracy"] });
+    const f = figures(r);
+    expect(f.urban).toBeNull();
+    expect(f.rural!.people!.all!.labour!.unemploymentRate).toBe(17.6);
+    expect(f.rural!.people!.female!.labour!.activityRate).toBe(18.4);
+    expect(f.total!.people!.female!.illiteracy!.rate10Plus).toBe(27.8);
+    expect(Object.keys(f.total!.people!.male!)).toEqual(["illiteracy", "labour"]);
+  });
+
+  it("works for a province too", async () => {
+    const r = await call("get_indicators", { unit: "01.511", topics: ["households"] });
+    expect(r.structuredContent!.unit).toMatchObject({ level: "province" });
+    expect(figures(r).total!.households!.households!.count).toBeGreaterThan(0);
+  });
+
+  it("refuses a topic it doesn't have", async () => {
+    const r = await call("get_indicators", { unit: "tanger", topics: ["income"] }).catch((e: Error) => ({
+      isError: true,
+      content: [{ type: "text", text: e.message }],
+    }));
+    expect(r.isError).toBe(true);
+  });
+});
+
+describe("list_communes by an indicator", () => {
+  it("ranks communes by any indicator and carries the figure", async () => {
+    const r = await call("list_communes", { region: "01", sort: "-labour.unemploymentRate" });
+    const communes = r.structuredContent!.communes as { code: string; indicator: { path: string; value: number } }[];
+    expect(communes[0]).toMatchObject({ code: "01.051.09.23", indicator: { path: "labour.unemploymentRate", value: 80.2 } });
+    const values = communes.map((c) => c.indicator.value).filter((v) => v !== null);
+    expect(values).toEqual([...values].sort((a, b) => b - a));
+  });
+
+  it("names the keys of a topic when the key is wrong", async () => {
+    const r = await call("list_communes", { sort: "-labour.unemployment" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("labour has no unemployment; its keys are population15Plus, active, inactive, activityRate, unemploymentRate, employed");
   });
 });
 
