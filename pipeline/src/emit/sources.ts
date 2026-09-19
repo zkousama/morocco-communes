@@ -37,8 +37,10 @@ export function buildSources(
   digests: Record<string, string>,
   retrievedAt: Map<string, string | null>,
   osmFetchedAt: (string | null)[],
+  /** Other OpenStreetMap snapshots, the arrondissements', which count toward the range. */
+  otherFetchedAt: (string | null)[] = [],
 ): SourcesDocument {
-  const known = osmFetchedAt.filter((t): t is string => t !== null).sort();
+  const known = [...osmFetchedAt, ...otherFetchedAt].filter((t): t is string => t !== null).sort();
   return {
     datasetVersion: DATASET_VERSION,
     sources: [

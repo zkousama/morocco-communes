@@ -16,10 +16,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "01.511.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 35.76514231191407,
+      "lng": -5.752523938476561
+    },
+    "bbox": [
+      -5.8129665,
+      35.7226626,
+      -5.7135397,
+      35.8259979
+    ],
+    "areaKm2": 43.81,
+    "density": 5767.67,
+    "osm": {
+      "relationId": 3544604,
+      "wikidata": null
+    }
   },
   {
     "code": "01.511.01.06",
@@ -38,10 +55,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "01.511.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 35.76715592148438,
+      "lng": -5.8238295160156275
+    },
+    "bbox": [
+      -5.8411056,
+      35.7515914,
+      -5.8021143,
+      35.7789764
+    ],
+    "areaKm2": 5.09,
+    "density": 21972.47,
+    "osm": {
+      "relationId": 3544606,
+      "wikidata": null
+    }
   },
   {
     "code": "01.511.01.03",
@@ -60,10 +94,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "01.511.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 35.73320319374999,
+      "lng": -5.82361463125
+    },
+    "bbox": [
+      -5.8682549,
+      35.6995621,
+      -5.7909966,
+      35.7594725
+    ],
+    "areaKm2": 24.3,
+    "density": 23349.51,
+    "osm": {
+      "relationId": 3544587,
+      "wikidata": null
+    }
   },
   {
     "code": "01.511.01.07",
@@ -82,10 +133,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "01.511.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 35.7639295866211,
+      "lng": -5.896374077050777
+    },
+    "bbox": [
+      -5.9484121,
+      35.7198363,
+      -5.7880354,
+      35.8011904
+    ],
+    "areaKm2": 76.21,
+    "density": 4507.56,
+    "osm": {
+      "relationId": 3544619,
+      "wikidata": null
+    }
   },
   {
     "code": "03.231.01.11",
@@ -104,10 +172,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "03.231.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.06545046621094,
+      "lng": -5.013616275976563
+    },
+    "bbox": [
+      -5.0576585,
+      34.0453992,
+      -4.9746643,
+      34.0755055
+    ],
+    "areaKm2": 12.6,
+    "density": 16388.55,
+    "osm": {
+      "relationId": 2799556,
+      "wikidata": null
+    }
   },
   {
     "code": "03.231.01.09",
@@ -126,10 +211,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "03.231.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.05385256953125,
+      "lng": -4.952059269531254
+    },
+    "bbox": [
+      -4.9726955,
+      34.0419788,
+      -4.9377101,
+      34.0744888
+    ],
+    "areaKm2": 7.55,
+    "density": 24859.06,
+    "osm": {
+      "relationId": 2799562,
+      "wikidata": null
+    }
   },
   {
     "code": "03.231.01.01",
@@ -148,10 +250,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "03.231.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.032112063476546,
+      "lng": -5.002934900585942
+    },
+    "bbox": [
+      -5.0422991,
+      34.0131785,
+      -4.9684344,
+      34.0582668
+    ],
+    "areaKm2": 22.16,
+    "density": 5777.73,
+    "osm": {
+      "relationId": 2799558,
+      "wikidata": null
+    }
   },
   {
     "code": "03.231.01.07",
@@ -170,10 +289,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "03.231.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.06237377597656,
+      "lng": -4.975112130273437
+    },
+    "bbox": [
+      -4.9909721,
+      34.0504685,
+      -4.9593435,
+      34.0715602
+    ],
+    "areaKm2": 3.33,
+    "density": 14941.31,
+    "osm": {
+      "relationId": 2799583,
+      "wikidata": null
+    }
   },
   {
     "code": "03.231.01.13",
@@ -192,10 +328,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "03.231.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.00674457988281,
+      "lng": -5.0445633107421886
+    },
+    "bbox": [
+      -5.0781791,
+      33.9764285,
+      -5.0077853,
+      34.0484582
+    ],
+    "areaKm2": 32.07,
+    "density": 11184.24,
+    "osm": {
+      "relationId": 2799560,
+      "wikidata": null
+    }
   },
   {
     "code": "03.231.01.05",
@@ -214,10 +367,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "03.231.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.008231685839846,
+      "lng": -4.970159436035159
+    },
+    "bbox": [
+      -5.0161238,
+      33.9836254,
+      -4.9431183,
+      34.0291893
+    ],
+    "areaKm2": 20.24,
+    "density": 11719.07,
+    "osm": {
+      "relationId": 2799559,
+      "wikidata": null
+    }
   },
   {
     "code": "04.421.01.09",
@@ -236,10 +406,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.421.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 33.96223037343748,
+      "lng": -6.9004169140625
+    },
+    "bbox": [
+      -6.9305776,
+      33.9391503,
+      -6.8591502,
+      34.0088671
+    ],
+    "areaKm2": 16.9,
+    "density": 9964.34,
+    "osm": {
+      "relationId": 2799212,
+      "wikidata": "Q3571268"
+    }
   },
   {
     "code": "04.421.01.05",
@@ -258,10 +445,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.421.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.02012674375,
+      "lng": -6.830333356249994
+    },
+    "bbox": [
+      -6.8684426,
+      34.0028168,
+      -6.8070334,
+      34.0378472
+    ],
+    "areaKm2": 8.27,
+    "density": 11185.6,
+    "osm": {
+      "relationId": 4743369,
+      "wikidata": "Q3128108"
+    }
   },
   {
     "code": "04.421.01.03",
@@ -280,10 +484,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.421.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 33.98836102109374,
+      "lng": -6.815126130468749
+    },
+    "bbox": [
+      -6.8295372,
+      33.9641981,
+      -6.7672545,
+      34.0196753
+    ],
+    "areaKm2": 11.83,
+    "density": 13322.41,
+    "osm": {
+      "relationId": 2799204,
+      "wikidata": "Q3050310"
+    }
   },
   {
     "code": "04.421.01.01",
@@ -302,10 +523,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.421.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 33.952076709570306,
+      "lng": -6.8684539099609365
+    },
+    "bbox": [
+      -6.8974292,
+      33.9301184,
+      -6.8354862,
+      34.0213384
+    ],
+    "areaKm2": 22.43,
+    "density": 3140.2,
+    "osm": {
+      "relationId": 2799211,
+      "wikidata": "Q2826510"
+    }
   },
   {
     "code": "04.421.01.06",
@@ -324,10 +562,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.421.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 33.94221260410156,
+      "lng": -6.824032746679687
+    },
+    "bbox": [
+      -6.8721963,
+      33.8964011,
+      -6.7614635,
+      34.0058783
+    ],
+    "areaKm2": 56.62,
+    "density": 371.75,
+    "osm": {
+      "relationId": 2799203,
+      "wikidata": "Q3491567"
+    }
   },
   {
     "code": "04.441.01.09",
@@ -346,10 +601,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.441.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.056425169531245,
+      "lng": -6.78818563828125
+    },
+    "bbox": [
+      -6.816684,
+      34.0349371,
+      -6.772909,
+      34.0739509
+    ],
+    "areaKm2": 7.84,
+    "density": 30288.8,
+    "osm": {
+      "relationId": 2801014,
+      "wikidata": "Q3513541"
+    }
   },
   {
     "code": "04.441.01.03",
@@ -368,10 +640,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.441.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.04011402695311,
+      "lng": -6.824378548828125
+    },
+    "bbox": [
+      -6.8384753,
+      34.0177896,
+      -6.7823077,
+      34.0828535
+    ],
+    "areaKm2": 10.24,
+    "density": 16341.06,
+    "osm": {
+      "relationId": 2801017,
+      "wikidata": "Q2877678"
+    }
   },
   {
     "code": "04.441.01.05",
@@ -390,10 +679,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.441.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.02943134648437,
+      "lng": -6.7892382480468765
+    },
+    "bbox": [
+      -6.816684,
+      33.9936687,
+      -6.7741015,
+      34.0472813
+    ],
+    "areaKm2": 13.01,
+    "density": 5859.59,
+    "osm": {
+      "relationId": 2801016,
+      "wikidata": null
+    }
   },
   {
     "code": "04.441.01.07",
@@ -412,10 +718,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.441.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.05085611782227,
+      "lng": -6.753233515673828
+    },
+    "bbox": [
+      -6.7920514,
+      34.0247526,
+      -6.715039,
+      34.0974873
+    ],
+    "areaKm2": 26.97,
+    "density": 8522.24,
+    "osm": {
+      "relationId": 2801067,
+      "wikidata": null
+    }
   },
   {
     "code": "04.441.01.06",
@@ -434,10 +757,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "04.441.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 34.00367335439454,
+      "lng": -6.7448782102539075
+    },
+    "bbox": [
+      -6.7971694,
+      33.9341773,
+      -6.6907424,
+      34.0331536
+    ],
+    "areaKm2": 51.98,
+    "density": 4507.98,
+    "osm": {
+      "relationId": 2801015,
+      "wikidata": null
+    }
   },
   {
     "code": "06.141.01.01",
@@ -456,10 +796,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.00"
+    "prefectureOfArrondissementsCode": "06.141.01.00",
+    "centroid": {
+      "lat": 33.59711536416015,
+      "lng": -7.652612104199225
+    },
+    "bbox": [
+      -7.751238,
+      33.5458518,
+      -7.6360212,
+      33.6159371
+    ],
+    "areaKm2": 16.95,
+    "density": 3905.3,
+    "osm": {
+      "relationId": 2801287,
+      "wikidata": "Q12244509"
+    }
   },
   {
     "code": "06.141.01.03",
@@ -478,10 +835,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.00"
+    "prefectureOfArrondissementsCode": "06.141.01.00",
+    "centroid": {
+      "lat": 33.567765040722655,
+      "lng": -7.6290446938476615
+    },
+    "bbox": [
+      -7.6614974,
+      33.5490155,
+      -7.6106596,
+      33.5910276
+    ],
+    "areaKm2": 12.43,
+    "density": 11237.73,
+    "osm": {
+      "relationId": 2801474,
+      "wikidata": "Q3303192"
+    }
   },
   {
     "code": "06.141.01.07",
@@ -500,10 +874,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.00"
+    "prefectureOfArrondissementsCode": "06.141.01.00",
+    "centroid": {
+      "lat": 33.59765229902343,
+      "lng": -7.627234557617188
+    },
+    "bbox": [
+      -7.6399137,
+      33.5826813,
+      -7.5797633,
+      33.6205339
+    ],
+    "areaKm2": 10.25,
+    "density": 13488.25,
+    "osm": {
+      "relationId": 4743250,
+      "wikidata": "Q377853"
+    }
   },
   {
     "code": "06.141.01.11",
@@ -522,10 +913,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.10"
+    "prefectureOfArrondissementsCode": "06.141.01.10",
+    "centroid": {
+      "lat": 33.565773455859386,
+      "lng": -7.595465274609373
+    },
+    "bbox": [
+      -7.6122539,
+      33.5560188,
+      -7.5743811,
+      33.5730065
+    ],
+    "areaKm2": 3.81,
+    "density": 33092.8,
+    "osm": {
+      "relationId": 2801452,
+      "wikidata": "Q2829332"
+    }
   },
   {
     "code": "06.141.01.13",
@@ -544,10 +952,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.10"
+    "prefectureOfArrondissementsCode": "06.141.01.10",
+    "centroid": {
+      "lat": 33.57731083671876,
+      "lng": -7.596412138281247
+    },
+    "bbox": [
+      -7.6154774,
+      33.56326,
+      -7.5798569,
+      33.5900036
+    ],
+    "areaKm2": 3.7,
+    "density": 26500.06,
+    "osm": {
+      "relationId": 2801453,
+      "wikidata": "Q3306635"
+    }
   },
   {
     "code": "06.141.01.25",
@@ -566,10 +991,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.20"
+    "prefectureOfArrondissementsCode": "06.141.01.20",
+    "centroid": {
+      "lat": 33.59239806171875,
+      "lng": -7.571952438281249
+    },
+    "bbox": [
+      -7.5857325,
+      33.578618,
+      -7.5425221,
+      33.6003939
+    ],
+    "areaKm2": 4.17,
+    "density": 24997.69,
+    "osm": {
+      "relationId": 2801458,
+      "wikidata": "Q12186855"
+    }
   },
   {
     "code": "06.141.01.23",
@@ -588,10 +1030,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.20"
+    "prefectureOfArrondissementsCode": "06.141.01.20",
+    "centroid": {
+      "lat": 33.590993238574214,
+      "lng": -7.592601364355469
+    },
+    "bbox": [
+      -7.6036508,
+      33.5680004,
+      -7.5556167,
+      33.6046173
+    ],
+    "areaKm2": 7.37,
+    "density": 14211.97,
+    "osm": {
+      "relationId": 2801457,
+      "wikidata": "Q12244518"
+    }
   },
   {
     "code": "06.141.01.21",
@@ -610,10 +1069,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.20"
+    "prefectureOfArrondissementsCode": "06.141.01.20",
+    "centroid": {
+      "lat": 33.60400865654297,
+      "lng": -7.540743393066403
+    },
+    "bbox": [
+      -7.5806844,
+      33.5854825,
+      -7.5077822,
+      33.6249228
+    ],
+    "areaKm2": 15.6,
+    "density": 9991.55,
+    "osm": {
+      "relationId": 2801460,
+      "wikidata": "Q168470"
+    }
   },
   {
     "code": "06.141.01.31",
@@ -632,10 +1108,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.30"
+    "prefectureOfArrondissementsCode": "06.141.01.30",
+    "centroid": {
+      "lat": 33.546113351904296,
+      "lng": -7.67872731665039
+    },
+    "bbox": [
+      -7.7315537,
+      33.5064658,
+      -7.6427062,
+      33.5822811
+    ],
+    "areaKm2": 40.8,
+    "density": 13173.49,
+    "osm": {
+      "relationId": 2801343,
+      "wikidata": "Q3408880"
+    }
   },
   {
     "code": "06.141.01.41",
@@ -654,10 +1147,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.40"
+    "prefectureOfArrondissementsCode": "06.141.01.40",
+    "centroid": {
+      "lat": 33.52853973925781,
+      "lng": -7.6266349833984375
+    },
+    "bbox": [
+      -7.672941,
+      33.493342,
+      -7.5660997,
+      33.559475
+    ],
+    "areaKm2": 39.53,
+    "density": 9479.36,
+    "osm": {
+      "relationId": 2801442,
+      "wikidata": "Q12244542"
+    }
   },
   {
     "code": "06.141.01.51",
@@ -676,10 +1186,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.50"
+    "prefectureOfArrondissementsCode": "06.141.01.50",
+    "centroid": {
+      "lat": 33.62129092421875,
+      "lng": -7.503335566406248
+    },
+    "bbox": [
+      -7.5290518,
+      33.6008899,
+      -7.4730661,
+      33.6409103
+    ],
+    "areaKm2": 12.65,
+    "density": 12242.02,
+    "osm": {
+      "relationId": 2801461,
+      "wikidata": "Q12244536"
+    }
   },
   {
     "code": "06.141.01.53",
@@ -698,10 +1225,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.50"
+    "prefectureOfArrondissementsCode": "06.141.01.50",
+    "centroid": {
+      "lat": 33.58364282001953,
+      "lng": -7.498635456152343
+    },
+    "bbox": [
+      -7.5556167,
+      33.562084,
+      -7.4574165,
+      33.6246229
+    ],
+    "areaKm2": 25.82,
+    "density": 21354.63,
+    "osm": {
+      "relationId": 2801372,
+      "wikidata": null
+    }
   },
   {
     "code": "06.141.01.61",
@@ -720,10 +1264,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.60"
+    "prefectureOfArrondissementsCode": "06.141.01.60",
+    "centroid": {
+      "lat": 33.55496331171876,
+      "lng": -7.581489521093748
+    },
+    "bbox": [
+      -7.5943424,
+      33.5432588,
+      -7.5683294,
+      33.5658728
+    ],
+    "areaKm2": 3.12,
+    "density": 33885.5,
+    "osm": {
+      "relationId": 2801410,
+      "wikidata": "Q12244511"
+    }
   },
   {
     "code": "06.141.01.63",
@@ -742,10 +1303,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.60"
+    "prefectureOfArrondissementsCode": "06.141.01.60",
+    "centroid": {
+      "lat": 33.5304904984375,
+      "lng": -7.555809801562498
+    },
+    "bbox": [
+      -7.5813495,
+      33.5202986,
+      -7.5331532,
+      33.5509942
+    ],
+    "areaKm2": 7.18,
+    "density": 14151.99,
+    "osm": {
+      "relationId": 2801415,
+      "wikidata": "Q3474901"
+    }
   },
   {
     "code": "06.141.01.71",
@@ -764,10 +1342,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.70"
+    "prefectureOfArrondissementsCode": "06.141.01.70",
+    "centroid": {
+      "lat": 33.56366221406249,
+      "lng": -7.540009776562499
+    },
+    "bbox": [
+      -7.5639071,
+      33.5513676,
+      -7.5146228,
+      33.578618
+    ],
+    "areaKm2": 7.1,
+    "density": 34507.34,
+    "osm": {
+      "relationId": 2801402,
+      "wikidata": "Q12244557"
+    }
   },
   {
     "code": "06.141.01.73",
@@ -786,10 +1381,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "06.141.01.0",
-    "prefectureOfArrondissementsCode": "06.141.01.70"
+    "prefectureOfArrondissementsCode": "06.141.01.70",
+    "centroid": {
+      "lat": 33.55705123945312,
+      "lng": -7.561074359765624
+    },
+    "bbox": [
+      -7.5782328,
+      33.5392146,
+      -7.5428169,
+      33.5739384
+    ],
+    "areaKm2": 6.27,
+    "density": 33795.9,
+    "osm": {
+      "relationId": 2801406,
+      "wikidata": "Q12244539"
+    }
   },
   {
     "code": "07.351.01.07",
@@ -808,10 +1420,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "07.351.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 31.63037831855469,
+      "lng": -7.9883081283203135
+    },
+    "bbox": [
+      -8.0022348,
+      31.6135068,
+      -7.9698842,
+      31.6449185
+    ],
+    "areaKm2": 5.97,
+    "density": 13574.24,
+    "osm": {
+      "relationId": 2799534,
+      "wikidata": null
+    }
   },
   {
     "code": "07.351.01.09",
@@ -830,10 +1459,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "07.351.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 31.609907472412107,
+      "lng": -8.050808212451171
+    },
+    "bbox": [
+      -8.0893315,
+      31.5693197,
+      -8.0047702,
+      31.7104265
+    ],
+    "areaKm2": 63.4,
+    "density": 8237.72,
+    "osm": {
+      "relationId": 2799537,
+      "wikidata": null
+    }
   },
   {
     "code": "07.351.01.05",
@@ -852,10 +1498,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "07.351.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 31.657752577148436,
+      "lng": -8.011605940820312
+    },
+    "bbox": [
+      -8.0406838,
+      31.5949938,
+      -7.9832017,
+      31.6986637
+    ],
+    "areaKm2": 36.41,
+    "density": 6038.48,
+    "osm": {
+      "relationId": 2799533,
+      "wikidata": null
+    }
   },
   {
     "code": "07.351.01.11",
@@ -874,10 +1537,27 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "07.351.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 31.570226866796872,
+      "lng": -7.951140998828126
+    },
+    "bbox": [
+      -7.9801885,
+      31.5523237,
+      -7.9273561,
+      31.6261164
+    ],
+    "areaKm2": 19.85,
+    "density": 5439.51,
+    "osm": {
+      "relationId": 2799529,
+      "wikidata": null
+    }
   },
   {
     "code": "07.351.01.03",
@@ -896,9 +1576,26 @@
     },
     "provenance": {
       "name": "hcp-2024",
-      "population2024": "hcp-2024"
+      "population2024": "hcp-2024",
+      "geometry": "osm-odbl"
     },
     "communeCode": "07.351.01.0",
-    "prefectureOfArrondissementsCode": null
+    "prefectureOfArrondissementsCode": null,
+    "centroid": {
+      "lat": 31.65521017314453,
+      "lng": -7.951053719433593
+    },
+    "bbox": [
+      -7.9914263,
+      31.5441986,
+      -7.8847385,
+      31.6942895
+    ],
+    "areaKm2": 75.32,
+    "density": 949.36,
+    "osm": {
+      "relationId": 2799527,
+      "wikidata": null
+    }
   }
 ]

@@ -2,13 +2,13 @@ import { fetchAll, sha256 } from "./fetch.ts";
 import { parseHcp2024 } from "./sources/hcp2024.ts";
 import { parseHcp2014 } from "./sources/hcp2014.ts";
 import { buildHierarchy } from "./build/hierarchy.ts";
-import { assertDataset } from "./validate/assertions.ts";
+import { assertDataset, checkArrondissements } from "./validate/assertions.ts";
 import { crosswalkInputs, toRecords } from "./emit/records.ts";
 import { writeJson } from "./emit/json.ts";
 import { writeCsv } from "./emit/csv.ts";
-import { fetchRegion } from "./sources/overpass.ts";
+import { fetchArrondissements, fetchRegion } from "./sources/overpass.ts";
 import { joinOsm, type OsmFeature } from "./build/osmJoin.ts";
-import { writeGeometry } from "./emit/topojson.ts";
+import { writeArrondissementGeometry, writeGeometry } from "./emit/topojson.ts";
 import { buildCrosswalk } from "./build/crosswalk.ts";
 import { writeCrosswalk } from "./emit/crosswalk.ts";
 import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/sources.ts";
@@ -45,6 +45,26 @@ for (const region of hierarchy.regions) {
 // attribute failure below is collected into one list instead of stopping at the first.
 console.log(`geometry: ${osm.size} communes, ${unmatchedTotal} unmatched relations, ${rejectedTotal} rejected`);
 
+// The arrondissements come in one query of their own, at admin_level 10.
+const arrondissementSnapshot = await fetchArrondissements(".cache");
+const arrondissementJoin = joinOsm(
+  arrondissementSnapshot.elements,
+  new Set(hierarchy.arrondissements.map((a) => a.codeDigits)),
+);
+for (const r of arrondissementJoin.rejected) console.warn(`  rejected relation ${r.relationId} (${r.ref}): ${r.reason}`);
+for (const u of arrondissementJoin.unmatched) console.warn(`  unmatched relation ${u.relationId} carries ref ${u.ref}`);
+const arrondissementOsm = arrondissementJoin.features;
+const arrondissementProblems = checkArrondissements(
+  hierarchy.arrondissements,
+  arrondissementOsm,
+  osm,
+  new Map(hierarchy.communes.map((c) => [c.code, c.codeDigits])),
+);
+if (arrondissementProblems.length > 0) {
+  throw new Error(`the arrondissement boundaries don't account for their cities:\n  ${arrondissementProblems.join("\n  ")}`);
+}
+console.log(`geometry: ${arrondissementOsm.size} arrondissements`);
+
 const { unresolved, claimed } = crosswalkInputs(hierarchy, units2014);
 // Sorted, because Map iteration order would otherwise decide which unit a pass sees
 // first, and the plan forbids the output depending on anything but the input.
@@ -73,19 +93,24 @@ const crosswalkByCode = new Map(rows.map((r) => [r.codeDigits2024, r]));
 
 assertDataset(hierarchy, units2014, osm, rows);
 
-const records = toRecords(hierarchy, units2014, osm, crosswalkByCode);
+const records = toRecords(hierarchy, units2014, osm, crosswalkByCode, arrondissementOsm);
 await writeJson(records, OUT);
 await writeCsv(records, OUT);
 await writeCrosswalk(rows, CROSSWALK_OUT);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);
+// The records' names, with the "Arrondissement de" label taken off, as the communes' are.
+const arrondissementNames = new Map(
+  (records.arrondissements as { codeDigits: string; name: { fr: string } }[]).map((a) => [a.codeDigits, a.name.fr]),
+);
+await writeArrondissementGeometry([...arrondissementOsm.values()], arrondissementNames, GEOMETRY_OUT);
 
 // Provenance is the dataset's whole argument, so a build that cannot say which snapshot
 // it read refuses to publish rather than shipping a null vintage under a README that
 // claims the sources are pinned.
 const digests = Object.fromEntries([...sources].map(([id, bytes]) => [id, sha256(bytes)]));
-const sourcesDoc = buildSources(digests, await retrievedAt(".cache"), osmFetchedAt);
+const sourcesDoc = buildSources(digests, await retrievedAt(".cache"), osmFetchedAt, [arrondissementSnapshot.fetchedAt]);
 const sourceProblems = checkSources(sourcesDoc);
 if (sourceProblems.length > 0) {
   throw new Error(`the dataset cannot account for its sources:\n  ${sourceProblems.join("\n  ")}`);

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseHcp2024 } from "../../src/sources/hcp2024.ts";
 import { parseHcp2014 } from "../../src/sources/hcp2014.ts";
 import { buildHierarchy } from "../../src/build/hierarchy.ts";
-import { assertDataset, checkGeometry } from "../../src/validate/assertions.ts";
+import { assertDataset, checkArrondissements, checkGeometry } from "../../src/validate/assertions.ts";
 import { readCachedWorkbook } from "../support/workbooks.ts";
 
 const h = buildHierarchy(parseHcp2024(readCachedWorkbook(".cache/hcp-population-legale-2024.xlsx")));
@@ -85,5 +85,41 @@ describe("checkGeometry", () => {
     expect(checkGeometry([allowed], new Map())).toEqual([]);
     const fail = checkGeometry([commune], new Map());
     expect(fail[0]).toContain("not on the unmapped allowlist");
+  });
+});
+
+describe("checkArrondissements", () => {
+  const square = (x: number, y: number, size: number): [number, number][] => [
+    [x, y], [x + size, y], [x + size, y + size], [x, y + size], [x, y],
+  ];
+  const feature = (codeDigits: string, ring: [number, number][], areaKm2: number) => ({
+    codeDigits,
+    relationId: 1,
+    wikidata: null,
+    centroid: { lng: ring[0]![0] + 0.1, lat: ring[0]![1] + 0.1 },
+    bbox: [0, 0, 0, 0] as [number, number, number, number],
+    areaKm2,
+    outer: [ring],
+    inner: [],
+  });
+  const commune = feature("015110100", square(-6, 35, 1), 200);
+  const communes = new Map([["015110100", commune]]);
+  const digits = new Map([["01.511.01.0", "015110100"]]);
+  const arr = (code: string, codeDigits: string) => ({ code, codeDigits, communeCode: "01.511.01.0", nameFr: code });
+
+  it("passes arrondissements that sit in their commune and cover it", () => {
+    const features = new Map([
+      ["015110101", feature("015110101", square(-6, 35, 0.5), 100)],
+      ["015110102", feature("015110102", square(-5.5, 35, 0.5), 100)],
+    ]);
+    expect(checkArrondissements([arr("a", "015110101"), arr("b", "015110102")], features, communes, digits)).toEqual([]);
+  });
+
+  it("catches one that's missing, one outside its commune, and a city left short", () => {
+    const features = new Map([["015110101", feature("015110101", square(-8, 30, 0.5), 50)]]);
+    const fail = checkArrondissements([arr("a", "015110101"), arr("b", "015110102")], features, communes, digits);
+    expect(fail.join("\n")).toContain("b (b) has no boundary");
+    expect(fail.join("\n")).toContain("lies outside its commune");
+    expect(fail.join("\n")).toContain("cover 50.0 km² of its 200.0 km²");
   });
 });

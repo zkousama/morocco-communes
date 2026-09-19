@@ -63,13 +63,30 @@ relation["boundary"="administrative"]["admin_level"="8"]["ref:MA:HCP"~"^${region
 out geom;`;
 }
 
-export async function fetchRegion(regionCode: string, cacheDir: string): Promise<RegionSnapshot> {
+/**
+ * The 41 arrondissements, which OpenStreetMap maps at admin_level 10 inside the 6 cities
+ * that have them. The box covers those cities, from Marrakech north to Tanger.
+ */
+export function buildArrondissementQuery(): string {
+  return `[out:json][timeout:110];
+relation["boundary"="administrative"]["admin_level"="10"]["ref:MA:HCP"](31,-10,36,-4);
+out geom;`;
+}
+
+export function fetchRegion(regionCode: string, cacheDir: string): Promise<RegionSnapshot> {
+  return fetchSnapshot(regionCode, buildRegionQuery(regionCode), cacheDir);
+}
+
+export function fetchArrondissements(cacheDir: string): Promise<RegionSnapshot> {
+  return fetchSnapshot("arrondissements", buildArrondissementQuery(), cacheDir);
+}
+
+async function fetchSnapshot(name: string, query: string, cacheDir: string): Promise<RegionSnapshot> {
   const dir = join(cacheDir, "osm");
   await mkdir(dir, { recursive: true });
-  const path = join(dir, `${regionCode}.json`);
+  const path = join(dir, `${name}.json`);
   if (existsSync(path)) return readRegionCache(path);
 
-  const query = buildRegionQuery(regionCode);
   const body = new URLSearchParams({ data: query });
   const failures: string[] = [];
   for (const endpoint of OVERPASS_ENDPOINTS) {
@@ -104,5 +121,5 @@ export async function fetchRegion(regionCode: string, cacheDir: string): Promise
       failures.push(`${endpoint}: ${(err as Error).message}`);
     }
   }
-  throw new Error(`every Overpass endpoint failed for région ${regionCode}:\n  ${failures.join("\n  ")}`);
+  throw new Error(`every Overpass endpoint failed for ${name}:\n  ${failures.join("\n  ")}`);
 }

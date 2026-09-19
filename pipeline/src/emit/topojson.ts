@@ -136,6 +136,24 @@ export function toFeatureCollection(
   };
 }
 
+/** The arrondissements, in a file of their own beside the régions'. */
+export async function writeArrondissementGeometry(
+  features: OsmFeature[],
+  nameByCode: Map<string, string>,
+  dir: string,
+): Promise<void> {
+  await mkdir(dir, { recursive: true });
+  const fc = toFeatureCollection(features, nameByCode);
+  const topo = topology({ arrondissements: fc as never }, 1e5) as unknown as Topology;
+  const attributed = {
+    ...topo,
+    license: "ODbL-1.0",
+    attribution: "© OpenStreetMap contributors, opendatacommons.org/licenses/odbl/1-0/",
+    source: "OpenStreetMap admin_level=10 relations, matched to HCP arrondissements on ref:MA:HCP",
+  };
+  await writeFile(join(dir, "arrondissements.topojson"), `${JSON.stringify(attributed)}\n`);
+}
+
 export async function writeGeometry(
   byRegion: Map<string, OsmFeature[]>,
   nameByCode: Map<string, string>,

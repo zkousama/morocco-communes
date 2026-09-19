@@ -77,9 +77,12 @@ export async function writeCsv(records: DatasetRecords, dir: string): Promise<vo
     ),
   );
 
-  const arrondissements = records.arrondissements as (Unit & { communeCode: string })[];
+  const arrondissements = records.arrondissements as (Unit & { communeCode: string; areaKm2: number | null; density: number | null })[];
   await writeFile(
     join(dir, "arrondissements.csv"),
-    toCsv([...head, "commune_code", ...counts], arrondissements.map((a) => [...base(a), a.communeCode, ...people(a)])),
+    toCsv(
+      [...head, "commune_code", ...counts, "area_km2", "density_2024"],
+      arrondissements.map((a) => [...base(a), a.communeCode, ...people(a), a.areaKm2, a.density]),
+    ),
   );
 }

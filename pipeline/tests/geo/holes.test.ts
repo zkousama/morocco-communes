@@ -19,7 +19,7 @@ describe("coverageHoles", () => {
   });
 
   it("finds no other hole in any région", () => {
-    const files = readdirSync("data/v1/geometry").filter((f) => f.endsWith(".topojson"));
+    const files = readdirSync("data/v1/geometry").filter((f) => /^\d{2}\.topojson$/.test(f));
     expect(files.length).toBe(12);
     const all = files.flatMap((f) => coverageHoles(topo(f.slice(0, 2))));
     expect(all.length).toBe(1);

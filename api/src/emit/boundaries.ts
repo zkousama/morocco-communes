@@ -58,11 +58,14 @@ export function decodeTopology(topo: Topology): Boundary[] {
   }));
 }
 
-/** Every commune boundary, région by région, in file order, with the topology it came from. */
+/**
+ * Every commune boundary, région by région, in file order, with the topology it came from.
+ * The région files are the ones named by a région code; arrondissements.topojson is apart.
+ */
 export async function readBoundaries(
   dir: string,
 ): Promise<{ region: string; topology: Topology; boundaries: Boundary[] }[]> {
-  const files = (await readdir(dir)).filter((f) => f.endsWith(".topojson")).sort();
+  const files = (await readdir(dir)).filter((f) => /^\d{2}\.topojson$/.test(f)).sort();
   const out = [];
   for (const file of files) {
     const topology = JSON.parse(await readFile(join(dir, file), "utf8")) as Topology;

@@ -177,6 +177,7 @@ export function toRecords(
   units2014: Map<string, Hcp2014Unit>,
   osm: Map<string, OsmFeature> = new Map(),
   crosswalk: Map<string, CrosswalkRow> = new Map(),
+  arrondissementOsm: Map<string, OsmFeature> = new Map(),
 ): DatasetRecords {
   const slugs = uniqueSlugs(h.communes.map((c) => ({ code: c.code, nameFr: c.nameFr })));
   const priorFor = priorResolver(h, units2014, crosswalk);
@@ -264,10 +265,21 @@ export function toRecords(
       communeCount: inCercle(c.code),
     })),
     communes,
-    arrondissements: h.arrondissements.map((a) => ({
-      ...plain(a),
-      communeCode: a.communeCode,
-      prefectureOfArrondissementsCode: a.prefectureOfArrondissementsCode,
-    })),
+    // The same geometry fields a commune has, from the admin_level 10 boundaries.
+    arrondissements: h.arrondissements.map((a) => {
+      const geo = arrondissementOsm.get(a.codeDigits) ?? null;
+      const base = plain(a);
+      return {
+        ...base,
+        communeCode: a.communeCode,
+        prefectureOfArrondissementsCode: a.prefectureOfArrondissementsCode,
+        centroid: geo?.centroid ?? null,
+        bbox: geo?.bbox ?? null,
+        areaKm2: geo ? Number(geo.areaKm2.toFixed(2)) : null,
+        density: geo && a.population !== null ? Number((a.population / geo.areaKm2).toFixed(2)) : null,
+        osm: geo ? { relationId: geo.relationId, wikidata: geo.wikidata } : null,
+        provenance: { ...base.provenance, geometry: geo ? "osm-odbl" : null },
+      };
+    }),
   };
 }

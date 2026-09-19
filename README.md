@@ -183,7 +183,9 @@ Boundaries come from OpenStreetMap `admin_level=8` relations, joined to HCP on t
 `ref:MA:HCP` tag that all 1,503 carry. Overpass returns each boundary as unordered way
 fragments, so the rings are stitched end to end before anything is emitted. 1,502 of the
 1,503 come through: Sidi Mohamed Benmansour's relation has no closeable outer ring, so it
-ships with its geometry fields null rather than a repaired guess.
+ships with its geometry fields null rather than a repaired guess. The 41 arrondissements
+come from `admin_level=10` relations the same way, all of them, and each has to sit
+inside its commune and the set has to cover the city.
 
 207 communes were renumbered by the 2015 reform and have no 2014 figure under their
 current code. `crosswalk/` reconciles them in two deterministic passes and records the

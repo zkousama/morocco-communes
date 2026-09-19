@@ -188,3 +188,41 @@ export function assertDataset(
 
   if (fail.length > 0) throw new Error(`dataset assertions failed:\n  ${fail.join("\n  ")}`);
 }
+
+/**
+ * The arrondissement boundaries have to account for the cities they divide: every one of
+ * them matched, each one's interior point inside its own commune, and together about the
+ * commune's area. The last catches a city mapped with a piece missing.
+ */
+export function checkArrondissements(
+  arrondissements: { code: string; codeDigits: string; communeCode: string; nameFr: string }[],
+  features: Map<string, OsmFeature>,
+  communes: Map<string, OsmFeature>,
+  communeDigits: Map<string, string>,
+): string[] {
+  const fail: string[] = [];
+  const areaByCommune = new Map<string, number>();
+  for (const a of arrondissements) {
+    const f = features.get(a.codeDigits);
+    if (!f) {
+      fail.push(`${a.nameFr} (${a.code}) has no boundary`);
+      continue;
+    }
+    const commune = communes.get(communeDigits.get(a.communeCode)!);
+    if (!commune) {
+      fail.push(`${a.nameFr} (${a.code}) belongs to ${a.communeCode}, which has no boundary`);
+      continue;
+    }
+    if (!commune.outer.some((ring) => pointInRing([f.centroid.lng, f.centroid.lat], ring))) {
+      fail.push(`${a.nameFr} (${a.code}) lies outside its commune ${a.communeCode}`);
+    }
+    areaByCommune.set(a.communeCode, (areaByCommune.get(a.communeCode) ?? 0) + f.areaKm2);
+  }
+  for (const [code, area] of areaByCommune) {
+    const whole = communes.get(communeDigits.get(code)!)!.areaKm2;
+    if (Math.abs(area - whole) / whole > 0.01) {
+      fail.push(`the arrondissements of ${code} cover ${area.toFixed(1)} km² of its ${whole.toFixed(1)} km²`);
+    }
+  }
+  return fail;
+}
