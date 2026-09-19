@@ -28,8 +28,8 @@ Both come for the whole unit, its urban part and its rural part.
   `arrondissements.json` and `urban-centres.json` hold one record per unit.
 - `people.csv` has a row per unit, area and sex, and `households.csv` a row per unit and
   area. Both start with a UTF-8 byte-order mark, for Excel.
-- `fields.json` lists every field with its path, its CSV column, HCP's heading and
-  category for it, its unit and the sexes it's given for, and HCP's notes.
+- `fields.json` lists every field with its path, its CSV column, an English label, HCP's
+  heading and category for it, its unit and the sexes it's given for, and HCP's notes.
 
 A record, cut short:
 

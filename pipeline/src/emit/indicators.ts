@@ -62,6 +62,7 @@ const describe = (f: Field) => ({
   column: columnOf(f),
   topic: f.topic,
   key: f.key,
+  label: f.label,
   heading: f.heading,
   ...(f.category ? { category: f.category } : {}),
   unit: f.unit,

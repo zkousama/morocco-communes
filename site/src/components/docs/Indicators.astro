@@ -19,6 +19,7 @@ interface Field {
   path: string;
   column: string;
   topic: string;
+  label: string;
   heading: string;
   category?: string;
   unit: keyof typeof d.units;
@@ -26,11 +27,14 @@ interface Field {
 }
 const dictionary = JSON.parse(readFileSync("data/v1/indicators/fields.json", "utf8")) as { people: Field[]; households: Field[] };
 
-const list = new Intl.ListFormat(locale === "fr" ? "fr-FR" : "en-GB", { type: "conjunction" });
-const meta = (f: Field) =>
-  [d.units[f.unit], f.sexes && f.sexes.length > 0 ? d.forSexes.replace("{list}", list.format(f.sexes.map((s) => d.sexes[s]))) : null]
-    .filter(Boolean)
-    .join(" · ");
+// Which sexes HCP gives a figure for: all three, everyone only, or everyone and women.
+const sexesOf = (f: Field) => {
+  if (!f.sexes || f.sexes.length === 0) return null;
+  const phrase = d.sexes[f.sexes.join(",")];
+  if (!phrase) throw new Error(`no phrase for the sexes ${f.sexes.join(", ")} of ${f.path}`);
+  return phrase;
+};
+const meta = (f: Field) => [d.units[f.unit], sexesOf(f)].filter(Boolean).join(" · ");
 
 /** Fields by topic, and within a topic, runs of fields under one heading. */
 const topicsOf = (fields: Field[]) => {
@@ -45,8 +49,10 @@ const topicsOf = (fields: Field[]) => {
   return topics;
 };
 
-// HCP's headings are French; on the English page they're marked as such.
-const fr = locale === "fr" ? undefined : "fr";
+// HCP's headings are French. The French page reads them as they are; the English one
+// leads with an English label and keeps HCP's wording beside it, marked as French.
+const english = locale === "en";
+const source = (f: Field) => (f.category ? `${f.heading} · ${f.category}` : f.heading);
 const sections = [
   { id: "people", label: d.people, topics: topicsOf(dictionary.people) },
   { id: "households", label: d.households, topics: topicsOf(dictionary.households) },
@@ -76,7 +82,7 @@ const toc = [
           <h3>{d.topics[topic as keyof typeof d.topics] ?? topic}</h3>
           {groups.map((g) => (
             <>
-              {g.grouped && <p class="heading" lang={fr}>{g.heading}</p>}
+              {g.grouped && !english && <p class="heading">{g.heading}</p>}
               <dl class="fields">
                 {g.fields.map((f) => (
                   <div>
@@ -85,8 +91,9 @@ const toc = [
                       <span class="column">{d.column} <code>{f.column}</code></span>
                     </dt>
                     <dd>
-                      <span lang={fr}>{f.category ?? f.heading}</span>
+                      <span>{english ? f.label : f.category ?? f.heading}</span>
                       <span class="meta">{meta(f)}</span>
+                      {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
                     </dd>
                   </div>
                 ))}
@@ -165,6 +172,12 @@ const toc = [
   }
 
   .meta {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .source {
+    flex-basis: 100%;
     font-size: var(--t-xs);
     color: var(--quiet);
   }

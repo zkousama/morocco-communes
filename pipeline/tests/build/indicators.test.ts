@@ -103,6 +103,14 @@ describe("the names in the files", () => {
     expect(snake("distanceToPavedRoadKm")).toBe("distance_to_paved_road_km");
   });
 
+  it("each have an English label, distinct within their topic", () => {
+    for (const fields of [PEOPLE_FIELDS, HOUSEHOLD_FIELDS]) {
+      for (const f of fields) expect(f.label.trim(), pathOf(f)).not.toBe("");
+      const seen = new Set(fields.map((f) => `${f.topic} ${f.label}`));
+      expect(seen.size).toBe(fields.length);
+    }
+  });
+
   it("never repeat", () => {
     const people = PEOPLE_FIELDS.map(columnOf);
     const homes = HOUSEHOLD_FIELDS.map(columnOf);

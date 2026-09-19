@@ -204,8 +204,11 @@ export const docs = {
         "`people.csv` and `households.csv` hold every unit’s, with the columns named below.",
         "The MCP server’s `get_indicators` tool gives them to an assistant.",
       ],
-      sexes: { all: "everyone", male: "men", female: "women" },
-      forSexes: "for {list}",
+      sexes: {
+        "all,male,female": "for everyone, men and women",
+        all: "for everyone",
+        "all,female": "for everyone and for women",
+      } as Record<string, string>,
       units: {
         people: "people",
         households: "households",
@@ -421,8 +424,11 @@ export const docs = {
         "`people.csv` et `households.csv` contiennent ceux de chaque unité, avec les colonnes nommées ci-dessous.",
         "L’outil `get_indicators` du serveur MCP les donne à un assistant.",
       ],
-      sexes: { all: "ensemble", male: "hommes", female: "femmes" },
-      forSexes: "pour {list}",
+      sexes: {
+        "all,male,female": "pour tous, les hommes et les femmes",
+        all: "pour tous",
+        "all,female": "pour tous et pour les femmes",
+      } as Record<string, string>,
       units: {
         people: "personnes",
         households: "ménages",

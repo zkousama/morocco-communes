@@ -128,7 +128,7 @@ export const downloads = [
       {
         "label": "fields.json",
         "href": "/data/v1/indicators/fields.json",
-        "bytes": 32014
+        "bytes": 35531
       }
     ]
   },
