@@ -4,6 +4,8 @@ import { createSignal, For, Show } from "solid-js";
 export const PLAYGROUND_KEYS = [
   "searchTab",
   "searchHint",
+  "atTab",
+  "atHint",
   "nearTab",
   "nearHint",
   "lookupTab",
@@ -32,7 +34,7 @@ interface Result {
   body: string;
 }
 
-type Mode = "search" | "near" | "lookup";
+type Mode = "search" | "at" | "near" | "lookup";
 
 /**
  * Runs against the same origin, so it exercises whatever it is served beside — wrangler
@@ -54,6 +56,8 @@ export default function Playground(props: Props) {
     switch (mode()) {
       case "search":
         return `/api/search?q=${encodeURIComponent(query())}&limit=5`;
+      case "at":
+        return `/api/communes/at?lat=${encodeURIComponent(lat())}&lng=${encodeURIComponent(lng())}`;
       case "near":
         return `/api/communes/near?lat=${encodeURIComponent(lat())}&lng=${encodeURIComponent(lng())}&radius=${encodeURIComponent(radius())}&limit=5`;
       case "lookup":
@@ -90,6 +94,7 @@ export default function Playground(props: Props) {
 
   const tabs: { id: Mode; label: string; hint: string }[] = [
     { id: "search", label: props.copy.searchTab, hint: props.copy.searchHint },
+    { id: "at", label: props.copy.atTab, hint: props.copy.atHint },
     { id: "near", label: props.copy.nearTab, hint: props.copy.nearHint },
     { id: "lookup", label: props.copy.lookupTab, hint: props.copy.lookupHint },
   ];
@@ -132,7 +137,7 @@ export default function Playground(props: Props) {
           </label>
         </Show>
 
-        <Show when={mode() === "near"}>
+        <Show when={mode() === "near" || mode() === "at"}>
           <label>
             <span>lat</span>
             <input value={lat()} onInput={(e) => setLat(e.currentTarget.value)} inputmode="decimal" dir="ltr" />
@@ -141,6 +146,9 @@ export default function Playground(props: Props) {
             <span>lng</span>
             <input value={lng()} onInput={(e) => setLng(e.currentTarget.value)} inputmode="decimal" dir="ltr" />
           </label>
+        </Show>
+
+        <Show when={mode() === "near"}>
           <label>
             <span>{props.copy.fieldRadius}</span>
             <input value={radius()} onInput={(e) => setRadius(e.currentTarget.value)} inputmode="numeric" dir="ltr" />

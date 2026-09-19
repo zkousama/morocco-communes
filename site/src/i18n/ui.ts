@@ -98,6 +98,8 @@ export const ui = {
     searchTab: "Search",
     searchHint:
       "French, Arabic, or a slug. Accents, the alef variants and ta-marbuta all fold, and places are findable by the other names they go by: Fez finds Fès, Port Lyautey finds Kénitra.",
+    atTab: "At a point",
+    atHint: "The commune whose boundary contains a point.",
     nearTab: "Nearby",
     nearHint: "Communes within a radius of a point, nearest first.",
     lookupTab: "Lookup",
@@ -234,6 +236,8 @@ export const ui = {
     searchTab: "Recherche",
     searchHint:
       "En français, en arabe ou par slug. Les accents, les variantes de l’alif et le ta marbouta sont normalisés, et les lieux se trouvent aussi par leurs autres noms — Fez donne Fès, Port Lyautey donne Kénitra.",
+    atTab: "En un point",
+    atHint: "La commune dont la limite contient un point.",
     nearTab: "À proximité",
     nearHint: "Les communes dans un rayon autour d’un point, de la plus proche à la plus lointaine.",
     lookupTab: "Consultation",
