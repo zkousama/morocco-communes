@@ -2,12 +2,14 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { DATASET_VERSION } from "../../src/sources/registry.ts";
 import { buildSources, checkSources, writeSources } from "../../src/emit/sources.ts";
 import { readRegionCache } from "../../src/sources/overpass.ts";
 
-const digests = { "hcp-2024": "a".repeat(64), "hcp-2014": "b".repeat(64) };
+const digests = { "hcp-2024": "a".repeat(64), "hcp-2024-indicators": "c".repeat(64), "hcp-2014": "b".repeat(64) };
 const retrieved = new Map([
   ["hcp-2024", "2026-09-17"],
+  ["hcp-2024-indicators", "2026-09-19"],
   ["hcp-2014", "2026-09-17"],
 ]);
 const twelve = (t: string) => Array.from({ length: 12 }, () => t);
@@ -17,7 +19,7 @@ describe("buildSources", () => {
     const doc = buildSources(digests, retrieved, twelve("2026-09-17T18:00:00.000Z"));
     const hcp = doc.sources.find((s) => s.id === "hcp-2024")!;
     expect(hcp).toMatchObject({ sha256: "a".repeat(64), retrievedAt: "2026-09-17" });
-    expect(doc.datasetVersion).toBe("1.0.0");
+    expect(doc.datasetVersion).toBe(DATASET_VERSION);
   });
 
   it("reports the OSM vintage as a range, because the twelve queries are hours apart", () => {

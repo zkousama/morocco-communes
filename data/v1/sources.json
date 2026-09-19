@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.0.0",
+  "datasetVersion": "1.1.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -7,6 +7,13 @@
       "licence": "Haut-Commissariat au Plan, RGPH 2024. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "7e9d3d402cc2fd0d9c4fc941c4f23c6a5e5ddcbefbba80b7540267f8e2728dca",
       "retrievedAt": "2026-09-17"
+    },
+    {
+      "id": "hcp-2024-indicators",
+      "url": "https://www.hcp.ma/file/242671/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2024, Indicateurs démographiques et socioéconomiques. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "f3d96fcae3c10a2c194b2fe97ee8352a242fb3f36b1b63d4d2a7006176dc7c3e",
+      "retrievedAt": "2026-09-19"
     },
     {
       "id": "hcp-2014",

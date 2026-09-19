@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
 import { envelope, paginate, pageMeta, problem } from "../../src/lib/envelope.ts";
 
 describe("envelope", () => {
   it("always carries the dataset version, so a cached response can be dated", () => {
     const body = envelope([{ code: "01" }], { self: "/api/regions.json" });
-    expect(body.meta.datasetVersion).toBe("1.0.0");
+    expect(body.meta.datasetVersion).toBe(DATASET_VERSION);
     expect(body.data).toEqual([{ code: "01" }]);
     expect(body.links.self).toBe("/api/regions.json");
   });

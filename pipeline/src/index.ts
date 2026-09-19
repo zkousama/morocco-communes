@@ -12,11 +12,17 @@ import { writeArrondissementGeometry, writeGeometry } from "./emit/topojson.ts";
 import { buildCrosswalk } from "./build/crosswalk.ts";
 import { writeCrosswalk } from "./emit/crosswalk.ts";
 import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/sources.ts";
+import { parseHcpIndicators } from "./sources/hcpIndicators.ts";
+import { buildIndicators } from "./build/indicators.ts";
+import { checkIndicators } from "./validate/indicators.ts";
+import { writeIndicators } from "./emit/indicators.ts";
+import { SOURCES } from "./sources/registry.ts";
 
 const OUT = "data/v1/attributes";
 const DATASET_OUT = "data/v1";
 const GEOMETRY_OUT = "data/v1/geometry";
 const CROSSWALK_OUT = "data/v1/crosswalk";
+const INDICATORS_OUT = "data/v1/indicators";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
@@ -97,6 +103,21 @@ const records = toRecords(hierarchy, units2014, osm, crosswalkByCode, arrondisse
 await writeJson(records, OUT);
 await writeCsv(records, OUT);
 await writeCrosswalk(rows, CROSSWALK_OUT);
+
+// HCP's indicators, joined to the units above by code. The population and household
+// counts they repeat have to equal the population file's, unit for unit.
+type Counted = { code: string; population: { "2024": { total: number | null; households: number | null } } };
+const published = new Map(
+  (Object.values(records) as Counted[][]).flat().map((u) => [u.code, { population: u.population["2024"].total, households: u.population["2024"].households }]),
+);
+const indicators = buildIndicators(parseHcpIndicators(sources.get("hcp-2024-indicators")!), records as never);
+const indicatorProblems = checkIndicators(indicators, published);
+if (indicatorProblems.length > 0) {
+  throw new Error(`the indicators don't hold together:\n  ${indicatorProblems.slice(0, 40).join("\n  ")}${indicatorProblems.length > 40 ? `\n  and ${indicatorProblems.length - 40} more` : ""}`);
+}
+const indicatorSource = SOURCES.find((s) => s.id === "hcp-2024-indicators")!;
+await writeIndicators(indicators, INDICATORS_OUT, { id: indicatorSource.id, url: indicatorSource.url });
+console.log(`indicators: ${indicators.length} rows, ${indicators.filter((r) => r.level === "urbanCentre").length} of them urban centres`);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);

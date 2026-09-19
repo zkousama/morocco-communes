@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
 import { emitTree, HEADERS_FILE } from "../../src/emit/static.ts";
 import { PER_PAGE } from "../../src/lib/envelope.ts";
 import type { Dataset } from "../../src/lib/dataset.ts";
@@ -105,7 +106,7 @@ describe("emitTree", () => {
   it("envelopes every file with a self link that matches its own path", () => {
     for (const [path, body] of tree) {
       expect(body.links.self, path).toBe(path);
-      expect(body.meta.datasetVersion, path).toBe("1.0.0");
+      expect(body.meta.datasetVersion, path).toBe(DATASET_VERSION);
       expect("prev" in body.links && "next" in body.links, path).toBe(true);
     }
   });
