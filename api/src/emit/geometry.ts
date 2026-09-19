@@ -5,7 +5,7 @@
  * the same output.
  */
 import { join } from "node:path";
-import { ATTRIBUTION, communeFeature, mergeCommunes, readBoundaries, regionCollection, unitFeature } from "./boundaries.ts";
+import { ATTRIBUTION, communeFeature, readBoundaries, regionCollection, unionOf, unitFeature, type Boundary } from "./boundaries.ts";
 import { buildTiles } from "./tiles.ts";
 import type { Tile, TileIndex } from "../lib/locate.ts";
 
@@ -60,25 +60,22 @@ export async function buildGeometry(
   const provinceOutlines = new Map<string, Feature & { attribution: string }>();
   const regionOutlines = new Map<string, Feature & { attribution: string }>();
   const shapes = [];
-  for (const { region, topology, boundaries } of read) {
+  for (const { region, boundaries } of read) {
     regions.set(region, regionCollection(boundaries, byDigits));
 
-    const byProvince = new Map<string, Set<string>>();
+    const byProvince = new Map<string, Boundary[]>();
     for (const boundary of boundaries) {
       const commune = byDigits.get(boundary.codeDigits)!;
       features.set(commune.code, { ...communeFeature(boundary, commune), attribution: ATTRIBUTION });
       shapes.push({ code: commune.code, rings: boundary.polygons.flat() });
-      const group = byProvince.get(commune.parents.province) ?? new Set<string>();
-      group.add(boundary.codeDigits);
-      byProvince.set(commune.parents.province, group);
+      byProvince.set(commune.parents.province, [...(byProvince.get(commune.parents.province) ?? []), boundary]);
     }
 
-    const all = new Set(boundaries.map((b) => b.codeDigits));
-    regionOutlines.set(region, { ...unitFeature(regionOf.get(region)!, mergeCommunes(topology, all)), attribution: ATTRIBUTION });
-    for (const [code, digits] of [...byProvince].sort(([a], [b]) => a.localeCompare(b))) {
+    regionOutlines.set(region, { ...unitFeature(regionOf.get(region)!, unionOf(boundaries)), attribution: ATTRIBUTION });
+    for (const [code, group] of [...byProvince].sort(([a], [b]) => a.localeCompare(b))) {
       const province = provinceOf.get(code);
       if (!province) throw new Error(`communes name province ${code}, which isn't in the dataset`);
-      provinceOutlines.set(code, { ...unitFeature(province, mergeCommunes(topology, digits)), attribution: ATTRIBUTION });
+      provinceOutlines.set(code, { ...unitFeature(province, unionOf(group)), attribution: ATTRIBUTION });
     }
   }
 

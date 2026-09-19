@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { buildGeometry, type Geometry } from "../../src/emit/geometry.ts";
 import { clipRing } from "../../src/emit/tiles.ts";
 import { communeIn, prepareIndex, tileAt, type PreparedIndex } from "../../src/lib/locate.ts";
+import { sphericalArea } from "../../../pipeline/src/geo/rings.ts";
 
 interface Commune {
   code: string;
@@ -114,6 +115,28 @@ describe("the GeoJSON", () => {
     expect(geometry.regionOutlines.size).toBe(12);
     const withCommunes = provinces.filter((p) => p.communeCount > 0).map((p) => p.code).sort();
     expect([...geometry.provinceOutlines.keys()].sort()).toEqual(withCommunes);
+  });
+
+  it("closes every ring of every outline", () => {
+    for (const feature of [...geometry.provinceOutlines.values(), ...geometry.regionOutlines.values()]) {
+      const g = feature.geometry;
+      for (const ring of g.type === "Polygon" ? g.coordinates : g.coordinates.flat()) {
+        expect(ring[0], feature.properties.code).toEqual(ring[ring.length - 1]);
+      }
+    }
+  });
+
+  it("covers the same ground as the communes inside it", () => {
+    // Holes are subtracted; slivers between neighbours are the only difference allowed.
+    const area = (g: { type: string; coordinates: unknown }) => {
+      const polygons = g.type === "Polygon" ? [g.coordinates as [number, number][][]] : (g.coordinates as [number, number][][][]);
+      return polygons.reduce((sum, [outer, ...holes]) => sum + sphericalArea(outer!) - holes.reduce((h, r) => h + sphericalArea(r), 0), 0);
+    };
+    for (const [code, feature] of geometry.regionOutlines) {
+      const parts = [...geometry.communes.values()].filter((f) => f.properties.code.startsWith(`${code}.`));
+      const sum = parts.reduce((s, f) => s + area(f.geometry), 0);
+      expect(Math.abs(area(feature.geometry) - sum) / sum, code).toBeLessThan(0.005);
+    }
   });
 
   it("dissolves the borders inside a province, so its outline has far fewer points", () => {

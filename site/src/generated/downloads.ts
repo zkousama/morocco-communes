@@ -235,12 +235,12 @@ export const downloads = [
       {
         "label": "provinces",
         "href": "/data/v1/geometry/provinces.geojson",
-        "bytes": 3116938
+        "bytes": 2997764
       },
       {
         "label": "régions",
         "href": "/data/v1/geometry/regions.geojson",
-        "bytes": 2318703
+        "bytes": 2215440
       }
     ]
   },

@@ -4,7 +4,7 @@
  */
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { merge } from "topojson-client";
+import polygonClipping from "polygon-clipping";
 
 export type Position = [number, number];
 /** Rings of one polygon, the outer ring first, each closed. */
@@ -72,14 +72,15 @@ export async function readBoundaries(
 }
 
 /**
- * The outline of a group of communes, dissolved along the borders they share. Arcs used by
- * one commune of the group are its edge; arcs used by two are inside it. A gap in the
- * group's coverage stays a hole.
+ * The outline of a group of communes, dissolved along the borders they share, by a
+ * polygon union. Merging the TopoJSON arcs instead leaves rings open: two neighbouring
+ * boundaries in OpenStreetMap don't always share every point, and the slivers between
+ * them break the stitching. A real gap in the coverage, like the one near Ifrane, stays a
+ * hole.
  */
-export function mergeCommunes(topology: Topology, codeDigits: Set<string>): Polygon[] {
-  const geometries = topology.objects.communes.geometries.filter((g) => codeDigits.has(g.properties.code));
-  const merged = merge(topology as never, geometries as never) as unknown as { coordinates: Position[][][] };
-  return merged.coordinates.map((polygon) => polygon.map((ring) => ring.map(([x, y]) => [round(x), round(y)] as Position)));
+export function unionOf(boundaries: Boundary[]): Polygon[] {
+  const merged = polygonClipping.union(...(boundaries.map((b) => b.polygons) as [Position[][][], ...Position[][][][]]));
+  return merged.map((polygon) => polygon.map((ring) => ring.map(([x, y]) => [round(x), round(y)] as Position)));
 }
 
 interface Unit {
