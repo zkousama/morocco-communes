@@ -260,9 +260,10 @@ describe("the MCP server, through a real client", () => {
 
 describe("get_indicators", () => {
   type Figures = Record<string, { people?: Record<string, Record<string, Record<string, number | null>>>; households?: Record<string, Record<string, number | null>> } | null>;
-  type Found = { unit: Record<string, unknown>; figures: Figures }[];
+  type Found = { unit: Record<string, unknown>; figures: Record<string, Figures | null> }[];
   const results = (r: Result) => r.structuredContent!.results as Found;
-  const figures = (r: Result) => results(r)[0]!.figures;
+  const figures = (r: Result) => results(r)[0]!.figures["2024"]!;
+  const before = (r: Result) => results(r)[0]!.figures["2014"];
 
   it("gives a commune's figures for everyone, by default", async () => {
     const r = await call("get_indicators", { unit: "tanger" });
@@ -300,7 +301,7 @@ describe("get_indicators", () => {
   it("gives every région at once, to compare them", async () => {
     const r = await call("get_indicators", { level: "region", topics: ["labour"], sex: "female" });
     expect(results(r)).toHaveLength(12);
-    expect(results(r).every((x) => typeof (x.figures.total!.people!.female!.labour!.activityRate) === "number")).toBe(true);
+    expect(results(r).every((x) => typeof (x.figures["2024"]!.total!.people!.female!.labour!.activityRate) === "number")).toBe(true);
   });
 
   it("takes the level to tell a province from the commune of the same name", async () => {
@@ -308,6 +309,25 @@ describe("get_indicators", () => {
     const province = await call("get_indicators", { unit: "tiznit", level: "province", topics: ["households"] });
     expect(results(commune)[0]!.unit).toMatchObject({ level: "commune" });
     expect(results(province)[0]!.unit).toMatchObject({ level: "province", code: "09.581" });
+  });
+
+  it("gives the 2014 census when asked for it", async () => {
+    const r = await call("get_indicators", { unit: "assilah", topics: ["illiteracy"], census: "2014" });
+    expect(Object.keys(results(r)[0]!.figures)).toEqual(["2014"]);
+    expect(before(r)!.total!.people!.all!.illiteracy!.rate10Plus).toBe(21.7);
+  });
+
+  it("gives both censuses together, to see what changed", async () => {
+    const r = await call("get_indicators", { unit: "assilah", topics: ["illiteracy"], census: "both" });
+    expect(figures(r).total!.people!.all!.illiteracy!.rate10Plus).toBe(16);
+    expect(before(r)!.total!.people!.all!.illiteracy!.rate10Plus).toBe(21.7);
+  });
+
+  it("has no 2014 figures for a city the census published by arrondissement", async () => {
+    const r = await call("get_indicators", { unit: "tanger", topics: ["illiteracy"], census: "both" });
+    expect(before(r)).toBeNull();
+    const part = await call("get_indicators", { unit: "06.141.01.03", topics: ["illiteracy"], census: "2014" });
+    expect(results(part)[0]!.figures["2014"]!.total!.people!.all!.illiteracy!.rate10Plus).toBeGreaterThan(0);
   });
 
   it("refuses a topic it doesn't have", async () => {

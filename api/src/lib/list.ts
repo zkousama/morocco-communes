@@ -1,7 +1,7 @@
 import { paginate, type Envelope, type PageMeta } from "./envelope.ts";
 import { PAGE, PER_PAGE, POPULATION } from "./params.ts";
 import { aliasPath, resolve, withArticle, type FilterQuery, type Lookup, type SortKey } from "./resolve.ts";
-import { indicatorProblem, INDICATOR_PATHS, type IndicatorTable } from "./indicators.ts";
+import { changeBetween, indicatorProblem, INDICATOR_SORTS, type IndicatorTable } from "./indicators.ts";
 
 /** Reads a pre-rendered file as JSON, or null when there is no such file. */
 export type FetchJson = (path: string) => Promise<Envelope<unknown[]> | null>;
@@ -35,15 +35,18 @@ export const SORT_KEYS = ["code", "name", "population", "change", "density", "ar
 /** Every record field `sort` takes: a field for ascending, the same with a minus for descending. */
 export const SORTS: string[] = SORT_KEYS.flatMap((k) => [k, `-${k}`]);
 
-/** Whether a sort names a census indicator, such as -labour.unemploymentRate. */
-export const byIndicator = (sort: string | undefined) => sort !== undefined && INDICATOR_PATHS.includes(sort.replace(/^-/, ""));
+/**
+ * Whether a sort names a census figure, such as -labour.unemploymentRate, the same figure
+ * in 2014 as 2014.labour.unemploymentRate, or the change since as change.illiteracy.rate10Plus.
+ */
+export const byIndicator = (sort: string | undefined) => sort !== undefined && INDICATOR_SORTS.includes(sort.replace(/^-/, ""));
 
 /** Why a sort isn't one, or null when it is. */
 function sortProblem(sort: string): string | null {
   if (SORTS.includes(sort) || byIndicator(sort)) return null;
   const path = sort.replace(/^-/, "");
   if (path.includes(".")) return `sort: ${indicatorProblem(path)}`;
-  return `sort must be one of ${SORT_KEYS.join(", ")}, or an indicator such as labour.unemploymentRate, with a leading minus for largest first`;
+  return `sort must be one of ${SORT_KEYS.join(", ")}, or an indicator such as labour.unemploymentRate, 2014.labour.unemploymentRate or change.labour.unemploymentRate, with a leading minus for largest first`;
 }
 
 const whole = (n: number | undefined) => n === undefined || (Number.isInteger(n) && n >= 0 && n <= POPULATION.max);
@@ -104,8 +107,13 @@ function valueOf(sort: string, indicators: IndicatorTable | undefined): (c: List
   const key = sort.replace(/^-/, "");
   if (key in VALUE) return VALUE[key as SortKey];
   if (!indicators) throw new Error(`sorting by ${key} needs the indicator table`);
-  const i = indicators.paths.indexOf(key);
-  return (c) => indicators.values[c.code]?.[i] ?? null;
+  const census = /^(2014|change)\./.exec(key);
+  const path = census ? key.slice(census[0].length) : key;
+  const now = indicators.paths.indexOf(path);
+  const before = indicators.paths2014.indexOf(path);
+  if (census?.[1] === "2014") return (c) => indicators.values2014[c.code]?.[before] ?? null;
+  if (census) return (c) => changeBetween(indicators.values[c.code]?.[now] ?? null, indicators.values2014[c.code]?.[before] ?? null);
+  return (c) => indicators.values[c.code]?.[now] ?? null;
 }
 
 /**

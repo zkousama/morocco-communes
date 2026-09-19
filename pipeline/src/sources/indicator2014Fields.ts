@@ -219,7 +219,10 @@ export const HOUSEHOLD_FIELDS_2014: Field2014[] = [
     ["municipalBin", "Bac à ordures de la commune", "Municipal bin", "householdWaste.municipalBin"],
     ["truck", "Camion commun ou privé", "Municipal or private truck", "householdWaste.truck"],
     ["otherOrOpen", "Autre", "Dumped in the open, or another way"],
-  ], { sexes: NONE }),
+  ], {
+    sexes: NONE,
+    note: "2014 had one category for everything that isn't a bin or a truck. The 2024 census counts waste dumped in the open on its own.",
+  }),
   ...group("cookingFuel", "Mode de cuisson fréquemment utilisé", "percent", [
     ["gas", "Gaz", "Gas"], ["electricity", "Électricité", "Electricity"], ["charcoal", "Charbon", "Charcoal"],
     ["firewood", "Bois", "Firewood"], ["animalWaste", "Déchets des animaux", "Animal dung"],
@@ -232,7 +235,10 @@ export const HOUSEHOLD_FIELDS_2014: Field2014[] = [
     ["mobilePhone", "Téléphone portable", "Mobile phone"], ["landline", "Téléphone fixe", "Landline"],
     ["internet", "Internet", "Internet at home"], ["computer", "Ordinateur", "Computer"],
     ["satelliteDish", "Parabole", "Satellite dish"], ["refrigerator", "Réfrigérateur", "Refrigerator"],
-  ], { sexes: NONE }),
+  ], {
+    sexes: NONE,
+    note: "What a household owned, asked in 2014 and not in 2024.",
+  }),
   field("households", "distanceToPavedRoadKm", "Average distance to a paved road", "Distance à la route goudronnée", "km", {
     sexes: NONE,
     comparableTo: "households.distanceToPavedRoadKm",

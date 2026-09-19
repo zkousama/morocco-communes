@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildIndex } from "../../src/emit/searchIndex.ts";
 import { readIndicators } from "../../src/emit/indicators.ts";
 import { emitIndicators, type Tree } from "../../src/emit/static.ts";
-import { buildIndicatorTable, indicatorProblem, INDICATOR_PATHS } from "../../src/lib/indicators.ts";
+import { buildIndicatorTable, changeBetween, COMPARABLE_2014, indicatorProblem, INDICATOR_PATHS } from "../../src/lib/indicators.ts";
 import { collectCommunes, listCommunes, parseFilter } from "../../src/lib/list.ts";
 import { buildLookup } from "../../src/lib/resolve.ts";
 
@@ -36,6 +36,32 @@ describe("the indicator paths", () => {
   });
 });
 
+describe("the two censuses", () => {
+  it("carries the 2014 figures on the record, where the census counted the unit", () => {
+    const assilah = records.find((r) => r.code === "01.511.01.01")!;
+    expect(assilah["2014"]!.people.total!.all.illiteracy!.rate10Plus).toBe(21.7);
+    expect(assilah.people.total!.all.illiteracy!.rate10Plus).toBe(16);
+    // The 2014 census published Tanger by arrondissement, so the city has no row.
+    expect(records.find((r) => r.code === "01.511.01.0")!["2014"]).toBeNull();
+    expect(records.find((r) => r.code === "01.511.01.07")!["2014"]).not.toBeNull();
+  });
+
+  it("offers a 2014 figure only where the question didn't change", () => {
+    expect(COMPARABLE_2014.get("illiteracy.rate10Plus")).toBe("illiteracy.rate10Plus");
+    expect(COMPARABLE_2014.has("maritalStatus.single")).toBe(false);
+    expect(COMPARABLE_2014.has("schooling.rate6to11")).toBe(false);
+    expect(table.paths2014).toHaveLength(COMPARABLE_2014.size);
+  });
+
+  it("explains a path that 2014 asked another way", () => {
+    expect(indicatorProblem("2014.illiteracy.rate10Plus")).toBeNull();
+    expect(indicatorProblem("change.illiteracy.rate10Plus")).toBeNull();
+    expect(indicatorProblem("2014.maritalStatus.single")).toMatch(
+      /^maritalStatus.single is a 2024 figure the 2014 census didn't ask the same way/,
+    );
+  });
+});
+
 describe("sorting communes by an indicator", () => {
   it("is accepted both ways", () => {
     for (const sort of ["labour.unemploymentRate", "-labour.unemploymentRate", "-age.75+"]) {
@@ -58,6 +84,21 @@ describe("sorting communes by an indicator", () => {
     expect(known).toEqual([...known].sort((a, b) => b - a));
     expect(values.slice(known.length).every((v) => v === null)).toBe(true);
     expect(values.length - known.length).toBeGreaterThan(0);
+  });
+
+  it("orders by the 2014 figure, and by the change since", () => {
+    const path = "illiteracy.rate10Plus";
+    const now = table.paths.indexOf(path);
+    const before = table.paths2014.indexOf(path);
+    const of = (code: string) => changeBetween(table.values[code]![now] ?? null, table.values2014[code]![before] ?? null);
+    const sorted = collectCommunes({ page: 1, sort: `change.${path}` }, communes as never[], table) as { code: string }[];
+    const changes = sorted.map((c) => of(c.code)).filter((v) => v !== null) as number[];
+    expect(changes).toEqual([...changes].sort((a, b) => a - b));
+    // Illiteracy fell almost everywhere, so the first commune's change is negative.
+    expect(changes[0]).toBeLessThan(0);
+    const in2014 = collectCommunes({ page: 1, sort: `-2014.${path}` }, communes as never[], table) as { code: string }[];
+    const values = in2014.map((c) => table.values2014[c.code]![before]).filter((v) => v !== null) as number[];
+    expect(values).toEqual([...values].sort((a, b) => b - a));
   });
 
   it("puts the figure on each row it lists", async () => {

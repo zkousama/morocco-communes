@@ -1,6 +1,6 @@
 {
   "name": "morocco-communes",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Morocco's régions, provinces, cercles, communes and arrondissements, with HCP codes, French and Arabic names, and 2024 census population.",
   "type": "module",
   "sideEffects": false,

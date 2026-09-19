@@ -6,11 +6,19 @@ import { DATASET_VERSION } from "../../src/sources/registry.ts";
 import { buildSources, checkSources, writeSources } from "../../src/emit/sources.ts";
 import { readRegionCache } from "../../src/sources/overpass.ts";
 
-const digests = { "hcp-2024": "a".repeat(64), "hcp-2024-indicators": "c".repeat(64), "hcp-2014": "b".repeat(64) };
+const digests = {
+  "hcp-2024": "a".repeat(64),
+  "hcp-2024-indicators": "c".repeat(64),
+  "hcp-2014": "b".repeat(64),
+  "hcp-2014-indicators-people": "d".repeat(64),
+  "hcp-2014-indicators-households": "e".repeat(64),
+};
 const retrieved = new Map([
   ["hcp-2024", "2026-09-17"],
   ["hcp-2024-indicators", "2026-09-19"],
   ["hcp-2014", "2026-09-17"],
+  ["hcp-2014-indicators-people", "2026-09-19"],
+  ["hcp-2014-indicators-households", "2026-09-19"],
 ]);
 const twelve = (t: string) => Array.from({ length: 12 }, () => t);
 

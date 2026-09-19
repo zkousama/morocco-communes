@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CfWorkerJsonSchemaValidator } from "@modelcontextprotocol/sdk/validation/cfworker";
 import { z } from "zod";
 import { listCommunes, parseFilter, SORT_KEYS, type FetchJson, type ListedCommune } from "../lib/list.ts";
-import { TOPICS, type IndicatorRecord, type IndicatorTable, type Topics } from "../lib/indicators.ts";
+import { TOPICS, type Census, type IndicatorRecord, type IndicatorTable, type Topics } from "../lib/indicators.ts";
 import { LIMIT, PAGE, POPULATION, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
@@ -32,8 +32,8 @@ const INSTRUCTIONS =
   "Units are identified by HCP geographic codes such as 01.511.01.0, and a slug such as tanger works wherever a code does. " +
   "To answer a question about a named place, call search first to get its code. " +
   "For coordinates, commune_at gives the commune that contains them. " +
-  "get_indicators gives the 2024 census's figures on age, education, languages, work and housing for any unit or the whole country, " +
-  "and list_communes can rank communes by any of them.";
+  "get_indicators gives the census figures on age, education, languages, work and housing for any unit or the whole country, " +
+  "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014.";
 
 /** Where each level's files live. */
 const COLLECTION: Record<Level, string> = {
@@ -341,6 +341,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
           .describe(
             `A field to order by: ${SORT_KEYS.join(", ")}, or a census indicator by its path, such as ` +
               "labour.unemploymentRate or amenities.runningWater, as get_indicators names them. " +
+              "Put 2014. before the path for the 2014 figure, or change. for how far it moved since, " +
+              "as in change.illiteracy.rate10Plus. " +
               "A leading minus puts the largest first. Code order when left out.",
           ),
         min_population: z.number().int().min(0).max(POPULATION.max).optional().describe("Only communes with at least this many people in 2024."),
@@ -384,13 +386,19 @@ export function createMcpServer(deps: McpDeps): McpServer {
     {
       title: "Census indicators",
       description:
-        "HCP's figures from the 2024 census for Morocco or any région, province or préfecture, cercle, commune or arrondissement: " +
+        "HCP's census figures for Morocco or any région, province or préfecture, cercle, commune or arrondissement: " +
         "age, marital status, fertility, disability, schooling, illiteracy, the languages people read and write and the local languages they use, " +
         "education, work and employment status, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel. " +
         "Shares and rates are percentages from 0 to 100. Most of these come from the long questionnaire, which went to a random 20% of households " +
         "in communes of 2,000 households or more, so there they're estimates. Null means HCP publishes no figure there. " +
         "To rank communes by one figure, call list_communes with sort set to its path; to compare the régions or the provinces, " +
-        "give level without a unit and get them all at once.",
+        "give level without a unit and get them all at once. " +
+        "The 2014 census is here too, under census. Its figures for age, education, local languages, illiteracy, fertility, disability, " +
+        "work, dwellings, amenities, wastewater and waste ask what 2024 asks and can be read against it. Five don't: marital status covered " +
+        "everyone rather than people aged 15 and over, schooling covered ages 7 to 12 rather than 6 to 11, reading and writing was asked as " +
+        "combinations of languages rather than one language at a time, a household counted under every cooking fuel it used, and the employment " +
+        "shares took in unemployed people who had worked before. A unit the 2014 census didn't count — Casablanca and the 5 other cities with " +
+        "arrondissements among them, since 2014 published those by arrondissement — has null there.",
       inputSchema: {
         unit: z
           .string()
@@ -413,6 +421,10 @@ export function createMcpServer(deps: McpDeps): McpServer {
           .enum([...SEXES, "each"])
           .optional()
           .describe("Everyone (all), men, women, or each of the three. all when left out. Household figures have no sex."),
+        census: z
+          .enum(["2024", "2014", "both"])
+          .optional()
+          .describe("Which census. 2024 when left out. both gives the two together, to see what changed."),
       },
       outputSchema: {
         results: z.array(
@@ -427,14 +439,17 @@ export function createMcpServer(deps: McpDeps): McpServer {
               .boolean()
               .describe("HCP collected this unit's figures from the local administration, as its population moves with the seasons; only the counts are published."),
             figures: z
-              .record(z.string(), z.record(z.string(), z.unknown()).nullable())
-              .describe("By area: people by sex, then households, each by topic and key. Null for an area the unit doesn't have."),
+              .record(z.string(), z.record(z.string(), z.record(z.string(), z.unknown()).nullable()).nullable())
+              .describe(
+                "By census year, then by area: people by sex, then households, each by topic and key. " +
+                  "Null for an area the unit doesn't have, and for a census that didn't count it.",
+              ),
           }),
         ),
       },
       annotations: READ_ONLY,
     },
-    async ({ unit, level, topics, area, sex }) => {
+    async ({ unit, level, topics, area, sex, census }) => {
       let records: IndicatorRecord[];
       if (unit !== undefined) {
         const found = resolve(lookup, unit, level);
@@ -460,10 +475,11 @@ export function createMcpServer(deps: McpDeps): McpServer {
       const pick = (t: Topics) => (topics ? Object.fromEntries(Object.entries(t).filter(([k]) => topics.includes(k))) : t);
       const areas = area === "each" ? AREAS : [area ?? "total"];
       const sexes = sex === "each" ? SEXES : [sex ?? "all"];
-      const figuresOf = (record: IndicatorRecord) => Object.fromEntries(
+      const years = census === "both" ? (["2024", "2014"] as const) : ([census ?? "2024"] as const);
+      const areasOf = (from: Census) => Object.fromEntries(
         areas.map((a) => {
-          const people = record.people[a as (typeof AREAS)[number]];
-          const homes = record.households[a as (typeof AREAS)[number]];
+          const people = from.people[a as (typeof AREAS)[number]];
+          const homes = from.households[a as (typeof AREAS)[number]];
           if (!people || !homes) return [a, null];
           const bySex = Object.fromEntries(sexes.map((x) => [x, pick(people[x as (typeof SEXES)[number]])]));
           const household = pick(homes);
@@ -476,6 +492,13 @@ export function createMcpServer(deps: McpDeps): McpServer {
           ];
         }),
       );
+      const figuresOf = (record: IndicatorRecord) =>
+        Object.fromEntries(
+          years.map((year) => {
+            const from = year === "2024" ? record : record["2014"];
+            return [year, from ? areasOf(from) : null];
+          }),
+        );
       return ok({
         results: records.map((record) => ({
           unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },

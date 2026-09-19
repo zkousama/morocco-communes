@@ -41,7 +41,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       version: opts.version,
       summary: "Morocco's administrative divisions as open data.",
       description:
-        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's 2024 census indicators, and boundaries from OpenStreetMap.\n\n" +
+        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's census indicators for both years, and boundaries from OpenStreetMap.\n\n" +
         "An identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\n" +
         "Every response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
       license: { name: "MIT (code). Attributes and indicators: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
@@ -154,7 +154,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               name: "sort",
               in: "query",
               description:
-                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`, with a leading minus for largest first. A commune with no value comes last either way. Sorted by an indicator, each commune carries `indicator`, its figure.",
+                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by an indicator, each commune carries `indicator`, its figure.",
               // A string rather than an enum: with every indicator path both ways it would be
               // 214 values, which the server checks anyway, naming a topic's keys when one is wrong.
               schema: { type: "string", default: "code", examples: ["-population", "-labour.unemploymentRate"] },
@@ -210,11 +210,12 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       "/api/{collection}/{code}/indicators": {
         get: {
           operationId: "getIndicators",
-          summary: "A unit's figures from the 2024 census",
+          summary: "A unit's figures from the 2024 and 2014 censuses",
           description:
             "HCP's indicators for a région, province, cercle, commune or arrondissement: age, marital status, fertility, disability, schooling, literacy and languages, education and work, and each household's dwelling, amenities, wastewater, waste and cooking fuel. " +
             "For the whole unit, its urban and its rural part, and for men and women. Shares and rates are percentages. Most come from the long questionnaire, which went to a random 20% of households in communes of 2,000 households or more, so there they're estimates. " +
-            "A commune's file carries its urban centres' figures too. `/data/v1/indicators/fields.json` names every field with HCP's heading.",
+            "The 2024 figures are at the top level and the 2014 census is under `2014`, null for a unit it didn't count. " +
+            "A commune's file carries its urban centres' figures too. `/data/v1/indicators/fields.json` names every field with HCP's heading, and `/data/v1/indicators/2014/fields.json` names the 2014 fields and which of them can be read against 2024.",
           parameters: [
             {
               name: "collection",
@@ -236,7 +237,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       "/api/indicators.json": {
         get: {
           operationId: "getNationalIndicators",
-          summary: "Morocco's figures from the 2024 census",
+          summary: "Morocco's figures from the 2024 and 2014 censuses",
           description: "The same indicators for the country as a whole.",
           responses: { "200": ok("Morocco's indicators.", ref("Indicators")) },
         },
@@ -356,6 +357,11 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             households: {
               type: "object",
               description: `By area, then by topic: ${HOUSEHOLD_TOPICS.join(", ")}.`,
+            },
+            "2014": {
+              type: ["object", "null"],
+              description:
+                "The same figures from the 2014 census, as `people` and `households`, for a unit it counted. Null for one it didn't: the 6 cities with arrondissements, which 2014 published by arrondissement, and units drawn since.",
             },
             urbanCentres: { type: "array", description: "A commune's urban centres, each with the same fields.", items: { type: "object" } },
           },
