@@ -8,7 +8,7 @@ import PlaceMap from "./PlaceMap.astro";
 import Inset from "./Inset.astro";
 import { de, fill, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
-import { percent } from "../../lib/format";
+import { density, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import {
   arrondissementsInPrefecture,
@@ -30,7 +30,6 @@ const region = asRegion ?? regionOf.get(province!.regionCode)!;
 const unit = province ?? region;
 
 const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
-const n1 = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
 const signed = (v: number) => percent(locale, v, { signed: true });
 
 const communes = province ? communesIn(province.code) : provincesIn(region.code).flatMap((pr) => communesIn(pr.code));
@@ -81,7 +80,7 @@ const standouts = [
   })(),
   (() => {
     const c = pick(withDensity, (a, b) => a.density! > b.density!);
-    return { label: p.densest, commune: c, value: c && `${n1.format(c.density!)} ${p.perKm2}` };
+    return { label: p.densest, commune: c, value: c && `${density(locale, c.density!)} ${p.perKm2}` };
   })(),
 ].filter((s) => s.commune);
 ---
@@ -225,7 +224,7 @@ const standouts = [
                 <td class:list={["num", c.population.change && (c.population.change.pct >= 0 ? "up" : "down")]}>
                   {c.population.change ? signed(c.population.change.pct) : "—"}
                 </td>
-                <td class="num">{c.density === null ? "—" : n1.format(c.density)}</td>
+                <td class="num">{c.density === null ? "—" : density(locale, c.density)}</td>
               </tr>
             ))}
           </tbody>

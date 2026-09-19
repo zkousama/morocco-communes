@@ -6,7 +6,7 @@ import Inset from "./Inset.astro";
 import ChangeChart from "./ChangeChart.astro";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
-import { percent } from "../../lib/format";
+import { density, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import {
   arrondissementsOf,
@@ -76,11 +76,12 @@ const bordering = (neighbours.get(c.code) ?? [])
   .sort((a, b) => a.name.fr.localeCompare(b.name.fr, "fr"));
 const arrondissements = arrondissementsOf(c.code);
 const cityDrawing = drawArrondissements(c.code);
+// Every arrondissement in Casablanca is past the top national break, so the city is shaded
+// on its own scale: ranked by density and spread over classes 1 to 5.
+const byDensity = arrondissements.filter((a) => a.density !== null).sort((a, b) => a.density! - b.density!);
 const arrondissementClass = (code: string) => {
-  const d = arrondissements.find((a) => a.code === code)?.density;
-  if (d == null) return "n";
-  const i = densityBreaks.findIndex((b) => d < b);
-  return String(i < 0 ? densityBreaks.length : i);
+  const i = byDensity.findIndex((a) => a.code === code);
+  return i < 0 ? "n" : String(1 + Math.floor((i * 5) / byDensity.length));
 };
 
 const description =
@@ -121,7 +122,7 @@ getCommune("${c.slug}");`;
     <div>
       <dt>{p.density}</dt>
       <dd>
-        {c.density === null ? "—" : n1.format(c.density)}
+        {c.density === null ? "—" : density(locale, c.density)}
         <small>{c.density === null ? p.noBoundary : `${p.perKm2}, ${n1.format(c.areaKm2!)} km²`}</small>
       </dd>
     </div>
@@ -240,7 +241,7 @@ getCommune("${c.slug}");`;
                 <tr>
                   <td>{a.name.fr} <span lang="ar" dir="rtl" class="ar">{a.name.ar}</span></td>
                   <td class="num">{n.format(a.population["2024"].total)}</td>
-                  <td class="num">{a.density === null ? "—" : n1.format(a.density)}</td>
+                  <td class="num">{a.density === null ? "—" : density(locale, a.density)}</td>
                 </tr>
               ))}
             </tbody>

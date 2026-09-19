@@ -95,6 +95,7 @@ const communesRoute = path(locale, "communes/");
   if (atlas && svg && tip) {
     const d = atlas.dataset;
     const number = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+    const whole = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 0 });
     let rows: Record<string, Row> | null = null;
     let loading: Promise<void> | null = null;
     const load = () =>
@@ -124,7 +125,7 @@ const communesRoute = path(locale, "communes/");
       tip.innerHTML =
         `<strong>${escape(name)}</strong><span>${type === "urban" ? d.urban : d.rural}</span>` +
         `<span>${number.format(people)} ${d.people}</span>` +
-        (density === null ? "" : `<span>${number.format(density)} ${d.density}</span>`) +
+        (density === null ? "" : `<span>${(density >= 100 ? whole : number).format(density)} ${d.density}</span>`) +
         (signed ? `<span>${signed} ${d.change}</span>` : "") +
         (pinned ? `<a href="${d.base}${slug}/">${d.open}</a>` : "");
       tip.dataset.slug = slug;

@@ -14,3 +14,6 @@ export function percent(locale: Locale, value: number, opts: { signed?: boolean;
   const sign = value < 0 ? "−" : signed && value > 0 ? "+" : "";
   return locale === "fr" ? `${sign}${body} %` : `${sign}${body}%`;
 }
+
+/** People per km²: whole numbers from 100 up, where a decimal is noise, and one decimal below. */
+export const density = (locale: Locale, value: number) => numbers(locale, value >= 100 ? 0 : 1).format(value);
