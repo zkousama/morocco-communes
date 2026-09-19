@@ -32,6 +32,44 @@ export function normalise(input: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
+/** Articles written as a word of their own: El Jadida, Es-Semara, Al Hoceima. */
+const ARTICLES = new Set(["el", "al", "l", "ed", "er", "es", "ez", "et", "en", "ech", "ad", "ar", "as", "az", "at", "an"]);
+
+/**
+ * A Latin name reduced to its consonants, the part that survives transliteration. The
+ * same Moroccan name gets written with different vowels, with ou or w, with single or
+ * doubled letters and with or without its article: Tétouan and Titwan, Essaouira and
+ * Souira, El Jadida and Jdida, Ketama and Ktama. Their trigrams barely overlap, so a
+ * short name typed another way finds nothing. Their skeletons are the same: twn, swr, jd,
+ * ktm.
+ *
+ * The digits of Arabizi are read as the letters they stand for, 7 as h and 9 as q, and 3
+ * and 2, a sound French spelling has no letter for, as nothing. An Arabic-script name has
+ * no skeleton; its normalised form already drops the short vowels.
+ */
+export function skeleton(normalised: string): string {
+  if (/[^a-z0-9 ]/.test(normalised)) return "";
+  const words = normalised
+    .replace(/[23]/g, "")
+    .replace(/7/g, "h")
+    .replace(/9/g, "q")
+    .replace(/5/g, "kh")
+    .split(" ")
+    .filter((w) => !ARTICLES.has(w));
+  return words
+    .join("")
+    .replace(/ou/g, "w")
+    .replace(/kh/g, "x")
+    .replace(/[cs]h/g, "S")
+    .replace(/gh/g, "G")
+    .replace(/th/g, "t")
+    .replace(/dh/g, "d")
+    .replace(/ph/g, "f")
+    .replace(/[qc]/g, "k")
+    .replace(/[aeiou0-9]/g, "")
+    .replace(/(.)\1+/g, "$1");
+}
+
 export const GRAM = 3;
 
 /**

@@ -7,6 +7,7 @@ import Place from "../../layouts/Place.astro";
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { communes, communesIn, provincesIn, regions } from "../../lib/places";
+import { normalise, skeleton } from "../../../../api/src/lib/normalise";
 
 interface Props {
   locale: Locale;
@@ -16,6 +17,8 @@ const p = places[locale];
 const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ]/g, "").toLowerCase();
 const byName = <T extends { name: { fr: string } }>(a: T, b: T) => a.name.fr.localeCompare(b.name.fr, "fr");
+// The consonants the API's search matches spellings on, so Titwan finds Tétouan here too.
+const bones = (s: string) => skeleton(normalise(s));
 ---
 
 <Place
@@ -40,7 +43,7 @@ const byName = <T extends { name: { fr: string } }>(a: T, b: T) => a.name.fr.loc
           <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{pr.name.fr}</a></h3>
           <ul>
             {communesIn(pr.code).sort(byName).map((c) => (
-              <li data-name={`${fold(c.name.fr)} ${fold(c.name.ar)} ${c.slug}`}>
+              <li data-name={`${fold(c.name.fr)} ${fold(c.name.ar)} ${c.slug}`} data-bones={bones(c.name.fr)}>
                 <a href={path(locale, `communes/${c.slug}/`)}>{c.name.fr}</a>
               </li>
             ))}
@@ -52,17 +55,22 @@ const byName = <T extends { name: { fr: string } }>(a: T, b: T) => a.name.fr.loc
 </Place>
 
 <script>
+  import { normalise, skeleton } from "../../../../api/src/lib/normalise";
+
   const input = document.querySelector<HTMLInputElement>("#filter");
   const none = document.querySelector<HTMLElement>(".filter .none");
   // The same folding the page wrote into data-name: accents and Arabic vowel marks off.
   const fold = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ]/g, "").toLowerCase().trim();
   input?.addEventListener("input", () => {
     const q = fold(input.value);
+    const bones = skeleton(normalise(input.value));
+    // The same skeleton, or, once three consonants are typed, the start of one.
+    const spelt = (b: string) => bones.length >= 2 && (b === bones || (bones.length >= 3 && b.startsWith(bones)));
     let shown = 0;
     for (const province of document.querySelectorAll<HTMLElement>("[data-province]")) {
       let any = false;
       for (const li of province.querySelectorAll<HTMLElement>("li")) {
-        const hit = q === "" || (li.dataset.name ?? "").includes(q);
+        const hit = q === "" || (li.dataset.name ?? "").includes(q) || spelt(li.dataset.bones ?? "");
         li.hidden = !hit;
         if (hit) any = true;
       }

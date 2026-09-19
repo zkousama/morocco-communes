@@ -953,6 +953,7 @@ export const reference = {
                 "exact",
                 "alias",
                 "prefix",
+                "spelling",
                 "trigram"
               ]
             }

@@ -34,6 +34,7 @@ export const EXONYMS: Exonym[] = [
   { name: "Aaiun", code: "11.321.01.03", origin: "Spanish name for Laâyoune" },
   { name: "Villa Cisneros", code: "12.391.01.01", origin: "Spanish name for Dakhla until 1975" },
   { name: "Dar el Beida", code: "06.141.01.0", origin: "Casablanca's Arabic name in Latin script" },
+  { name: "Tanja", code: "01.511.01.0", origin: "Tanger's Arabic name in Latin script" },
   { name: "Fedala", code: "06.371.01.01", origin: "name of Mohammadia until 1960" },
   { name: "Port Lyautey", code: "04.281.01.01", origin: "name of Kénitra until 1956" },
   { name: "Petitjean", code: "04.481.01.11", origin: "name of Sidi Kacem until 1956" },

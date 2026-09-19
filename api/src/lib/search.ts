@@ -1,4 +1,4 @@
-import { normalise, trigrams } from "./normalise.ts";
+import { normalise, skeleton, trigrams } from "./normalise.ts";
 
 export type Level = "commune" | "arrondissement" | "province" | "region" | "cercle";
 
@@ -47,6 +47,8 @@ export interface SearchIndex {
   postings: Record<string, number[]>;
   /** Normalised exonym to the entry position it names. */
   aliases: Record<string, number>;
+  /** A French name's skeleton, or an exonym's, to the entry positions that have it. */
+  skeletons: Record<string, number[]>;
 }
 
 export interface Hit {
@@ -55,14 +57,20 @@ export interface Hit {
   name: { fr: string; ar: string };
   slug: string;
   score: number;
-  matched: "exact" | "alias" | "prefix" | "trigram";
+  matched: "exact" | "alias" | "prefix" | "spelling" | "trigram";
 }
 
 const EXACT = 1000;
 const PREFIX = 500;
+/**
+ * A name spelt another way, with the same consonants. Below any prefix and above any
+ * trigram match, with the trigram overlap added, so where several names share a skeleton,
+ * the one closest to what was typed comes first.
+ */
+const SPELLING = 300;
 
 /**
- * Scores only the entries that share a trigram with the query.
+ * Scores only the entries that share a trigram with the query, or its consonant skeleton.
  *
  * The postings walk both selects the candidates and counts how many distinct query
  * trigrams each one shares, so scoring never re-derives anything about an entry — which
@@ -94,6 +102,11 @@ export function search(
 
   if (alias !== undefined) shared.set(alias, Number.POSITIVE_INFINITY);
 
+  // Two consonants at least: one would match half the country.
+  const bones = skeleton(q);
+  const spelt = new Set(bones.length >= 2 ? (index.skeletons[bones] ?? []) : []);
+  for (const i of spelt) if (!shared.has(i)) shared.set(i, 0);
+
   const hits: Hit[] = [];
   for (const [i, overlap] of shared) {
     const entry = index.entries[i];
@@ -119,8 +132,14 @@ export function search(
     } else {
       // Dice coefficient, so a short query cannot score a long name highly just by
       // being contained in it.
-      score = (200 * overlap) / (gramCount + grams.length);
-      matched = "trigram";
+      const dice = (200 * overlap) / (gramCount + grams.length);
+      if (spelt.has(i)) {
+        score = SPELLING + dice;
+        matched = "spelling";
+      } else {
+        score = dice;
+        matched = "trigram";
+      }
     }
     if (score <= 0) continue;
     hits.push({ code, level, name: { fr, ar }, slug, score: Number(score.toFixed(4)), matched });

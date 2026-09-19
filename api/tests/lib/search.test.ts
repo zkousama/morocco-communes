@@ -111,6 +111,46 @@ describe("search", () => {
   });
 });
 
+describe("spelling variants", () => {
+  const first = (q: string) => search(index, q, { limit: 1 })[0];
+
+  it("finds a name written with other vowels, ou as w, or without its article", () => {
+    for (const [query, name] of [
+      ["ktama", "Ketama"],
+      ["titwan", "Tétouan"],
+      ["souira", "Essaouira"],
+      ["jdida", "El Jadida"],
+      ["sla", "Salé"],
+      ["tmara", "Témara"],
+      ["warzazat", "Ouarzazate"],
+      ["tafrawt", "Tafraout"],
+      ["qasba tadla", "Kasba Tadla"],
+      ["rbat", "Rabat"],
+    ]) {
+      expect(first(query!), query).toMatchObject({ name: { fr: name }, matched: "spelling" });
+    }
+  });
+
+  it("reads the Arabizi digits as letters", () => {
+    expect(first("l3ayoun")).toMatchObject({ name: { fr: "Laâyoune" } });
+  });
+
+  it("puts the closest of several names with one skeleton first", () => {
+    const hits = search(index, "tmara", { levels: ["commune"], limit: 4 });
+    expect(hits.map((h) => h.name.fr)).toContain("Tamri");
+    expect(hits[0]!.name.fr).toBe("Témara");
+  });
+
+  it("ranks below an exact name and a prefix", () => {
+    expect(first("azilal")).toMatchObject({ name: { fr: "Azilal" }, matched: "exact" });
+    expect(first("casa")).toMatchObject({ matched: "prefix" });
+  });
+
+  it("needs two consonants, so a single letter matches nothing by skeleton", () => {
+    expect(search(index, "ia").every((h) => h.matched !== "spelling")).toBe(true);
+  });
+});
+
 describe("haversine", () => {
   it("measures a known distance", () => {
     // Casablanca to Rabat is about 86 km.

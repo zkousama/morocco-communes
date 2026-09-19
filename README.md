@@ -79,8 +79,9 @@ carries the figure it was sorted by.
 
 Search takes French, Arabic or a slug. It folds the alef variants, ta-marbuta and alef
 maqsura the names actually carry, and the tatweel and vowel marks they never do but people
-type anyway. `01.511.01.0`, `001511010`, `1511010` and `tanger` all address one commune,
-and 17 exonyms are listed by hand because no amount of character folding gets from `Fez`
+type anyway. It matches names spelt another way by their consonants, so `titwan` finds
+Tétouan and `jdida` El Jadida. `01.511.01.0`, `001511010`, `1511010` and `tanger` all
+address one commune, and 18 exonyms are listed by hand because no amount of character folding gets from `Fez`
 to Fès or from `Port Lyautey` to Kénitra.
 
 Every response is enveloped with `data`, `meta` and `links`. Errors are RFC 9457 problem

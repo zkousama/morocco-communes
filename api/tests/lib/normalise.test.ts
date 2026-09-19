@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { normalise, trigrams } from "../../src/lib/normalise.ts";
+import { normalise, skeleton, trigrams } from "../../src/lib/normalise.ts";
 
 const communes = JSON.parse(readFileSync("data/v1/attributes/communes.json", "utf8")) as {
   name: { fr: string; ar: string };
@@ -92,5 +92,19 @@ describe("trigrams", () => {
     expect(trigrams("fes")).toEqual(["fes"]);
     expect(trigrams("ay")).toEqual(["ay"]);
     expect(trigrams("")).toEqual([]);
+  });
+});
+
+describe("skeleton", () => {
+  it("keeps what survives transliteration", () => {
+    expect(skeleton(normalise("Tétouan"))).toBe(skeleton(normalise("Titwan")));
+    expect(skeleton(normalise("Essaouira"))).toBe("swr");
+    expect(skeleton(normalise("El Jadida"))).toBe("jd");
+    expect(skeleton(normalise("Kelâat Sraghna"))).toBe(skeleton(normalise("Qalaat Sraghna")));
+    expect(skeleton(normalise("Oulad Teima"))).toBe(skeleton(normalise("Ouled Teima")));
+  });
+
+  it("gives an Arabic name none", () => {
+    expect(skeleton(normalise("طنجة"))).toBe("");
   });
 });

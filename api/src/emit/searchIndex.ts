@@ -1,4 +1,4 @@
-import { normalise, trigrams } from "../lib/normalise.ts";
+import { normalise, skeleton, trigrams } from "../lib/normalise.ts";
 import { EXONYMS, type Exonym } from "../lib/exonyms.ts";
 import type { IndexEntry, Level, SearchIndex } from "../lib/search.ts";
 
@@ -57,7 +57,25 @@ export function buildIndex(
   const sorted: Record<string, number[]> = {};
   for (const g of Object.keys(postings).sort()) sorted[g] = postings[g]!;
 
-  return { datasetVersion, entries, postings: sorted, aliases: buildAliases(entries) };
+  const aliases = buildAliases(entries);
+  return { datasetVersion, entries, postings: sorted, aliases, skeletons: buildSkeletons(entries, aliases) };
+}
+
+/**
+ * Each French name's consonant skeleton, and each exonym's, so Titwan finds Tétouan and
+ * Dar Bida finds Casablanca. Sorted like the postings, for the diff.
+ */
+export function buildSkeletons(entries: IndexEntry[], aliases: Record<string, number>): Record<string, number[]> {
+  const found: Record<string, Set<number>> = {};
+  const add = (name: string, i: number) => {
+    const key = skeleton(name);
+    if (key.length >= 2) (found[key] ??= new Set()).add(i);
+  };
+  entries.forEach(([, , , , , , , nFr], i) => add(nFr, i));
+  for (const [name, i] of Object.entries(aliases)) add(name, i);
+  const out: Record<string, number[]> = {};
+  for (const key of Object.keys(found).sort()) out[key] = [...found[key]!].sort((a, b) => a - b);
+  return out;
 }
 
 /**

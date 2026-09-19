@@ -324,7 +324,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             name: ref("Name"),
             slug: { type: "string" },
             score: { type: "number" },
-            matched: { type: "string", enum: ["exact", "alias", "prefix", "trigram"] },
+            matched: { type: "string", enum: ["exact", "alias", "prefix", "spelling", "trigram"] },
           },
         },
         NearHit: {

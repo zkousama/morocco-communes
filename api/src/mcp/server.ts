@@ -148,7 +148,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             name_fr: z.string(),
             name_ar: z.string(),
             slug: z.string(),
-            matched: z.enum(["exact", "alias", "prefix", "trigram"]),
+            matched: z.enum(["exact", "alias", "prefix", "spelling", "trigram"]),
           }),
         ),
       },
