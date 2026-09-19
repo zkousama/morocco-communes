@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/"] as const;
+export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/indicators/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>

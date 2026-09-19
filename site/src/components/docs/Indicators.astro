@@ -1,0 +1,177 @@
+---
+/**
+ * The census figures' data dictionary, read from the fields.json the dataset ships, so the
+ * page lists exactly the fields the files and the API carry, each under HCP's own heading.
+ */
+import { readFileSync } from "node:fs";
+import Docs from "../../layouts/Docs.astro";
+import { docs } from "../../i18n/docs";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const d = docs[locale].indicators;
+
+interface Field {
+  path: string;
+  column: string;
+  topic: string;
+  heading: string;
+  category?: string;
+  unit: keyof typeof d.units;
+  sexes?: ("all" | "male" | "female")[];
+}
+const dictionary = JSON.parse(readFileSync("data/v1/indicators/fields.json", "utf8")) as { people: Field[]; households: Field[] };
+
+const list = new Intl.ListFormat(locale === "fr" ? "fr-FR" : "en-GB", { type: "conjunction" });
+const meta = (f: Field) =>
+  [d.units[f.unit], f.sexes && f.sexes.length > 0 ? d.forSexes.replace("{list}", list.format(f.sexes.map((s) => d.sexes[s]))) : null]
+    .filter(Boolean)
+    .join(" · ");
+
+/** Fields by topic, and within a topic, runs of fields under one heading. */
+const topicsOf = (fields: Field[]) => {
+  const topics: { topic: string; groups: { heading: string; grouped: boolean; fields: Field[] }[] }[] = [];
+  for (const f of fields) {
+    let topic = topics.at(-1);
+    if (topic?.topic !== f.topic) topics.push((topic = { topic: f.topic, groups: [] }));
+    const last = topic.groups.at(-1);
+    if (last && last.grouped && f.category && last.heading === f.heading) last.fields.push(f);
+    else topic.groups.push({ heading: f.heading, grouped: Boolean(f.category), fields: [f] });
+  }
+  return topics;
+};
+
+// HCP's headings are French; on the English page they're marked as such.
+const fr = locale === "fr" ? undefined : "fr";
+const sections = [
+  { id: "people", label: d.people, topics: topicsOf(dictionary.people) },
+  { id: "households", label: d.households, topics: topicsOf(dictionary.households) },
+];
+
+const toc = [
+  { id: "reading", label: d.reading },
+  { id: "people", label: d.people },
+  { id: "households", label: d.households },
+  { id: "get", label: d.get },
+];
+---
+
+<Docs locale={locale} route="docs/indicators/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
+  <section id="reading">
+    <h2>{d.reading}</h2>
+    <ul class="notes">
+      {d.readingBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+  </section>
+
+  {sections.map((section) => (
+    <section id={section.id}>
+      <h2>{section.label}</h2>
+      {section.topics.map(({ topic, groups }) => (
+        <div class="topic" id={`topic-${topic}`}>
+          <h3>{d.topics[topic as keyof typeof d.topics] ?? topic}</h3>
+          {groups.map((g) => (
+            <>
+              {g.grouped && <p class="heading" lang={fr}>{g.heading}</p>}
+              <dl class="fields">
+                {g.fields.map((f) => (
+                  <div>
+                    <dt>
+                      <code>{f.path}</code>
+                      <span class="column">{d.column} <code>{f.column}</code></span>
+                    </dt>
+                    <dd>
+                      <span lang={fr}>{f.category ?? f.heading}</span>
+                      <span class="meta">{meta(f)}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </>
+          ))}
+        </div>
+      ))}
+    </section>
+  ))}
+
+  <section id="get">
+    <h2>{d.get}</h2>
+    <ul class="notes">
+      {d.getBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+  </section>
+</Docs>
+
+<style>
+  .notes {
+    margin: 0.75rem 0 0;
+    padding-inline-start: 1.1rem;
+    display: grid;
+    gap: 0.45rem;
+    max-width: var(--measure);
+  }
+
+  .topic {
+    scroll-margin-top: 1rem;
+  }
+
+  .topic h3 {
+    margin: 2rem 0 0.4rem;
+    font-weight: 500;
+  }
+
+  .heading {
+    margin: 0.75rem 0 0.25rem;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .fields {
+    margin: 0;
+    border-top: 1px solid var(--rule);
+    font-size: var(--t-sm);
+  }
+
+  .fields > div {
+    display: grid;
+    grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+    gap: 0.15rem 1.5rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  dt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .column {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  dd {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1rem 0.75rem;
+    align-items: baseline;
+  }
+
+  .meta {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  @media (max-width: 40rem) {
+    .fields > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

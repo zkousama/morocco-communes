@@ -115,6 +115,7 @@ export const places = {
       arabic: "Arabic", french: "French", english: "English", amazighTifinagh: "Amazigh, in Tifinagh",
     },
     census: "Census figures",
+    peopleMore: "What each figure means",
   },
   fr: {
     browseTitle: "Communes",
@@ -195,7 +196,7 @@ export const places = {
     shrankMost: "Plus forte baisse",
     densest: "La plus dense",
     people: "Habitants et logements",
-    peopleBody: "Les chiffres du HCP au recensement de 2024. La plupart viennent d’un questionnaire plus long, posé à 20 % des ménages tirés au hasard dans les communes de 2 000 ménages ou plus.",
+    peopleBody: "Les chiffres du HCP au recensement de 2024. La plupart viennent d’un questionnaire plus long, posé à 20 % des ménages tirés au hasard dans les communes de 2 000 ménages ou plus.",
     peopleLocal: "Pour {name}, le HCP ne publie que les effectifs, recueillis auprès de l’administration locale, parce que la population s’y déplace au fil des saisons.",
     age: "Âge",
     ageBody: "Hommes et femmes par âge, chacun en part de son sexe.",
@@ -221,7 +222,7 @@ export const places = {
     womenFigure: "femmes {v}",
     moroccoFigure: "Maroc {v}",
     languagesUsed: "Langues locales utilisées",
-    languagesUsedBody: "Beaucoup en utilisent plusieurs, d’où un total au-delà de 100 %.",
+    languagesUsedBody: "Beaucoup en utilisent plusieurs, d’où un total au-delà de 100 %.",
     languagesRead: "Langues lues et écrites",
     languagesReadBody: "Par les alphabètes de 10 ans et plus.",
     languageNames: {
@@ -229,6 +230,7 @@ export const places = {
       arabic: "Arabe", french: "Français", english: "Anglais", amazighTifinagh: "Amazigh, en tifinagh",
     },
     census: "Recensement",
+    peopleMore: "Ce que mesure chaque chiffre",
   },
 } satisfies Record<Locale, unknown>;
 
