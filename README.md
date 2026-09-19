@@ -37,7 +37,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 7,643 files written at build time and served straight from
+**Pre-rendered.** 7,645 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```

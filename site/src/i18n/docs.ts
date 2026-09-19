@@ -120,7 +120,6 @@ export const docs = {
       filesBody: "Static files for the questions the routes above don’t cover. Like every `.json` path, they cost nothing to call.",
       path: "Path",
       holds: "Holds",
-      exampleLink: "Example",
       filesWhat: {
         region: "One région",
         regionProvinces: "A région’s provinces and préfectures",
@@ -340,7 +339,6 @@ export const docs = {
       filesBody: "Des fichiers statiques pour ce que les routes ci-dessus ne couvrent pas. Comme tout chemin en `.json`, ils ne coûtent rien.",
       path: "Chemin",
       holds: "Contenu",
-      exampleLink: "Exemple",
       filesWhat: {
         region: "Une région",
         regionProvinces: "Les provinces et préfectures d’une région",
