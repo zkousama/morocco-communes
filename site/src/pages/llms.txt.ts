@@ -23,7 +23,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [MCP server](${at("/mcp")}): Streamable HTTP, no key, with the tools search, get_commune, communes_near, commune_at and list_communes
 - [Search](${at("/api/search?q=tanger")}): any unit by French or Arabic name, by slug, or by another name it goes by
 - [Nearby](${at("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15")}): communes within a radius of a point, nearest first
-- [Commune at a point](${at("/api/communes/at?lat=35.786&lng=-5.8125")}): the commune whose boundary contains the point
+- [Commune at a point](${at("/api/communes/at?lat=35.786&lng=-5.8125")}): the commune whose boundary contains the point, and in the 6 cities divided into them, the arrondissement
 - [One commune](${at("/api/communes/tanger")}): by any spelling of its identifier
 - [Filtered list](${at("/api/communes?province=01.511")}): communes by région, province, cercle or type, 50 to a page
 - [Version](${at("/api/version.json")}): dataset version, record counts and when each source was read
@@ -46,6 +46,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Boundaries](${at("/data/v1/geometry/01.topojson")}): one TopoJSON file per région, 01 to 12, under ODbL
 - [Boundaries as GeoJSON](${at("/data/v1/geometry/01.geojson")}): the same, one file per région; each commune's alone is at /api/communes/{code}/boundary.geojson
 - [Province outlines](${at("/data/v1/geometry/provinces.geojson")}) and [région outlines](${at("/data/v1/geometry/regions.geojson")}): each dissolved from its communes; one alone is at /api/provinces/{code}/boundary.geojson or /api/regions/{code}/boundary.geojson
+- [Arrondissements](${at("/data/v1/geometry/arrondissements.geojson")}): all 41, in Casablanca, Rabat, Fès, Marrakech, Salé and Tanger; a city's are at /api/communes/{code}/arrondissements.geojson
 - [2014 to 2024 crosswalk](${at("/data/v1/crosswalk/2014-2024.json")}): how the communes renumbered in 2015 were matched to their 2014 figures
 
 ## Optional

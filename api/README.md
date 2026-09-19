@@ -49,9 +49,11 @@ GET /api/communes/page/:n.json
 GET /api/communes/type/:urban|rural/page/:n.json
 GET /api/communes/:code.json
 GET /api/communes/:code/arrondissements.json
+GET /api/communes/:code/arrondissements.geojson
 GET /api/communes/:code/boundary.geojson
 GET /api/arrondissements.json
 GET /api/arrondissements/:code.json
+GET /api/arrondissements/:code/boundary.geojson
 GET /api/tiles/:z/:x/:y.json
 GET /data/v1/**
 ```
@@ -64,7 +66,10 @@ The GeoJSON is written by the build from the committed TopoJSON. Each commune's 
 a Feature at `boundary.geojson`, and so is each province's and région's outline, dissolved
 from its communes along the borders they share. `/data/v1/geometry/:code.geojson` holds a
 région's communes, and `provinces.geojson` and `regions.geojson` every outline of one level.
-All of it carries the ODbL attribution. The tiles are those
+The 41 arrondissements come from their own TopoJSON file: each one's boundary is at its
+`boundary.geojson`, a city's set at `/api/communes/:code/arrondissements.geojson`, and all
+of them in `/data/v1/geometry/arrondissements.geojson`. All of it carries the ODbL
+attribution. The tiles are those
 boundaries cut up for `/api/communes/at`, below.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
@@ -149,7 +154,9 @@ is actually in, use `/api/communes/at`.
 | `lng` | required | -180 to 180 |
 
 The commune whose boundary contains the point, answered with that commune's own record and
-its path in `Content-Location`. A point that no boundary contains is a 404: outside
+its path in `Content-Location`, plus `arrondissement`: in Casablanca, Rabat, Fès,
+Marrakech, Salé and Tanger, the arrondissement it falls in, read from the city's own
+boundary file, and null everywhere else. A point that no boundary contains is a 404: outside
 Morocco, at sea, in Sidi Mohamed Benmansour, which has no boundary, or in the 88 km² gap
 near Ifrane.
 
@@ -263,9 +270,9 @@ simply left out.
 rendering it needs Chrome; regenerate it with `pnpm site:og` when the map or the headline
 changes.
 
-`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 3,841 KiB
+`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 3,875 KiB
 uncompressed against a 64 MiB limit, most of it the commune records it holds, and `dist/`
-is 9,011 files, pages included, against a 20,000 limit.
+is 9,061 files, pages included, against a 20,000 limit.
 
 Two more things a build can take:
 
