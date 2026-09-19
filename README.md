@@ -15,9 +15,9 @@ shows the working.
 
 | Directory | Holds | Licence |
 |---|---|---|
-| `attributes/` | every unit, JSON and CSV | HCP, attributed |
+| `attributes/` | every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `geometry/` | one TopoJSON per région | **ODbL**, share-alike |
-| `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, attributed |
+| `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
 The licences differ by directory and `geometry/` carries its own LICENSE. Five fields on
