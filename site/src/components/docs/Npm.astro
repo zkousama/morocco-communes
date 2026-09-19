@@ -1,0 +1,103 @@
+---
+import Docs from "../../layouts/Docs.astro";
+import Code from "../Code.astro";
+import { docs } from "../../i18n/docs";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+import { FIELDS } from "../../../../packages/morocco-communes/fields.ts";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const d = docs[locale].npm;
+
+const use = `import { regions, provincesOf, communesOf, getCommune } from "morocco-communes";
+
+regions[0].name.fr;         // "Tanger-Tétouan-Al Hoceima"
+provincesOf("01");          // its 8 provinces and préfectures
+communesOf("01.511");       // the 12 communes of Tanger-Assilah
+getCommune("tanger");       // { code: "01.511.01.0", type: "urban", population: 1275428, ... }`;
+
+const one = `import regions from "morocco-communes/regions";`;
+
+// The fields the package's build writes, which its tests hold it to.
+const records = Object.entries(FIELDS).map(([list, fields]) => ({ list, fields: fields.join(", ") }));
+
+const toc = [
+  { id: "install", label: d.install },
+  { id: "use", label: d.use },
+  { id: "records", label: d.records },
+  { id: "helpers", label: d.helpers },
+  { id: "left-out", label: d.left },
+  { id: "licence", label: d.licence },
+];
+---
+
+<Docs locale={locale} route="docs/npm/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
+  <section id="install">
+    <h2>{d.install}</h2>
+    <Code locale={locale} label="shell" code="npm install morocco-communes" />
+  </section>
+
+  <section id="use">
+    <h2>{d.use}</h2>
+    <Code locale={locale} label="JavaScript" code={use} />
+    <p>{d.useBody}</p>
+    <Code locale={locale} label="JavaScript" code={one} />
+  </section>
+
+  <section id="records">
+    <h2>{d.records}</h2>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{d.list}</th>
+            <th scope="col">{d.fields}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {records.map((r) => (
+            <tr>
+              <td class="mono">{r.list}</td>
+              <td class="mono quiet fields">{r.fields}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p set:html={inline(d.recordsBody)} />
+  </section>
+
+  <section id="helpers">
+    <h2>{d.helpers}</h2>
+    <ul class="list">
+      {d.helpersBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+  </section>
+
+  <section id="left-out">
+    <h2>{d.left}</h2>
+    <p>{d.leftBody}</p>
+  </section>
+
+  <section id="licence">
+    <h2>{d.licence}</h2>
+    <p>{d.licenceBody}</p>
+  </section>
+</Docs>
+
+<style>
+  .fields {
+    white-space: normal;
+  }
+
+  .list {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.1rem;
+    max-width: var(--measure);
+    display: grid;
+    gap: 0.4rem;
+  }
+</style>

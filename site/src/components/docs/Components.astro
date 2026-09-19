@@ -1,0 +1,170 @@
+---
+import { readFileSync } from "node:fs";
+import Docs from "../../layouts/Docs.astro";
+import Code from "../Code.astro";
+import reactSource from "../../snippets/CommunePicker.jsx?raw";
+import { docs } from "../../i18n/docs";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const d = docs[locale].components;
+
+// The page shows the file it runs, read at build time from where the site serves it.
+const pickerSource = readFileSync("site/public/components/commune-picker.js", "utf8");
+const origin = Astro.site?.origin ?? "https://your-deployment";
+
+const html = `<form>
+  <commune-picker>
+    <label>${d.labelRegion} <select data-level="region"><option value="">${d.choose}</option></select></label>
+    <label>${d.labelProvince} <select data-level="province"><option value="">${d.choose}</option></select></label>
+    <label>${d.labelCommune} <select data-level="commune" name="commune" required><option value="">${d.choose}</option></select></label>
+  </commune-picker>
+</form>
+<script type="module" src="${origin}/components/commune-picker.js"></script>`;
+
+const react = reactSource.replace('const API = "https://example.com";', `const API = "${origin}";`);
+
+const attributes = [
+  { name: "api", text: d.attrApi },
+  { name: "value", text: d.attrValue },
+  { name: "lang", text: d.attrLang },
+  { name: "data-level", text: d.attrLevel },
+];
+
+const toc = [
+  { id: "demo", label: d.demo },
+  { id: "html", label: d.html },
+  { id: "react", label: d.react },
+  { id: "behaviour", label: d.notes },
+];
+---
+
+<Docs locale={locale} route="docs/components/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
+  <section id="demo">
+    <h2>{d.demo}</h2>
+    <form class="demo" onsubmit="return false">
+      <commune-picker>
+        <label>{d.labelRegion}<select data-level="region"><option value="">{d.choose}</option></select></label>
+        <label>{d.labelProvince}<select data-level="province"><option value="">{d.choose}</option></select></label>
+        <label>{d.labelCommune}<select data-level="commune" name="commune"><option value="">{d.choose}</option></select></label>
+      </commune-picker>
+      <p class="sends" aria-live="polite">
+        {d.sends} <output class="mono" data-nothing={d.nothing}>{d.nothing}</output>
+      </p>
+    </form>
+  </section>
+
+  <section id="html">
+    <h2>{d.html}</h2>
+    <p set:html={inline(d.htmlBody)} />
+    <Code locale={locale} label="HTML" code={html} />
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{d.attribute}</th>
+            <th scope="col">{d.does}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {attributes.map((a) => (
+            <tr>
+              <td class="mono">{a.name}</td>
+              <td set:html={inline(a.text)} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p set:html={inline(d.selfHost)} />
+    <Code locale={locale} label="commune-picker.js" code={pickerSource} tall />
+  </section>
+
+  <section id="react">
+    <h2>{d.react}</h2>
+    <p set:html={inline(d.reactBody)} />
+    <Code locale={locale} label="CommunePicker.jsx" code={react} tall />
+  </section>
+
+  <section id="behaviour">
+    <h2>{d.notes}</h2>
+    <ul class="notes">
+      <li>{d.noteFree}</li>
+      <li>{d.noteValue}</li>
+      <li>{d.notePrefectures}</li>
+      <li>{d.noteSort}</li>
+    </ul>
+  </section>
+</Docs>
+
+<script is:inline type="module" src="/components/commune-picker.js"></script>
+<script>
+  const form = document.querySelector<HTMLFormElement>("form.demo");
+  const output = form?.querySelector("output");
+  if (form && output) {
+    // What the form would post, read the way a server would get it.
+    form.addEventListener("change", () => {
+      const code = new FormData(form).get("commune");
+      output.textContent = code ? `commune=${code}` : (output.dataset.nothing ?? "");
+    });
+  }
+</script>
+
+<style>
+  .demo {
+    margin-top: 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+
+  commune-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1rem;
+  }
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  select {
+    font: inherit;
+    font-size: var(--t-base);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.5rem 0.6rem;
+    min-width: 0;
+  }
+
+  select:disabled {
+    opacity: 0.55;
+  }
+
+  .sends {
+    margin: 1.1rem 0 0;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  output {
+    color: var(--ink);
+  }
+
+  .notes {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.1rem;
+    max-width: var(--measure);
+    display: grid;
+    gap: 0.4rem;
+  }
+</style>

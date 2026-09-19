@@ -1,0 +1,241 @@
+---
+import Docs from "../../layouts/Docs.astro";
+import Code from "../Code.astro";
+import { mcp } from "../../generated/mcp";
+import { docs } from "../../i18n/docs";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const d = docs[locale].mcp;
+
+const url = `${Astro.site?.origin ?? "https://your-deployment"}/mcp`;
+const NAME = "morocco-communes";
+const json = (value: unknown) => JSON.stringify(value, null, 2);
+
+// Each client's own format, checked against its documentation in September 2026.
+const clients = [
+  {
+    id: "claude-code",
+    name: d.claudeCode,
+    body: d.claudeCodeBody,
+    label: "shell",
+    code: `claude mcp add --transport http ${NAME} ${url}`,
+  },
+  // These two take the URL above in their own settings, so there's nothing more to copy.
+  { id: "claude", name: d.claude, body: d.claudeBody },
+  { id: "chatgpt", name: d.chatgpt, body: d.chatgptBody },
+  {
+    id: "cursor",
+    name: d.cursor,
+    body: d.cursorBody,
+    label: ".cursor/mcp.json",
+    code: json({ mcpServers: { [NAME]: { url } } }),
+  },
+  {
+    id: "vscode",
+    name: d.vscode,
+    body: d.vscodeBody,
+    label: ".vscode/mcp.json",
+    code: json({ servers: { [NAME]: { type: "http", url } } }),
+  },
+  {
+    id: "claude-api",
+    name: d.claudeApi,
+    body: d.claudeApiBody,
+    label: "shell",
+    code: `curl https://api.anthropic.com/v1/messages \\
+  -H "content-type: application/json" \\
+  -H "x-api-key: $ANTHROPIC_API_KEY" \\
+  -H "anthropic-version: 2023-06-01" \\
+  -H "anthropic-beta: mcp-client-2025-11-20" \\
+  -d '${json({
+    model: "claude-opus-5",
+    max_tokens: 1024,
+    messages: [{ role: "user", content: "Which province is Tafraout in?" }],
+    mcp_servers: [{ type: "url", url, name: NAME }],
+    tools: [{ type: "mcp_toolset", mcp_server_name: NAME }],
+  }).replace(/\n/g, "\n  ")}'`,
+  },
+  {
+    id: "openai-api",
+    name: d.openaiApi,
+    body: d.openaiApiBody,
+    label: "shell",
+    code: `curl https://api.openai.com/v1/responses \\
+  -H "content-type: application/json" \\
+  -H "authorization: Bearer $OPENAI_API_KEY" \\
+  -d '${json({
+    model: "gpt-6-astra",
+    tools: [{ type: "mcp", server_label: NAME, server_url: url, require_approval: "never" }],
+    input: "Which province is Tafraout in?",
+  }).replace(/\n/g, "\n  ")}'`,
+  },
+];
+
+interface Schema {
+  type?: string;
+  enum?: string[];
+  items?: Schema;
+  minimum?: number;
+  maximum?: number;
+  exclusiveMinimum?: number;
+  minLength?: number;
+  maxLength?: number;
+  description?: string;
+}
+
+/** A parameter's type and bounds, in the notation the API page uses. */
+const typeOf = (s: Schema): string => {
+  if (s.enum) return s.enum.join(" | ");
+  if (s.type === "array" && s.items) return `(${typeOf(s.items)})[]`;
+  const lo = s.minimum !== undefined ? `[${s.minimum}` : s.exclusiveMinimum !== undefined ? `(${s.exclusiveMinimum}` : null;
+  const range = lo !== null && s.maximum !== undefined ? ` ${lo}, ${s.maximum}]` : "";
+  return `${s.type ?? ""}${range}`.replace(/-/g, "−");
+};
+
+const toc = [
+  { id: "server", label: d.server },
+  { id: "connect", label: d.connect },
+  { id: "tools", label: d.tools },
+  { id: "ask", label: d.ask },
+];
+---
+
+<Docs locale={locale} route="docs/mcp/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
+  <section id="server">
+    <h2>{d.server}</h2>
+    <Code locale={locale} label="URL" code={url} />
+    <p>{d.serverBody}</p>
+  </section>
+
+  <section id="connect">
+    <h2>{d.connect}</h2>
+    {clients.map((c) => (
+      <div class="client" id={c.id}>
+        <h3>{c.name}</h3>
+        <p class="quiet" set:html={inline(c.body)} />
+        {c.code && <Code locale={locale} label={c.label} code={c.code} />}
+      </div>
+    ))}
+  </section>
+
+  <section id="tools">
+    <h2>{d.tools}</h2>
+    <p>{d.toolsBody}</p>
+    {mcp.tools.map((tool) => (
+      <article class="tool" id={`tool-${tool.name}`}>
+        <h3><code>{tool.name}</code> <span class="quiet">{tool.title}</span></h3>
+        <p class="said" lang="en">{tool.description}</p>
+        <div class="scroll">
+          <table class="params">
+            <thead>
+              <tr>
+                <th scope="col">{d.parameter}</th>
+                <th scope="col">{d.type}</th>
+                <th scope="col"><span class="sr-only">{d.required}</span></th>
+                <th scope="col"><span class="sr-only">{d.parameter}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {tool.params.map((p) => {
+                const schema = p.schema as Schema;
+                return (
+                  <tr>
+                    <td class="mono">{p.name}</td>
+                    <td class="mono quiet">{typeOf(schema)}</td>
+                    <td class="mono required">{p.required ? d.required : ""}</td>
+                    <td lang="en">{schema.description ?? ""}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <section id="ask">
+    <h2>{d.ask}</h2>
+    <p>{d.askBody}</p>
+    <ul class="questions">
+      {d.questions.map((q) => <li>{q}</li>)}
+    </ul>
+  </section>
+</Docs>
+
+<style>
+  .client {
+    scroll-margin-top: 1rem;
+  }
+
+  .client h3,
+  .tool h3 {
+    margin-top: 2rem;
+  }
+
+  .client p {
+    margin-bottom: 0.75rem;
+  }
+
+  .tool {
+    scroll-margin-top: 1rem;
+  }
+
+  .tool h3 code {
+    font-size: 0.95em;
+    margin-inline-end: 0.4rem;
+  }
+
+  .tool h3 .quiet {
+    font-weight: 400;
+  }
+
+  .said {
+    color: var(--quiet);
+  }
+
+  .required {
+    color: var(--brass);
+  }
+
+  .questions {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+    max-width: var(--measure);
+  }
+
+  .questions li {
+    padding: 0.7rem 0.9rem;
+    border-inline-start: 2px solid var(--brass);
+    background: var(--well);
+  }
+
+  @media (max-width: 40rem) {
+    .params thead {
+      display: none;
+    }
+    .params tr {
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr);
+      column-gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .params td {
+      padding: 0;
+      border: 0;
+    }
+    .params td:last-child {
+      grid-column: 1 / -1;
+      padding-top: 0.2rem;
+    }
+  }
+</style>
