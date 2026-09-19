@@ -74,6 +74,10 @@ export const places = {
     mapLabel: "Map of {name} and its communes",
     insetLabel: "Where {name} is in Morocco",
     report: "Report an error on this page",
+    largest: "Largest commune",
+    grewMost: "Grew the most",
+    shrankMost: "Shrank the most",
+    densest: "Densest",
   },
   fr: {
     browseTitle: "Communes",
@@ -147,6 +151,10 @@ export const places = {
     mapLabel: "Carte de {name} et de ses communes",
     insetLabel: "Situation de {name} au Maroc",
     report: "Signaler une erreur sur cette page",
+    largest: "Commune la plus peuplée",
+    grewMost: "A le plus grandi",
+    shrankMost: "A le plus perdu",
+    densest: "La plus dense",
   },
 } satisfies Record<Locale, unknown>;
 

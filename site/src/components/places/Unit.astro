@@ -63,6 +63,27 @@ const densityClass = (code: string) => {
 const drawing = province ? drawProvince(province.code) : drawRegion(region.code);
 const where = inset(province ? { region: region.code, province: province.code } : { region: region.code });
 const communeHref = (slug: string) => path(locale, `communes/${slug}/`);
+
+// The communes that stand out, for the column beside the map.
+const withChange = communes.filter((c) => c.population.change);
+const withDensity = communes.filter((c) => c.density !== null);
+const pick = <T,>(list: T[], better: (a: T, b: T) => boolean) =>
+  list.reduce<T | undefined>((best, c) => (best === undefined || better(c, best) ? c : best), undefined);
+const standouts = [
+  { label: p.largest, commune: communes[0], value: communes[0] && n.format(communes[0].population["2024"].total) },
+  (() => {
+    const c = pick(withChange, (a, b) => a.population.change!.pct > b.population.change!.pct);
+    return { label: p.grewMost, commune: c, value: c && signed(c.population.change!.pct) };
+  })(),
+  (() => {
+    const c = pick(withChange, (a, b) => a.population.change!.pct < b.population.change!.pct);
+    return { label: p.shrankMost, commune: c && c.population.change!.pct < 0 ? c : undefined, value: c && signed(c.population.change!.pct) };
+  })(),
+  (() => {
+    const c = pick(withDensity, (a, b) => a.density! > b.density!);
+    return { label: p.densest, commune: c, value: c && `${n1.format(c.density!)} ${p.perKm2}` };
+  })(),
+].filter((s) => s.commune);
 ---
 
 <Place
@@ -125,8 +146,18 @@ const communeHref = (slug: string) => path(locale, `communes/${slug}/`);
           }}
         />
       </div>
-      <div>
+      <div class="side">
         <Inset {...where} label={fill(p.insetLabel, { name: title })} />
+        {standouts.length > 0 && (
+          <dl class="standouts">
+            {standouts.map((s) => (
+              <div>
+                <dt>{s.label}</dt>
+                <dd><a href={communeHref(s.commune!.slug)}>{s.commune!.name.fr}</a> <span>{s.value}</span></dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </div>
     </section>
   )}
@@ -212,6 +243,39 @@ const communeHref = (slug: string) => path(locale, `communes/${slug}/`);
 </Place>
 
 <style>
+  .side {
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+  }
+
+  .standouts {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .standouts div {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .standouts dt {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .standouts dd {
+    margin: 0.1rem 0 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .standouts dd span {
+    color: var(--quiet);
+    margin-inline-start: 0.35rem;
+  }
+
   .report {
     font-size: var(--t-sm);
     color: var(--quiet);
