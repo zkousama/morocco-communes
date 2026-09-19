@@ -1,5 +1,5 @@
 ---
-import { changeBreaks, densityBreaks, markup, shapes, viewBox } from "../generated/map";
+import { changeBreaks, densityBreaks, illiteracyBreaks, markup, shapes, viewBox } from "../generated/map";
 import { path, t, type Locale } from "../i18n/ui";
 import { percent } from "../lib/format";
 
@@ -43,6 +43,18 @@ const views = [
     ],
   },
   {
+    id: "illiteracy",
+    label: copy.mapIlliteracy,
+    unit: copy.legendIlliteracy,
+    swatches: [
+      ...[0, 1, 2, 3, 4, 5].map((i) => ({
+        cls: `r${i}`,
+        text: range(illiteracyBreaks, i, (v) => percent(locale, v, { digits: 0 })),
+      })),
+      { cls: "rn", text: copy.mapNoValue },
+    ],
+  },
+  {
     id: "type",
     label: copy.mapType,
     unit: "",
@@ -57,6 +69,7 @@ const communesRoute = path(locale, "communes/");
 
 <figure class="atlas" data-view="density" data-base={communesRoute} data-lang={locale}
   data-people={copy.tipPeople} data-density={copy.tipDensity} data-change={copy.tipChange}
+  data-illiteracy={copy.tipIlliteracy}
   data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}
   data-gap={copy.gapAny} data-gap-03={copy.gap03} data-gap-04={copy.gap04}>
   <div class="frame">
@@ -87,7 +100,15 @@ const communesRoute = path(locale, "communes/");
 </figure>
 
 <script>
-  type Row = [slug: string, name: string, type: "urban" | "rural", people: number, density: number | null, change: number | null];
+  type Row = [
+    slug: string,
+    name: string,
+    type: "urban" | "rural",
+    people: number,
+    density: number | null,
+    change: number | null,
+    illiteracy: number | null,
+  ];
 
   const atlas = document.querySelector<HTMLElement>(".atlas");
   const svg = atlas?.querySelector("svg");
@@ -118,7 +139,7 @@ const communesRoute = path(locale, "communes/");
       focus.setAttribute("d", shape.getAttribute("d") ?? "");
       const row = rows?.[shape.dataset.c ?? ""];
       if (!row) return;
-      const [slug, name, type, people, density, change] = row;
+      const [slug, name, type, people, density, change, illiteracy] = row;
       const signed =
         change === null
           ? ""
@@ -128,6 +149,7 @@ const communesRoute = path(locale, "communes/");
         `<span>${number.format(people)} ${d.people}</span>` +
         (density === null ? "" : `<span>${(density >= 100 ? whole : number).format(density)} ${d.density}</span>`) +
         (signed ? `<span>${signed} ${d.change}</span>` : "") +
+        (illiteracy === null ? "" : `<span>${tenths.format(illiteracy)}${d.lang === "fr" ? "\u202f%" : "%"} ${d.illiteracy}</span>`) +
         (pinned ? `<a href="${d.base}${slug}/">${d.open}</a>` : "");
       tip.dataset.slug = slug;
       tip.hidden = false;
@@ -258,6 +280,22 @@ const communesRoute = path(locale, "communes/");
   .swatch.d4 { fill: var(--seq-4); background: var(--seq-4); }
   .atlas[data-view="density"] :global([data-d="5"]),
   .swatch.d5 { fill: var(--seq-5); background: var(--seq-5); }
+
+  /* Illiteracy: the same one-hue ramp as density, since both are a rate read light to dark. */
+  .atlas[data-view="illiteracy"] :global([data-i="0"]),
+  .swatch.r0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="illiteracy"] :global([data-i="1"]),
+  .swatch.r1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="illiteracy"] :global([data-i="2"]),
+  .swatch.r2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="illiteracy"] :global([data-i="3"]),
+  .swatch.r3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="illiteracy"] :global([data-i="4"]),
+  .swatch.r4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="illiteracy"] :global([data-i="5"]),
+  .swatch.r5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="illiteracy"] :global([data-i="n"]),
+  .swatch.rn { fill: var(--map-none); background: var(--map-none); }
 
   .atlas[data-view="change"] :global([data-g="0"]),
   .swatch.g0 { fill: var(--div-0); background: var(--div-0); }

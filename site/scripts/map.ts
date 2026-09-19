@@ -19,9 +19,14 @@ const WIDTH = 1000;
 /** In viewBox units: under a pixel wherever the map is drawn. */
 const TOLERANCE = 0.7;
 
-/** Class boundaries. Density in people per km², change in percent since 2014. */
+/**
+ * Class boundaries. Density in people per km², change in percent since 2014, illiteracy in
+ * percent of the population aged 10 and over. Round tens for illiteracy: the communes run
+ * from 3.3% to 73.2%, and a reader holds tens more easily than the quantiles.
+ */
 export const DENSITY_BREAKS = [10, 50, 150, 500, 2000];
 export const CHANGE_BREAKS = [-10, -2, 2, 10, 25];
+export const ILLITERACY_BREAKS = [10, 20, 30, 40, 50];
 
 const classOf = (value: number | null, breaks: number[]) => {
   if (value === null) return "n";
@@ -41,6 +46,15 @@ interface Commune {
 
 const communes = JSON.parse(await readFile("data/v1/attributes/communes.json", "utf8")) as Commune[];
 const byDigits = new Map(communes.map((c) => [c.codeDigits, c]));
+
+interface Figures {
+  code: string;
+  people: { total: { all: Record<string, Record<string, number | null>> } | null };
+}
+const indicators = JSON.parse(await readFile("data/v1/indicators/communes.json", "utf8")) as Figures[];
+const illiteracyOf = new Map(
+  indicators.map((r) => [r.code, r.people.total?.all.illiteracy?.rate10Plus ?? null]),
+);
 const files = await readBoundaries("data/v1/geometry");
 
 // One projection for the whole country, from every boundary drawn.
@@ -106,7 +120,8 @@ for (const { topology, arcs } of decoded) {
     if (d === "") continue;
     shapes.push(
       `<path d="${d}" data-c="${commune.code}" data-d="${classOf(commune.density, DENSITY_BREAKS)}" ` +
-        `data-g="${classOf(commune.population.change?.pct ?? null, CHANGE_BREAKS)}" data-t="${commune.type[0]}"/>`,
+        `data-g="${classOf(commune.population.change?.pct ?? null, CHANGE_BREAKS)}" ` +
+        `data-i="${classOf(illiteracyOf.get(commune.code) ?? null, ILLITERACY_BREAKS)}" data-t="${commune.type[0]}"/>`,
     );
   }
 
@@ -126,11 +141,19 @@ const markup =
   `<path class="regions" d="${regionPaths.join("")}"/>`;
 
 // What the tooltip shows, fetched once on first hover: slug, name, type, population,
-// density and change, by code.
+// density, change and illiteracy, by code.
 const tooltip = Object.fromEntries(
   communes.map((c) => [
     c.code,
-    [c.slug, c.name.fr, c.type, c.population["2024"].total, c.density, c.population.change?.pct ?? null],
+    [
+      c.slug,
+      c.name.fr,
+      c.type,
+      c.population["2024"].total,
+      c.density,
+      c.population.change?.pct ?? null,
+      illiteracyOf.get(c.code) ?? null,
+    ],
   ]),
 );
 
@@ -142,6 +165,7 @@ await writeFile(
 export const viewBox = "0 0 ${WIDTH} ${height}";
 export const densityBreaks = ${JSON.stringify(DENSITY_BREAKS)};
 export const changeBreaks = ${JSON.stringify(CHANGE_BREAKS)};
+export const illiteracyBreaks = ${JSON.stringify(ILLITERACY_BREAKS)};
 export const shapes = ${shapes.length};
 export const markup = ${JSON.stringify(markup)};
 `,
