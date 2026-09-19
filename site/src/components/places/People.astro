@@ -48,7 +48,7 @@ const headline = (label: string, path: string, note: string, opts: { women?: boo
     theirs !== null ? fill(p.womenFigure, { v: show(theirs) }) : null,
     record.level !== "country" && countryValue !== null ? fill(p.moroccoFigure, { v: show(countryValue) }) : null,
   ].filter(Boolean);
-  return { label, value: value === null ? null : show(value), note, beside: beside.join(" · ") };
+  return { label, value: value === null ? null : show(value), note, beside: beside as string[] };
 };
 const headlines = [
   headline(p.illiteracy, "illiteracy.rate10Plus", p.illiteracyNote, { women: true }),
@@ -90,7 +90,7 @@ const names = p.languageNames as Record<string, string>;
               <dd>
                 {h.value}
                 {h.note && <small>{h.note}</small>}
-                {h.beside && <small>{h.beside}</small>}
+                {h.beside.map((line) => <small>{line}</small>)}
               </dd>
             </div>
           ))}
@@ -167,14 +167,33 @@ const names = p.languageNames as Record<string, string>;
     color: var(--quiet);
   }
 
-  /* Eight figures, so four to a row rather than six and two. */
+  /* Spread edge to edge like the home page's counts: 4 columns sized to what they hold,
+     the first on the left margin and the last on the right, lined up across both rows.
+     A rule above and below rather than under each figure, which spreading would break
+     into dashes. */
   .people .figures {
     margin-top: 1.25rem;
-    grid-template-columns: repeat(auto-fit, minmax(max(11rem, 22%), 1fr));
+    grid-template-columns: repeat(4, max-content);
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .people .figures > div {
+    padding: 1rem 0 0;
+    border-bottom: 0;
   }
 
   .people .figures dd small + small {
     margin-top: 0.1rem;
+  }
+
+  @media (max-width: 60rem) {
+    .people .figures {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: stretch;
+    }
   }
 
   /* The pyramid: a table, so it reads as one, with each share drawn as a bar out from the
