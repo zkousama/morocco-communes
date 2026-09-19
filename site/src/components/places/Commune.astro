@@ -183,7 +183,7 @@ getCommune("${c.slug}");`;
     <section>
       <h2>{p.urbanCentres}</h2>
       <p>{p.urbanCentresBody}</p>
-      <div class="scroll">
+      <div class="scroll" tabindex="0">
         <table>
           <tbody>
             {c.urbanCentres.map((u) => (
@@ -198,7 +198,7 @@ getCommune("${c.slug}");`;
   {arrondissements.length > 0 && (
     <section>
       <h2>{p.arrondissements}</h2>
-      <div class="scroll">
+      <div class="scroll" tabindex="0">
         <table>
           <thead><tr><th>{p.colArrondissement}</th><th class="num">{p.colPopulation}</th></tr></thead>
           <tbody>

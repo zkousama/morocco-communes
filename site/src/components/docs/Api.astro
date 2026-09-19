@@ -139,7 +139,7 @@ const toc = [
         {op.description && <p class="quiet" set:html={inline(op.description)} />}
 
         {op.params.length > 0 && (
-          <div class="scroll">
+          <div class="scroll" tabindex="0">
             <table class="params">
               <thead>
                 <tr>
@@ -187,7 +187,7 @@ const toc = [
   <section id="files">
     <h2>{d.files}</h2>
     <p set:html={inline(d.filesBody)} />
-    <div class="scroll">
+    <div class="scroll" tabindex="0">
       <table>
         <thead>
           <tr>

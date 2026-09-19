@@ -21,7 +21,7 @@ const copy = t(locale);
     <span>{label}</span>
     <button type="button" data-copy data-label={copy.copy} data-done={copy.copied}>{copy.copy}</button>
   </figcaption>
-  <pre class:list={{ tall }}><code set:html={html ?? escapeHtml(code)} /></pre>
+  <pre class:list={{ tall }} tabindex="0"><code set:html={html ?? escapeHtml(code)} /></pre>
 </figure>
 
 <script>

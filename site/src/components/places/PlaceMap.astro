@@ -15,7 +15,7 @@ const { drawing, label, classOf, linkOf, highlight } = Astro.props;
 const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : undefined;
 ---
 
-<svg class="place-map" viewBox={drawing.viewBox} role="img" aria-label={label}>
+<svg class="place-map" viewBox={drawing.viewBox} role="group" aria-label={label}>
   {drawing.shapes.map((shape) => {
     const link = linkOf(shape.code);
     const path = <path d={shape.d} data-d={classOf(shape.code)} />;

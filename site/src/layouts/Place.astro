@@ -213,11 +213,12 @@ const { locale, route, title, description, trail, arabic, lede } = Astro.props;
     color: var(--ink);
   }
 
+  /* The code colours, not the chart ones: text needs 4.5:1, and these are tuned for it. */
   .place :global(.up) {
-    color: var(--chart-up);
+    color: var(--code-number);
   }
 
   .place :global(.down) {
-    color: var(--chart-down);
+    color: var(--code-string);
   }
 </style>

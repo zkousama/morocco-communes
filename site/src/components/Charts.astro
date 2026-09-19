@@ -286,13 +286,14 @@ const spoken = (row: (typeof spread)[number]) =>
     overflow: hidden;
   }
 
+  /* The deepest classes of the map's ramps, dark enough to carry text in the page's colour. */
   .stack .lost {
-    background: var(--chart-down);
+    background: var(--div-0);
     border-radius: 3px 0 0 3px;
   }
 
   .stack .gained {
-    background: var(--chart-up);
+    background: var(--seq-4);
     border-radius: 0 3px 3px 0;
   }
 
@@ -317,11 +318,11 @@ const spoken = (row: (typeof spread)[number]) =>
   }
 
   .key.lost {
-    background: var(--chart-down);
+    background: var(--div-0);
   }
 
   .key.gained {
-    background: var(--chart-up);
+    background: var(--seq-4);
   }
 
   /* Diverging bars ---------------------------------------------------------- */

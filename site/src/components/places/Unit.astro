@@ -165,7 +165,7 @@ const standouts = [
   {subunits.length > 0 && (
     <section>
       <h2>{p.provinces}</h2>
-      <div class="scroll">
+      <div class="scroll" tabindex="0">
         <table>
           <thead>
             <tr><th>{p.colProvince}</th><th>{p.colType}</th><th class="num">{p.colPopulation}</th><th class="num">{p.colCommunes}</th></tr>
@@ -188,7 +188,7 @@ const standouts = [
   {arrondissements.length > 0 && (
     <section>
       <h2>{p.arrondissements}</h2>
-      <div class="scroll">
+      <div class="scroll" tabindex="0">
         <table>
           <thead><tr><th>{p.colArrondissement}</th><th class="num">{p.colPopulation}</th></tr></thead>
           <tbody>
@@ -204,7 +204,7 @@ const standouts = [
   {communes.length > 0 && (
     <section>
       <h2>{p.communes}</h2>
-      <div class="scroll">
+      <div class="scroll" tabindex="0">
         <table>
           <thead>
             <tr>
