@@ -82,7 +82,7 @@ export const places = {
     shrankMost: "Shrank the most",
     densest: "Densest",
     people: "People and homes",
-    peopleBody: "HCP’s figures from the 2024 census. Most come from a longer questionnaire that a random 20% of households answered, in communes of 2,000 households or more.",
+    peopleBody: "HCP’s figures from the 2024 census, and from 2014 where the question was the same. Most come from a longer questionnaire that a random 20% of households answered, in communes of 2,000 households or more.",
     peopleLocal: "HCP publishes only the population counts for {name}, collected from the local administration, because its people move with the seasons.",
     age: "Age",
     ageBody: "Men and women by age, each as a share of their own.",
