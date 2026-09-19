@@ -1,5 +1,5 @@
 ---
-import { change, half, shrinking, sizes, spread } from "../generated/charts";
+import { change, half, shrinking, since, sizes, spread } from "../generated/charts";
 import { REPO_URL, t, type Locale } from "../i18n/ui";
 import { escapeHtml } from "../lib/highlight";
 import { percent as formatPercent } from "../lib/format";
@@ -29,6 +29,16 @@ const fillIn = (text: string, values: Record<string, string | number>) =>
 // Shares to one decimal, kept even when it's 0, and to 2 under 1%, so 0.45% doesn't round to a half.
 const percent = (v: number) => formatPercent(locale, v, { digits: Math.abs(v) < 1 ? 2 : 1, fixed: true });
 const shrinkMax = Math.max(...shrinking.map((s) => s.shrank + s.grew));
+
+/* Chart 6: what the two censuses found, each rate a point in 2014 and a point in 2024,
+   on one 0-to-100 scale so the five sit against each other. */
+const sinceLabels = copy.sinceLabels as Record<string, string>;
+const sinceRows = since.map((row) => ({
+  ...row,
+  label: sinceLabels[row.key] ?? row.key,
+  from: Math.min(row.before, row.after),
+  to: Math.max(row.before, row.after),
+}));
 
 /* Chart 3: the two growth distributions, on one shared scale. */
 const lo = Math.min(...spread.map((s) => s.p10));
@@ -135,6 +145,35 @@ const spoken = (row: (typeof spread)[number]) =>
     <p class="legend-row">
       <span><span class="key lost"></span>{copy.shrankLost}</span>
       <span><span class="key gained"></span>{copy.shrankGained}</span>
+    </p>
+  </figure>
+
+  <figure class="chart wide">
+    <figcaption>
+      <h3>{copy.chartSince}</h3>
+      <p>{copy.chartSinceBody}</p>
+    </figcaption>
+    <ul class="dumbbell">
+      {sinceRows.map((row) => (
+        <li>
+          <span class="rname">{row.label}</span>
+          <span class="track" aria-hidden="true">
+            <span class="link" style={`inset-inline-start:${row.from}%;width:${row.to - row.from}%`}></span>
+            <span class:list={["dot", "then"]} style={`inset-inline-start:${row.before}%`}></span>
+            <span class:list={["dot", "now"]} style={`inset-inline-start:${row.after}%`}></span>
+          </span>
+          <span class="dval">
+            <span class="was">{percent(row.before)}</span>
+            <span aria-hidden="true">→</span>
+            <span>{percent(row.after)}</span>
+          </span>
+          <span class="sr-only">{fillIn(copy.srSince, { label: row.label, before: percent(row.before), after: percent(row.after) })}</span>
+        </li>
+      ))}
+    </ul>
+    <p class="legend-row">
+      <span><span class="key then"></span>2014</span>
+      <span><span class="key now"></span>2024</span>
     </p>
   </figure>
 
@@ -333,6 +372,101 @@ const spoken = (row: (typeof spread)[number]) =>
 
   .key.gained {
     background: var(--seq-4);
+  }
+
+  /* A rate in 2014 and the same rate in 2024, joined ------------------------- */
+
+  .dumbbell {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .dumbbell li {
+    display: grid;
+    grid-template-columns: minmax(6rem, 11.75rem) minmax(0, 1fr) 7.5rem;
+    gap: 0.75rem;
+    align-items: center;
+    padding-block: 0.3rem;
+  }
+
+  .dumbbell .track {
+    height: 0.7rem;
+  }
+
+  .link {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: var(--rule);
+  }
+
+  .dot {
+    position: absolute;
+    top: 50%;
+    width: 0.62rem;
+    height: 0.62rem;
+    margin-inline-start: -0.31rem;
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+
+  .dot.then,
+  .key.then {
+    background: var(--paper);
+    border: 2px solid var(--quiet);
+  }
+
+  /* The legend's marks are the chart's marks: round here, square where the chart's are. */
+  .key.then,
+  .key.now {
+    border-radius: 50%;
+  }
+
+  /* On a phone the name and the two figures take the width the track needs, so the track
+     goes under them and keeps its length. */
+  @media (max-width: 40rem) {
+    .dumbbell li {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.3rem 0.75rem;
+    }
+
+    .dumbbell .rname {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .dumbbell .dval {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .dumbbell .track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+
+  /* One colour for 2024 whichever way the rate moved: a fall in illiteracy and a rise in
+     running water are both the figure moving, and the line already shows which way. */
+  .dot.now,
+  .key.now {
+    background: var(--chart-up);
+  }
+
+  .dval {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: flex-end;
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .dval .was,
+  .dval [aria-hidden] {
+    color: var(--quiet);
   }
 
   /* Diverging bars ---------------------------------------------------------- */

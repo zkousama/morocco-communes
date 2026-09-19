@@ -234,3 +234,31 @@ export const shrinking = [
     "pct": 12.8
   }
 ];
+
+export const since = [
+  {
+    "key": "illiteracy",
+    "before": 32.2,
+    "after": 24.8
+  },
+  {
+    "key": "higher",
+    "before": 6.1,
+    "after": 10.2
+  },
+  {
+    "key": "unemployment",
+    "before": 16.2,
+    "after": 21.3
+  },
+  {
+    "key": "water",
+    "before": 73,
+    "after": 82.9
+  },
+  {
+    "key": "electricity",
+    "before": 91.6,
+    "after": 97.1
+  }
+];
