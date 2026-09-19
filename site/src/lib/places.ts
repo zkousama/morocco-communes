@@ -99,6 +99,12 @@ export const regionOf = new Map(regions.map((r) => [r.code, r]));
 export const provinceOf = new Map(provinces.map((p) => [p.code, p]));
 export const cercleOf = new Map(cercles.map((c) => [c.code, c]));
 export const communeOf = new Map(communes.map((c) => [c.code, c]));
+/** Names more than one commune has, whose pages need their province to tell them apart. */
+export const sharedNames = (() => {
+  const seen = new Map<string, number>();
+  for (const c of communes) seen.set(c.name.fr, (seen.get(c.name.fr) ?? 0) + 1);
+  return new Set([...seen].filter(([, n]) => n > 1).map(([name]) => name));
+})();
 
 const byPopulation = (a: { population: { "2024": { total: number } } }, b: typeof a) =>
   b.population["2024"].total - a.population["2024"].total;

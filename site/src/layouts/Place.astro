@@ -6,6 +6,8 @@ interface Props {
   locale: Locale;
   route: string;
   title: string;
+  /** The browser tab's title, where the heading alone would be shared with another page. */
+  documentTitle?: string;
   description: string;
   /** Links above the title, from the list of all communes down to the parent. */
   trail: { href: string; label: string }[];
@@ -13,10 +15,10 @@ interface Props {
   arabic?: string;
   lede: string;
 }
-const { locale, route, title, description, trail, arabic, lede } = Astro.props;
+const { locale, route, title, documentTitle, description, trail, arabic, lede } = Astro.props;
 ---
 
-<Base locale={locale} route={route} title={title} description={description}>
+<Base locale={locale} route={route} title={documentTitle ?? title} description={description}>
   <article class="place">
     <header>
       {trail.length > 0 && (

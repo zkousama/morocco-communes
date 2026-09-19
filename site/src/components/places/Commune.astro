@@ -23,6 +23,7 @@ import {
   neighbours,
   provinceOf,
   regionOf,
+  sharedNames,
   type Commune,
 } from "../../lib/places";
 
@@ -101,6 +102,7 @@ getCommune("${c.slug}");`;
   locale={locale}
   route={`communes/${c.slug}/`}
   title={c.name.fr}
+  documentTitle={sharedNames.has(c.name.fr) ? `${c.name.fr}, ${province.name.fr}` : undefined}
   description={description}
   arabic={c.name.ar}
   lede={lede}

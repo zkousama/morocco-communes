@@ -49,6 +49,10 @@ const change = before > 0 ? ((after - before) / before) * 100 : null;
 const area = communes.reduce((s, c) => s + (c.areaKm2 ?? 0), 0);
 
 const title = unit.name.fr;
+// Larache is a province and a commune, so the tab says which this is.
+const documentTitle = province
+  ? fill(p.provinceTitle, { name: title, ptype: p.unitTypesLower[province.type], Ptype: p.unitTypes[province.type], ofName: de(title) })
+  : fill(p.regionTitle, { name: title, ofName: de(title) });
 const lede = province
   ? locale === "fr"
     ? fill(p.provinceLede, { ptype: p.unitTypes[province.type], ofRegion: de(region.name.fr) })
@@ -95,6 +99,7 @@ const standouts = [
   locale={locale}
   route={route}
   title={title}
+  documentTitle={documentTitle}
   description={description}
   arabic={unit.name.ar}
   lede={lede}
