@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CfWorkerJsonSchemaValidator } from "@modelcontextprotocol/sdk/validation/cfworker";
 import { z } from "zod";
-import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
-import { LIMIT, PAGE, QUERY, RADIUS_KM } from "../lib/params.ts";
+import { listCommunes, parseFilter, SORTS, type FetchJson, type ListedCommune } from "../lib/list.ts";
+import { LIMIT, PAGE, POPULATION, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { communeIn, tileAt, tilePath, type PreparedIndex, type Tile } from "../lib/locate.ts";
@@ -14,6 +14,8 @@ export interface McpDeps {
   fetchJson: FetchJson;
   /** Which boundary tiles exist, for finding the commune at a point. */
   tiles: PreparedIndex;
+  /** Every commune record, for lists that sort or bound the population. */
+  communes: readonly ListedCommune[];
 }
 
 const LEVELS = ["commune", "arrondissement", "province", "region", "cercle"] as const satisfies readonly Level[];
@@ -40,6 +42,8 @@ interface CommuneRecord {
     change: { pct: number } | null;
   };
   centroid: { lat: number; lng: number } | null;
+  areaKm2: number | null;
+  density: number | null;
 }
 
 const unitRef = z.object({ code: z.string(), name: z.string() });
@@ -55,6 +59,8 @@ const communeShape = z.object({
   population_2024: z.number().nullable(),
   population_2014: z.number().nullable(),
   change_pct: z.number().nullable(),
+  area_km2: z.number().nullable(),
+  density: z.number().nullable(),
   centroid: z.object({ lat: z.number(), lng: z.number() }).nullable(),
 });
 
@@ -63,7 +69,7 @@ const communeShape = z.object({
  * concurrent requests an isolate can take would mix up their JSON-RPC ids.
  */
 export function createMcpServer(deps: McpDeps): McpServer {
-  const { index, lookup, fetchJson, tiles } = deps;
+  const { index, lookup, fetchJson, tiles, communes } = deps;
 
   // Parent codes are named from the search index, which already holds every unit, so a
   // model can say which province a commune is in without a second call.
@@ -81,6 +87,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
     population_2024: c.population["2024"].total,
     population_2014: c.population["2014"]?.total ?? null,
     change_pct: c.population.change?.pct ?? null,
+    area_km2: c.areaKm2,
+    density: c.density,
     centroid: c.centroid,
   });
 
@@ -267,13 +275,21 @@ export function createMcpServer(deps: McpDeps): McpServer {
     {
       title: "List communes",
       description:
-        "Communes filtered by région, province or préfecture, cercle, or type, 50 to a page. " +
-        "Filters combine; each unit can be given by code or slug. With no filter it lists every commune.",
+        "Communes filtered by région, province or préfecture, cercle, type or population, 50 to a page, " +
+        "in code order or sorted by name, population, change since 2014, density or area. " +
+        "Filters combine; each unit can be given by code or slug. With no filter it lists every commune, " +
+        "so sort: \"-population\" alone gives the largest in the country.",
       inputSchema: {
         region: z.string().optional().describe("A région, by code or slug."),
         province: z.string().optional().describe("A province or préfecture, by code or slug."),
         cercle: z.string().optional().describe("A cercle, by code or slug."),
         type: z.enum(["urban", "rural"]).optional(),
+        sort: z
+          .enum(SORTS as [string, ...string[]])
+          .optional()
+          .describe("A field to order by, with a leading minus for largest first. Code order when left out."),
+        min_population: z.number().int().min(0).max(POPULATION.max).optional().describe("Only communes with at least this many people in 2024."),
+        max_population: z.number().int().min(0).max(POPULATION.max).optional().describe("Only communes with at most this many people in 2024."),
         page: z.number().int().min(1).max(PAGE.max).optional().describe("Page number, from 1."),
       },
       outputSchema: {
@@ -284,10 +300,10 @@ export function createMcpServer(deps: McpDeps): McpServer {
       },
       annotations: READ_ONLY,
     },
-    async (input) => {
-      const parsed = parseFilter(input, lookup);
+    async ({ min_population, max_population, ...input }) => {
+      const parsed = parseFilter({ ...input, minPopulation: min_population, maxPopulation: max_population }, lookup);
       if ("error" in parsed) return fail(`${parsed.error.detail}.`);
-      const result = await listCommunes(parsed.query, fetchJson);
+      const result = await listCommunes(parsed.query, communes, fetchJson);
       if (!result) return fail(`There is no page ${parsed.query.page} for these filters.`);
       return ok({
         communes: (result.rows as CommuneRecord[]).map(trim),

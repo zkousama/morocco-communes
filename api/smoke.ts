@@ -132,6 +132,14 @@ console.log("\ncomputed tier — answers no file holds");
     `status=${r.status} code=${r.body?.data?.code}`);
 }
 {
+  const r = await get("/api/communes?sort=-population&min_population=500000");
+  const people = (r.body?.data ?? []).map((c: never) => (c as { population: { "2024": { total: number } } }).population["2024"].total);
+  check("a sorted, bounded list is computed from the records in memory",
+    r.status === 200 && r.tier === "computed" && people.length > 0 &&
+      people.every((p: number, i: number) => p >= 500000 && (i === 0 || p <= people[i - 1]!)),
+    `status=${r.status} ${people.join(",")}`);
+}
+{
   // Province 04.421 is in région 04: the province's list is read, and every row filtered out.
   const r = await get("/api/communes?region=01&province=04.421");
   check("filters that contradict each other find nothing",
@@ -162,6 +170,8 @@ for (const [path, status] of [
   [`/api/search?q=${"a".repeat(101)}`, 400],
   ["/api/communes?q=tanger&region=03", 400],
   ["/api/communes?q=", 400],
+  ["/api/communes?sort=banana", 400],
+  ["/api/communes?min_population=5&max_population=1", 400],
   ["/api/nonsense", 404],
 ] as const) {
   const r = await get(path);

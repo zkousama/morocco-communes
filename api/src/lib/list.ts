@@ -1,19 +1,40 @@
 import { paginate, type Envelope, type PageMeta } from "./envelope.ts";
-import { PAGE, PER_PAGE } from "./params.ts";
-import { aliasPath, narrowestSource, resolve, withArticle, type FilterQuery, type Lookup } from "./resolve.ts";
+import { PAGE, PER_PAGE, POPULATION } from "./params.ts";
+import { aliasPath, resolve, withArticle, type FilterQuery, type Lookup, type SortKey } from "./resolve.ts";
 
 /** Reads a pre-rendered file as JSON, or null when there is no such file. */
 export type FetchJson = (path: string) => Promise<Envelope<unknown[]> | null>;
+
+/** The fields of a commune record that lists filter and sort by. Records carry many more. */
+export interface ListedCommune {
+  code: string;
+  name: { fr: string };
+  type: string;
+  parents: { region: string; province: string; cercle: string | null };
+  population: { "2024": { total: number | null }; change: { pct: number } | null };
+  areaKm2: number | null;
+  density: number | null;
+}
 
 export interface FilterInput {
   region?: string;
   province?: string;
   cercle?: string;
   type?: string;
+  sort?: string;
+  minPopulation?: number;
+  maxPopulation?: number;
   page?: number;
 }
 
 export type FilterError = { kind: "invalid-code" | "not-found" | "invalid-query"; detail: string };
+
+export const SORT_KEYS = ["code", "name", "population", "change", "density", "area"] as const;
+
+/** Every value `sort` takes: a field for ascending, the same with a minus for descending. */
+export const SORTS: string[] = SORT_KEYS.flatMap((k) => [k, `-${k}`]);
+
+const whole = (n: number | undefined) => n === undefined || (Number.isInteger(n) && n >= 0 && n <= POPULATION.max);
 
 /**
  * Turns filter input — from a query string or from an MCP tool call — into a query with
@@ -27,6 +48,15 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
   }
   if (input.type !== undefined && input.type !== "urban" && input.type !== "rural") {
     return { error: { kind: "invalid-query", detail: "type must be urban or rural" } };
+  }
+  if (input.sort !== undefined && !SORTS.includes(input.sort)) {
+    return { error: { kind: "invalid-query", detail: `sort must be one of ${SORTS.join(", ")}` } };
+  }
+  if (!whole(input.minPopulation) || !whole(input.maxPopulation)) {
+    return { error: { kind: "invalid-query", detail: "min_population and max_population must be whole numbers from 0" } };
+  }
+  if (input.minPopulation !== undefined && input.maxPopulation !== undefined && input.minPopulation > input.maxPopulation) {
+    return { error: { kind: "invalid-query", detail: "min_population can't be above max_population" } };
   }
   const query: FilterQuery = { page };
   for (const key of ["region", "province", "cercle"] as const) {
@@ -43,49 +73,59 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
     query[key] = found.code;
   }
   if (input.type !== undefined) query.type = input.type as "urban" | "rural";
+  if (input.sort !== undefined) query.sort = input.sort as FilterQuery["sort"];
+  if (input.minPopulation !== undefined) query.minPopulation = input.minPopulation;
+  if (input.maxPopulation !== undefined) query.maxPopulation = input.maxPopulation;
   return { query };
 }
 
-interface ListedCommune {
-  type: string;
-  parents: { region: string; province: string; cercle: string | null };
+const VALUE: Record<SortKey, (c: ListedCommune) => number | string | null> = {
+  code: (c) => c.code,
+  name: (c) => c.name.fr,
+  population: (c) => c.population["2024"].total,
+  change: (c) => c.population.change?.pct ?? null,
+  density: (c) => c.density,
+  area: (c) => c.areaKm2,
+};
+
+/**
+ * Every commune a query selects, in the order it asks for. A missing value sorts last in
+ * either direction, since "largest first" shouldn't open on the one commune with no
+ * boundary. Ties fall back to the code, so a page boundary never moves.
+ */
+export function collectCommunes<T extends ListedCommune>(query: FilterQuery, communes: readonly T[]): T[] {
+  const { minPopulation: min, maxPopulation: max } = query;
+  const rows = communes.filter((c) => {
+    const people = c.population["2024"].total;
+    return (
+      (query.region === undefined || c.parents.region === query.region) &&
+      (query.province === undefined || c.parents.province === query.province) &&
+      (query.cercle === undefined || c.parents.cercle === query.cercle) &&
+      (query.type === undefined || c.type === query.type) &&
+      (min === undefined || (people !== null && people >= min)) &&
+      (max === undefined || (people !== null && people <= max))
+    );
+  });
+  const sort = query.sort ?? "code";
+  const descending = sort.startsWith("-");
+  const value = VALUE[sort.replace(/^-/, "") as SortKey];
+  return rows.sort((a, b) => {
+    const x = value(a);
+    const y = value(b);
+    if (x === null || y === null) return x === y ? a.code.localeCompare(b.code) : x === null ? 1 : -1;
+    const order = typeof x === "string" ? x.localeCompare(y as string, "fr") : x - (y as number);
+    return (descending ? -order : order) || a.code.localeCompare(b.code);
+  });
 }
 
 /**
- * Every commune a multi-filter query selects: the smallest pre-rendered list that
- * contains the answer, filtered by everything else the query names. At most 6 pages for
- * a région.
- *
- * Each filter is checked against every row, not only the one that picked the list:
- * `region=01&province=04.421` reads the province's list, and has to come back empty
- * rather than as that province's communes.
+ * One page of the communes a query selects, from a single pre-rendered file when one
+ * holds it, or null past the last page. A filter that matches nothing still has a page 1,
+ * empty, the same as the pre-rendered lists.
  */
-export async function collectCommunes(query: FilterQuery, fetchJson: FetchJson): Promise<ListedCommune[]> {
-  const base = narrowestSource(query);
-  const rows: ListedCommune[] = [];
-  let pages = 1;
-  for (let p = 1; p <= pages; p++) {
-    const body = await fetchJson(`${base}/${p}.json`);
-    if (!body) break;
-    pages = body.meta.totalPages ?? 1;
-    rows.push(...(body.data as ListedCommune[]));
-  }
-  return rows.filter(
-    (r) =>
-      (query.region === undefined || r.parents.region === query.region) &&
-      (query.province === undefined || r.parents.province === query.province) &&
-      (query.cercle === undefined || r.parents.cercle === query.cercle) &&
-      (query.type === undefined || r.type === query.type),
-  );
-}
-
-/**
- * One page of the communes a query selects, from a single file when one holds it, or null
- * past the last page. A filter that matches nothing still has a page 1, empty, the same
- * as the pre-rendered lists.
- */
-export async function listCommunes(
+export async function listCommunes<T extends ListedCommune>(
   query: FilterQuery,
+  communes: readonly T[],
   fetchJson: FetchJson,
 ): Promise<{ rows: unknown[]; meta: PageMeta } | null> {
   const direct = aliasPath(query);
@@ -94,7 +134,7 @@ export async function listCommunes(
     if (!body) return null;
     return { rows: body.data, meta: body.meta as PageMeta };
   }
-  const { slice, meta } = paginate(await collectCommunes(query, fetchJson), query.page, PER_PAGE);
+  const { slice, meta } = paginate(collectCommunes(query, communes), query.page, PER_PAGE);
   if (query.page > meta.totalPages) return null;
   return { rows: slice, meta };
 }

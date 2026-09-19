@@ -64,6 +64,7 @@ GET /api/search?q=tanger&levels=commune&limit=10
 GET /api/communes/near?lat=33.5731&lng=-7.5898&radius=15
 GET /api/communes/at?lat=35.786&lng=-5.8125
 GET /api/communes?province=01.511&type=urban
+GET /api/communes?sort=-population&min_population=100000
 ```
 
 Search takes French, Arabic or a slug. It folds the alef variants, ta-marbuta and alef

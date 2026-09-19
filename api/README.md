@@ -156,11 +156,24 @@ of which ones exist that the Worker holds in memory. A lookup reads one tile and
 few polygons in it, in well under a millisecond. The tests check it against the uncut
 boundaries at 5,000 random points, and at every commune's inside point.
 
-### Filter combinations
+### Filter combinations, population and order
 
-`/api/communes` with more than one of `region`, `province`, `cercle`, `type` is computed:
-the Worker narrows to the smallest pre-rendered list and filters it. The work is bounded:
-a cercle is one page, a province at most two, a région at most six.
+`/api/communes` also takes `min_population` and `max_population`, and `sort`, which is one
+of `name`, `population`, `change`, `density` and `area`, with a leading minus for largest
+first. A commune with no value for the field sorts last either way: Sidi Mohamed
+Benmansour has no area, and 4 communes have no 2014 figure to change from.
+
+```
+GET /api/communes?sort=-population                      the largest communes in the country
+GET /api/communes?type=rural&sort=-density              the densest rural ones
+GET /api/communes?province=01.151&sort=change           the fastest shrinking in Chefchaouen
+GET /api/communes?region=01&min_population=100000
+```
+
+A single filter with neither of those is a pre-rendered file. Anything more is computed
+from the commune records, which the Worker holds in memory: 1.7 MB, parsed once per
+isolate in about 8 ms against its 1 s startup budget. A request then filters and sorts
+them in well under a millisecond.
 
 ## MCP
 

@@ -1,4 +1,5 @@
-import { LIMIT, PAGE, PER_PAGE, QUERY, RADIUS_KM } from "./lib/params.ts";
+import { LIMIT, PAGE, PER_PAGE, POPULATION, QUERY, RADIUS_KM } from "./lib/params.ts";
+import { SORTS } from "./lib/list.ts";
 
 /**
  * The OpenAPI 3.1 description of the API, built from the same limits the Worker enforces,
@@ -123,6 +124,27 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             { name: "cercle", in: "query", description: "A cercle, by code or slug.", schema: { type: "string" } },
             { name: "type", in: "query", description: "Urban or rural communes only.", schema: { type: "string", enum: ["urban", "rural"] } },
             {
+              name: "min_population",
+              in: "query",
+              description: "Only communes with at least this many people in 2024.",
+              schema: { type: "integer", minimum: 0, maximum: POPULATION.max },
+              example: 100000,
+            },
+            {
+              name: "max_population",
+              in: "query",
+              description: "Only communes with at most this many people in 2024.",
+              schema: { type: "integer", minimum: 0, maximum: POPULATION.max },
+            },
+            {
+              name: "sort",
+              in: "query",
+              description:
+                "Order by name, 2024 population, change since 2014, density or area, with a leading minus for largest first. A commune with no value for the field comes last either way.",
+              schema: { type: "string", enum: SORTS, default: "code" },
+              example: "-population",
+            },
+            {
               name: "page",
               in: "query",
               description: "Page number, from 1.",
@@ -137,7 +159,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           ],
           responses: {
             "200": ok("A page of communes.", { type: "array", items: ref("Commune") }),
-            "400": problem("A filter is not a valid code or names the wrong kind of unit, type or page is out of range, or q is given with a filter."),
+            "400": problem("A filter is not a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter."),
             "404": problem("A filter names a unit that does not exist, or the page is past the last."),
           },
         },
@@ -289,6 +311,8 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               properties: { lat: { type: "number" }, lng: { type: "number" } },
             },
             bbox: { type: ["array", "null"], items: { type: "number" }, minItems: 4, maxItems: 4 },
+            areaKm2: { type: ["number", "null"], description: "Area in km², from the boundary. Null where there's none." },
+            density: { type: ["number", "null"], description: "People per km² in 2024." },
           },
         },
       },

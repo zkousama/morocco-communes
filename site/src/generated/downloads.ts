@@ -7,12 +7,12 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/attributes/communes.json",
-        "bytes": 1686607
+        "bytes": 1753991
       },
       {
         "label": "CSV",
         "href": "/data/v1/attributes/communes.csv",
-        "bytes": 164544
+        "bytes": 183849
       }
     ]
   },
@@ -72,7 +72,7 @@ export const downloads = [
       {
         "label": "CSV",
         "href": "/data/v1/crosswalk/2014-2024.csv",
-        "bytes": 27708
+        "bytes": 27711
       }
     ]
   },

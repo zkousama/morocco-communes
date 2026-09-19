@@ -55,36 +55,33 @@ export function resolve(
 /** "a province", "an arrondissement": a level as a sentence names it. */
 export const withArticle = (level: Level) => `${/^[aeiou]/.test(level) ? "an" : "a"} ${level}`;
 
+export type SortKey = "code" | "name" | "population" | "change" | "density" | "area";
+
 export interface FilterQuery {
   region?: string;
   province?: string;
   cercle?: string;
   type?: "urban" | "rural";
+  /** A field to order by, with a leading minus for largest first. Code order when absent. */
+  sort?: SortKey | `-${SortKey}`;
+  minPopulation?: number;
+  maxPopulation?: number;
   page: number;
 }
 
 /**
- * The pre-rendered path that answers a filter query on its own, or null when the query
- * needs more than one narrowing and has to be computed.
- *
- * The narrowest single filter wins, because narrowing costs nothing and every extra
- * filter the Worker has to apply itself costs a subrequest.
+ * The pre-rendered path that answers a filter query on its own, or null when it has to be
+ * computed: more than one filter, a population bound, or an order other than the code's.
  */
 export function aliasPath(q: FilterQuery): string | null {
   const keys = [q.region, q.province, q.cercle, q.type].filter((v) => v !== undefined).length;
   if (keys > 1) return null;
+  if ((q.sort !== undefined && q.sort !== "code") || q.minPopulation !== undefined || q.maxPopulation !== undefined) {
+    return null;
+  }
   if (q.cercle) return `/api/cercles/${q.cercle}/communes/page/${q.page}.json`;
   if (q.province) return `/api/provinces/${q.province}/communes/page/${q.page}.json`;
   if (q.region) return `/api/regions/${q.region}/communes/page/${q.page}.json`;
   if (q.type) return `/api/communes/type/${q.type}/page/${q.page}.json`;
   return `/api/communes/page/${q.page}.json`;
-}
-
-/** The list to narrow from when a query carries more filters than one path can answer. */
-export function narrowestSource(q: FilterQuery): string {
-  if (q.cercle) return `/api/cercles/${q.cercle}/communes/page`;
-  if (q.province) return `/api/provinces/${q.province}/communes/page`;
-  if (q.region) return `/api/regions/${q.region}/communes/page`;
-  if (q.type) return `/api/communes/type/${q.type}/page`;
-  return "/api/communes/page";
 }

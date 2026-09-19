@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildIndex } from "../../src/emit/searchIndex.ts";
-import { aliasPath, buildLookup, narrowestSource, resolve, withArticle } from "../../src/lib/resolve.ts";
+import { aliasPath, buildLookup, resolve, withArticle } from "../../src/lib/resolve.ts";
 
 const rd = (n: string) => JSON.parse(readFileSync(`data/v1/attributes/${n}.json`, "utf8")) as never[];
 const index = buildIndex("1.0.0", [
@@ -72,14 +72,11 @@ describe("aliasPath", () => {
     expect(aliasPath({ province: "01.511", type: "urban", page: 1 })).toBeNull();
     expect(aliasPath({ region: "01", province: "01.511", page: 1 })).toBeNull();
   });
-});
 
-describe("narrowestSource", () => {
-  it("picks the smallest pre-rendered list, because each page is a subrequest", () => {
-    expect(narrowestSource({ cercle: "01.511.05", province: "01.511", page: 1 })).toContain("/cercles/");
-    expect(narrowestSource({ province: "01.511", region: "01", page: 1 })).toContain("/provinces/");
-    expect(narrowestSource({ region: "01", type: "urban", page: 1 })).toContain("/regions/");
-    expect(narrowestSource({ type: "rural", page: 1 })).toBe("/api/communes/type/rural/page");
+  it("refuses to rewrite a query that sorts or bounds the population", () => {
+    expect(aliasPath({ region: "01", sort: "-population", page: 1 })).toBeNull();
+    expect(aliasPath({ minPopulation: 100_000, page: 1 })).toBeNull();
+    expect(aliasPath({ region: "01", sort: "code", page: 1 })).toBe("/api/regions/01/communes/page/1.json");
   });
 });
 

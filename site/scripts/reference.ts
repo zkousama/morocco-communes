@@ -79,9 +79,12 @@ const computed = (request: string, rows: unknown[]) =>
 const listed = async (request: string, input: Parameters<typeof parseFilter>[0]) => {
   const parsed = parseFilter(input, lookup);
   if ("error" in parsed) throw new Error(`${request}: ${parsed.error.detail}`);
-  const result = await listCommunes(parsed.query, fetchJson);
+  const result = await listCommunes(parsed.query, dataset.communes as never[], fetchJson);
   if (!result) throw new Error(`${request} has no page`);
-  return envelope(result.rows, { self: request, prev: null, next: null }, result.meta) as Envelope<unknown>;
+  // The links the Worker writes: the same query with page set.
+  const { page, totalPages } = result.meta;
+  const next = page < totalPages ? `${request}&page=${page + 1}` : null;
+  return envelope(result.rows, { self: request, prev: null, next }, result.meta) as Envelope<unknown>;
 };
 
 const examples: Record<string, Example> = {
@@ -95,8 +98,8 @@ const examples: Record<string, Example> = {
     body: computed("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15&limit=2", near(index, 33.5731, -7.5898, 15, 2)),
   },
   listCommunes: cut(
-    "/api/communes?province=01.511&type=urban",
-    await listed("/api/communes?province=01.511&type=urban", { province: "01.511", type: "urban" }),
+    "/api/communes?type=urban&sort=-population",
+    await listed("/api/communes?type=urban&sort=-population", { type: "urban", sort: "-population" }),
     1,
   ),
   getCommune: { request: "/api/communes/tanger", body: file("/api/communes/01.511.01.0.json") },
@@ -157,7 +160,7 @@ const errors = Object.fromEntries(
 const errorExample = problem("not-found", "no unit has code 99.999", "/api/communes/99.999", "https://<host>");
 
 // The tools as a client lists them, from a server connected the way the Worker connects it.
-const server = createMcpServer({ index, lookup, fetchJson, tiles: tileIndex });
+const server = createMcpServer({ index, lookup, fetchJson, tiles: tileIndex, communes: dataset.communes as never[] });
 const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
 await server.connect(serverSide);
 const client = new Client({ name: "docs", version });

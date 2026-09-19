@@ -37,7 +37,13 @@ const fetchJson = async (path: string) => (tree.get(path) as Envelope<unknown[]>
 let client: Client;
 
 beforeAll(async () => {
-  const server = createMcpServer({ index, lookup: buildLookup(index), fetchJson, tiles: prepareIndex(geometry.tileIndex) });
+  const server = createMcpServer({
+    index,
+    lookup: buildLookup(index),
+    fetchJson,
+    tiles: prepareIndex(geometry.tileIndex),
+    communes: dataset.communes as never[],
+  });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await server.connect(serverSide);
   client = new Client({ name: "test", version: "1.0.0" });
@@ -167,6 +173,40 @@ describe("the MCP server, through a real client", () => {
       expect(r.isError, JSON.stringify(filter)).toBe(true);
       expect(text(r)).toBe("There is no page 9 for these filters.");
     }
+  });
+
+  it("sorts the whole country, largest first", async () => {
+    const r = await call("list_communes", { sort: "-population" });
+    const communes = r.structuredContent!.communes as { name_fr: string; population_2024: number }[];
+    expect(communes[0]!.name_fr).toBe("Casablanca");
+    for (let i = 1; i < communes.length; i++) {
+      expect(communes[i]!.population_2024).toBeLessThanOrEqual(communes[i - 1]!.population_2024);
+    }
+    expect(r.structuredContent).toMatchObject({ total: 1503, total_pages: 31 });
+  });
+
+  it("bounds the population and combines it with a filter", async () => {
+    const r = await call("list_communes", { region: "01", min_population: 100_000, sort: "name" });
+    const communes = r.structuredContent!.communes as { name_fr: string; population_2024: number }[];
+    expect(communes.length).toBeGreaterThan(0);
+    for (const c of communes) expect(c.population_2024).toBeGreaterThanOrEqual(100_000);
+    const names = communes.map((c) => c.name_fr);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "fr")));
+  });
+
+  it("puts a commune with no value last, whichever way it sorts", async () => {
+    // Sidi Mohamed Benmansour has no boundary, so no area.
+    for (const sort of ["area", "-area"]) {
+      const r = await call("list_communes", { province: "04.281", sort });
+      const communes = r.structuredContent!.communes as { code: string; area_km2: number | null }[];
+      expect(communes.at(-1)!.code, sort).toBe("04.281.05.11");
+    }
+  });
+
+  it("refuses a population range that runs backwards", async () => {
+    const r = await call("list_communes", { min_population: 5000, max_population: 1000 });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("can't be above");
   });
 
   it("says so when a filter is given the wrong kind of unit", async () => {

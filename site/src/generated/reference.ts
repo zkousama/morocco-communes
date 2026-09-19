@@ -313,6 +313,51 @@ export const reference = {
               }
             },
             {
+              "name": "min_population",
+              "in": "query",
+              "description": "Only communes with at least this many people in 2024.",
+              "schema": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000000
+              },
+              "example": 100000
+            },
+            {
+              "name": "max_population",
+              "in": "query",
+              "description": "Only communes with at most this many people in 2024.",
+              "schema": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000000
+              }
+            },
+            {
+              "name": "sort",
+              "in": "query",
+              "description": "Order by name, 2024 population, change since 2014, density or area, with a leading minus for largest first. A commune with no value for the field comes last either way.",
+              "schema": {
+                "type": "string",
+                "enum": [
+                  "code",
+                  "-code",
+                  "name",
+                  "-name",
+                  "population",
+                  "-population",
+                  "change",
+                  "-change",
+                  "density",
+                  "-density",
+                  "area",
+                  "-area"
+                ],
+                "default": "code"
+              },
+              "example": "-population"
+            },
+            {
               "name": "page",
               "in": "query",
               "description": "Page number, from 1.",
@@ -361,7 +406,7 @@ export const reference = {
               }
             },
             "400": {
-              "description": "A filter is not a valid code or names the wrong kind of unit, type or page is out of range, or q is given with a filter.",
+              "description": "A filter is not a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter.",
               "content": {
                 "application/problem+json": {
                   "schema": {
@@ -885,6 +930,20 @@ export const reference = {
               },
               "minItems": 4,
               "maxItems": 4
+            },
+            "areaKm2": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Area in km², from the boundary. Null where there's none."
+            },
+            "density": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "People per km² in 2024."
             }
           }
         }
@@ -1192,6 +1251,51 @@ export const reference = {
             }
           },
           {
+            "name": "min_population",
+            "in": "query",
+            "description": "Only communes with at least this many people in 2024.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000000
+            },
+            "example": 100000
+          },
+          {
+            "name": "max_population",
+            "in": "query",
+            "description": "Only communes with at most this many people in 2024.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000000
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Order by name, 2024 population, change since 2014, density or area, with a leading minus for largest first. A commune with no value for the field comes last either way.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "code",
+                "-code",
+                "name",
+                "-name",
+                "population",
+                "-population",
+                "change",
+                "-change",
+                "density",
+                "-density",
+                "area",
+                "-area"
+              ],
+              "default": "code"
+            },
+            "example": "-population"
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "Page number, from 1.",
@@ -1240,7 +1344,7 @@ export const reference = {
             }
           },
           "400": {
-            "description": "A filter is not a valid code or names the wrong kind of unit, type or page is out of range, or q is given with a filter.",
+            "description": "A filter is not a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1607,6 +1711,8 @@ export const reference = {
             -5.7135397,
             35.8259979
           ],
+          "areaKm2": 149.41,
+          "density": 8536.51,
           "osm": {
             "relationId": 2758781,
             "wikidata": "Q126148"
@@ -1663,55 +1769,57 @@ export const reference = {
       }
     },
     "listCommunes": {
-      "request": "/api/communes?province=01.511&type=urban",
+      "request": "/api/communes?type=urban&sort=-population",
       "body": {
         "data": [
           {
-            "code": "01.511.01.0",
-            "codeDigits": "001511010",
-            "slug": "tanger",
-            "nameFrRaw": "Commune de Tanger",
+            "code": "06.141.01.0",
+            "codeDigits": "006141010",
+            "slug": "casablanca",
+            "nameFrRaw": "Commune de Casablanca",
             "name": {
-              "fr": "Tanger",
-              "ar": "طنجة"
+              "fr": "Casablanca",
+              "ar": "الدار البيضاء"
             },
             "type": "urban",
             "parents": {
-              "region": "01",
-              "province": "01.511",
+              "region": "06",
+              "province": "06.141",
               "cercle": null
             },
             "population": {
               "2014": {
-                "total": 947952,
-                "households": 239243
+                "total": 3357173,
+                "households": 819309
               },
               "2024": {
-                "total": 1275428,
-                "moroccan": 1268512,
-                "foreign": 6916,
-                "households": 362062
+                "total": 3215935,
+                "moroccan": 3169978,
+                "foreign": 45957,
+                "households": 909228
               },
               "change": {
-                "absolute": 327476,
-                "pct": 34.55,
+                "absolute": -141238,
+                "pct": -4.21,
                 "basis": "arrondissement_sum"
               }
             },
             "urbanCentres": [],
             "centroid": {
-              "lat": 35.75623595957031,
-              "lng": -5.832718404101565
+              "lat": 33.55246299128418,
+              "lng": -7.650829588842771
             },
             "bbox": [
-              -5.9484121,
-              35.6995621,
-              -5.7135397,
-              35.8259979
+              -7.751238,
+              33.493342,
+              -7.4574165,
+              33.6409103
             ],
+            "areaKm2": 216.76,
+            "density": 14836.29,
             "osm": {
-              "relationId": 2758781,
-              "wikidata": "Q126148"
+              "relationId": 4072985,
+              "wikidata": "Q7903"
             },
             "provenance": {
               "name": "hcp-2024",
@@ -1725,18 +1833,18 @@ export const reference = {
           "datasetVersion": "1.0.0",
           "page": 1,
           "perPage": 50,
-          "total": 3,
-          "totalPages": 1
+          "total": 242,
+          "totalPages": 5
         },
         "links": {
-          "self": "/api/communes?province=01.511&type=urban",
+          "self": "/api/communes?type=urban&sort=-population",
           "prev": null,
-          "next": null
+          "next": "/api/communes?type=urban&sort=-population&page=2"
         }
       },
       "cut": {
         "shown": 1,
-        "total": 3
+        "total": 50
       }
     },
     "getCommune": {
@@ -1785,6 +1893,8 @@ export const reference = {
             -5.7135397,
             35.8259979
           ],
+          "areaKm2": 149.41,
+          "density": 8536.51,
           "osm": {
             "relationId": 2758781,
             "wikidata": "Q126148"

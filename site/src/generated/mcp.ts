@@ -140,7 +140,7 @@ export const mcp = {
     {
       "name": "list_communes",
       "title": "List communes",
-      "description": "Communes filtered by région, province or préfecture, cercle, or type, 50 to a page. Filters combine; each unit can be given by code or slug. With no filter it lists every commune.",
+      "description": "Communes filtered by région, province or préfecture, cercle, type or population, 50 to a page, in code order or sorted by name, population, change since 2014, density or area. Filters combine; each unit can be given by code or slug. With no filter it lists every commune, so sort: \"-population\" alone gives the largest in the country.",
       "params": [
         {
           "name": "region",
@@ -175,6 +175,48 @@ export const mcp = {
               "urban",
               "rural"
             ]
+          }
+        },
+        {
+          "name": "sort",
+          "required": false,
+          "schema": {
+            "description": "A field to order by, with a leading minus for largest first. Code order when left out.",
+            "type": "string",
+            "enum": [
+              "code",
+              "-code",
+              "name",
+              "-name",
+              "population",
+              "-population",
+              "change",
+              "-change",
+              "density",
+              "-density",
+              "area",
+              "-area"
+            ]
+          }
+        },
+        {
+          "name": "min_population",
+          "required": false,
+          "schema": {
+            "description": "Only communes with at least this many people in 2024.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000000
+          }
+        },
+        {
+          "name": "max_population",
+          "required": false,
+          "schema": {
+            "description": "Only communes with at most this many people in 2024.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000000
           }
         },
         {

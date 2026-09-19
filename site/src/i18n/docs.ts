@@ -41,11 +41,15 @@ export const SPEC_FR: Record<string, string> = {
   "listCommunes.param.province": "Une province ou une préfecture, par code ou slug.",
   "listCommunes.param.cercle": "Un cercle, par code ou slug.",
   "listCommunes.param.type": "Seulement les communes urbaines, ou rurales.",
+  "listCommunes.param.min_population": "Seulement les communes d’au moins autant d’habitants en 2024.",
+  "listCommunes.param.max_population": "Seulement les communes d’au plus autant d’habitants en 2024.",
+  "listCommunes.param.sort":
+    "Trier par nom, population de 2024, évolution depuis 2014, densité ou superficie, avec un moins devant pour les plus grands d’abord. Une commune sans valeur pour ce champ vient en dernier dans les deux sens.",
   "listCommunes.param.page": "Numéro de page, à partir de 1.",
   "listCommunes.param.q": `Cherche les communes par nom, jusqu’à ${QUERY.maxLength} caractères, et renvoie jusqu’à 10 résultats. Ne prend aucun autre paramètre.`,
   "listCommunes.200": "Une page de communes.",
   "listCommunes.400":
-    "Un filtre n’est pas un code valide ou désigne une unité du mauvais niveau, type ou page sort de ses bornes, ou q est donné avec un filtre.",
+    "Un filtre n’est pas un code valide ou désigne une unité du mauvais niveau, un paramètre sort de ses bornes, ou q est donné avec un autre paramètre.",
   "listCommunes.404": "Un filtre désigne une unité qui n’existe pas, ou la page est au-delà de la dernière.",
 
   "getCommune.summary": "Une commune, quelle que soit l’écriture de son identifiant",

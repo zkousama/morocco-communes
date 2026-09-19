@@ -2,10 +2,11 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
 import rawTiles from "../../generated/tile-index.json";
+import rawCommunes from "../../../data/v1/attributes/communes.json";
 import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
-import { listCommunes, parseFilter, type FetchJson } from "../lib/list.ts";
+import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
@@ -18,6 +19,10 @@ import { communeIn, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } 
 const index = rawIndex as unknown as SearchIndex;
 const lookup = buildLookup(index);
 const tileIndex = prepareIndex(rawTiles as TileIndex);
+// Every commune record, for queries that sort or bound the population across the whole
+// country. 1.7 MB, which parses in about 8 ms here, once, instead of 31 page reads on
+// every request.
+const communes = rawCommunes as unknown as ListedCommune[];
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -171,9 +176,8 @@ app.get("/api/communes/near", (c) => {
 /**
  * The query-string shapes from the brief. A path-keyed asset store cannot match on a
  * query string, so these are resolved here: one filter rewrites to the file that already
- * holds the answer, and more than one narrows to the smallest pre-rendered list and
- * filters it. A province is at most two pages and a région at most six, so the number of
- * subrequests stays small and bounded.
+ * holds the answer, and anything more, several filters, a population bound or an order
+ * other than the code's, is filtered and sorted from the records held in memory.
  */
 app.get("/api/communes", async (c) => {
   const url = new URL(c.req.url);
@@ -181,7 +185,9 @@ app.get("/api/communes", async (c) => {
   const text = url.searchParams.get("q");
   if (text !== null) {
     // A name search answers on its own; a filter beside it would be silently ignored.
-    const beside = ["region", "province", "cercle", "type", "page"].filter((k) => url.searchParams.has(k));
+    const beside = ["region", "province", "cercle", "type", "sort", "min_population", "max_population", "page"].filter(
+      (k) => url.searchParams.has(k),
+    );
     if (beside.length > 0) {
       return fail(url, "invalid-query", `q cannot be combined with ${beside.join(", ")}`, instance);
     }
@@ -194,14 +200,22 @@ app.get("/api/communes", async (c) => {
   }
 
   // Parsed by the same function the MCP tool uses, so both reject the same input.
-  const pageRaw = url.searchParams.get("page");
+  // A number the query string can't hold as a whole number becomes NaN, which parseFilter
+  // refuses, rather than whatever Number() makes of it.
+  const integer = (name: string) => {
+    const raw = url.searchParams.get(name);
+    return raw === null ? undefined : /^[0-9]+$/.test(raw) ? Number(raw) : Number.NaN;
+  };
   const parsed = parseFilter(
     {
       region: url.searchParams.get("region") ?? undefined,
       province: url.searchParams.get("province") ?? undefined,
       cercle: url.searchParams.get("cercle") ?? undefined,
       type: url.searchParams.get("type") ?? undefined,
-      page: pageRaw === null ? undefined : /^[0-9]+$/.test(pageRaw) ? Number(pageRaw) : Number.NaN,
+      sort: url.searchParams.get("sort") ?? undefined,
+      minPopulation: integer("min_population"),
+      maxPopulation: integer("max_population"),
+      page: integer("page"),
     },
     lookup,
   );
@@ -226,7 +240,7 @@ app.get("/api/communes", async (c) => {
   }
 
   // Past the last page is a 404 here as it is for the single-filter files above.
-  const listed = await listCommunes(query, fetchJsonFrom(c.env, url));
+  const listed = await listCommunes(query, communes, fetchJsonFrom(c.env, url));
   if (!listed) return fail(url, "not-found", `no page ${page} for this filter`, instance);
   const { rows, meta } = listed;
   const link = (n: number) => {
@@ -297,7 +311,13 @@ app.get("/api/:collection", async (c) => {
  * the same answer to the same question.
  */
 app.all("/mcp", async (c) => {
-  const server = createMcpServer({ index, lookup, tiles: tileIndex, fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)) });
+  const server = createMcpServer({
+    index,
+    lookup,
+    tiles: tileIndex,
+    communes,
+    fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)),
+  });
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
