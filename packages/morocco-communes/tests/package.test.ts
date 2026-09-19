@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
+import { FIELDS } from "../fields.ts";
 
 const HERE = "packages/morocco-communes";
 // dist/ is built by this test, so its types don't exist yet when the project is
@@ -11,6 +12,7 @@ interface Unit {
   code: string;
   name: { fr: string; ar: string };
   type?: string;
+  population?: number;
 }
 let pkg: Record<"regions" | "provinces" | "cercles" | "communes" | "arrondissements", Unit[]> & {
   version: string;
@@ -36,6 +38,12 @@ describe("the npm package", () => {
     }
   });
 
+  it("writes the fields the docs list, in that order", () => {
+    for (const name of Object.keys(FIELDS) as (keyof typeof FIELDS)[]) {
+      for (const unit of pkg[name]) expect(Object.keys(unit), `${name} ${unit.code}`).toEqual(FIELDS[name]);
+    }
+  });
+
   it("leaves out every field that comes from OpenStreetMap", () => {
     const text = readFileSync(join(HERE, "dist/communes.js"), "utf8");
     for (const key of ['"centroid"', '"bbox"', '"osm"', '"geometry"']) expect(text).not.toContain(key);
@@ -45,6 +53,11 @@ describe("the npm package", () => {
     expect(pkg.getCommune("01.511.01.0")?.name.fr).toBe("Tanger");
     expect(pkg.getCommune("tanger")?.code).toBe("01.511.01.0");
     expect(pkg.getCommune("nowhere")).toBeUndefined();
+  });
+
+  it("gives the answers the README and the docs page show", () => {
+    expect(pkg.regions[0]?.name.fr).toBe("Tanger-Tétouan-Al Hoceima");
+    expect(pkg.getCommune("tanger")).toMatchObject({ code: "01.511.01.0", type: "urban", population: 1275428 });
   });
 
   it("walks the hierarchy the way the API does", () => {
