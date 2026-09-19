@@ -2,7 +2,7 @@ export type Locale = "en" | "fr";
 
 /** Resolves once the repository is pushed under this name; zkousama is the GitHub account. */
 export const REPO_URL = "https://github.com/zkousama/morocco-communes-api";
-export const AUTHOR = { name: "Ousama", url: "https://github.com/zkousama" };
+export const AUTHOR = { name: "Ousama Ajebbar", url: "https://github.com/zkousama" };
 
 export const LOCALES: Locale[] = ["en", "fr"];
 export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
