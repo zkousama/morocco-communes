@@ -1,0 +1,307 @@
+---
+/**
+ * HCP's 2024 census figures for a unit: its age pyramid, a row of headline figures with
+ * the women's and the country's beside them, and the languages its people use and read.
+ */
+import { fill, places } from "../../i18n/places";
+import type { Locale } from "../../i18n/ui";
+import { numbers, percent } from "../../lib/format";
+import { figure, national, type IndicatorRecord } from "../../lib/indicators";
+
+interface Props {
+  locale: Locale;
+  record: IndicatorRecord;
+  name: string;
+}
+const { locale, record, name } = Astro.props;
+const p = places[locale];
+
+const all = record.people.total?.all;
+const men = record.people.total?.male;
+const women = record.people.total?.female;
+const homes = record.households.total;
+const country = national.people.total!.all;
+const countryHomes = national.households.total;
+
+// Each figure at the precision HCP publishes it: shares to one decimal, fertility to two.
+const share = (v: number) => percent(locale, v, { fixed: true });
+const pct = (v: number | null) => (v === null ? "—" : share(v));
+const two = numbers(locale, 2, true);
+const one = numbers(locale, 1, true);
+
+// Oldest at the top, as a pyramid is read.
+const BANDS = ["75+", "70-74", "65-69", "60-64", "55-59", "50-54", "45-49", "40-44", "35-39", "30-34", "25-29", "20-24", "15-19", "10-14", "5-9", "0-4"];
+const band = (key: string) => (key.endsWith("+") ? fill(p.over, { n: key.slice(0, -1) }) : key.replace("-", "–"));
+const rows = BANDS.map((key) => ({ key, men: figure(men, `age.${key}`), women: figure(women, `age.${key}`) }));
+const widest = Math.max(...rows.flatMap((r) => [r.men ?? 0, r.women ?? 0]));
+const hasAges = widest > 0;
+const width = (v: number | null) => `${((v ?? 0) / widest) * 100}%`;
+
+/** A headline figure, with women's and Morocco's beside it where they tell something. */
+const headline = (label: string, path: string, note: string, opts: { women?: boolean; format?: (v: number) => string; homes?: boolean } = {}) => {
+  const source = opts.homes ? homes : all;
+  const value = figure(source, path);
+  const show = opts.format ?? share;
+  const theirs = opts.women ? figure(women, path) : null;
+  const countryValue = figure(opts.homes ? countryHomes : country, path);
+  const beside = [
+    theirs !== null ? fill(p.womenFigure, { v: show(theirs) }) : null,
+    record.level !== "country" && countryValue !== null ? fill(p.moroccoFigure, { v: show(countryValue) }) : null,
+  ].filter(Boolean);
+  return { label, value: value === null ? null : show(value), note, beside: beside.join(" · ") };
+};
+const headlines = [
+  headline(p.illiteracy, "illiteracy.rate10Plus", p.illiteracyNote, { women: true }),
+  headline(p.unemployment, "labour.unemploymentRate", "", { women: true }),
+  headline(p.labourForce, "labour.activityRate", p.labourForceNote, { women: true }),
+  headline(p.schooling, "schooling.rate6to11", p.schoolingNote),
+  headline(p.fertility, "fertility.totalFertilityRate", p.fertilityNote, { format: (v) => two.format(v) }),
+  headline(p.disability, "disability.prevalence", p.disabilityNote),
+  headline(p.householdSize, "households.averageSize", p.householdSizeNote, { homes: true, format: (v) => one.format(v) }),
+  headline(p.runningWater, "amenities.runningWater", p.runningWaterNote, { homes: true }),
+].filter((h) => h.value !== null);
+
+const bars = (topic: string, keys: string[]) =>
+  keys
+    .map((key) => ({ key, value: figure(all, `${topic}.${key}`) }))
+    .filter((b): b is { key: string; value: number } => b.value !== null)
+    .sort((a, b) => b.value - a.value);
+const used = bars("localLanguages", ["darija", "tachelhit", "tamazight", "tarifit", "hassania"]);
+const read = bars("languagesReadAndWritten", ["arabic", "french", "english", "amazighTifinagh"]);
+const names = p.languageNames as Record<string, string>;
+---
+
+<section class="people">
+  <h2>{p.people}</h2>
+  {!hasAges && headlines.length === 0 ? (
+    <p>{fill(p.peopleLocal, { name })}</p>
+  ) : (
+    <>
+      <p>{record.fromLocalAdministration ? fill(p.peopleLocal, { name }) : p.peopleBody}</p>
+
+      {headlines.length > 0 && (
+        <dl class="figures">
+          {headlines.map((h) => (
+            <div>
+              <dt>{h.label}</dt>
+              <dd>
+                {h.value}
+                {h.note && <small>{h.note}</small>}
+                {h.beside && <small>{h.beside}</small>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      <div class="pair">
+        {hasAges && (
+          <div>
+            <h3>{p.age}</h3>
+            <p class="note">{p.ageBody}</p>
+            <table class="pyramid">
+              <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="men">{p.men}</th>
+                  <th scope="col"><span class="sr-only">{p.age}</span></th>
+                  <th scope="col" class="women">{p.women}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr>
+                    <td class="men"><span class="bar" style={`--w: ${width(r.men)}`} /><span class="value">{pct(r.men)}</span></td>
+                    <th scope="row">{band(r.key)}</th>
+                    <td class="women"><span class="bar" style={`--w: ${width(r.women)}`} /><span class="value">{pct(r.women)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {(used.length > 0 || read.length > 0) && (
+          <div class="languages">
+            {used.length > 0 && (
+              <>
+                <h3>{p.languagesUsed}</h3>
+                <p class="note">{p.languagesUsedBody}</p>
+                <ul class="bars">
+                  {used.map((b) => (
+                    <li><span class="label">{names[b.key]}</span><span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span><span class="value">{pct(b.value)}</span></li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {read.length > 0 && (
+              <>
+                <h3>{p.languagesRead}</h3>
+                <p class="note">{p.languagesReadBody}</p>
+                <ul class="bars">
+                  {read.map((b) => (
+                    <li><span class="label">{names[b.key]}</span><span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span><span class="value">{pct(b.value)}</span></li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  )}
+</section>
+
+<style>
+  h3 {
+    font-size: var(--t-sm);
+    font-weight: 500;
+    margin: 1.75rem 0 0.2rem;
+  }
+
+  .note {
+    margin: 0 0 0.75rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  /* Eight figures, so four to a row rather than six and two. */
+  .people .figures {
+    margin-top: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(max(11rem, 22%), 1fr));
+  }
+
+  .people .figures dd small + small {
+    margin-top: 0.1rem;
+  }
+
+  /* The pyramid: a table, so it reads as one, with each share drawn as a bar out from the
+     ages in the middle. The numbers show on hover. */
+  .pyramid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pyramid th,
+  .pyramid td {
+    padding: 0;
+    border: 0;
+    height: 1.15rem;
+  }
+
+  .pyramid thead th {
+    padding-bottom: 0.4rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .pyramid thead .men {
+    text-align: end;
+  }
+
+  .pyramid thead .women {
+    text-align: start;
+  }
+
+  .pyramid tbody th {
+    width: 6.5rem;
+    padding: 0 0.6rem;
+    text-align: center;
+    font-weight: 400;
+    color: var(--quiet);
+    white-space: nowrap;
+  }
+
+  .pyramid td {
+    position: relative;
+    width: calc(50% - 3.25rem);
+  }
+
+  .pyramid td .bar {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    width: var(--w);
+  }
+
+  .pyramid td.men .bar {
+    right: 0;
+    background: var(--seq-1);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .pyramid td.women .bar {
+    left: 0;
+    background: var(--seq-4);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .pyramid .value {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .pyramid td.men .value {
+    left: 0;
+  }
+
+  .pyramid td.women .value {
+    right: 0;
+  }
+
+  .pyramid tbody tr:hover .value {
+    opacity: 1;
+  }
+
+  .pyramid tbody tr:hover th {
+    color: var(--ink);
+  }
+
+  /* The languages: one bar each on a 0 to 100 track, labelled with its share. */
+  .bars {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+    font-size: var(--t-sm);
+  }
+
+  .bars li {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr) 3.5rem;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .bars .track {
+    height: 0.7rem;
+    border-radius: 3px;
+    background: var(--rule);
+  }
+
+  .bars .bar {
+    display: block;
+    height: 100%;
+    width: var(--w);
+    border-radius: 3px;
+    background: var(--seq-3);
+  }
+
+  .bars .value {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 40rem) {
+    .bars li {
+      grid-template-columns: 7.5rem minmax(0, 1fr) 3.25rem;
+      gap: 0.5rem;
+    }
+  }
+</style>

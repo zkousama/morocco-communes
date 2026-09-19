@@ -4,6 +4,8 @@ import Code from "../Code.astro";
 import PlaceMap from "./PlaceMap.astro";
 import Inset from "./Inset.astro";
 import ChangeChart from "./ChangeChart.astro";
+import People from "./People.astro";
+import { indicatorsOf } from "../../lib/indicators";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
 import { density, percent } from "../../lib/format";
@@ -74,6 +76,7 @@ const where = inset({ region: region.code, province: province.code });
 const bordering = (neighbours.get(c.code) ?? [])
   .map((code) => communeOf.get(code)!)
   .sort((a, b) => a.name.fr.localeCompare(b.name.fr, "fr"));
+const census = indicatorsOf.get(c.code);
 const arrondissements = arrondissementsOf(c.code);
 const cityDrawing = drawArrondissements(c.code);
 // Every arrondissement in Casablanca is past the top national break, so the city is shaded
@@ -195,6 +198,8 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
+  {census && <People locale={locale} record={census} name={c.name.fr} />}
+
   {c.urbanCentres.length > 0 && (
     <section>
       <h2>{p.urbanCentres}</h2>
@@ -260,6 +265,9 @@ getCommune("${c.slug}");`;
       <div><dt>{p.record}</dt><dd><a href={`/api/communes/${c.code}.json`}><code>/api/communes/{c.code}.json</code></a></dd></div>
       {c.areaKm2 !== null && (
         <div><dt>{p.boundary}</dt><dd><a href={`/api/communes/${c.code}/boundary.geojson`}><code>/api/communes/{c.code}/boundary.geojson</code></a></dd></div>
+      )}
+      {census && (
+        <div><dt>{p.census}</dt><dd><a href={`/api/communes/${c.code}/indicators.json`}><code>/api/communes/{c.code}/indicators.json</code></a></dd></div>
       )}
       {c.osm && (
         <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
