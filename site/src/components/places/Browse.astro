@@ -1,0 +1,146 @@
+---
+/**
+ * Every commune, by région and province, with a filter that hides what doesn't match as
+ * you type. The list is the page; the filter only narrows it, so it works without script.
+ */
+import Place from "../../layouts/Place.astro";
+import { fill, places } from "../../i18n/places";
+import { path, type Locale } from "../../i18n/ui";
+import { communes, communesIn, provincesIn, regions } from "../../lib/places";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const p = places[locale];
+const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ]/g, "").toLowerCase();
+const byName = <T extends { name: { fr: string } }>(a: T, b: T) => a.name.fr.localeCompare(b.name.fr, "fr");
+---
+
+<Place
+  locale={locale}
+  route="communes/"
+  title={p.browseTitle}
+  description={p.browseDescription}
+  lede={fill(p.browseLede, { n: n.format(communes.length) })}
+  trail={[]}
+>
+  <div class="filter">
+    <label for="filter">{p.filterLabel}</label>
+    <input id="filter" type="search" autocomplete="off" placeholder={p.filterPlaceholder} />
+    <p class="none" hidden>{p.noMatch}</p>
+  </div>
+
+  {[...regions].sort((a, b) => a.code.localeCompare(b.code)).map((r) => (
+    <section class="region" data-region>
+      <h2><a href={path(locale, `regions/${r.slug}/`)}>{r.name.fr}</a></h2>
+      {provincesIn(r.code).sort(byName).filter((pr) => communesIn(pr.code).length > 0).map((pr) => (
+        <div class="province" data-province>
+          <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{pr.name.fr}</a></h3>
+          <ul>
+            {communesIn(pr.code).sort(byName).map((c) => (
+              <li data-name={`${fold(c.name.fr)} ${fold(c.name.ar)} ${c.slug}`}>
+                <a href={path(locale, `communes/${c.slug}/`)}>{c.name.fr}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  ))}
+</Place>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>("#filter");
+  const none = document.querySelector<HTMLElement>(".filter .none");
+  // The same folding the page wrote into data-name: accents and Arabic vowel marks off.
+  const fold = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ]/g, "").toLowerCase().trim();
+  input?.addEventListener("input", () => {
+    const q = fold(input.value);
+    let shown = 0;
+    for (const province of document.querySelectorAll<HTMLElement>("[data-province]")) {
+      let any = false;
+      for (const li of province.querySelectorAll<HTMLElement>("li")) {
+        const hit = q === "" || (li.dataset.name ?? "").includes(q);
+        li.hidden = !hit;
+        if (hit) any = true;
+      }
+      province.hidden = !any;
+      if (any) shown++;
+    }
+    for (const region of document.querySelectorAll<HTMLElement>("[data-region]")) {
+      region.hidden = !region.querySelector("[data-province]:not([hidden])");
+    }
+    if (none) none.hidden = shown > 0;
+  });
+</script>
+
+<style>
+  .filter {
+    display: grid;
+    gap: 0.4rem;
+    max-width: 26rem;
+    margin-top: 1.75rem;
+  }
+
+  label {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  input {
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.7rem;
+  }
+
+  input:focus {
+    outline: 2px solid var(--brass);
+    outline-offset: 1px;
+  }
+
+  .none {
+    color: var(--quiet);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .region h2 a,
+  .province h3 a {
+    text-decoration: none;
+  }
+
+  .province h3 {
+    font-size: var(--t-base);
+    font-weight: 500;
+    margin: 1.5rem 0 0.4rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 4 11rem;
+    column-gap: 1.5rem;
+    font-size: var(--t-sm);
+  }
+
+  li {
+    padding: 0.12rem 0;
+    break-inside: avoid;
+  }
+
+  li a {
+    text-decoration: none;
+  }
+
+  li a:hover {
+    text-decoration: underline;
+  }
+</style>

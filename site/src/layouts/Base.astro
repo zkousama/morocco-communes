@@ -14,6 +14,7 @@ const { locale, route = "", title, description } = Astro.props;
 const analytics = process.env.CF_ANALYTICS_TOKEN;
 const copy = t(locale);
 const sections = [
+  { route: "communes/", label: copy.navCommunes },
   { route: "docs/api/", label: copy.navApi },
   { route: "docs/mcp/", label: copy.navMcp },
   { route: "docs/components/", label: copy.navComponents },
@@ -86,7 +87,18 @@ const themes = [
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
       <nav class="sections" aria-label={copy.navLabel}>
         {sections.map((s) => (
-          <a href={path(locale, s.route)} aria-current={s.route === route ? "page" : undefined}>{s.label}</a>
+          <a
+            href={path(locale, s.route)}
+            aria-current={
+              s.route === route
+                ? "page"
+                : s.route === "communes/" && /^(communes|provinces|regions)\//.test(route)
+                  ? "true"
+                  : undefined
+            }
+          >
+            {s.label}
+          </a>
         ))}
       </nav>
       <div class="controls">
@@ -389,11 +401,11 @@ const themes = [
       }
 
       .sections a:hover,
-      .sections a[aria-current="page"] {
+      .sections a[aria-current] {
         color: var(--ink);
       }
 
-      .sections a[aria-current="page"] {
+      .sections a[aria-current] {
         text-decoration: underline;
         text-decoration-color: var(--brass);
         text-decoration-thickness: 2px;

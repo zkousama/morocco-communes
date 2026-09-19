@@ -1,0 +1,280 @@
+---
+import Place from "../../layouts/Place.astro";
+import Code from "../Code.astro";
+import PlaceMap from "./PlaceMap.astro";
+import Inset from "./Inset.astro";
+import ChangeChart from "./ChangeChart.astro";
+import { de, fill, ordinal, places } from "../../i18n/places";
+import { path, REPO_URL, type Locale } from "../../i18n/ui";
+import { percent } from "../../lib/format";
+import { densityBreaks } from "../../generated/map";
+import {
+  arrondissementsOf,
+  cercleOf,
+  communeOf,
+  communes,
+  communesIn,
+  drawProvince,
+  inset,
+  nationalRank,
+  neighbours,
+  provinceOf,
+  regionOf,
+  type Commune,
+} from "../../lib/places";
+
+interface Props {
+  locale: Locale;
+  commune: Commune;
+}
+const { locale, commune: c } = Astro.props;
+const p = places[locale];
+const province = provinceOf.get(c.parents.province)!;
+const region = regionOf.get(c.parents.region)!;
+const cercle = c.parents.cercle ? cercleOf.get(c.parents.cercle) : undefined;
+
+const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const n1 = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+const signed = (v: number) => percent(locale, v, { signed: true });
+const people = c.population["2024"];
+const change = c.population.change;
+const ptype = p.unitTypesLower[province.type];
+
+const lede =
+  locale === "fr"
+    ? fill(c.type === "rural" && cercle ? p.communeLedeRural : p.communeLede, {
+        type: c.type === "urban" ? p.urbanCommune : p.ruralCommune,
+        ptype,
+        ofProvince: de(province.name.fr),
+        ofRegion: de(region.name.fr),
+        ofCercle: cercle ? de(cercle.name.fr) : "",
+      })
+    : fill(c.type === "rural" && cercle ? p.communeLedeRural : p.communeLede, {
+        type: c.type === "urban" ? p.urbanCommune : p.ruralCommune,
+        ptype,
+        province: province.name.fr,
+        region: region.name.fr,
+        cercle: cercle?.name.fr ?? "",
+      });
+
+const rank = nationalRank.get(c.code)!;
+const siblings = communesIn(province.code);
+const rankInProvince = siblings.findIndex((s) => s.code === c.code) + 1;
+
+const href = (slug: string) => path(locale, `communes/${slug}/`);
+const densityClass = (code: string) => {
+  const d = communeOf.get(code)?.density;
+  if (d == null) return "n";
+  const i = densityBreaks.findIndex((b) => d < b);
+  return String(i < 0 ? densityBreaks.length : i);
+};
+const drawing = drawProvince(province.code);
+const where = inset({ region: region.code, province: province.code });
+const bordering = (neighbours.get(c.code) ?? [])
+  .map((code) => communeOf.get(code)!)
+  .sort((a, b) => a.name.fr.localeCompare(b.name.fr, "fr"));
+const arrondissements = arrondissementsOf(c.code);
+
+const description =
+  `${c.name.fr} (${c.name.ar}): ${n.format(people.total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}` +
+  (change ? `, ${signed(change.pct)} ${locale === "fr" ? "depuis 2014" : "since 2014"}` : "") +
+  `. ${locale === "fr" ? "Code HCP" : "HCP code"} ${c.code}.`;
+
+const snippet = `import { getCommune } from "morocco-communes";
+
+getCommune("${c.slug}");`;
+---
+
+<Place
+  locale={locale}
+  route={`communes/${c.slug}/`}
+  title={c.name.fr}
+  description={description}
+  arabic={c.name.ar}
+  lede={lede}
+  trail={[
+    { href: path(locale, "communes/"), label: p.browseTitle },
+    { href: path(locale, `regions/${region.slug}/`), label: region.name.fr },
+    { href: path(locale, `provinces/${province.slug}/`), label: province.name.fr },
+  ]}
+>
+  <dl class="figures">
+    <div>
+      <dt>{p.population}</dt>
+      <dd>{n.format(people.total)}</dd>
+    </div>
+    <div>
+      <dt>{p.change}</dt>
+      <dd class:list={[change && (change.pct >= 0 ? "up" : "down")]}>
+        {change ? signed(change.pct) : "—"}
+        <small>{change ? fill(p.changeFrom, { n: n.format(c.population["2014"]!.total!) }) : p.noChange}</small>
+      </dd>
+    </div>
+    <div>
+      <dt>{p.density}</dt>
+      <dd>
+        {c.density === null ? "—" : n1.format(c.density)}
+        <small>{c.density === null ? p.noBoundary : `${p.perKm2}, ${n1.format(c.areaKm2!)} km²`}</small>
+      </dd>
+    </div>
+    {people.households !== null && (
+      <div>
+        <dt>{p.households}</dt>
+        <dd>{n.format(people.households)}</dd>
+      </div>
+    )}
+    <div>
+      <dt>{p.rank}</dt>
+      <dd>
+        {n.format(rank)}
+        <small>
+          {rank === 1 ? fill(p.rankFirst, { total: n.format(communes.length) }) : fill(p.rankText, { nth: ordinal(locale, rank), total: n.format(communes.length) })}.
+          {" "}{fill(p.rankProvince, { nth: ordinal(locale, rankInProvince), total: siblings.length, ptype })}.
+        </small>
+      </dd>
+    </div>
+  </dl>
+
+  <section class="pair">
+    <div>
+      <h2>{p.where}</h2>
+      <p>{fill(p.whereBody, { ptype })}</p>
+      {drawing && (
+        <PlaceMap
+          drawing={drawing}
+          label={fill(p.mapLabel, { name: province.name.fr })}
+          classOf={densityClass}
+          linkOf={(code) => {
+            const x = communeOf.get(code);
+            return x && x.code !== c.code ? { href: href(x.slug), name: x.name.fr } : null;
+          }}
+          highlight={c.code}
+        />
+      )}
+    </div>
+    <div class="side">
+      <Inset {...where} label={fill(p.insetLabel, { name: province.name.fr })} />
+      {bordering.length > 0 && (
+        <>
+          <h2>{p.bordering}</h2>
+          <ul class="links">
+            {bordering.map((b) => <li><a href={href(b.slug)}>{b.name.fr}</a></li>)}
+          </ul>
+        </>
+      )}
+    </div>
+  </section>
+
+  {change && (
+    <section>
+      <h2>{p.howItChanged}</h2>
+      <p>{fill(p.chartBody, { name: c.name.fr })}</p>
+      <ChangeChart
+        locale={locale}
+        value={change.pct}
+        name={c.name.fr}
+        nationalLabel={p.chartNational}
+        srText={`${c.name.fr} ${signed(change.pct)}`}
+      />
+    </section>
+  )}
+
+  {c.urbanCentres.length > 0 && (
+    <section>
+      <h2>{p.urbanCentres}</h2>
+      <p>{p.urbanCentresBody}</p>
+      <div class="scroll">
+        <table>
+          <tbody>
+            {c.urbanCentres.map((u) => (
+              <tr><td>{u.name}</td><td class="num">{u.population === null ? "—" : n.format(u.population)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  {arrondissements.length > 0 && (
+    <section>
+      <h2>{p.arrondissements}</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>{p.colArrondissement}</th><th class="num">{p.colPopulation}</th></tr></thead>
+          <tbody>
+            {arrondissements.map((a) => (
+              <tr>
+                <td>{a.name.fr} <span lang="ar" dir="rtl" class="ar">{a.name.ar}</span></td>
+                <td class="num">{n.format(a.population["2024"].total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  <section>
+    <h2>{p.inTheData}</h2>
+    <dl class="data">
+      <div><dt>{p.code}</dt><dd><code>{c.code}</code></dd></div>
+      <div><dt>{p.codeDigits}</dt><dd><code>{c.codeDigits}</code></dd></div>
+      <div><dt>{p.slug}</dt><dd><code>{c.slug}</code></dd></div>
+      <div><dt>{p.record}</dt><dd><a href={`/api/communes/${c.code}.json`}><code>/api/communes/{c.code}.json</code></a></dd></div>
+      {c.areaKm2 !== null && (
+        <div><dt>{p.boundary}</dt><dd><a href={`/api/communes/${c.code}/boundary.geojson`}><code>/api/communes/{c.code}/boundary.geojson</code></a></dd></div>
+      )}
+      {c.osm && (
+        <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
+      )}
+    </dl>
+    <Code locale={locale} label={p.inJs} code={snippet} />
+    <p class="report"><a href={`${REPO_URL}/issues/new?template=data-error.yml&title=${encodeURIComponent(`${c.name.fr} (${c.code})`)}`}>{p.report}</a></p>
+  </section>
+</Place>
+
+<style>
+  .side {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+  }
+
+  .side h2 {
+    margin-top: 0.5rem;
+  }
+
+  .ar {
+    color: var(--quiet);
+    margin-inline-start: 0.5rem;
+  }
+
+  .data {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.4rem 1.5rem;
+    margin: 0.75rem 0 1.25rem;
+    font-size: var(--t-sm);
+  }
+
+  .data > div {
+    display: contents;
+  }
+
+  .data dt {
+    color: var(--quiet);
+  }
+
+  .data dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .report {
+    font-size: var(--t-sm);
+  }
+
+  .report a {
+    color: var(--quiet);
+  }
+</style>

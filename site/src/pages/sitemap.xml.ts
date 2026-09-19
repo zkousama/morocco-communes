@@ -1,15 +1,22 @@
 import type { APIRoute } from "astro";
 import { LOCALES, PAGES, path } from "../i18n/ui";
+import { communes, provinces, regions } from "../lib/places";
 
 /**
- * Every page in both languages, each naming its other-language twin. A sitemap needs
+ * Every page in both languages, each naming its other-language twin: the docs, and a page
+ * for every région, province and commune. A sitemap needs
  * absolute URLs, so without SITE_URL at build time it lists nothing, and robots.txt
  * doesn't point to it.
  */
 export const GET: APIRoute = ({ site }) => {
   const at = (locale: (typeof LOCALES)[number], route: string) => new URL(path(locale, route), site).href;
   const urls = site
-    ? PAGES.flatMap((route) =>
+    ? [
+        ...PAGES,
+        ...regions.map((r) => `regions/${r.slug}/`),
+        ...provinces.map((p) => `provinces/${p.slug}/`),
+        ...communes.map((c) => `communes/${c.slug}/`),
+      ].flatMap((route) =>
         LOCALES.map(
           (locale) => `  <url>
     <loc>${at(locale, route)}</loc>

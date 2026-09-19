@@ -1,0 +1,77 @@
+---
+import type { Drawing } from "../../lib/places";
+
+interface Props {
+  drawing: Drawing & { provinces?: { code: string; d: string }[] };
+  label: string;
+  /** Each shape's density class, 0 to 5, for the shading the home map uses. */
+  classOf: (code: string) => string;
+  /** A page for each shape, and its name for the tooltip. */
+  linkOf: (code: string) => { href: string; name: string } | null;
+  /** The shape the page is about, drawn over the rest. */
+  highlight?: string;
+}
+const { drawing, label, classOf, linkOf, highlight } = Astro.props;
+const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : undefined;
+---
+
+<svg class="place-map" viewBox={drawing.viewBox} role="img" aria-label={label}>
+  {drawing.shapes.map((shape) => {
+    const link = linkOf(shape.code);
+    const path = <path d={shape.d} data-d={classOf(shape.code)} />;
+    return link ? <a href={link.href}><title>{link.name}</title>{path}</a> : path;
+  })}
+  {drawing.provinces && <path class="provinces" d={drawing.provinces.map((p) => p.d).join("")} />}
+  <path class="edge" d={drawing.outline} />
+  {focus && <path class="focus" d={focus.d} />}
+</svg>
+
+<style>
+  .place-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 26rem;
+    overflow: visible;
+  }
+
+  path {
+    fill: var(--map-none);
+    fill-rule: evenodd;
+    stroke: var(--paper);
+    stroke-width: 0.6;
+    stroke-linejoin: round;
+  }
+
+  [data-d="0"] { fill: var(--seq-0); }
+  [data-d="1"] { fill: var(--seq-1); }
+  [data-d="2"] { fill: var(--seq-2); }
+  [data-d="3"] { fill: var(--seq-3); }
+  [data-d="4"] { fill: var(--seq-4); }
+  [data-d="5"] { fill: var(--seq-5); }
+
+  a:hover path,
+  a:focus-visible path {
+    fill: var(--brass);
+  }
+
+  .provinces {
+    fill: none;
+    stroke: var(--paper);
+    stroke-width: 2;
+    pointer-events: none;
+  }
+
+  .edge {
+    fill: none;
+    stroke: none;
+    pointer-events: none;
+  }
+
+  .focus {
+    fill: var(--brass);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+    pointer-events: none;
+  }
+</style>

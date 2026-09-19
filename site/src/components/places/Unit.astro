@@ -1,0 +1,223 @@
+---
+/**
+ * A province, a préfecture or a région: its figures, a map of its communes shaded by
+ * density, and a table of what it holds, largest first.
+ */
+import Place from "../../layouts/Place.astro";
+import PlaceMap from "./PlaceMap.astro";
+import Inset from "./Inset.astro";
+import { de, fill, places } from "../../i18n/places";
+import { path, REPO_URL, type Locale } from "../../i18n/ui";
+import { percent } from "../../lib/format";
+import { densityBreaks } from "../../generated/map";
+import {
+  arrondissementsInPrefecture,
+  communeOf,
+  communesIn,
+  drawProvince,
+  drawRegion,
+  inset,
+  provincesIn,
+  regionOf,
+  type Province,
+  type Region,
+} from "../../lib/places";
+
+type Props = { locale: Locale } & ({ province: Province; region?: undefined } | { region: Region; province?: undefined });
+const { locale, province, region: asRegion } = Astro.props;
+const p = places[locale];
+const region = asRegion ?? regionOf.get(province!.regionCode)!;
+const unit = province ?? region;
+
+const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const n1 = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+const signed = (v: number) => percent(locale, v, { signed: true });
+
+const communes = province ? communesIn(province.code) : provincesIn(region.code).flatMap((pr) => communesIn(pr.code));
+const arrondissements = province?.type === "prefecture_of_arrondissements" ? arrondissementsInPrefecture(province.code) : [];
+const subunits = province ? [] : provincesIn(region.code);
+
+// Change over the communes with a figure for both years, so the total compares like with like.
+const before = communes.reduce((s, c) => s + (c.population["2014"]?.total ?? 0), 0);
+const after = communes.filter((c) => c.population["2014"]?.total != null).reduce((s, c) => s + c.population["2024"].total, 0);
+const change = before > 0 ? ((after - before) / before) * 100 : null;
+const area = communes.reduce((s, c) => s + (c.areaKm2 ?? 0), 0);
+
+const title = unit.name.fr;
+const lede = province
+  ? locale === "fr"
+    ? fill(p.provinceLede, { ptype: p.unitTypes[province.type], ofRegion: de(region.name.fr) })
+    : fill(p.provinceLede, { ptype: p.unitTypes[province.type], region: region.name.fr })
+  : p.regionLede;
+const route = province ? `provinces/${province.slug}/` : `regions/${region.slug}/`;
+const description =
+  `${title} (${unit.name.ar}): ${n.format(unit.population["2024"].total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}, ` +
+  `${n.format(communes.length)} ${locale === "fr" ? "communes" : "communes"}. ${locale === "fr" ? "Code HCP" : "HCP code"} ${unit.code}.`;
+
+const densityClass = (code: string) => {
+  const d = communeOf.get(code)?.density;
+  if (d == null) return "n";
+  const i = densityBreaks.findIndex((b) => d < b);
+  return String(i < 0 ? densityBreaks.length : i);
+};
+const drawing = province ? drawProvince(province.code) : drawRegion(region.code);
+const where = inset(province ? { region: region.code, province: province.code } : { region: region.code });
+const communeHref = (slug: string) => path(locale, `communes/${slug}/`);
+---
+
+<Place
+  locale={locale}
+  route={route}
+  title={title}
+  description={description}
+  arabic={unit.name.ar}
+  lede={lede}
+  trail={[
+    { href: path(locale, "communes/"), label: p.browseTitle },
+    ...(province ? [{ href: path(locale, `regions/${region.slug}/`), label: region.name.fr }] : []),
+  ]}
+>
+  <dl class="figures">
+    <div>
+      <dt>{p.population}</dt>
+      <dd>{n.format(unit.population["2024"].total)}</dd>
+    </div>
+    {change !== null && (
+      <div>
+        <dt>{p.change}</dt>
+        <dd class:list={[change >= 0 ? "up" : "down"]}>{signed(change)}</dd>
+      </div>
+    )}
+    {unit.population["2024"].households !== null && (
+      <div>
+        <dt>{p.households}</dt>
+        <dd>{n.format(unit.population["2024"].households)}</dd>
+      </div>
+    )}
+    <div>
+      <dt>{arrondissements.length > 0 ? p.arrondissements : p.communes}</dt>
+      <dd>{n.format(arrondissements.length > 0 ? arrondissements.length : communes.length)}</dd>
+    </div>
+    {subunits.length > 0 && (
+      <div>
+        <dt>{p.provinces}</dt>
+        <dd>{subunits.length}</dd>
+      </div>
+    )}
+    {area > 0 && (
+      <div>
+        <dt>{p.area}</dt>
+        <dd>{n.format(Math.round(area))} km²</dd>
+      </div>
+    )}
+  </dl>
+
+  {drawing && (
+    <section class="pair">
+      <div>
+        <PlaceMap
+          drawing={drawing}
+          label={fill(p.mapLabel, { name: title })}
+          classOf={densityClass}
+          linkOf={(code) => {
+            const c = communeOf.get(code);
+            return c ? { href: communeHref(c.slug), name: c.name.fr } : null;
+          }}
+        />
+      </div>
+      <div>
+        <Inset {...where} label={fill(p.insetLabel, { name: title })} />
+      </div>
+    </section>
+  )}
+
+  {subunits.length > 0 && (
+    <section>
+      <h2>{p.provinces}</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>{p.colProvince}</th><th>{p.colType}</th><th class="num">{p.colPopulation}</th><th class="num">{p.colCommunes}</th></tr>
+          </thead>
+          <tbody>
+            {subunits.map((s) => (
+              <tr>
+                <td><a href={path(locale, `provinces/${s.slug}/`)}>{s.name.fr}</a></td>
+                <td>{p.unitTypesLower[s.type]}</td>
+                <td class="num">{n.format(s.population["2024"].total)}</td>
+                <td class="num">{s.communeCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  {arrondissements.length > 0 && (
+    <section>
+      <h2>{p.arrondissements}</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>{p.colArrondissement}</th><th class="num">{p.colPopulation}</th></tr></thead>
+          <tbody>
+            {arrondissements.map((a) => (
+              <tr><td>{a.name.fr}</td><td class="num">{n.format(a.population["2024"].total)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  {communes.length > 0 && (
+    <section>
+      <h2>{p.communes}</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>{p.colCommune}</th>
+              <th>{p.colType}</th>
+              <th class="num">{p.colPopulation}</th>
+              <th class="num">{p.colChange}</th>
+              <th class="num">{p.colDensity}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {communes.map((c) => (
+              <tr>
+                <td><a href={communeHref(c.slug)}>{c.name.fr}</a></td>
+                <td>{c.type === "urban" ? p.urban : p.rural}</td>
+                <td class="num">{n.format(c.population["2024"].total)}</td>
+                <td class:list={["num", c.population.change && (c.population.change.pct >= 0 ? "up" : "down")]}>
+                  {c.population.change ? signed(c.population.change.pct) : "—"}
+                </td>
+                <td class="num">{c.density === null ? "—" : n1.format(c.density)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  <section>
+    <p class="report">
+      <a href={`/api/${province ? "provinces" : "regions"}/${unit.code}.json`}><code>/api/{province ? "provinces" : "regions"}/{unit.code}.json</code></a>
+      {" · "}
+      <a href={`${REPO_URL}/issues/new?template=data-error.yml&title=${encodeURIComponent(`${title} (${unit.code})`)}`}>{p.report}</a>
+    </p>
+  </section>
+</Place>
+
+<style>
+  .report {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .report a {
+    color: var(--quiet);
+  }
+</style>

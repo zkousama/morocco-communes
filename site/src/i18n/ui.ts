@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/"] as const;
+export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -31,7 +31,8 @@ export const ui = {
   en: {
     title: "Morocco communes",
     language: "Language",
-    navLabel: "Documentation",
+    navLabel: "Sections",
+    navCommunes: "Communes",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Components",
@@ -165,7 +166,8 @@ export const ui = {
   fr: {
     title: "Communes du Maroc",
     language: "Langue",
-    navLabel: "Documentation",
+    navLabel: "Rubriques",
+    navCommunes: "Communes",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Composants",

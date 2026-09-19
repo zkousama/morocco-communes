@@ -1,0 +1,36 @@
+---
+interface Props {
+  viewBox: string;
+  outline: string;
+  filled: string;
+  label: string;
+}
+const { viewBox, outline, filled, label } = Astro.props;
+---
+
+<svg class="inset" viewBox={viewBox} role="img" aria-label={label}>
+  <path class="country" d={outline} />
+  <path class="here" d={filled} />
+</svg>
+
+<style>
+  .inset {
+    display: block;
+    width: 7.5rem;
+    height: auto;
+  }
+
+  .country {
+    fill: var(--map-none);
+    stroke: var(--paper);
+    stroke-width: 0.8;
+  }
+
+  /* Outlined as well as filled, so a province a few pixels across still shows. */
+  .here {
+    fill: var(--brass);
+    stroke: var(--brass);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+</style>

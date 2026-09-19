@@ -1,0 +1,11 @@
+---
+import Commune from "../../../components/places/Commune.astro";
+import { communes } from "../../../lib/places";
+
+export function getStaticPaths() {
+  return communes.map((commune) => ({ params: { slug: commune.slug }, props: { commune } }));
+}
+const { commune } = Astro.props;
+---
+
+<Commune locale="fr" commune={commune} />

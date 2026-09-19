@@ -1,0 +1,223 @@
+---
+import Base from "./Base.astro";
+import type { Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+  route: string;
+  title: string;
+  description: string;
+  /** Links above the title, from the list of all communes down to the parent. */
+  trail: { href: string; label: string }[];
+  /** The name in Arabic, shown beside the French one. */
+  arabic?: string;
+  lede: string;
+}
+const { locale, route, title, description, trail, arabic, lede } = Astro.props;
+---
+
+<Base locale={locale} route={route} title={title} description={description}>
+  <article class="place">
+    <header>
+      {trail.length > 0 && (
+        <nav class="trail" aria-label="Breadcrumb">
+          <ol>
+            {trail.map((step) => <li><a href={step.href}>{step.label}</a></li>)}
+          </ol>
+        </nav>
+      )}
+      <div class="names">
+        <h1>{title}</h1>
+        {arabic && <p class="arabic" lang="ar" dir="rtl">{arabic}</p>}
+      </div>
+      <p class="lede">{lede}</p>
+    </header>
+    <slot />
+  </article>
+</Base>
+
+<style>
+  .place {
+    padding-top: clamp(1rem, 3vw, 2rem);
+  }
+
+  .trail ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    list-style: none;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    font-size: var(--t-sm);
+  }
+
+  .trail li + li::before {
+    content: "›";
+    margin-inline-end: 0.5rem;
+    color: var(--quiet);
+  }
+
+  .trail a {
+    color: var(--quiet);
+    text-decoration: none;
+  }
+
+  .trail a:hover {
+    color: var(--ink);
+  }
+
+  .names {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1.5rem;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(var(--t-xl), 6vw, 3.8rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .arabic {
+    margin: 0;
+    font-size: clamp(var(--t-lg), 4vw, var(--t-xl));
+    color: var(--quiet);
+  }
+
+  .lede {
+    margin: 0.9rem 0 0;
+    font-size: var(--t-md);
+    line-height: 1.45;
+    color: var(--quiet);
+    max-width: 52ch;
+  }
+
+  /* Shared by the three kinds of page. -------------------------------------- */
+
+  .place :global(.figures) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0;
+    margin: clamp(1.75rem, 4vw, 2.5rem) 0 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .place :global(.figures > div) {
+    padding: 1rem 1.25rem 1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .place :global(.figures dt) {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .place :global(.figures dd) {
+    margin: 0.2rem 0 0;
+    font-size: var(--t-lg);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .place :global(.figures dd small) {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .place :global(section) {
+    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .place :global(section h2) {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    font-weight: 400;
+    margin: 0 0 0.5rem;
+  }
+
+  .place :global(section > p) {
+    color: var(--quiet);
+  }
+
+  .place :global(.pair) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: start;
+  }
+
+  @media (max-width: 48rem) {
+    .place :global(.pair) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .place :global(.scroll) {
+    overflow-x: auto;
+  }
+
+  .place :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .place :global(th) {
+    text-align: start;
+    font-weight: 400;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    padding: 0 1rem 0.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  .place :global(td) {
+    padding: 0.5rem 1rem 0.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  .place :global(th.num),
+  .place :global(td.num) {
+    text-align: end;
+  }
+
+  .place :global(.links) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+  }
+
+  .place :global(.links a) {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-size: var(--t-sm);
+    text-decoration: none;
+  }
+
+  .place :global(.links a:hover) {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .place :global(.up) {
+    color: var(--chart-up);
+  }
+
+  .place :global(.down) {
+    color: var(--chart-down);
+  }
+</style>

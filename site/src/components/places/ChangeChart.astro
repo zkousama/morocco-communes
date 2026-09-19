@@ -1,0 +1,144 @@
+---
+import { changeBins, nationalChange } from "../../lib/places";
+import type { Locale } from "../../i18n/ui";
+import { percent } from "../../lib/format";
+
+interface Props {
+  locale: Locale;
+  /** The value to mark, in percent, and what to call it. */
+  value: number;
+  name: string;
+  nationalLabel: string;
+  srText: string;
+}
+const { locale, value, name, nationalLabel, srText } = Astro.props;
+const { lo, hi, width, bins, max } = changeBins;
+
+// A plain histogram: thin bars on the page, one axis, the commune and the country marked.
+// The bars are SVG and stretch; the labels are HTML placed by percentage, so they stay the
+// page's size on a phone.
+const W = 600;
+const H = 120;
+const pct = (v: number) => ((Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * 100;
+const x = (v: number) => (pct(v) / 100) * W;
+const barWidth = W / bins.length;
+const y = (count: number) => (1 - count / max) * H;
+const signed = (v: number) => percent(locale, v, { signed: true });
+const ticks = [-40, 0, 40, 100];
+const tick = (v: number) => (v === 0 ? "0" : percent(locale, v, { signed: true, digits: 0 }) + (v === hi ? "+" : ""));
+const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");
+---
+
+<figure class="change-chart">
+  <p class="mark-label" data-align={align(pct(value))} style={`--at: ${pct(value)}%`}>
+    <strong>{name}</strong> {signed(value)}
+  </p>
+  <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={srText}>
+    {bins.map((count, i) => (
+      <rect
+        class:list={[lo + i * width < 0 ? "down" : "up"]}
+        x={i * barWidth + 1}
+        y={y(count)}
+        width={barWidth - 2}
+        height={H - y(count)}
+      />
+    ))}
+    <line class="national" x1={x(nationalChange)} x2={x(nationalChange)} y1="0" y2={H} vector-effect="non-scaling-stroke" />
+    <line class="mark" x1={x(value)} x2={x(value)} y1="0" y2={H} vector-effect="non-scaling-stroke" />
+  </svg>
+  <div class="ticks" aria-hidden="true">
+    {ticks.map((t) => <span data-align={align(pct(t))} style={`--at: ${pct(t)}%`}>{tick(t)}</span>)}
+  </div>
+  <figcaption>
+    <span class="key" />{nationalLabel} {signed(nationalChange)}
+  </figcaption>
+</figure>
+
+<style>
+  .change-chart {
+    margin: 1rem 0 0;
+    max-width: 44rem;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 7.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  rect.up {
+    fill: var(--chart-up);
+    opacity: 0.55;
+  }
+
+  rect.down {
+    fill: var(--chart-down);
+    opacity: 0.55;
+  }
+
+  .national {
+    stroke: var(--quiet);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  .mark {
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+
+  /* Labels sit at a percentage along the axis, anchored the way SVG's text-anchor would be. */
+  .mark-label,
+  .ticks span {
+    position: relative;
+    display: block;
+    width: max-content;
+    left: var(--at);
+  }
+
+  [data-align="middle"] {
+    transform: translateX(-50%);
+  }
+
+  [data-align="end"] {
+    transform: translateX(-100%);
+  }
+
+  .mark-label {
+    margin: 0 0 0.3rem;
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mark-label strong {
+    font-weight: 500;
+  }
+
+  .ticks {
+    position: relative;
+    height: 1.4rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ticks span {
+    position: absolute;
+    top: 0.3rem;
+  }
+
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .key {
+    width: 1rem;
+    border-top: 1.5px dashed var(--quiet);
+  }
+</style>

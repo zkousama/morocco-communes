@@ -1,0 +1,11 @@
+---
+import Unit from "../../../components/places/Unit.astro";
+import { regions } from "../../../lib/places";
+
+export function getStaticPaths() {
+  return regions.map((region) => ({ params: { slug: region.slug }, props: { region } }));
+}
+const { region } = Astro.props;
+---
+
+<Unit locale="fr" region={region} />
