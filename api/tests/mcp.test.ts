@@ -8,6 +8,7 @@ import { emitTree } from "../src/emit/static.ts";
 import { buildLookup } from "../src/lib/resolve.ts";
 import { buildGeometry } from "../src/emit/geometry.ts";
 import { prepareIndex, tilePath } from "../src/lib/locate.ts";
+import { serverJson } from "../src/mcp/registry.ts";
 import type { Envelope } from "../src/lib/envelope.ts";
 import type { Dataset } from "../src/lib/dataset.ts";
 
@@ -194,5 +195,14 @@ describe("the MCP server, through a real client", () => {
       content: [{ type: "text", text: e.message }],
     }));
     expect(r.isError).toBe(true);
+  });
+});
+
+describe("the MCP Registry entry", () => {
+  it("fits the registry's limits", () => {
+    const entry = serverJson({ siteUrl: "https://example.workers.dev", version: "1.0.0" });
+    expect(entry.description.length).toBeLessThanOrEqual(100);
+    expect(entry.name).toMatch(/^io\.github\.zkousama\/[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$/);
+    expect(entry.remotes).toEqual([{ type: "streamable-http", url: "https://example.workers.dev/mcp" }]);
   });
 });

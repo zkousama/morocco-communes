@@ -5,6 +5,7 @@ import { buildIndex } from "./searchIndex.ts";
 import { buildOpenApi } from "../openapi.ts";
 import { buildGeometry } from "./geometry.ts";
 import { tilePath } from "../lib/locate.ts";
+import { serverJson } from "../mcp/registry.ts";
 import type { Dataset } from "../lib/dataset.ts";
 
 const DATA = "data/v1";
@@ -76,6 +77,11 @@ const put = async (path: string, body: unknown) => {
 for (const [region, collection] of geometry.regions) await put(`/data/v1/geometry/${region}.geojson`, collection);
 for (const [code, feature] of geometry.communes) await put(`/api/communes/${code}/boundary.geojson`, feature);
 for (const [key, tile] of geometry.tiles) await put(tilePath(key), tile);
+
+// The MCP Registry entry names the deployed URL, so it's only written once that's known.
+if (process.env.SITE_URL) {
+  await put("/server.json", serverJson({ siteUrl: process.env.SITE_URL, version }));
+}
 console.log(
   `wrote ${tree.size} API files, ${geometry.communes.size + geometry.regions.size} GeoJSON files, ` +
     `${geometry.tiles.size} tiles and the dataset to ${OUT}/, ` +
