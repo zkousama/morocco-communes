@@ -162,4 +162,22 @@ const copy = t(locale);
   .doc :global(.quiet) {
     color: var(--quiet);
   }
+
+  /* A two-column table stacks on a phone: the key, and what it holds under it. */
+  @media (max-width: 40rem) {
+    .doc :global(table.stack thead) {
+      display: none;
+    }
+    .doc :global(table.stack tr) {
+      display: grid;
+      gap: 0.2rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .doc :global(table.stack td) {
+      padding: 0;
+      border: 0;
+      white-space: normal;
+    }
+  }
 </style>

@@ -51,7 +51,7 @@ const toc = [
   <section id="records">
     <h2>{d.records}</h2>
     <div class="scroll" tabindex="0">
-      <table>
+      <table class="stack">
         <thead>
           <tr>
             <th scope="col">{d.list}</th>
@@ -62,7 +62,7 @@ const toc = [
           {records.map((r) => (
             <tr>
               <td class="mono">{r.list}</td>
-              <td class="mono quiet fields">{r.fields}</td>
+              <td class="quiet fields">{r.fields}</td>
             </tr>
           ))}
         </tbody>
@@ -91,7 +91,8 @@ const toc = [
 
 <style>
   .fields {
-    white-space: normal;
+    font-family: var(--mono);
+    font-size: 0.88em;
   }
 
   .list {

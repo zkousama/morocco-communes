@@ -190,6 +190,22 @@ const { locale, route, title, description, trail, arabic, lede } = Astro.props;
     text-align: end;
   }
 
+  /* Five columns fit a phone once the headers wrap and the gaps close up. */
+  @media (max-width: 40rem) {
+    .place :global(th) {
+      white-space: normal;
+      vertical-align: bottom;
+    }
+    .place :global(th),
+    .place :global(td) {
+      padding-inline-end: 0.6rem;
+    }
+    .place :global(th:last-child),
+    .place :global(td:last-child) {
+      padding-inline-end: 0;
+    }
+  }
+
   .place :global(.links) {
     display: flex;
     flex-wrap: wrap;

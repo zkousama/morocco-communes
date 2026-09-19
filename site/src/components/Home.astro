@@ -340,8 +340,9 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 
   /* The code ladder -------------------------------------------------------- */
 
-  /* The cells cannot wrap without losing the shape of the column, so on a narrow screen
-     the table scrolls inside its own box rather than dragging the page sideways. */
+  /* The codes can't wrap without losing the shape of the column. On a phone the level
+     drops under the name and the header wraps, which leaves them room; on anything
+     narrower the table scrolls inside its own box. */
   .ladder-scroll {
     overflow-x: auto;
     margin-top: 1.75rem;
@@ -403,6 +404,22 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     text-align: end;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+
+  @media (max-width: 40rem) {
+    .ladder {
+      min-width: 20rem;
+    }
+    .ladder .name {
+      padding-inline-end: 0.75rem;
+    }
+    .ladder .name .level {
+      display: block;
+      margin: 0;
+    }
+    .ladder th.num {
+      white-space: normal;
+    }
   }
 
   /* Tiers: a sequence, because a request really does fall through them in order. */
