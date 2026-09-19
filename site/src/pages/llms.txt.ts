@@ -28,6 +28,10 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Filtered list](${at("/api/communes?province=01.511")}): communes by région, province, cercle or type, 50 to a page
 - [Version](${at("/api/version.json")}): dataset version, record counts and when each source was read
 
+## Pages
+
+- [Every commune](${at("/communes/")}): a page for each région, province and commune, with its figures, a map and the communes it borders, at /communes/{slug}/, /provinces/{slug}/ and /regions/{slug}/
+
 ## Docs
 
 - [API reference](${at("/docs/api/")}): every route with a real response, and what each error means

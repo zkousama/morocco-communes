@@ -238,11 +238,19 @@ for (const [path, marker] of [
     `status=${response.status} ct=${response.headers.get("content-type")}`);
 }
 
-console.log("\ndocs");
-for (const path of ["/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/fr/docs/api/", "/fr/docs/mcp/"]) {
+console.log("\npages");
+for (const path of [
+  "/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/fr/docs/api/", "/fr/docs/mcp/",
+  "/communes/", "/communes/tanger/", "/fr/communes/tafraout/", "/provinces/chefchaouen/", "/regions/oriental/",
+]) {
   const response = await fetch(base + path);
   check(`${path} is a page`, response.status === 200 && (response.headers.get("content-type") ?? "").includes("text/html"),
     `status=${response.status}`);
+}
+{
+  const response = await fetch(base + "/map/communes.json");
+  const rows = response.ok ? ((await response.json()) as Record<string, unknown[]>) : {};
+  check("/map/communes.json has a row for every commune", Object.keys(rows).length === 1503, `${Object.keys(rows).length}`);
 }
 {
   // A problem's type is a link, and it has to land on the entry that describes it.

@@ -35,7 +35,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 5,656 files written at build time and served straight from
+**Pre-rendered.** 5,743 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -104,25 +104,32 @@ Full reference: [`api/README.md`](api/README.md).
 ## The docs site
 
 `site/` is an Astro site in English and French, with a light and dark theme and a control
-to pick either or follow the system. It builds to static HTML. Its JavaScript is a Solid
-island for the playground, which issues live queries against whatever it is deployed beside
-and shows the request URL and the `X-Api-Tier` of the response, plus the picker on the
-components page and the copy buttons.
+to pick either or follow the system. It builds to static HTML: the home page, 4 docs pages
+(the API reference, the MCP setup, the components and the npm package), and a page for
+every région, province and commune, 3,210 pages in all.
 
-Beside the home page are 4 docs pages: an API reference, the MCP setup, the components and
-the npm package.
+The home page opens on a map of every commune, shaded by density, change since 2014, or
+urban and rural. Hovering one shows its figures and clicking opens its page. A commune's
+page has its figures and rank, a map of its province, the communes it borders, and where
+its change sits among all of them. A list of every commune filters as you type, in French
+or Arabic.
+
+Its JavaScript is the map's hover and switch, the list's filter, the playground (a Solid
+island that queries whatever API it's deployed beside and shows the `X-Api-Tier` of each
+response), the picker on the components page, and the copy buttons.
 
 Everything on it that describes the data or the API is generated at build time, by the
 scripts under `site/scripts/`:
 
-- `outline.ts` draws the hero: All 1,502 commune boundaries, decoded from the TopoJSON,
-  projected and simplified to a tolerance that stays under a device pixel at the size it
-  renders, straight from the files the API serves.
+- `map.ts` draws the home map from the TopoJSON the API serves. Each shared border is one
+  arc, simplified once for both of its communes, so the fills meet without slivers. Its
+  colours were checked for contrast and colour-blind separation in both themes.
 - `hierarchy.ts` builds the code ladder, a real chain from région down to arrondissement.
-- `charts.ts` computes population change per région, the distribution of commune sizes, and the
-  growth spread of the 207 crosswalked communes against the 1,286 whose code never
-  changed. That last one is the reconciliation checking itself: the two distributions sit
-  almost on top of each other.
+- `charts.ts` computes population change per région, the distribution of commune sizes,
+  how few communes hold half the population, how many communes lost people, and the growth
+  spread of the 207 crosswalked communes against the 1,286 whose code never changed. That
+  last one is the reconciliation checking itself: the two distributions sit almost on top
+  of each other.
 
 - `downloads.ts` lists the files under `data/v1` with their real sizes, and fails the
   build on a file that isn't there.
@@ -131,7 +138,12 @@ scripts under `site/scripts/`:
   by connecting a client to the server. The French page reads a translation of each line
   of the spec, and the build fails when one is missing or left over.
 
+The région, province and commune pages are built from `site/src/lib/places.ts`, which
+reads `data/v1` once per build: ranks, the communes each one borders, matched on shared
+boundary points, and small maps drawn the same way as the home map.
+
 The charts are inline SVG and CSS, so they need no JavaScript and no charting library.
+`outline.ts` draws the older single-colour map that the link preview image uses.
 
 Arabic names are in the data and Arabic queries work; the interface is English and French.
 

@@ -263,8 +263,9 @@ simply left out.
 rendering it needs Chrome; regenerate it with `pnpm site:og` when the map or the headline
 changes.
 
-`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 2,190 KiB
-uncompressed against a 64 MiB limit, and `dist/` is 5,718 files against a 20,000 limit.
+`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 3,841 KiB
+uncompressed against a 64 MiB limit, most of it the commune records it holds, and `dist/`
+is 9,011 files, pages included, against a 20,000 limit.
 
 Two more things a build can take:
 
