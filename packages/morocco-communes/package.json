@@ -40,6 +40,8 @@
     "communes",
     "regions",
     "provinces",
+    "cities",
+    "villes",
     "hcp",
     "census",
     "rgph"
