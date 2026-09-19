@@ -123,6 +123,12 @@ getCommune("${c.slug}");`;
         <dd>{n.format(people.households)}</dd>
       </div>
     )}
+    {people.foreign !== null && people.foreign > 0 && (
+      <div>
+        <dt>{p.foreign}</dt>
+        <dd>{n.format(people.foreign)}</dd>
+      </div>
+    )}
     <div>
       <dt>{p.rank}</dt>
       <dd>

@@ -31,7 +31,8 @@ const regions = JSON.parse(await readFile("data/v1/attributes/regions.json", "ut
 const GROUPS: Group[] = [
   {
     key: "dlCommunes",
-    licence: "hcp",
+    // Area, density and the point inside each commune come from the boundaries.
+    licence: "odbl",
     files: [
       { label: "JSON", path: "data/v1/attributes/communes.json" },
       { label: "CSV", path: "data/v1/attributes/communes.csv" },

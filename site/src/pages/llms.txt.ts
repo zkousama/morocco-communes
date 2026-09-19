@@ -41,7 +41,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 
 ## Data
 
-- [Communes as JSON](${at("/data/v1/attributes/communes.json")}): every commune with its codes, names, population and a point inside it
+- [Communes as JSON](${at("/data/v1/attributes/communes.json")}): every commune with its codes, names, population, area, density and a point inside it
 - [Communes as CSV](${at("/data/v1/attributes/communes.csv")}): the same, flattened
 - [Boundaries](${at("/data/v1/geometry/01.topojson")}): one TopoJSON file per région, 01 to 12, under ODbL
 - [Boundaries as GeoJSON](${at("/data/v1/geometry/01.geojson")}): the same, one file per région; each commune's alone is at /api/communes/{code}/boundary.geojson

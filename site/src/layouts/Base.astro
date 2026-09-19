@@ -52,7 +52,7 @@ const themes = [
     {ogImage && <meta property="og:image" content={ogImage} />}
     {ogImage && <meta property="og:image:width" content="1200" />}
     {ogImage && <meta property="og:image:height" content="630" />}
-    {ogImage && <meta property="og:image:alt" content={copy.mapCaption} />}
+    {ogImage && <meta property="og:image:alt" content={copy.tagline} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
     {
       site &&
@@ -129,7 +129,12 @@ const themes = [
       </div>
       <div class="made">
         <p>© {new Date().getFullYear()} <a href={AUTHOR.url}>{AUTHOR.name}</a></p>
-        <p><a href={REPO_URL}>{copy.repo}</a></p>
+        <p class="links">
+          <a href={REPO_URL}>{copy.repo}</a>
+          <a href={`${REPO_URL}/blob/main/CITATION.cff`}>{copy.cite}</a>
+          <a href={`${REPO_URL}/issues/new/choose`}>{copy.report}</a>
+          <a href="/llms.txt">llms.txt</a>
+        </p>
       </div>
     </footer>
 
@@ -507,6 +512,19 @@ const themes = [
 
       footer a:hover {
         color: var(--ink);
+      }
+
+      footer .links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.2rem 1rem;
+      }
+
+      @media (max-width: 40rem) {
+        footer .links {
+          justify-content: flex-start;
+        }
       }
 
       @media (max-width: 40rem) {

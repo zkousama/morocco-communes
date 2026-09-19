@@ -35,8 +35,8 @@ export const places = {
     density: "Density",
     perKm2: "people per km²",
     rank: "Rank",
-    rankText: "{nth} largest of {total} communes",
-    rankFirst: "The largest of {total} communes",
+    rankText: "{nth} most populous of {total} communes",
+    rankFirst: "The most populous of {total} communes",
     rankProvince: "{nth} of {total} in its {ptype}",
     foreign: "Foreign residents",
     noBoundary: "no boundary",
@@ -74,7 +74,7 @@ export const places = {
     mapLabel: "Map of {name} and its communes",
     insetLabel: "Where {name} is in Morocco",
     report: "Report an error on this page",
-    largest: "Largest commune",
+    largest: "Most populous",
     grewMost: "Grew the most",
     shrankMost: "Shrank the most",
     densest: "Densest",
@@ -112,7 +112,7 @@ export const places = {
     density: "Densité",
     perKm2: "habitants au km²",
     rank: "Rang",
-    rankText: "{nth} plus peuplée des {total} communes",
+    rankText: "La {nth} plus peuplée des {total} communes",
     rankFirst: "La plus peuplée des {total} communes",
     rankProvince: "{nth} sur {total} dans sa {ptype}",
     foreign: "Résidents étrangers",
@@ -152,25 +152,26 @@ export const places = {
     insetLabel: "Situation de {name} au Maroc",
     report: "Signaler une erreur sur cette page",
     largest: "Commune la plus peuplée",
-    grewMost: "A le plus grandi",
-    shrankMost: "A le plus perdu",
+    grewMost: "Plus forte hausse",
+    shrankMost: "Plus forte baisse",
     densest: "La plus dense",
   },
 } satisfies Record<Locale, unknown>;
 
-/** "de Tanger", "d’Ifrane": French elides before a vowel. The Oriental takes its article. */
+/** "de Tanger", "d’Ifrane": French elides before a vowel, not before a Y. The Oriental takes its article. */
 export const de = (name: string) =>
   name === "Oriental"
     ? "de l’Oriental"
-    : /^[aeiouyàâäéèêëîïôöùûüAEIOUYÀÂÄÉÈÊËÎÏÔÖÙÛÜ]/.test(name)
+    : /^[aeiouàâäéèêëîïôöùûüAEIOUÀÂÄÉÈÊËÎÏÔÖÙÛÜ]/.test(name)
       ? `d’${name}`
       : `de ${name}`;
 
-/** 1st, 2nd, 3rd in English; 1re, 2e in French, for a commune, which is feminine. */
+/** 1st, 1,089th in English; 1re, 1 089e in French, for a commune, which is feminine. */
 export function ordinal(locale: Locale, n: number): string {
-  if (locale === "fr") return n === 1 ? "1re" : `${n}e`;
+  const grouped = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB").format(n);
+  if (locale === "fr") return n === 1 ? "1re" : `${grouped}e`;
   const s = n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th";
-  return `${n}${s}`;
+  return `${grouped}${s}`;
 }
 
 export const fill = (text: string, values: Record<string, string | number>) =>

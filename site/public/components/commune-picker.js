@@ -1,6 +1,6 @@
 /**
  * <commune-picker>: région, then province or préfecture, then commune, filled in from the
- * Morocco communes API. It fills three <select> elements you write yourself, so the labels,
+ * Morocco communes API. It fills 3 <select> elements you write yourself, so the labels,
  * the language and the styling stay yours, and the commune's HCP code is posted with the
  * form like any other field.
  *

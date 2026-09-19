@@ -26,7 +26,12 @@ const html = `<form>
 </form>
 <script type="module" src="${origin}/components/commune-picker.js"></script>`;
 
-const react = reactSource.replace('const API = "https://example.com";', `const API = "${origin}";`);
+const react = reactSource
+  .replace('const API = "https://example.com";', `const API = "${origin}";`)
+  .replace(
+    /const LABELS = \{.*\};/,
+    `const LABELS = ${JSON.stringify({ region: d.labelRegion, province: d.labelProvince, commune: d.labelCommune, choose: d.choose }).replace(/,/g, ", ").replace(/:/g, ": ").replace(/"(\w+)": /g, "$1: ")};`,
+  );
 
 const attributes = [
   { name: "api", text: d.attrApi },

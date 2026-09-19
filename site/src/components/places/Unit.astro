@@ -73,7 +73,7 @@ const standouts = [
   { label: p.largest, commune: communes[0], value: communes[0] && n.format(communes[0].population["2024"].total) },
   (() => {
     const c = pick(withChange, (a, b) => a.population.change!.pct > b.population.change!.pct);
-    return { label: p.grewMost, commune: c, value: c && signed(c.population.change!.pct) };
+    return { label: p.grewMost, commune: c && c.population.change!.pct > 0 ? c : undefined, value: c && signed(c.population.change!.pct) };
   })(),
   (() => {
     const c = pick(withChange, (a, b) => a.population.change!.pct < b.population.change!.pct);

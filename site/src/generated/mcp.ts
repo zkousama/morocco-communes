@@ -66,7 +66,7 @@ export const mcp = {
     {
       "name": "communes_near",
       "title": "Communes near a point",
-      "description": "Communes within a radius of a point, nearest first. Distance is measured to each commune's centroid, so the nearest commune is not always the one that contains the point: commune_at gives that one.",
+      "description": "Communes within a radius of a point, nearest first. Distance is measured to each commune's centroid, so the nearest commune isn't always the one that contains the point: commune_at gives that one.",
       "params": [
         {
           "name": "lat",
@@ -170,6 +170,7 @@ export const mcp = {
           "name": "type",
           "required": false,
           "schema": {
+            "description": "Urban or rural communes only.",
             "type": "string",
             "enum": [
               "urban",

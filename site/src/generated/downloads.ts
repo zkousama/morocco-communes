@@ -2,7 +2,7 @@
 export const downloads = [
   {
     "key": "dlCommunes",
-    "licence": "hcp",
+    "licence": "odbl",
     "files": [
       {
         "label": "JSON",
@@ -251,7 +251,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 973
+        "bytes": 1225
       }
     ]
   }

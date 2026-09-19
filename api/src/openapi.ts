@@ -41,7 +41,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       version: opts.version,
       summary: "Morocco's administrative divisions as open data.",
       description:
-        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, and boundaries from OpenStreetMap.\n\n" +
+        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, and boundaries from OpenStreetMap.\n\n" +
         "An identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\n" +
         "Every response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
       license: { name: "MIT (code). Attributes: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
@@ -78,7 +78,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "communeAt",
           summary: "The commune that contains a point",
           description:
-            "Tested against each commune's boundary, which is accurate to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+            "Tested against each commune's boundary, stored to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
           parameters: [
             { name: "lat", in: "query", required: true, description: "Latitude, in degrees.", schema: { type: "number", minimum: -90, maximum: 90 }, example: 35.786 },
             { name: "lng", in: "query", required: true, description: "Longitude, in degrees.", schema: { type: "number", minimum: -180, maximum: 180 }, example: -5.8125 },
@@ -158,9 +158,12 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             },
           ],
           responses: {
-            "200": ok("A page of communes.", { type: "array", items: ref("Commune") }),
-            "400": problem("A filter is not a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter."),
-            "404": problem("A filter names a unit that does not exist, or the page is past the last."),
+            "200": ok("A page of communes, or search hits when q is given.", {
+              type: "array",
+              items: { oneOf: [ref("Commune"), ref("SearchHit")] },
+            }),
+            "400": problem("A filter isn't a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter."),
+            "404": problem("A filter names a unit that doesn't exist, or the page is past the last."),
           },
         },
       },

@@ -8,7 +8,7 @@ export const reference = {
       "title": "Morocco communes API",
       "version": "1.0.0",
       "summary": "Morocco's administrative divisions as open data.",
-      "description": "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, and boundaries from OpenStreetMap.\n\nAn identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\nEvery response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
+      "description": "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, and boundaries from OpenStreetMap.\n\nAn identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\nEvery response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
       "license": {
         "name": "MIT (code). Attributes: HCP. Boundaries: ODbL-1.0.",
         "identifier": "MIT"
@@ -103,7 +103,7 @@ export const reference = {
         "get": {
           "operationId": "communeAt",
           "summary": "The commune that contains a point",
-          "description": "Tested against each commune's boundary, which is accurate to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+          "description": "Tested against each commune's boundary, stored to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
           "parameters": [
             {
               "name": "lat",
@@ -381,7 +381,7 @@ export const reference = {
           ],
           "responses": {
             "200": {
-              "description": "A page of communes.",
+              "description": "A page of communes, or search hits when q is given.",
               "content": {
                 "application/json": {
                   "schema": {
@@ -395,7 +395,14 @@ export const reference = {
                           "data": {
                             "type": "array",
                             "items": {
-                              "$ref": "#/components/schemas/Commune"
+                              "oneOf": [
+                                {
+                                  "$ref": "#/components/schemas/Commune"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/SearchHit"
+                                }
+                              ]
                             }
                           }
                         }
@@ -406,7 +413,7 @@ export const reference = {
               }
             },
             "400": {
-              "description": "A filter is not a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter.",
+              "description": "A filter isn't a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter.",
               "content": {
                 "application/problem+json": {
                   "schema": {
@@ -416,7 +423,7 @@ export const reference = {
               }
             },
             "404": {
-              "description": "A filter names a unit that does not exist, or the page is past the last.",
+              "description": "A filter names a unit that doesn't exist, or the page is past the last.",
               "content": {
                 "application/problem+json": {
                   "schema": {
@@ -1037,7 +1044,7 @@ export const reference = {
       "op": {
         "operationId": "communeAt",
         "summary": "The commune that contains a point",
-        "description": "Tested against each commune's boundary, which is accurate to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+        "description": "Tested against each commune's boundary, stored to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
         "parameters": [
           {
             "name": "lat",
@@ -1319,7 +1326,7 @@ export const reference = {
         ],
         "responses": {
           "200": {
-            "description": "A page of communes.",
+            "description": "A page of communes, or search hits when q is given.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1333,7 +1340,14 @@ export const reference = {
                         "data": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/components/schemas/Commune"
+                            "oneOf": [
+                              {
+                                "$ref": "#/components/schemas/Commune"
+                              },
+                              {
+                                "$ref": "#/components/schemas/SearchHit"
+                              }
+                            ]
                           }
                         }
                       }
@@ -1344,7 +1358,7 @@ export const reference = {
             }
           },
           "400": {
-            "description": "A filter is not a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter.",
+            "description": "A filter isn't a valid code or names the wrong kind of unit, a parameter is out of range, or q is given with another parameter.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1354,7 +1368,7 @@ export const reference = {
             }
           },
           "404": {
-            "description": "A filter names a unit that does not exist, or the page is past the last.",
+            "description": "A filter names a unit that doesn't exist, or the page is past the last.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2196,14 +2210,14 @@ export const reference = {
               {
                 "id": "hcp-2024",
                 "url": "https://www.hcp.ma/file/242341/",
-                "licence": "Haut-Commissariat au Plan, RGPH 2024. Government publication, attributed.",
+                "licence": "Haut-Commissariat au Plan, RGPH 2024. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
                 "sha256": "7e9d3d402cc2fd0d9c4fc941c4f23c6a5e5ddcbefbba80b7540267f8e2728dca",
                 "retrievedAt": "2026-09-17"
               },
               {
                 "id": "hcp-2014",
                 "url": "https://www.hcp.ma/file/230057/",
-                "licence": "Haut-Commissariat au Plan, RGPH 2014. Government publication, attributed.",
+                "licence": "Haut-Commissariat au Plan, RGPH 2014. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
                 "sha256": "e0a7e308c0c1e185e5bec0c080d10635b19e83216d0bf91656554c707bbf0709",
                 "retrievedAt": "2026-09-17"
               },

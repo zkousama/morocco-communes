@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
-// Where the Morocco communes API lives.
+// Where the Morocco communes API lives, and what the form calls things.
 const API = "https://example.com";
+const LABELS = { region: "Région", province: "Province", commune: "Commune", choose: "Choose" };
 
 async function get(path) {
   const response = await fetch(API + path);
@@ -58,7 +59,7 @@ export function CommunePicker({ value = "", onChange, name = "commune" }) {
   return (
     <>
       <label>
-        Région
+        {LABELS.region}
         <select
           value={region}
           onChange={(e) => {
@@ -67,14 +68,14 @@ export function CommunePicker({ value = "", onChange, name = "commune" }) {
             onChange?.("");
           }}
         >
-          <option value="">Choisir</option>
+          <option value="">{LABELS.choose}</option>
           {regions.map((r) => (
             <option key={r.code} value={r.code}>{r.name.fr}</option>
           ))}
         </select>
       </label>
       <label>
-        Province
+        {LABELS.province}
         <select
           value={province}
           disabled={provinces.length === 0}
@@ -83,16 +84,16 @@ export function CommunePicker({ value = "", onChange, name = "commune" }) {
             onChange?.("");
           }}
         >
-          <option value="">Choisir</option>
+          <option value="">{LABELS.choose}</option>
           {provinces.map((p) => (
             <option key={p.code} value={p.code}>{p.name.fr}</option>
           ))}
         </select>
       </label>
       <label>
-        Commune
+        {LABELS.commune}
         <select name={name} value={value} disabled={communes.length === 0} onChange={(e) => onChange?.(e.target.value)}>
-          <option value="">Choisir</option>
+          <option value="">{LABELS.choose}</option>
           {communes.map((c) => (
             <option key={c.code} value={c.code}>{c.name.fr}</option>
           ))}

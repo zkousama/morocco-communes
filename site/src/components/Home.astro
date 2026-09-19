@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
 import Atlas from "./Map.astro";
+import { escapeHtml } from "../lib/highlight";
 import { AUTHOR, COUNTED, LEVELS, path, REPO_URL, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { downloads } from "../generated/downloads";
@@ -94,6 +95,12 @@ const dataset =
       }
     : null;
 
+/** Copy with a {placeholder} that becomes a link, escaped like any other text. */
+const linked = (text: string, links: Record<string, [href: string, label: string]>) =>
+  escapeHtml(text).replace(/\{(\w+)\}/g, (_, k: string) =>
+    links[k] ? `<a href="${links[k]![0]}">${escapeHtml(links[k]![1])}</a>` : `{${k}}`,
+  );
+
 /** The pre-rendered routes, each a link to the file that answers it. */
 const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, ""));
 ---
@@ -148,7 +155,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 
   <section class="band">
     <h2>{copy.chartsHeading}</h2>
-    <p>{copy.chartsBody}</p>
+    {copy.chartsBody && <p>{copy.chartsBody}</p>}
     <Charts locale={locale} />
   </section>
 
@@ -160,7 +167,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 
   <section class="band">
     <h2>{copy.useHeading}</h2>
-    <p>{copy.useBody}</p>
+    {copy.useBody && <p>{copy.useBody}</p>}
     <ul class="ways">
       {ways.map((way) => (
         <li>
@@ -192,7 +199,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 
   <section class="band">
     <h2>{copy.dataHeading}</h2>
-    <p>{copy.dataBody}</p>
+    <p set:html={linked(copy.dataBody, { readme: [`${REPO_URL}/blob/main/data/v1/README.md`, copy.linkReadme] })} />
     <ul class="downloads">
       {downloads.map((group) => (
         <li class:list={["dl", { wide: group.files.length > 2 }]}>

@@ -195,7 +195,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       title: "Communes near a point",
       description:
         "Communes within a radius of a point, nearest first. Distance is measured to each commune's centroid, " +
-        "so the nearest commune is not always the one that contains the point: commune_at gives that one.",
+        "so the nearest commune isn't always the one that contains the point: commune_at gives that one.",
       inputSchema: {
         lat: z.number().min(-90).max(90).describe("Latitude, in degrees."),
         lng: z.number().min(-180).max(180).describe("Longitude, in degrees."),
@@ -283,7 +283,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         region: z.string().optional().describe("A région, by code or slug."),
         province: z.string().optional().describe("A province or préfecture, by code or slug."),
         cercle: z.string().optional().describe("A cercle, by code or slug."),
-        type: z.enum(["urban", "rural"]).optional(),
+        type: z.enum(["urban", "rural"]).optional().describe("Urban or rural communes only."),
         sort: z
           .enum(SORTS as [string, ...string[]])
           .optional()

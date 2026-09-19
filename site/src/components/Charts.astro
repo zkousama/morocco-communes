@@ -1,6 +1,7 @@
 ---
 import { change, half, shrinking, sizes, spread } from "../generated/charts";
-import { t, type Locale } from "../i18n/ui";
+import { REPO_URL, t, type Locale } from "../i18n/ui";
+import { escapeHtml } from "../lib/highlight";
 import { percent as formatPercent } from "../lib/format";
 
 interface Props {
@@ -170,7 +171,13 @@ const spoken = (row: (typeof spread)[number]) =>
         ))}
       </span>
     </div>
-    <p class="note">{copy.chartSpreadNote}</p>
+    <p
+      class="note"
+      set:html={escapeHtml(copy.chartSpreadNote).replace(
+        "{crosswalk}",
+        `<a href="${REPO_URL}/blob/main/data/v1/crosswalk/README.md">${escapeHtml(copy.linkCrosswalk)}</a>`,
+      )}
+    />
   </figure>
 </div>
 
