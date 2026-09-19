@@ -1,6 +1,8 @@
 ---
 import Docs from "../../layouts/Docs.astro";
 import Code from "../Code.astro";
+import Params from "./Params.astro";
+import { typeOf, type Schema } from "../../lib/schema";
 import { mcp } from "../../generated/mcp";
 import { docs } from "../../i18n/docs";
 import { inline } from "../../lib/inline";
@@ -81,26 +83,6 @@ const clients = [
   },
 ];
 
-interface Schema {
-  type?: string;
-  enum?: string[];
-  items?: Schema;
-  minimum?: number;
-  maximum?: number;
-  exclusiveMinimum?: number;
-  minLength?: number;
-  maxLength?: number;
-  description?: string;
-}
-
-/** A parameter's type and bounds, in the notation the API page uses. */
-const typeOf = (s: Schema): string => {
-  if (s.enum) return s.enum.join(" | ");
-  if (s.type === "array" && s.items) return `(${typeOf(s.items)})[]`;
-  const lo = s.minimum !== undefined ? `[${s.minimum}` : s.exclusiveMinimum !== undefined ? `(${s.exclusiveMinimum}` : null;
-  const range = lo !== null && s.maximum !== undefined ? ` ${lo}, ${s.maximum}]` : "";
-  return `${s.type ?? ""}${range}`.replace(/-/g, "−");
-};
 
 const toc = [
   { id: "server", label: d.server },
@@ -135,31 +117,20 @@ const toc = [
       <article class="tool" id={`tool-${tool.name}`}>
         <h3><code>{tool.name}</code> <span class="quiet">{tool.title}</span></h3>
         <p class="said" lang="en">{tool.description}</p>
-        <div class="scroll" tabindex="0">
-          <table class="params">
-            <thead>
-              <tr>
-                <th scope="col">{d.parameter}</th>
-                <th scope="col">{d.type}</th>
-                <th scope="col"><span class="sr-only">{d.required}</span></th>
-                <th scope="col"><span class="sr-only">{d.describes}</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {tool.params.map((p) => {
-                const schema = p.schema as Schema;
-                return (
-                  <tr>
-                    <td class="mono">{p.name}</td>
-                    <td class="mono quiet">{typeOf(schema)}</td>
-                    <td class="mono required">{p.required ? d.required : ""}</td>
-                    <td lang="en">{schema.description ?? ""}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <Params
+          label={d.parameters}
+          params={tool.params.map((p) => {
+            const schema = p.schema as Schema;
+            return {
+              name: p.name,
+              type: typeOf(schema),
+              required: p.required,
+              note: p.required ? d.required : undefined,
+              description: schema.description ?? "",
+              lang: locale === "en" ? undefined : "en",
+            };
+          })}
+        />
       </article>
     ))}
   </section>
@@ -204,10 +175,6 @@ const toc = [
     color: var(--quiet);
   }
 
-  .required {
-    color: var(--brass);
-  }
-
   .questions {
     margin: 0.5rem 0 0;
     padding: 0;
@@ -221,26 +188,5 @@ const toc = [
     padding: 0.7rem 0.9rem;
     border-inline-start: 2px solid var(--brass);
     background: var(--well);
-  }
-
-  @media (max-width: 40rem) {
-    .params thead {
-      display: none;
-    }
-    .params tr {
-      display: grid;
-      grid-template-columns: auto auto minmax(0, 1fr);
-      column-gap: 1rem;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .params td {
-      padding: 0;
-      border: 0;
-    }
-    .params td:last-child {
-      grid-column: 1 / -1;
-      padding-top: 0.2rem;
-    }
   }
 </style>

@@ -1,6 +1,8 @@
 ---
 import Docs from "../../layouts/Docs.astro";
 import Code from "../Code.astro";
+import Params from "./Params.astro";
+import { typeOf, type Schema } from "../../lib/schema";
 import { reference } from "../../generated/reference";
 import { docs, SPEC_FR } from "../../i18n/docs";
 import { highlightJson } from "../../lib/highlight";
@@ -13,14 +15,6 @@ interface Props {
 const { locale } = Astro.props;
 const d = docs[locale].api;
 
-interface Schema {
-  type?: string;
-  enum?: string[];
-  minimum?: number;
-  maximum?: number;
-  exclusiveMinimum?: number;
-  default?: unknown;
-}
 interface Param {
   name: string;
   in: string;
@@ -72,14 +66,6 @@ if (locale === "fr") {
   const stale = Object.keys(SPEC_FR).filter((key) => !used.has(key));
   if (stale.length > 0) throw new Error(`SPEC_FR names what the spec no longer has: ${stale.join(", ")}`);
 }
-
-/** A parameter's type and bounds, in interval notation, which reads the same in both languages. */
-const typeOf = (s: Schema) => {
-  if (s.enum) return s.enum.join(" | ");
-  const lo = s.minimum !== undefined ? `[${s.minimum}` : s.exclusiveMinimum !== undefined ? `(${s.exclusiveMinimum}` : null;
-  const range = lo !== null && s.maximum !== undefined ? ` ${lo}, ${s.maximum}]` : "";
-  return `${s.type ?? ""}${range}`.replace(/-/g, "−");
-};
 
 const origin = Astro.site?.origin ?? null;
 const identifiers = ["01.511.01.0", "001511010", "1511010", "tanger"];
@@ -139,30 +125,16 @@ const toc = [
         {op.description && <p class="quiet" set:html={inline(op.description)} />}
 
         {op.params.length > 0 && (
-          <div class="scroll" tabindex="0">
-            <table class="params">
-              <thead>
-                <tr>
-                  <th scope="col">{d.parameter}</th>
-                  <th scope="col">{d.type}</th>
-                  <th scope="col">{d.default}</th>
-                  <th scope="col"><span class="sr-only">{d.describes}</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {op.params.map((p) => (
-                  <tr>
-                    <td class="mono">{p.name}</td>
-                    <td class="mono quiet">{typeOf(p.schema)}</td>
-                    <td class:list={["mono", { required: p.required }]}>
-                      {p.required ? d.required : p.schema.default !== undefined ? String(p.schema.default) : ""}
-                    </td>
-                    <td set:html={inline(p.description)} />
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Params
+            label={d.parameters}
+            params={op.params.map((p) => ({
+              name: p.name,
+              type: typeOf(p.schema),
+              required: p.required,
+              note: p.required ? d.required : p.schema.default !== undefined ? d.byDefault.replace("{v}", String(p.schema.default)) : undefined,
+              description: p.description,
+            }))}
+          />
         )}
 
         <ul class="responses" aria-label={d.responses}>
@@ -188,7 +160,7 @@ const toc = [
     <h2>{d.files}</h2>
     <p set:html={inline(d.filesBody)} />
     <div class="scroll" tabindex="0">
-      <table>
+      <table class="stack">
         <thead>
           <tr>
             <th scope="col">{d.path}</th>
@@ -198,7 +170,7 @@ const toc = [
         <tbody>
           {reference.files.map((f) => (
             <tr>
-              <td class="mono"><a href={f.example}>{f.pattern}</a></td>
+              <td class="mono"><a href={f.example}>{f.pattern.split("/").map((part, i) => <>{i > 0 && <>/<wbr /></>}{part}</>)}</a></td>
               <td>{d.filesWhat[f.key as keyof typeof d.filesWhat]}</td>
             </tr>
           ))}
@@ -324,10 +296,6 @@ const toc = [
     margin-bottom: 0.35rem;
   }
 
-  .required {
-    color: var(--brass);
-  }
-
   .responses {
     list-style: none;
     margin: 0.5rem 0 1.25rem;
@@ -350,28 +318,5 @@ const toc = [
   .cut {
     margin-top: -0.75rem;
     font-size: var(--t-xs);
-  }
-
-  /* Four columns leave the description a sliver on a phone, so each row stacks: name,
-     type and default on a line, the description under them. */
-  @media (max-width: 40rem) {
-    .params thead {
-      display: none;
-    }
-    .params tr {
-      display: grid;
-      grid-template-columns: auto auto minmax(0, 1fr);
-      column-gap: 1rem;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .params td {
-      padding: 0;
-      border: 0;
-    }
-    .params td:last-child {
-      grid-column: 1 / -1;
-      padding-top: 0.2rem;
-    }
   }
 </style>

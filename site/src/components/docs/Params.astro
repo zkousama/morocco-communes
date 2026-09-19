@@ -1,0 +1,111 @@
+---
+/**
+ * A route's or a tool's parameters: the name and whether it's required or what it defaults
+ * to on the left, the type and what it does on the right. A table put the type in a column
+ * of its own, and one long enum stretched that column past the page.
+ */
+import { inline } from "../../lib/inline";
+
+interface Param {
+  name: string;
+  /** The type and its bounds, or the values it takes when it's an enum. */
+  type: string | string[];
+  /** "required", or "10 by default", or nothing. */
+  note?: string;
+  required?: boolean;
+  /** Inline markdown. */
+  description: string;
+  /** Set when the description stays in English on the French page. */
+  lang?: string;
+}
+
+interface Props {
+  label: string;
+  params: Param[];
+}
+const { label, params } = Astro.props;
+---
+
+<dl class="params" aria-label={label}>
+  {params.map((p) => (
+    <div>
+      <dt>
+        <code class="name">{p.name}</code>
+        {p.note && <span class:list={["note", { required: p.required }]}>{p.note}</span>}
+      </dt>
+      <dd>
+        <span class="type">
+          {Array.isArray(p.type)
+            ? p.type.map((v, i) => <>{i > 0 && <span class="or"> | </span>}<code>{v}</code></>)
+            : p.type}
+        </span>
+        {p.description && <span class="what" lang={p.lang} set:html={inline(p.description)} />}
+      </dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .params {
+    margin: 0.75rem 0 1.25rem;
+    border-top: 1px solid var(--rule);
+    font-size: var(--t-sm);
+  }
+
+  .params > div {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: 0.2rem 1.5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  dt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .name {
+    font-weight: 500;
+  }
+
+  .note {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .note.required {
+    color: var(--brass);
+  }
+
+  dd {
+    margin: 0;
+    display: grid;
+    gap: 0.2rem;
+    max-width: var(--measure);
+  }
+
+  .type {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    color: var(--quiet);
+  }
+
+  .type code {
+    font-size: 1em;
+    white-space: nowrap;
+  }
+
+  /* On a phone the name and its note sit on one line, with the rest under them. */
+  @media (max-width: 40rem) {
+    .params > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    dt {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+  }
+</style>
