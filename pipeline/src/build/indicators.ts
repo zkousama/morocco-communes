@@ -50,7 +50,7 @@ export interface Units {
 /** HCP writes a code without its leading zeros. */
 export const hcpCode = (codeDigits: string) => String(Number(codeDigits));
 
-const nest = (fields: Field[], cells: Cell[]): Topics => {
+export const nest = (fields: { topic: string; key: string }[], cells: Cell[]): Topics => {
   const out: Topics = {};
   fields.forEach((f, i) => {
     const cell = cells[i]!;
@@ -59,7 +59,7 @@ const nest = (fields: Field[], cells: Cell[]): Topics => {
   return out;
 };
 
-const applicable = (cells: Cell[]) => cells.some((c) => c !== "n/a");
+export const applicable = (cells: Cell[]) => cells.some((c) => c !== "n/a");
 
 const URBAN_CENTRE = /^dont le centre urbain\s+(de\s+la\s+|de\s+l['’]|de\s+|du\s+|des\s+|d['’])?/i;
 

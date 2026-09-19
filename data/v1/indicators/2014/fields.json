@@ -1,0 +1,1355 @@
+{
+  "census": "2014",
+  "source": {
+    "people": {
+      "id": "hcp-2014-indicators-people",
+      "url": "https://www.hcp.ma/file/230045/"
+    },
+    "households": {
+      "id": "hcp-2014-indicators-households",
+      "url": "https://www.hcp.ma/file/230042/"
+    }
+  },
+  "people": [
+    {
+      "path": "population.legal",
+      "column": "population_legal",
+      "topic": "population",
+      "key": "legal",
+      "label": "Legal population",
+      "heading": "Population légale",
+      "unit": "people",
+      "sexes": [
+        "all"
+      ],
+      "comparableTo": "population.legal"
+    },
+    {
+      "path": "population.municipal",
+      "column": "population_municipal",
+      "topic": "population",
+      "key": "municipal",
+      "label": "Municipal population",
+      "heading": "Population municipale",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "population.municipal"
+    },
+    {
+      "path": "age.0-4",
+      "column": "age_0_4",
+      "topic": "age",
+      "key": "0-4",
+      "label": "Aged 0 to 4",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "0-4 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.0-4"
+    },
+    {
+      "path": "age.5-9",
+      "column": "age_5_9",
+      "topic": "age",
+      "key": "5-9",
+      "label": "Aged 5 to 9",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "5-9 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.5-9"
+    },
+    {
+      "path": "age.10-14",
+      "column": "age_10_14",
+      "topic": "age",
+      "key": "10-14",
+      "label": "Aged 10 to 14",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "10-14 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.10-14"
+    },
+    {
+      "path": "age.15-19",
+      "column": "age_15_19",
+      "topic": "age",
+      "key": "15-19",
+      "label": "Aged 15 to 19",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "15-19 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.15-19"
+    },
+    {
+      "path": "age.20-24",
+      "column": "age_20_24",
+      "topic": "age",
+      "key": "20-24",
+      "label": "Aged 20 to 24",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "20-24 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.20-24"
+    },
+    {
+      "path": "age.25-29",
+      "column": "age_25_29",
+      "topic": "age",
+      "key": "25-29",
+      "label": "Aged 25 to 29",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "25-29 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.25-29"
+    },
+    {
+      "path": "age.30-34",
+      "column": "age_30_34",
+      "topic": "age",
+      "key": "30-34",
+      "label": "Aged 30 to 34",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "30-34 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.30-34"
+    },
+    {
+      "path": "age.35-39",
+      "column": "age_35_39",
+      "topic": "age",
+      "key": "35-39",
+      "label": "Aged 35 to 39",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "35-39 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.35-39"
+    },
+    {
+      "path": "age.40-44",
+      "column": "age_40_44",
+      "topic": "age",
+      "key": "40-44",
+      "label": "Aged 40 to 44",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "40-44 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.40-44"
+    },
+    {
+      "path": "age.45-49",
+      "column": "age_45_49",
+      "topic": "age",
+      "key": "45-49",
+      "label": "Aged 45 to 49",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "45-49 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.45-49"
+    },
+    {
+      "path": "age.50-54",
+      "column": "age_50_54",
+      "topic": "age",
+      "key": "50-54",
+      "label": "Aged 50 to 54",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "50-54 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.50-54"
+    },
+    {
+      "path": "age.55-59",
+      "column": "age_55_59",
+      "topic": "age",
+      "key": "55-59",
+      "label": "Aged 55 to 59",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "55-59 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.55-59"
+    },
+    {
+      "path": "age.60-64",
+      "column": "age_60_64",
+      "topic": "age",
+      "key": "60-64",
+      "label": "Aged 60 to 64",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "60-64 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.60-64"
+    },
+    {
+      "path": "age.65-69",
+      "column": "age_65_69",
+      "topic": "age",
+      "key": "65-69",
+      "label": "Aged 65 to 69",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "65-69 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.65-69"
+    },
+    {
+      "path": "age.70-74",
+      "column": "age_70_74",
+      "topic": "age",
+      "key": "70-74",
+      "label": "Aged 70 to 74",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "70-74 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.70-74"
+    },
+    {
+      "path": "age.75+",
+      "column": "age_75_plus",
+      "topic": "age",
+      "key": "75+",
+      "label": "Aged 75 and over",
+      "heading": "Répartition selon le groupe d'âges quinquennal",
+      "category": "75 ans et plus",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "age.75+"
+    },
+    {
+      "path": "maritalStatus.single",
+      "column": "marital_status_single",
+      "topic": "maritalStatus",
+      "key": "single",
+      "label": "Never married",
+      "heading": "État matrimonial",
+      "category": "Célibataire",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "In 2014 HCP published this over the whole population, children included; the 2024 figure counts only people aged 15 and over."
+    },
+    {
+      "path": "maritalStatus.married",
+      "column": "marital_status_married",
+      "topic": "maritalStatus",
+      "key": "married",
+      "label": "Married",
+      "heading": "État matrimonial",
+      "category": "Marié",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "In 2014 HCP published this over the whole population, children included; the 2024 figure counts only people aged 15 and over."
+    },
+    {
+      "path": "maritalStatus.divorced",
+      "column": "marital_status_divorced",
+      "topic": "maritalStatus",
+      "key": "divorced",
+      "label": "Divorced",
+      "heading": "État matrimonial",
+      "category": "Divorcé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "In 2014 HCP published this over the whole population, children included; the 2024 figure counts only people aged 15 and over."
+    },
+    {
+      "path": "maritalStatus.widowed",
+      "column": "marital_status_widowed",
+      "topic": "maritalStatus",
+      "key": "widowed",
+      "label": "Widowed",
+      "heading": "État matrimonial",
+      "category": "Veuf",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "In 2014 HCP published this over the whole population, children included; the 2024 figure counts only people aged 15 and over."
+    },
+    {
+      "path": "maritalStatus.singulateMeanAgeAtMarriage",
+      "column": "marital_status_singulate_mean_age_at_marriage",
+      "topic": "maritalStatus",
+      "key": "singulateMeanAgeAtMarriage",
+      "label": "Singulate mean age at marriage",
+      "heading": "Âge moyen au premier mariage",
+      "unit": "years",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "maritalStatus.singulateMeanAgeAtMarriage"
+    },
+    {
+      "path": "disability.prevalence",
+      "column": "disability_prevalence",
+      "topic": "disability",
+      "key": "prevalence",
+      "label": "Disability prevalence",
+      "heading": "Taux de prévalence du handicap",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "disability.prevalence"
+    },
+    {
+      "path": "fertility.completedFertility",
+      "column": "fertility_completed_fertility",
+      "topic": "fertility",
+      "key": "completedFertility",
+      "label": "Completed fertility, women aged 45 to 49",
+      "heading": "Fécondité",
+      "category": "Parité moyenne à 45-49 ans",
+      "unit": "births per woman",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "fertility.completedFertility"
+    },
+    {
+      "path": "fertility.totalFertilityRate",
+      "column": "fertility_total_fertility_rate",
+      "topic": "fertility",
+      "key": "totalFertilityRate",
+      "label": "Total fertility rate",
+      "heading": "Fécondité",
+      "category": "Indice synthétique de fécondité",
+      "unit": "births per woman",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "fertility.totalFertilityRate"
+    },
+    {
+      "path": "schooling.rate7to12",
+      "column": "schooling_rate_7_to_12",
+      "topic": "schooling",
+      "key": "rate7to12",
+      "label": "School enrolment at 7 to 12",
+      "heading": "Taux de scolarisation des enfants âgés de 7 à 12 ans",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census published enrolment for children aged 6 to 11, a year younger at each end."
+    },
+    {
+      "path": "illiteracy.rate10Plus",
+      "column": "illiteracy_rate_10_plus",
+      "topic": "illiteracy",
+      "key": "rate10Plus",
+      "label": "Illiteracy rate, aged 10 and over",
+      "heading": "Taux d'analphabétisme",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "illiteracy.rate10Plus"
+    },
+    {
+      "path": "languageCombinations.arabicOnly",
+      "column": "language_combinations_arabic_only",
+      "topic": "languageCombinations",
+      "key": "arabicOnly",
+      "label": "Arabic only",
+      "heading": "Population alphabétisée de 10 ans et plus selon les langues lues et écrites",
+      "category": "Arabe seule",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "2014 counted each literate person once, under the combination they read and write. The 2024 census asked about each language separately, so a person can appear under several."
+    },
+    {
+      "path": "languageCombinations.arabicAndFrench",
+      "column": "language_combinations_arabic_and_french",
+      "topic": "languageCombinations",
+      "key": "arabicAndFrench",
+      "label": "Arabic and French",
+      "heading": "Population alphabétisée de 10 ans et plus selon les langues lues et écrites",
+      "category": "Arabe et français seules",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "2014 counted each literate person once, under the combination they read and write. The 2024 census asked about each language separately, so a person can appear under several."
+    },
+    {
+      "path": "languageCombinations.arabicFrenchEnglish",
+      "column": "language_combinations_arabic_french_english",
+      "topic": "languageCombinations",
+      "key": "arabicFrenchEnglish",
+      "label": "Arabic, French and English",
+      "heading": "Population alphabétisée de 10 ans et plus selon les langues lues et écrites",
+      "category": "Arabe, français et anglais",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "2014 counted each literate person once, under the combination they read and write. The 2024 census asked about each language separately, so a person can appear under several."
+    },
+    {
+      "path": "languageCombinations.other",
+      "column": "language_combinations_other",
+      "topic": "languageCombinations",
+      "key": "other",
+      "label": "Other combinations",
+      "heading": "Population alphabétisée de 10 ans et plus selon les langues lues et écrites",
+      "category": "Autres",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "2014 counted each literate person once, under the combination they read and write. The 2024 census asked about each language separately, so a person can appear under several."
+    },
+    {
+      "path": "education.none",
+      "column": "education_none",
+      "topic": "education",
+      "key": "none",
+      "label": "No schooling",
+      "heading": "Niveau d'études",
+      "category": "Néant",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "education.none"
+    },
+    {
+      "path": "education.preschool",
+      "column": "education_preschool",
+      "topic": "education",
+      "key": "preschool",
+      "label": "Preschool",
+      "heading": "Niveau d'études",
+      "category": "Préscolaire",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "education.preschool"
+    },
+    {
+      "path": "education.primary",
+      "column": "education_primary",
+      "topic": "education",
+      "key": "primary",
+      "label": "Primary",
+      "heading": "Niveau d'études",
+      "category": "Primaire",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "education.primary"
+    },
+    {
+      "path": "education.lowerSecondary",
+      "column": "education_lower_secondary",
+      "topic": "education",
+      "key": "lowerSecondary",
+      "label": "Lower secondary",
+      "heading": "Niveau d'études",
+      "category": "Secondaire collégial",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "education.lowerSecondary"
+    },
+    {
+      "path": "education.upperSecondary",
+      "column": "education_upper_secondary",
+      "topic": "education",
+      "key": "upperSecondary",
+      "label": "Upper secondary",
+      "heading": "Niveau d'études",
+      "category": "Secondaire qualifiant",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "education.upperSecondary"
+    },
+    {
+      "path": "education.higher",
+      "column": "education_higher",
+      "topic": "education",
+      "key": "higher",
+      "label": "Higher education",
+      "heading": "Niveau d'études",
+      "category": "Supérieur",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "education.higher"
+    },
+    {
+      "path": "localLanguages.darija",
+      "column": "local_languages_darija",
+      "topic": "localLanguages",
+      "key": "darija",
+      "label": "Darija",
+      "heading": "Langues locales utilisées (non exclusives)",
+      "category": "Darija",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "localLanguages.darija"
+    },
+    {
+      "path": "localLanguages.tachelhit",
+      "column": "local_languages_tachelhit",
+      "topic": "localLanguages",
+      "key": "tachelhit",
+      "label": "Tachelhit",
+      "heading": "Langues locales utilisées (non exclusives)",
+      "category": "Tachelhit",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "localLanguages.tachelhit"
+    },
+    {
+      "path": "localLanguages.tamazight",
+      "column": "local_languages_tamazight",
+      "topic": "localLanguages",
+      "key": "tamazight",
+      "label": "Tamazight",
+      "heading": "Langues locales utilisées (non exclusives)",
+      "category": "Tamazight",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "localLanguages.tamazight"
+    },
+    {
+      "path": "localLanguages.tarifit",
+      "column": "local_languages_tarifit",
+      "topic": "localLanguages",
+      "key": "tarifit",
+      "label": "Tarifit",
+      "heading": "Langues locales utilisées (non exclusives)",
+      "category": "Tarifit",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "localLanguages.tarifit"
+    },
+    {
+      "path": "localLanguages.hassania",
+      "column": "local_languages_hassania",
+      "topic": "localLanguages",
+      "key": "hassania",
+      "label": "Hassania",
+      "heading": "Langues locales utilisées (non exclusives)",
+      "category": "Hassania",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "localLanguages.hassania"
+    },
+    {
+      "path": "labour.active",
+      "column": "labour_active",
+      "topic": "labour",
+      "key": "active",
+      "label": "In the labour force, aged 15 and over",
+      "heading": "Population selon l'activité",
+      "category": "Population Active",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "labour.active"
+    },
+    {
+      "path": "labour.inactive",
+      "column": "labour_inactive",
+      "topic": "labour",
+      "key": "inactive",
+      "label": "Outside the labour force",
+      "heading": "Population selon l'activité",
+      "category": "Population Inactive",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 count is everyone else, children included. The 2024 count starts at 15, like the labour force itself."
+    },
+    {
+      "path": "labour.activityRate",
+      "column": "labour_activity_rate",
+      "topic": "labour",
+      "key": "activityRate",
+      "label": "Labour force participation rate, aged 15 and over",
+      "heading": "Taux net d'activité",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "labour.activityRate"
+    },
+    {
+      "path": "labour.unemploymentRate",
+      "column": "labour_unemployment_rate",
+      "topic": "labour",
+      "key": "unemploymentRate",
+      "label": "Unemployment rate",
+      "heading": "Taux de chômage",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "comparableTo": "labour.unemploymentRate"
+    },
+    {
+      "path": "employmentStatus.employer",
+      "column": "employment_status_employer",
+      "topic": "employmentStatus",
+      "key": "employer",
+      "label": "Employer",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Employeur",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.selfEmployed",
+      "column": "employment_status_self_employed",
+      "topic": "employmentStatus",
+      "key": "selfEmployed",
+      "label": "Self-employed",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Indépendant",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.publicSector",
+      "column": "employment_status_public_sector",
+      "topic": "employmentStatus",
+      "key": "publicSector",
+      "label": "Public sector employee",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Salarié dans le secteur public",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.privateSector",
+      "column": "employment_status_private_sector",
+      "topic": "employmentStatus",
+      "key": "privateSector",
+      "label": "Private sector employee",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Salarié dans le secteur privé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.familyWorker",
+      "column": "employment_status_family_worker",
+      "topic": "employmentStatus",
+      "key": "familyWorker",
+      "label": "Unpaid family worker",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Aide familiale",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.apprentice",
+      "column": "employment_status_apprentice",
+      "topic": "employmentStatus",
+      "key": "apprentice",
+      "label": "Apprentice",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Apprenti",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.cooperativeMember",
+      "column": "employment_status_cooperative_member",
+      "topic": "employmentStatus",
+      "key": "cooperativeMember",
+      "label": "Cooperative member or partner",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Associé ou partenaire",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    },
+    {
+      "path": "employmentStatus.other",
+      "column": "employment_status_other",
+      "topic": "employmentStatus",
+      "key": "other",
+      "label": "Other",
+      "heading": "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé",
+      "category": "Autre",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2014 shares cover people in work and unemployed people who had worked before. The 2024 shares cover people in work."
+    }
+  ],
+  "households": [
+    {
+      "path": "households.municipalPopulation",
+      "column": "households_municipal_population",
+      "topic": "households",
+      "key": "municipalPopulation",
+      "label": "Municipal population",
+      "heading": "Population et ménages",
+      "category": "Population municipale",
+      "unit": "people",
+      "comparableTo": "households.municipalPopulation"
+    },
+    {
+      "path": "households.count",
+      "column": "households_count",
+      "topic": "households",
+      "key": "count",
+      "label": "Households",
+      "heading": "Population et ménages",
+      "category": "Ménage",
+      "unit": "households",
+      "comparableTo": "households.count"
+    },
+    {
+      "path": "households.averageSize",
+      "column": "households_average_size",
+      "topic": "households",
+      "key": "averageSize",
+      "label": "Average household size",
+      "heading": "Population et ménages",
+      "category": "Taille moyenne",
+      "unit": "people per household",
+      "comparableTo": "households.averageSize"
+    },
+    {
+      "path": "dwellingType.villa",
+      "column": "dwelling_type_villa",
+      "topic": "dwellingType",
+      "key": "villa",
+      "label": "Villa, or a floor of one",
+      "heading": "Type de logement",
+      "category": "Villa",
+      "unit": "percent",
+      "comparableTo": "dwellingType.villa"
+    },
+    {
+      "path": "dwellingType.apartment",
+      "column": "dwelling_type_apartment",
+      "topic": "dwellingType",
+      "key": "apartment",
+      "label": "Apartment",
+      "heading": "Type de logement",
+      "category": "Appartement",
+      "unit": "percent",
+      "comparableTo": "dwellingType.apartment"
+    },
+    {
+      "path": "dwellingType.moroccanHouse",
+      "column": "dwelling_type_moroccan_house",
+      "topic": "dwellingType",
+      "key": "moroccanHouse",
+      "label": "Moroccan house",
+      "heading": "Type de logement",
+      "category": "Maison marocaine",
+      "unit": "percent",
+      "comparableTo": "dwellingType.moroccanHouse"
+    },
+    {
+      "path": "dwellingType.basicOrSlum",
+      "column": "dwelling_type_basic_or_slum",
+      "topic": "dwellingType",
+      "key": "basicOrSlum",
+      "label": "Basic house or slum",
+      "heading": "Type de logement",
+      "category": "Habitat sommaire",
+      "unit": "percent",
+      "comparableTo": "dwellingType.basicOrSlum"
+    },
+    {
+      "path": "dwellingType.rural",
+      "column": "dwelling_type_rural",
+      "topic": "dwellingType",
+      "key": "rural",
+      "label": "Rural dwelling",
+      "heading": "Type de logement",
+      "category": "Logement de type rural",
+      "unit": "percent",
+      "comparableTo": "dwellingType.rural"
+    },
+    {
+      "path": "dwellingType.other",
+      "column": "dwelling_type_other",
+      "topic": "dwellingType",
+      "key": "other",
+      "label": "Other",
+      "heading": "Type de logement",
+      "category": "Autre",
+      "unit": "percent",
+      "comparableTo": "dwellingType.other"
+    },
+    {
+      "path": "households.peoplePerRoom",
+      "column": "households_people_per_room",
+      "topic": "households",
+      "key": "peoplePerRoom",
+      "label": "People per room",
+      "heading": "Taux d'occupation",
+      "unit": "people per room",
+      "comparableTo": "households.peoplePerRoom"
+    },
+    {
+      "path": "occupancy.owner",
+      "column": "occupancy_owner",
+      "topic": "occupancy",
+      "key": "owner",
+      "label": "Owner",
+      "heading": "Statut d'occupation",
+      "category": "Propriétaire",
+      "unit": "percent",
+      "comparableTo": "occupancy.owner"
+    },
+    {
+      "path": "occupancy.tenant",
+      "column": "occupancy_tenant",
+      "topic": "occupancy",
+      "key": "tenant",
+      "label": "Tenant",
+      "heading": "Statut d'occupation",
+      "category": "Locataire",
+      "unit": "percent",
+      "comparableTo": "occupancy.tenant"
+    },
+    {
+      "path": "occupancy.other",
+      "column": "occupancy_other",
+      "topic": "occupancy",
+      "key": "other",
+      "label": "Other",
+      "heading": "Statut d'occupation",
+      "category": "Autre",
+      "unit": "percent",
+      "comparableTo": "occupancy.other"
+    },
+    {
+      "path": "dwellingAge.under10",
+      "column": "dwelling_age_under_10",
+      "topic": "dwellingAge",
+      "key": "under10",
+      "label": "Under 10 years old",
+      "heading": "Ancienneté du logement",
+      "category": "Moins de 10 ans",
+      "unit": "percent",
+      "comparableTo": "dwellingAge.under10"
+    },
+    {
+      "path": "dwellingAge.10-19",
+      "column": "dwelling_age_10_19",
+      "topic": "dwellingAge",
+      "key": "10-19",
+      "label": "10 to 19 years old",
+      "heading": "Ancienneté du logement",
+      "category": "Entre 10 et 19 ans",
+      "unit": "percent",
+      "comparableTo": "dwellingAge.10-19"
+    },
+    {
+      "path": "dwellingAge.20-49",
+      "column": "dwelling_age_20_49",
+      "topic": "dwellingAge",
+      "key": "20-49",
+      "label": "20 to 49 years old",
+      "heading": "Ancienneté du logement",
+      "category": "Entre 20 et 49 ans",
+      "unit": "percent",
+      "comparableTo": "dwellingAge.20-49"
+    },
+    {
+      "path": "dwellingAge.50+",
+      "column": "dwelling_age_50_plus",
+      "topic": "dwellingAge",
+      "key": "50+",
+      "label": "50 years or older",
+      "heading": "Ancienneté du logement",
+      "category": "50 ans et plus",
+      "unit": "percent",
+      "comparableTo": "dwellingAge.50+"
+    },
+    {
+      "path": "amenities.kitchen",
+      "column": "amenities_kitchen",
+      "topic": "amenities",
+      "key": "kitchen",
+      "label": "Kitchen",
+      "heading": "Équipements de base du logement",
+      "category": "Cuisine",
+      "unit": "percent",
+      "comparableTo": "amenities.kitchen"
+    },
+    {
+      "path": "amenities.toilet",
+      "column": "amenities_toilet",
+      "topic": "amenities",
+      "key": "toilet",
+      "label": "Toilet",
+      "heading": "Équipements de base du logement",
+      "category": "W.-C.",
+      "unit": "percent",
+      "comparableTo": "amenities.toilet"
+    },
+    {
+      "path": "amenities.bathroom",
+      "column": "amenities_bathroom",
+      "topic": "amenities",
+      "key": "bathroom",
+      "label": "Bathroom or shower room",
+      "heading": "Équipements de base du logement",
+      "category": "Bain",
+      "unit": "percent",
+      "comparableTo": "amenities.bathroom"
+    },
+    {
+      "path": "amenities.electricity",
+      "column": "amenities_electricity",
+      "topic": "amenities",
+      "key": "electricity",
+      "label": "Electricity",
+      "heading": "Équipements de base du logement",
+      "category": "Électricité",
+      "unit": "percent",
+      "comparableTo": "amenities.electricity"
+    },
+    {
+      "path": "amenities.runningWater",
+      "column": "amenities_running_water",
+      "topic": "amenities",
+      "key": "runningWater",
+      "label": "Running water",
+      "heading": "Équipements de base du logement",
+      "category": "Eau courante",
+      "unit": "percent",
+      "comparableTo": "amenities.runningWater"
+    },
+    {
+      "path": "wastewater.publicSewer",
+      "column": "wastewater_public_sewer",
+      "topic": "wastewater",
+      "key": "publicSewer",
+      "label": "Public sewer",
+      "heading": "Mode d'évacuation des eaux usées",
+      "category": "Réseau public",
+      "unit": "percent",
+      "comparableTo": "wastewater.publicSewer"
+    },
+    {
+      "path": "wastewater.septicTank",
+      "column": "wastewater_septic_tank",
+      "topic": "wastewater",
+      "key": "septicTank",
+      "label": "Septic tank",
+      "heading": "Mode d'évacuation des eaux usées",
+      "category": "Fosse septique",
+      "unit": "percent",
+      "comparableTo": "wastewater.septicTank"
+    },
+    {
+      "path": "wastewater.other",
+      "column": "wastewater_other",
+      "topic": "wastewater",
+      "key": "other",
+      "label": "Other",
+      "heading": "Mode d'évacuation des eaux usées",
+      "category": "Autre",
+      "unit": "percent",
+      "comparableTo": "wastewater.other"
+    },
+    {
+      "path": "householdWaste.municipalBin",
+      "column": "household_waste_municipal_bin",
+      "topic": "householdWaste",
+      "key": "municipalBin",
+      "label": "Municipal bin",
+      "heading": "Mode d'évacuation des déchets ménagers",
+      "category": "Bac à ordures de la commune",
+      "unit": "percent",
+      "comparableTo": "householdWaste.municipalBin"
+    },
+    {
+      "path": "householdWaste.truck",
+      "column": "household_waste_truck",
+      "topic": "householdWaste",
+      "key": "truck",
+      "label": "Municipal or private truck",
+      "heading": "Mode d'évacuation des déchets ménagers",
+      "category": "Camion commun ou privé",
+      "unit": "percent",
+      "comparableTo": "householdWaste.truck"
+    },
+    {
+      "path": "householdWaste.otherOrOpen",
+      "column": "household_waste_other_or_open",
+      "topic": "householdWaste",
+      "key": "otherOrOpen",
+      "label": "Dumped in the open, or another way",
+      "heading": "Mode d'évacuation des déchets ménagers",
+      "category": "Autre",
+      "unit": "percent"
+    },
+    {
+      "path": "cookingFuel.gas",
+      "column": "cooking_fuel_gas",
+      "topic": "cookingFuel",
+      "key": "gas",
+      "label": "Gas",
+      "heading": "Mode de cuisson fréquemment utilisé",
+      "category": "Gaz",
+      "unit": "percent",
+      "note": "A 2014 household counts under every fuel it used, so these shares pass 100. The 2024 census recorded one fuel per household."
+    },
+    {
+      "path": "cookingFuel.electricity",
+      "column": "cooking_fuel_electricity",
+      "topic": "cookingFuel",
+      "key": "electricity",
+      "label": "Electricity",
+      "heading": "Mode de cuisson fréquemment utilisé",
+      "category": "Électricité",
+      "unit": "percent",
+      "note": "A 2014 household counts under every fuel it used, so these shares pass 100. The 2024 census recorded one fuel per household."
+    },
+    {
+      "path": "cookingFuel.charcoal",
+      "column": "cooking_fuel_charcoal",
+      "topic": "cookingFuel",
+      "key": "charcoal",
+      "label": "Charcoal",
+      "heading": "Mode de cuisson fréquemment utilisé",
+      "category": "Charbon",
+      "unit": "percent",
+      "note": "A 2014 household counts under every fuel it used, so these shares pass 100. The 2024 census recorded one fuel per household."
+    },
+    {
+      "path": "cookingFuel.firewood",
+      "column": "cooking_fuel_firewood",
+      "topic": "cookingFuel",
+      "key": "firewood",
+      "label": "Firewood",
+      "heading": "Mode de cuisson fréquemment utilisé",
+      "category": "Bois",
+      "unit": "percent",
+      "note": "A 2014 household counts under every fuel it used, so these shares pass 100. The 2024 census recorded one fuel per household."
+    },
+    {
+      "path": "cookingFuel.animalWaste",
+      "column": "cooking_fuel_animal_waste",
+      "topic": "cookingFuel",
+      "key": "animalWaste",
+      "label": "Animal dung",
+      "heading": "Mode de cuisson fréquemment utilisé",
+      "category": "Déchets des animaux",
+      "unit": "percent",
+      "note": "A 2014 household counts under every fuel it used, so these shares pass 100. The 2024 census recorded one fuel per household."
+    },
+    {
+      "path": "equipment.television",
+      "column": "equipment_television",
+      "topic": "equipment",
+      "key": "television",
+      "label": "Television",
+      "heading": "Autres équipements ménagers",
+      "category": "Télévision",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.radio",
+      "column": "equipment_radio",
+      "topic": "equipment",
+      "key": "radio",
+      "label": "Radio",
+      "heading": "Autres équipements ménagers",
+      "category": "Radio",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.mobilePhone",
+      "column": "equipment_mobile_phone",
+      "topic": "equipment",
+      "key": "mobilePhone",
+      "label": "Mobile phone",
+      "heading": "Autres équipements ménagers",
+      "category": "Téléphone portable",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.landline",
+      "column": "equipment_landline",
+      "topic": "equipment",
+      "key": "landline",
+      "label": "Landline",
+      "heading": "Autres équipements ménagers",
+      "category": "Téléphone fixe",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.internet",
+      "column": "equipment_internet",
+      "topic": "equipment",
+      "key": "internet",
+      "label": "Internet at home",
+      "heading": "Autres équipements ménagers",
+      "category": "Internet",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.computer",
+      "column": "equipment_computer",
+      "topic": "equipment",
+      "key": "computer",
+      "label": "Computer",
+      "heading": "Autres équipements ménagers",
+      "category": "Ordinateur",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.satelliteDish",
+      "column": "equipment_satellite_dish",
+      "topic": "equipment",
+      "key": "satelliteDish",
+      "label": "Satellite dish",
+      "heading": "Autres équipements ménagers",
+      "category": "Parabole",
+      "unit": "percent"
+    },
+    {
+      "path": "equipment.refrigerator",
+      "column": "equipment_refrigerator",
+      "topic": "equipment",
+      "key": "refrigerator",
+      "label": "Refrigerator",
+      "heading": "Autres équipements ménagers",
+      "category": "Réfrigérateur",
+      "unit": "percent"
+    },
+    {
+      "path": "households.distanceToPavedRoadKm",
+      "column": "households_distance_to_paved_road_km",
+      "topic": "households",
+      "key": "distanceToPavedRoadKm",
+      "label": "Average distance to a paved road",
+      "heading": "Distance à la route goudronnée",
+      "unit": "km",
+      "comparableTo": "households.distanceToPavedRoadKm"
+    }
+  ],
+  "notes": {
+    "signs": [
+      {
+        "sign": "-",
+        "meaning": "Nothing to report, such as the urban part of a rural commune, or a mother's fertility under Masculin",
+        "here": "null"
+      },
+      {
+        "sign": "",
+        "meaning": "The legal population, which the census publishes for the whole unit rather than its urban and rural parts",
+        "here": "null"
+      }
+    ],
+    "rounding": "The workbook carries the full division, 10.155696524579501 for 10.2. Each figure is rounded here to the decimal HCP's own tables stop at.",
+    "comparability": "A field with comparableTo measures what the 2024 field of that name measures, so the two subtract. A field with a note asked something else in 2014, and the note says what.",
+    "units": "Casablanca and the five other cities with arrondissements have no 2014 row of their own: the census published those cities by arrondissement, and each arrondissement is here. Thirteen cercles and one urban centre from 2014 have no unit to land on, and are listed in unplaced.json."
+  }
+}

@@ -13,9 +13,13 @@ import { buildCrosswalk } from "./build/crosswalk.ts";
 import { writeCrosswalk } from "./emit/crosswalk.ts";
 import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/sources.ts";
 import { parseHcpIndicators } from "./sources/hcpIndicators.ts";
+import { parseHcp2014Indicators } from "./sources/hcp2014Indicators.ts";
 import { buildIndicators } from "./build/indicators.ts";
+import { buildIndicators2014 } from "./build/indicators2014.ts";
 import { checkIndicators } from "./validate/indicators.ts";
+import { checkIndicators2014 } from "./validate/indicators2014.ts";
 import { writeIndicators } from "./emit/indicators.ts";
+import { toRecords2014, writeIndicators2014 } from "./emit/indicators2014.ts";
 import { SOURCES } from "./sources/registry.ts";
 
 const OUT = "data/v1/attributes";
@@ -23,6 +27,7 @@ const DATASET_OUT = "data/v1";
 const GEOMETRY_OUT = "data/v1/geometry";
 const CROSSWALK_OUT = "data/v1/crosswalk";
 const INDICATORS_OUT = "data/v1/indicators";
+const INDICATORS_2014_OUT = "data/v1/indicators/2014";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
@@ -118,6 +123,38 @@ if (indicatorProblems.length > 0) {
 const indicatorSource = SOURCES.find((s) => s.id === "hcp-2024-indicators")!;
 await writeIndicators(indicators, INDICATORS_OUT, { id: indicatorSource.id, url: indicatorSource.url });
 console.log(`indicators: ${indicators.length} rows, ${indicators.filter((r) => r.level === "urbanCentre").length} of them urban centres`);
+
+// The same indicators from the 2014 census, on the units the dataset publishes today.
+// A unit HCP counted then and doesn't count now keeps no figures here; it is listed,
+// with its reason, in the unplaced file beside them.
+const rows2014 = parseHcp2014Indicators(
+  sources.get("hcp-2014-indicators-people")!,
+  sources.get("hcp-2014-indicators-households")!,
+);
+const population2014 = new Map(records.communes.map((c) => [c.code, c.population["2014"]]));
+const placed2014 = buildIndicators2014(
+  rows2014,
+  indicators,
+  new Map(rows.map((r) => [r.code2014.replace(/\D/g, ""), r.code2024])),
+  new Map([...population2014].map(([code, prior]) => [code, prior?.total ?? null])),
+);
+for (const r of placed2014.renamed) console.log(`  ${r.code} is ${r.name2024} now and was ${r.name2014} in 2014; the population workbook agrees it is one place`);
+const problems2014 = checkIndicators2014(
+  placed2014.byCode,
+  new Map(indicators.map((r) => [r.code ?? "", r.name.fr])),
+  new Map([...population2014].map(([code, prior]) => [code, { population: prior?.total ?? null, households: prior?.households ?? null }])),
+);
+if (problems2014.length > 0) {
+  throw new Error(`the 2014 indicators don't hold together:\n  ${problems2014.slice(0, 40).join("\n  ")}${problems2014.length > 40 ? `\n  and ${problems2014.length - 40} more` : ""}`);
+}
+const records2014 = toRecords2014(indicators, placed2014.byCode);
+const people2014Source = SOURCES.find((s) => s.id === "hcp-2014-indicators-people")!;
+const households2014Source = SOURCES.find((s) => s.id === "hcp-2014-indicators-households")!;
+await writeIndicators2014(records2014, placed2014.unplaced, INDICATORS_2014_OUT, {
+  people: { id: people2014Source.id, url: people2014Source.url },
+  households: { id: households2014Source.id, url: households2014Source.url },
+});
+console.log(`indicators 2014: ${records2014.length} units carry figures, ${placed2014.unplaced.length} rows have no unit to land on`);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);

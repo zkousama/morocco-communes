@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.1.0",
+  "datasetVersion": "1.2.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -21,6 +21,20 @@
       "licence": "Haut-Commissariat au Plan, RGPH 2014. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "e0a7e308c0c1e185e5bec0c080d10635b19e83216d0bf91656554c707bbf0709",
       "retrievedAt": "2026-09-17"
+    },
+    {
+      "id": "hcp-2014-indicators-people",
+      "url": "https://www.hcp.ma/file/230045/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs démographiques et socioéconomiques de la population. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "c20c1f7d08c1089bf4610f81a0eac89516a278fddb24b8577588284e2fc9a2d0",
+      "retrievedAt": "2026-09-19"
+    },
+    {
+      "id": "hcp-2014-indicators-households",
+      "url": "https://www.hcp.ma/file/230042/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les ménages et les conditions d'habitation. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "2fde794a15d0d98889875316666d918f1044f8055610bfb909d056a15fe878a1",
+      "retrievedAt": "2026-09-19"
     },
     {
       "id": "osm",
