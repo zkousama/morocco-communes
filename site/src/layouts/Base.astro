@@ -83,7 +83,8 @@ const themes = [
     </script>
   </head>
   <body>
-    <header class="masthead">
+    <header class="bar">
+      <div class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
       <nav class="sections" aria-label={copy.navLabel}>
         {sections.map((s) => (
@@ -115,6 +116,7 @@ const themes = [
             <button type="button" data-set-theme={theme.id} aria-pressed="false">{theme.label}</button>
           ))}
         </fieldset>
+      </div>
       </div>
     </header>
 
@@ -150,6 +152,34 @@ const themes = [
     }
 
     <script is:inline>
+      // The bar stays at the top. Its height is published for the contents list and for
+      // anchors to clear; on a phone, where it's tall, it slides away while reading down
+      // and comes back on the way up.
+      (function () {
+        var bar = document.querySelector(".bar");
+        if (!bar) return;
+        var root = document.documentElement;
+        var publish = function () {
+          root.style.setProperty("--bar-h", bar.offsetHeight + "px");
+        };
+        publish();
+        if (window.ResizeObserver) new ResizeObserver(publish).observe(bar);
+        var last = window.scrollY;
+        var narrow = window.matchMedia("(max-width: 48rem)");
+        window.addEventListener(
+          "scroll",
+          function () {
+            var y = window.scrollY;
+            bar.classList.toggle("scrolled", y > 4);
+            bar.classList.toggle("away", narrow.matches && y > last && y > bar.offsetHeight);
+            last = y;
+          },
+          { passive: true },
+        );
+      })();
+    </script>
+
+    <script is:inline>
       (function () {
         var root = document.documentElement;
         var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-set-theme]"));
@@ -181,6 +211,15 @@ const themes = [
     </script>
 
     <style is:global>
+      @font-face {
+        font-family: "Bouazzi Maghribi";
+        src: url("/fonts/BouazziMaghribi-Regular.woff2") format("woff2");
+        font-display: swap;
+        /* Its letters sit small beside the Latin faces; this brings them level. */
+        size-adjust: 130%;
+        unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+      }
+
       :root {
         /* The document ground: warm grey stock, survey ink, one rule colour. */
         --paper: #f1efe9;
@@ -228,9 +267,12 @@ const themes = [
         --code-string: #7a5f1c;
         --code-number: #0c7059;
 
-        --display: "Instrument Serif", Georgia, "Times New Roman", serif;
-        --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-        --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+        /* Arabic is set in Bouazzi Maghribi, a revival of a Moroccan Maghribi face. Its
+           @font-face covers the Arabic block only, so it sits in every stack and only
+           ever draws Arabic. */
+        --display: "Instrument Serif", "Bouazzi Maghribi", Georgia, "Times New Roman", serif;
+        --sans: "Instrument Sans", "Bouazzi Maghribi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "JetBrains Mono", "Bouazzi Maghribi", ui-monospace, Menlo, Consolas, monospace;
 
         /* A fourth, per Bringhurst. */
         --t-xs: 0.8125rem;
@@ -373,11 +415,33 @@ const themes = [
 
       /* Masthead ------------------------------------------------------------ */
 
+      html {
+        scroll-padding-top: calc(var(--bar-h, 4.5rem) + 1rem);
+      }
+
+      .bar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding-top: env(safe-area-inset-top, 0px);
+        background: var(--paper);
+        border-bottom: 1px solid transparent;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+
+      .bar.scrolled {
+        border-bottom-color: var(--rule);
+      }
+
+      .bar.away {
+        transform: translateY(-100%);
+      }
+
       .masthead {
         width: 100%;
         max-width: 74rem;
         margin: 0 auto;
-        padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
+        padding: 1rem clamp(1rem, 4vw, 2.5rem);
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem 1.75rem;

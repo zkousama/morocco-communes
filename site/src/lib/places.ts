@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import { readBoundaries, type Topology } from "../../../api/src/emit/boundaries.ts";
 import { buildGeometry } from "../../../api/src/emit/geometry.ts";
+import { sphericalArea } from "../../../pipeline/src/geo/rings.ts";
 import { boxOf, fit, pathOf, simplify, type Point } from "./geo.ts";
 
 interface Name {
@@ -193,6 +194,8 @@ export const neighbours = (() => {
 export interface Drawing {
   viewBox: string;
   shapes: { code: string; d: string }[];
+  /** Land inside the drawing that no commune's boundary covers. */
+  gaps: string[];
   /** The outline of everything drawn, for a heavier line around it. */
   outline: string;
 }
@@ -201,7 +204,7 @@ export interface Drawing {
  * Communes of one région file drawn into a box `width` wide, simplified arc by arc so
  * neighbours share their edges exactly.
  */
-function draw(region: string, codes: Set<string>, width: number): Drawing {
+function draw(region: string, codes: Set<string>, width: number, gapRings: Point[][] = []): Drawing {
   const { topology, arcs } = decoded.get(region)!;
   const geometries = topology.objects.communes.geometries.filter((g) => codes.has(digitsToCode.get(g.properties.code)!));
   const listsOf = (g: (typeof geometries)[number]) =>
@@ -228,7 +231,8 @@ function draw(region: string, codes: Set<string>, width: number): Drawing {
     return { code: digitsToCode.get(g.properties.code)!, d: listsOf(g).map((l) => pathOf(ring(l), true)).join("") };
   });
   const outline = [...uses].filter(([, n]) => n % 2 === 1).map(([i]) => pathOf(drawn.get(i)!, false)).join("");
-  return { viewBox: `0 0 ${width} ${height}`, shapes, outline };
+  const gaps = gapRings.map((ring) => pathOf(simplify(ring, 0.5 * unit).map(project), true));
+  return { viewBox: `0 0 ${width} ${height}`, shapes, outline, gaps };
 }
 
 const provinceDrawings = new Map<string, Drawing>();
@@ -237,7 +241,7 @@ export function drawProvince(code: string): Drawing | null {
   if (provinceDrawings.has(code)) return provinceDrawings.get(code)!;
   const inside = communes.filter((c) => c.parents.province === code && c.areaKm2 !== null);
   if (inside.length === 0) return null;
-  const drawing = draw(inside[0]!.parents.region, new Set(inside.map((c) => c.code)), 400);
+  const drawing = draw(inside[0]!.parents.region, new Set(inside.map((c) => c.code)), 400, gapsIn(geometry.provinceOutlines.get(code)));
   provinceDrawings.set(code, drawing);
   return drawing;
 }
@@ -245,6 +249,14 @@ export function drawProvince(code: string): Drawing | null {
 // The province and région outlines, unioned from their communes by the same build step
 // that writes them to the API.
 const geometry = await buildGeometry("data/v1", { communes, provinces, regions });
+/** The holes in an outline bigger than a km²: land none of its communes covers. */
+function gapsIn(feature: { geometry: { type: string; coordinates: unknown } } | undefined): Point[][] {
+  if (!feature) return [];
+  const g = feature.geometry;
+  const polygons = g.type === "Polygon" ? [g.coordinates as Point[][]] : (g.coordinates as Point[][][]);
+  return polygons.flatMap((polygon) => polygon.slice(1)).filter((ring) => sphericalArea(ring) >= 1);
+}
+
 const outerRings = (g: { type: string; coordinates: unknown }): Point[][] =>
   (g.type === "Polygon" ? [g.coordinates as Point[][]] : (g.coordinates as Point[][][])).map((polygon) => polygon[0]!);
 
@@ -253,7 +265,7 @@ const regionDrawings = new Map<string, Drawing & { provinces: { code: string; d:
 export function drawRegion(code: string) {
   if (regionDrawings.has(code)) return regionDrawings.get(code)!;
   const inside = communes.filter((c) => c.parents.region === code && c.areaKm2 !== null);
-  const base = draw(code, new Set(inside.map((c) => c.code)), 440);
+  const base = draw(code, new Set(inside.map((c) => c.code)), 440, gapsIn(geometry.regionOutlines.get(code)));
   // The same projection draw() fitted, from the same arcs.
   const { topology, arcs } = decoded.get(code)!;
   const used = topology.objects.communes.geometries.flatMap((g) => {

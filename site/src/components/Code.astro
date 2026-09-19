@@ -1,5 +1,6 @@
 ---
 import { escapeHtml } from "../lib/highlight";
+import { highlight, type Lang } from "../lib/syntax";
 import { t, type Locale } from "../i18n/ui";
 
 interface Props {
@@ -11,8 +12,11 @@ interface Props {
   label?: string;
   /** Caps the height, for a long response that would otherwise run for pages. */
   tall?: boolean;
+  /** Colours the code by its language. */
+  lang?: Lang;
 }
-const { locale, code = "", html, label, tall = false } = Astro.props;
+const { locale, code = "", html, label, tall = false, lang } = Astro.props;
+const markup = html ?? (lang ? highlight(code, lang) : escapeHtml(code));
 const copy = t(locale);
 ---
 
@@ -21,7 +25,7 @@ const copy = t(locale);
     <span>{label}</span>
     <button type="button" data-copy data-label={copy.copy} data-done={copy.copied}>{copy.copy}</button>
   </figcaption>
-  <pre class:list={{ tall }} tabindex="0"><code set:html={html ?? escapeHtml(code)} /></pre>
+  <pre class:list={{ tall }} tabindex="0"><code set:html={markup} /></pre>
 </figure>
 
 <script>
@@ -89,6 +93,24 @@ const copy = t(locale);
   pre.tall {
     max-height: 26rem;
     overflow-y: auto;
+  }
+
+  /* Shiki's token roles, mapped to the page's text colours: green for keywords and
+     numbers, brown for strings, the quiet grey for comments and punctuation. */
+  .code {
+    --code-foreground: var(--ink);
+    --code-token-keyword: var(--code-number);
+    --code-token-constant: var(--code-number);
+    --code-token-string: var(--code-string);
+    --code-token-string-expression: var(--code-string);
+    --code-token-link: var(--code-string);
+    --code-token-comment: var(--quiet);
+    --code-token-punctuation: var(--quiet);
+    --code-token-function: var(--ink);
+    --code-token-parameter: var(--ink);
+    --code-token-inserted: var(--code-number);
+    --code-token-deleted: var(--code-string);
+    --code-token-changed: var(--ink);
   }
 
   /* JSON, coloured by what each token is. Text tokens keep the page's ink roles. */

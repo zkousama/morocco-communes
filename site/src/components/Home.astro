@@ -259,10 +259,11 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     margin-bottom: 0;
   }
 
+  /* Spread edge to edge: the first figure on the left margin, the last on the right. */
   .tally {
     grid-column: 1 / -1;
     display: flex;
-    flex-wrap: wrap;
+    justify-content: space-between;
     gap: 0 clamp(1.5rem, 4vw, 3.25rem);
     margin: clamp(1.75rem, 4vw, 2.75rem) 0 0;
     padding-top: 1.1rem;
@@ -279,6 +280,14 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     margin: 0;
     font-size: var(--t-xs);
     color: var(--quiet);
+  }
+
+  @media (max-width: 40rem) {
+    .tally {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem 1.5rem;
+    }
   }
 
 

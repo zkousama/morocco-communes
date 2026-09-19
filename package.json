@@ -30,6 +30,7 @@
     "@types/topojson-server": "^3.0.4",
     "astro": "^7.3.3",
     "polygon-clipping": "~0.15.7",
+    "shiki": "^3.23.0",
     "solid-js": "^1.9.15",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0",

@@ -37,15 +37,15 @@ const toc = [
 <Docs locale={locale} route="docs/npm/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
   <section id="install">
     <h2>{d.install}</h2>
-    <Code locale={locale} label="shell" code="npm install morocco-communes" />
+    <Code locale={locale} label="shell" code="npm install morocco-communes" lang="shell" />
     <p><a href="https://www.npmjs.com/package/morocco-communes">{d.onNpm}</a></p>
   </section>
 
   <section id="use">
     <h2>{d.use}</h2>
-    <Code locale={locale} label="JavaScript" code={use} />
+    <Code locale={locale} label="JavaScript" code={use} lang="js" />
     <p>{d.useBody}</p>
-    <Code locale={locale} label="JavaScript" code={one} />
+    <Code locale={locale} label="JavaScript" code={one} lang="js" />
   </section>
 
   <section id="records">

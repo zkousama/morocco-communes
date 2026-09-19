@@ -10,17 +10,27 @@ interface Props {
   linkOf: (code: string) => { href: string; name: string } | null;
   /** The shape the page is about, drawn over the rest. */
   highlight?: string;
+  /** What to call land no commune's boundary covers. */
+  gapLabel?: string;
 }
-const { drawing, label, classOf, linkOf, highlight } = Astro.props;
+const { drawing, label, classOf, linkOf, highlight, gapLabel = "" } = Astro.props;
 const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : undefined;
 ---
 
 <svg class="place-map" viewBox={drawing.viewBox} role="group" aria-label={label}>
+  {drawing.gaps.length > 0 && (
+    <defs>
+      <pattern id="place-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line class="hatch" x1="0" y1="0" x2="0" y2="4" />
+      </pattern>
+    </defs>
+  )}
   {drawing.shapes.map((shape) => {
     const link = linkOf(shape.code);
     const path = <path d={shape.d} data-d={classOf(shape.code)} />;
     return link ? <a href={link.href}><title>{link.name}</title>{path}</a> : path;
   })}
+  {drawing.gaps.map((d) => <path class="gap" d={d}><title>{gapLabel}</title></path>)}
   {drawing.provinces && <path class="provinces" d={drawing.provinces.map((p) => p.d).join("")} />}
   <path class="edge" d={drawing.outline} />
   {focus && <path class="focus" d={focus.d} />}
@@ -53,6 +63,17 @@ const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : und
   a:hover path,
   a:focus-visible path {
     fill: var(--brass);
+  }
+
+  .gap {
+    fill: url(#place-hatch);
+    stroke: var(--quiet);
+    stroke-width: 0.5;
+  }
+
+  .hatch {
+    stroke: var(--quiet);
+    stroke-width: 1.2;
   }
 
   .provinces {

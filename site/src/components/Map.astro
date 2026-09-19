@@ -57,7 +57,8 @@ const communesRoute = path(locale, "communes/");
 
 <figure class="atlas" data-view="density" data-base={communesRoute} data-lang={locale}
   data-people={copy.tipPeople} data-density={copy.tipDensity} data-change={copy.tipChange}
-  data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}>
+  data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}
+  data-gap={copy.gapAny} data-gap-03={copy.gap03} data-gap-04={copy.gap04}>
   <div class="frame">
     <svg viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={markup} />
     <div class="tip" hidden></div>
@@ -72,6 +73,7 @@ const communesRoute = path(locale, "communes/");
       <div class="legend" data-for={v.id} hidden={i !== 0}>
         <ul>
           {v.swatches.map((s) => <li><span class:list={["swatch", s.cls]} />{s.text}</li>)}
+          <li><span class="swatch hatched" />{copy.mapNoBoundary}</li>
         </ul>
         {v.unit && <p>{v.unit}</p>}
       </div>
@@ -132,6 +134,17 @@ const communesRoute = path(locale, "communes/");
       const top = y - box.top + 14 + tip.offsetHeight > box.height ? y - box.top - tip.offsetHeight - 14 : y - box.top + 14;
       tip.style.transform = `translate(${left}px, ${Math.max(top, 0)}px)`;
     };
+    // Land no commune covers says what it is instead of naming a commune.
+    const showGap = (shape: SVGPathElement, x: number, y: number) => {
+      focus.setAttribute("d", shape.getAttribute("d") ?? "");
+      const region = shape.dataset.gap ?? "";
+      // data-gap-03 is dataset["gap-03"]: a dash before a digit isn't camel-cased.
+      tip.textContent = (d as Record<string, string | undefined>)[`gap-${region}`] ?? d.gap ?? "";
+      tip.hidden = false;
+      const box = atlas.querySelector(".frame")!.getBoundingClientRect();
+      const left = Math.min(Math.max(x - box.left + 14, 0), box.width - tip.offsetWidth);
+      tip.style.transform = `translate(${left}px, ${Math.max(y - box.top + 14, 0)}px)`;
+    };
     const hide = () => {
       tip.hidden = true;
       focus.setAttribute("d", "");
@@ -140,8 +153,11 @@ const communesRoute = path(locale, "communes/");
     svg.addEventListener("pointerenter", () => void load());
     svg.addEventListener("pointermove", (event) => {
       if (event.pointerType !== "mouse") return;
-      const shape = (event.target as Element).closest<SVGPathElement>("path[data-c]");
+      const target = event.target as Element;
+      const shape = target.closest<SVGPathElement>("path[data-c]");
+      const gap = target.closest<SVGPathElement>("path[data-gap]");
       if (shape) show(shape, event.clientX, event.clientY, false);
+      else if (gap) showGap(gap, event.clientX, event.clientY);
       else hide();
     });
     svg.addEventListener("pointerleave", (event) => {
@@ -150,6 +166,8 @@ const communesRoute = path(locale, "communes/");
     // A mouse click opens the commune. A tap shows it first, with a link, since there's no
     // hover to read it by.
     svg.addEventListener("click", async (event) => {
+      const gap = (event.target as Element).closest<SVGPathElement>("path[data-gap]");
+      if (gap) return showGap(gap, event.clientX, event.clientY);
       const shape = (event.target as Element).closest<SVGPathElement>("path[data-c]");
       if (!shape) return hide();
       await load();
@@ -197,6 +215,18 @@ const communesRoute = path(locale, "communes/");
     cursor: pointer;
   }
 
+  svg :global(.gap) {
+    fill: url(#gap-hatch);
+    stroke: var(--quiet);
+    stroke-width: 0.5;
+    cursor: help;
+  }
+
+  svg :global(.hatch) {
+    stroke: var(--quiet);
+    stroke-width: 1.2;
+  }
+
   svg :global(.regions) {
     fill: none;
     stroke: var(--paper);
@@ -241,6 +271,11 @@ const communesRoute = path(locale, "communes/");
   .swatch.g5 { fill: var(--div-5); background: var(--div-5); }
 
   .swatch.gn { background: var(--map-none); }
+
+  .swatch.hatched {
+    background: repeating-linear-gradient(45deg, var(--quiet) 0 1.2px, transparent 1.2px 4px);
+    box-shadow: inset 0 0 0 0.5px var(--quiet);
+  }
 
   .atlas[data-view="type"] :global([data-t="u"]),
   .swatch.tu { fill: var(--chart-down); background: var(--chart-down); }

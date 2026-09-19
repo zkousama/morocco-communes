@@ -148,6 +148,7 @@ getCommune("${c.slug}");`;
       {drawing && (
         <PlaceMap
           drawing={drawing}
+          gapLabel={p.gapLabel}
           label={fill(p.mapLabel, { name: province.name.fr })}
           classOf={densityClass}
           linkOf={(code) => {
@@ -234,7 +235,7 @@ getCommune("${c.slug}");`;
         <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
       )}
     </dl>
-    <Code locale={locale} label={p.inJs} code={snippet} />
+    <Code locale={locale} label={p.inJs} code={snippet} lang="js" />
     <p class="report"><a href={`${REPO_URL}/issues/new?template=data-error.yml&title=${encodeURIComponent(`${c.name.fr} (${c.code})`)}`}>{p.report}</a></p>
   </section>
 </Place>

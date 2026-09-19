@@ -66,7 +66,7 @@ const toc = [
   <section id="html">
     <h2>{d.html}</h2>
     <p set:html={inline(d.htmlBody)} />
-    <Code locale={locale} label="HTML" code={html} />
+    <Code locale={locale} label="HTML" code={html} lang="html" />
     <div class="scroll" tabindex="0">
       <table>
         <thead>
@@ -86,13 +86,13 @@ const toc = [
       </table>
     </div>
     <p set:html={inline(d.selfHost)} />
-    <Code locale={locale} label="commune-picker.js" code={pickerSource} tall />
+    <Code locale={locale} label="commune-picker.js" code={pickerSource} lang="js" tall />
   </section>
 
   <section id="react">
     <h2>{d.react}</h2>
     <p set:html={inline(d.reactBody)} />
-    <Code locale={locale} label="CommunePicker.jsx" code={react} tall />
+    <Code locale={locale} label="CommunePicker.jsx" code={react} lang="jsx" tall />
   </section>
 
   <section id="behaviour">

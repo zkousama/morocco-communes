@@ -10,7 +10,8 @@
  * site/public/map/communes.json, the names and figures the tooltip reads on first hover.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { readBoundaries, type Topology } from "../../api/src/emit/boundaries.ts";
+import { readBoundaries, unionOf } from "../../api/src/emit/boundaries.ts";
+import { sphericalArea } from "../../pipeline/src/geo/rings.ts";
 import { coverageHoles, type TopologyLike } from "../../pipeline/src/geo/holes.ts";
 import { boxOf, fit, pathOf, simplify, type Point } from "../src/lib/geo.ts";
 
@@ -60,6 +61,18 @@ const { height, unit, project } = fit(boxOf(decoded.flatMap((d) => d.arcs)), WID
 
 const shapes: string[] = [];
 const regionPaths: string[] = [];
+// Land inside a région that no commune's boundary covers, drawn hatched rather than left
+// as a hole in the page. Slivers under a km² between neighbours aren't worth drawing.
+const gaps: string[] = [];
+for (const { region, boundaries } of files) {
+  for (const polygon of unionOf(boundaries)) {
+    for (const hole of polygon.slice(1)) {
+      if (sphericalArea(hole) < 1) continue;
+      const d = pathOf(simplify(hole as Point[], TOLERANCE * unit / 2).map(project), true);
+      gaps.push(`<path class="gap" d="${d}" data-gap="${region}"/>`);
+    }
+  }
+}
 for (const { topology, arcs } of decoded) {
   const drawn = arcs.map((arc) => simplify(arc, TOLERANCE * unit).map(project));
   const raw = arcs.map((arc) => arc.map(project));
@@ -105,7 +118,12 @@ for (const { topology, arcs } of decoded) {
   }
 }
 
-const markup = `<g class="communes">${shapes.join("")}</g><path class="regions" d="${regionPaths.join("")}"/>`;
+const hatch =
+  '<defs><pattern id="gap-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+  '<line class="hatch" x1="0" y1="0" x2="0" y2="4"/></pattern></defs>';
+const markup =
+  `${hatch}<g class="communes">${shapes.join("")}</g>${gaps.join("")}` +
+  `<path class="regions" d="${regionPaths.join("")}"/>`;
 
 // What the tooltip shows, fetched once on first hover: slug, name, type, population,
 // density and change, by code.
@@ -128,4 +146,4 @@ export const shapes = ${shapes.length};
 export const markup = ${JSON.stringify(markup)};
 `,
 );
-console.log(`map: ${shapes.length} communes, ${(markup.length / 1024).toFixed(0)} KB of markup`);
+console.log(`map: ${shapes.length} communes, ${gaps.length} gaps, ${(markup.length / 1024).toFixed(0)} KB of markup`);
