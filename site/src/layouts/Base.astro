@@ -83,7 +83,7 @@ const themes = [
     </script>
   </head>
   <body>
-    <header class="bar">
+    <header class="masthead">
       <div class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
       <nav class="sections" aria-label={copy.navLabel}>
@@ -156,7 +156,7 @@ const themes = [
       // anchors to clear; on a phone, where it's tall, it slides away while reading down
       // and comes back on the way up.
       (function () {
-        var bar = document.querySelector(".bar");
+        var bar = document.querySelector(".masthead");
         if (!bar) return;
         var root = document.documentElement;
         var publish = function () {
@@ -419,7 +419,7 @@ const themes = [
         scroll-padding-top: calc(var(--bar-h, 4.5rem) + 1rem);
       }
 
-      .bar {
+      .masthead {
         position: sticky;
         top: 0;
         z-index: 20;
@@ -429,11 +429,11 @@ const themes = [
         transition: transform 0.2s ease, border-color 0.2s ease;
       }
 
-      .bar.scrolled {
+      .masthead.scrolled {
         border-bottom-color: var(--rule);
       }
 
-      .bar.away {
+      .masthead.away {
         transform: translateY(-100%);
       }
 
