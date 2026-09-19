@@ -19,6 +19,10 @@ export const HEADERS_FILE = `/api/*
 
 /data/v1/geometry/*.topojson
   Content-Type: application/json
+
+/components/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 `;
 
 const api = (path: string) => `/api/${path}`;
