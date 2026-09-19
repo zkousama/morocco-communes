@@ -1,13 +1,16 @@
 ---
 /**
- * HCP's census figures for a unit: its age pyramid, a row of headline figures with the
- * women's, the country's and the 2014 census's beside them, and the languages its people
- * use and read.
+ * HCP's census figures for a unit, one census at a time: headline figures, the age
+ * pyramid, the languages its people use and read, and how they get to work.
+ *
+ * A unit the 2014 census counted gets both, and a button switches between them. Whichever
+ * census is showing, the other one is marked on the same chart — as the outline behind the
+ * pyramid, and as a tick on each bar — so the change is there without reading twice.
  */
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
-import { figure, figureIn2014, national, type IndicatorRecord } from "../../lib/indicators";
+import { figure, national, type Census, type IndicatorRecord, type Topics } from "../../lib/indicators";
 
 interface Props {
   locale: Locale;
@@ -16,13 +19,6 @@ interface Props {
 }
 const { locale, record, name } = Astro.props;
 const p = places[locale];
-
-const all = record.people.total?.all;
-const men = record.people.total?.male;
-const women = record.people.total?.female;
-const homes = record.households.total;
-const country = national.people.total!.all;
-const countryHomes = national.households.total;
 
 // Each figure at the precision HCP publishes it: shares to one decimal, fertility to two.
 const share = (v: number) => percent(locale, v, { fixed: true });
@@ -33,180 +29,251 @@ const one = numbers(locale, 1, true);
 // Oldest at the top, as a pyramid is read.
 const BANDS = ["75+", "70-74", "65-69", "60-64", "55-59", "50-54", "45-49", "40-44", "35-39", "30-34", "25-29", "20-24", "15-19", "10-14", "5-9", "0-4"];
 const band = (key: string) => (key.endsWith("+") ? fill(p.over, { n: key.slice(0, -1) }) : key.replace("-", "–"));
+
+const names = p.languageNames as Record<string, string>;
+const commuteNames = p.commuteNames as Record<string, string>;
+const combinationNames = p.combinationNames as Record<string, string>;
+const workplaceNames = p.workplaceNames as Record<string, string>;
+const MODES = ["walking", "privateCar", "taxi", "bus", "bikeOrMotorcycle", "employerTransport"];
+
+interface Figure {
+  label: string;
+  value: string | null;
+  note: string;
+  beside: string[];
+}
+interface Bar {
+  key: string;
+  label: string;
+  value: number;
+  other: number | null;
+}
+
+/** One census's figures for this unit, and the same figures at the other census. */
+function view(census: Census, other: Census | null, year: "2024" | "2014") {
+  const all = census.people.total?.all;
+  const men = census.people.total?.male;
+  const women = census.people.total?.female;
+  const homes = census.households.total;
+  const otherAll = other?.people.total?.all ?? null;
+  const otherHomes = other?.households.total ?? null;
+  const countryCensus = year === "2024" ? national : national["2014"];
+  const country = countryCensus?.people.total?.all ?? null;
+  const countryHomes = countryCensus?.households.total ?? null;
+  const elsewhere = year === "2024" ? p.since2014 : p.since2024;
+
+  const headline = (
+    label: string,
+    key: string,
+    note: string,
+    opts: { women?: boolean; format?: (v: number) => string; homes?: boolean } = {},
+  ): Figure => {
+    const source = opts.homes ? homes : all;
+    const value = figure(source, key);
+    const show = opts.format ?? share;
+    const theirs = opts.women ? figure(women, key) : null;
+    const countryValue = figure(opts.homes ? countryHomes : country, key);
+    const then = figure(opts.homes ? otherHomes : otherAll, key);
+    const beside = [
+      then !== null ? fill(elsewhere, { v: show(then) }) : null,
+      theirs !== null ? fill(p.womenFigure, { v: show(theirs) }) : null,
+      record.level !== "country" && countryValue !== null ? fill(p.moroccoFigure, { v: show(countryValue) }) : null,
+    ].filter(Boolean);
+    return { label, value: value === null ? null : show(value), note, beside: beside as string[] };
+  };
+
+  const figures = [
+    headline(p.illiteracy, "illiteracy.rate10Plus", p.illiteracyNote, { women: true }),
+    headline(p.unemployment, "labour.unemploymentRate", "", { women: true }),
+    headline(p.labourForce, "labour.activityRate", p.labourForceNote, { women: true }),
+    year === "2024"
+      ? headline(p.schooling, "schooling.rate6to11", p.schoolingNote)
+      : headline(p.schooling7to12, "schooling.rate7to12", ""),
+    headline(p.fertility, "fertility.totalFertilityRate", p.fertilityNote, { format: (v) => two.format(v) }),
+    headline(p.disability, "disability.prevalence", p.disabilityNote),
+    headline(p.householdSize, "households.averageSize", p.householdSizeNote, { homes: true, format: (v) => one.format(v) }),
+    headline(p.runningWater, "amenities.runningWater", p.runningWaterNote, { homes: true }),
+  ].filter((h) => h.value !== null);
+
+  const ages = BANDS.map((key) => ({
+    key,
+    men: figure(men, `age.${key}`),
+    women: figure(women, `age.${key}`),
+    menOther: figure(other?.people.total?.male, `age.${key}`),
+    womenOther: figure(other?.people.total?.female, `age.${key}`),
+  }));
+
+  const bars = (topic: string, keys: string[], labels: Record<string, string>, source: Topics | null | undefined = all, sort = true) => {
+    const otherSource = topic === "households" ? otherHomes : otherAll;
+    const rows = keys
+      .map((key) => ({
+        key,
+        label: labels[key] ?? key,
+        value: figure(source, `${topic}.${key}`),
+        other: figure(otherSource, `${topic}.${key}`),
+      }))
+      .filter((b): b is Bar => b.value !== null);
+    return sort ? rows.sort((a, b) => b.value - a.value) : rows;
+  };
+
+  return {
+    year,
+    figures,
+    ages,
+    used: bars("localLanguages", ["darija", "tachelhit", "tamazight", "tarifit", "hassania"], names),
+    read:
+      year === "2024"
+        ? bars("languagesReadAndWritten", ["arabic", "french", "english", "amazighTifinagh"], names)
+        : bars("languageCombinations", ["arabicOnly", "arabicAndFrench", "arabicFrenchEnglish", "other"], combinationNames),
+    readBody: year === "2024" ? p.languagesReadBody : p.combinationsBody,
+    commute: bars("commute", MODES, commuteNames),
+    workplace:
+      year === "2014"
+        ? bars("workplace", ["ownNeighbourhood", "otherNeighbourhood", "otherCommune", "otherProvince", "noFixedPlace", "atHome", "elsewhere"], workplaceNames)
+        : [],
+  };
+}
+
 const before = record["2014"];
-const men2014 = before?.people.total?.male;
-const women2014 = before?.people.total?.female;
-const rows = BANDS.map((key) => ({
-  key,
-  men: figure(men, `age.${key}`),
-  women: figure(women, `age.${key}`),
-  men2014: figure(men2014, `age.${key}`),
-  women2014: figure(women2014, `age.${key}`),
-}));
-const hasThen = rows.some((r) => r.men2014 !== null || r.women2014 !== null);
-const widest = Math.max(...rows.flatMap((r) => [r.men ?? 0, r.women ?? 0, r.men2014 ?? 0, r.women2014 ?? 0]));
+const views = [view(record, before, "2024"), ...(before ? [view(before, record, "2014")] : [])];
+const both = views.length > 1;
+
+// One scale for the pyramid, so a band's bar means the same width in either census.
+const widest = Math.max(
+  ...views.flatMap((v) => v.ages.flatMap((r) => [r.men ?? 0, r.women ?? 0, r.menOther ?? 0, r.womenOther ?? 0])),
+);
 const hasAges = widest > 0;
 const width = (v: number | null) => `${((v ?? 0) / widest) * 100}%`;
-
-/**
- * A headline figure, with women's, Morocco's and the 2014 census's beside it where they
- * tell something. A figure the 2014 census asked another way has no line for it.
- */
-const headline = (label: string, path: string, note: string, opts: { women?: boolean; format?: (v: number) => string; homes?: boolean } = {}) => {
-  const source = opts.homes ? homes : all;
-  const value = figure(source, path);
-  const show = opts.format ?? share;
-  const theirs = opts.women ? figure(women, path) : null;
-  const countryValue = figure(opts.homes ? countryHomes : country, path);
-  const then = figureIn2014(record, path, opts.homes);
-  const beside = [
-    then !== null ? fill(p.since2014, { v: show(then) }) : null,
-    theirs !== null ? fill(p.womenFigure, { v: show(theirs) }) : null,
-    record.level !== "country" && countryValue !== null ? fill(p.moroccoFigure, { v: show(countryValue) }) : null,
-  ].filter(Boolean);
-  return { label, value: value === null ? null : show(value), note, beside: beside as string[] };
-};
-const headlines = [
-  headline(p.illiteracy, "illiteracy.rate10Plus", p.illiteracyNote, { women: true }),
-  headline(p.unemployment, "labour.unemploymentRate", "", { women: true }),
-  headline(p.labourForce, "labour.activityRate", p.labourForceNote, { women: true }),
-  headline(p.schooling, "schooling.rate6to11", p.schoolingNote),
-  headline(p.fertility, "fertility.totalFertilityRate", p.fertilityNote, { format: (v) => two.format(v) }),
-  headline(p.disability, "disability.prevalence", p.disabilityNote),
-  headline(p.householdSize, "households.averageSize", p.householdSizeNote, { homes: true, format: (v) => one.format(v) }),
-  headline(p.runningWater, "amenities.runningWater", p.runningWaterNote, { homes: true }),
-].filter((h) => h.value !== null);
-
-const bars = (topic: string, keys: string[]) =>
-  keys
-    .map((key) => ({ key, value: figure(all, `${topic}.${key}`) }))
-    .filter((b): b is { key: string; value: number } => b.value !== null)
-    .sort((a, b) => b.value - a.value);
-const used = bars("localLanguages", ["darija", "tachelhit", "tamazight", "tarifit", "hassania"]);
-const read = bars("languagesReadAndWritten", ["arabic", "french", "english", "amazighTifinagh"]);
-const names = p.languageNames as Record<string, string>;
-
-// How people get to work: the modes both censuses asked about, so each bar can carry the
-// 2014 share behind it the way the pyramid does.
-const MODES = ["walking", "privateCar", "taxi", "bus", "bikeOrMotorcycle", "employerTransport"];
-const commuteNames = p.commuteNames as Record<string, string>;
-const commute = MODES.map((key) => ({
-  key,
-  value: figure(all, `commute.${key}`),
-  then: figure(before?.people.total?.all, `commute.${key}`),
-}))
-  .filter((b): b is { key: string; value: number; then: number | null } => b.value !== null)
-  .sort((a, b) => b.value - a.value);
+const other = (year: string) => (year === "2024" ? "2014" : "2024");
+const empty = views[0]!.figures.length === 0 && !hasAges;
 ---
 
-<section class="people">
+<section class="people" data-census="2024">
   <h2>{p.people}</h2>
-  {!hasAges && headlines.length === 0 ? (
+  {empty ? (
     <p>{fill(p.peopleLocal, { name })}</p>
   ) : (
     <>
-      <p>
-        {record.fromLocalAdministration ? fill(p.peopleLocal, { name }) : p.peopleBody}{" "}
-        <a href={path(locale, "docs/indicators/")}>{p.peopleMore}</a>
-      </p>
-
-      {headlines.length > 0 && (
-        <dl class="figures">
-          {headlines.map((h) => (
-            <div>
-              <dt>{h.label}</dt>
-              <dd>
-                {h.value}
-                {h.note && <small>{h.note}</small>}
-                {h.beside.map((line) => <small>{line}</small>)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      <div class="pair">
-        {hasAges && (
-          <div>
-            <h3>{p.age}</h3>
-            <p class="note">{hasThen ? p.ageBodyThen : p.ageBody}</p>
-            <table class="pyramid">
-              <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
-              <thead>
-                <tr>
-                  <th scope="col" class="men">{p.men}</th>
-                  <th scope="col"><span class="sr-only">{p.age}</span></th>
-                  <th scope="col" class="women">{p.women}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr>
-                    <td class="men">
-                      <span class="bar" style={`--w: ${width(r.men)}`} />
-                      {r.men2014 !== null && <span class="ghost" style={`--w: ${width(r.men2014)}`} />}
-                      <span class="value">{pct(r.men)}</span>
-                    </td>
-                    <th scope="row">{band(r.key)}</th>
-                    <td class="women">
-                      <span class="bar" style={`--w: ${width(r.women)}`} />
-                      {r.women2014 !== null && <span class="ghost" style={`--w: ${width(r.women2014)}`} />}
-                      <span class="value">{pct(r.women)}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {(used.length > 0 || read.length > 0) && (
-          <div class="languages">
-            {used.length > 0 && (
-              <>
-                <h3>{p.languagesUsed}</h3>
-                <p class="note">{p.languagesUsedBody}</p>
-                <ul class="bars">
-                  {used.map((b) => (
-                    <li><span class="label">{names[b.key]}</span><span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span><span class="value">{pct(b.value)}</span></li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {read.length > 0 && (
-              <>
-                <h3>{p.languagesRead}</h3>
-                <p class="note">{p.languagesReadBody}</p>
-                <ul class="bars">
-                  {read.map((b) => (
-                    <li><span class="label">{names[b.key]}</span><span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span><span class="value">{pct(b.value)}</span></li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {commute.length > 0 && (
-              <>
-                <h3>{p.commute}</h3>
-                <p class="note">{commute.some((b) => b.then !== null) ? p.commuteBodyThen : p.commuteBody}</p>
-                <ul class="bars">
-                  {commute.map((b) => (
-                    <li>
-                      <span class="label">{commuteNames[b.key]}</span>
-                      <span class="track">
-                        <span class="bar" style={`--w: ${b.value}%`} />
-                        {b.then !== null && <span class="ghost" style={`--w: ${b.then}%`} />}
-                      </span>
-                      <span class="value">{pct(b.value)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+      <div class="intro">
+        <p>
+          {record.fromLocalAdministration ? fill(p.peopleLocal, { name }) : p.peopleBody}{" "}
+          <a href={path(locale, "docs/indicators/")}>{p.peopleMore}</a>
+        </p>
+        {both && (
+          <div class="years" role="group" aria-label={p.censusGroup}>
+            {views.map((v, i) => (
+              <button type="button" data-year={v.year} aria-pressed={i === 0 ? "true" : "false"}>{v.year}</button>
+            ))}
           </div>
         )}
       </div>
+
+      {views.map((v, i) => (
+        <div class="census" data-year={v.year} hidden={i !== 0}>
+          {v.figures.length > 0 && (
+            <dl class="figures">
+              {v.figures.map((h) => (
+                <div>
+                  <dt>{h.label}</dt>
+                  <dd>
+                    {h.value}
+                    {h.note && <small>{h.note}</small>}
+                    {h.beside.map((line) => <small>{line}</small>)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div class="pair">
+            {hasAges && (
+              <div>
+                <h3>{p.age}</h3>
+                <p class="note">{both ? fill(p.ageBodyThen, { year: other(v.year) }) : p.ageBody}</p>
+                <table class="pyramid">
+                  <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" class="men">{p.men}</th>
+                      <th scope="col"><span class="sr-only">{p.age}</span></th>
+                      <th scope="col" class="women">{p.women}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {v.ages.map((r) => (
+                      <tr>
+                        <td class="men">
+                          <span class="bar" style={`--w: ${width(r.men)}`} />
+                          {r.menOther !== null && <span class="ghost" style={`--w: ${width(r.menOther)}`} />}
+                          <span class="value">{pct(r.men)}</span>
+                        </td>
+                        <th scope="row">{band(r.key)}</th>
+                        <td class="women">
+                          <span class="bar" style={`--w: ${width(r.women)}`} />
+                          {r.womenOther !== null && <span class="ghost" style={`--w: ${width(r.womenOther)}`} />}
+                          <span class="value">{pct(r.women)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {(v.used.length > 0 || v.read.length > 0 || v.commute.length > 0) && (
+              <div class="languages">
+                {[
+                  { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used },
+                  { heading: p.languagesRead, body: v.readBody, rows: v.read },
+                  { heading: p.commute, body: p.commuteBody, rows: v.commute },
+                  { heading: p.workplace, body: p.workplaceBody, rows: v.workplace },
+                ].filter((block) => block.rows.length > 0).map((block) => (
+                  <>
+                    <h3>{block.heading}</h3>
+                    <p class="note">
+                      {block.body}
+                      {both && block.rows.some((b) => b.other !== null) ? ` ${fill(p.tickIs, { year: other(v.year) })}` : ""}
+                    </p>
+                    <ul class="bars">
+                      {block.rows.map((b) => (
+                        <li>
+                          <span class="label">{b.label}</span>
+                          <span class="track">
+                            <span class="bar" style={`--w: ${b.value}%`} />
+                            {b.other !== null && <span class="tick" style={`--w: ${b.other}%`} />}
+                          </span>
+                          <span class="value">{pct(b.value)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
     </>
   )}
 </section>
+
+{both && (
+  <script>
+    // One section to a page: the buttons show the census they name and hide the other.
+    const section = document.querySelector<HTMLElement>(".people[data-census]");
+    section?.querySelector(".years")?.addEventListener("click", (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-year]");
+      if (!button) return;
+      const year = button.dataset.year!;
+      section.dataset.census = year;
+      for (const other of section.querySelectorAll<HTMLButtonElement>(".years button")) {
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+      for (const block of section.querySelectorAll<HTMLElement>(".census")) {
+        block.hidden = block.dataset.year !== year;
+      }
+    });
+  </script>
+)}
 
 <style>
   h3 {
@@ -219,6 +286,46 @@ const commute = MODES.map((key) => ({
     margin: 0 0 0.75rem;
     font-size: var(--t-xs);
     color: var(--quiet);
+  }
+
+  /* The years sit beside the section's own line, on the right, out of the reading column. */
+  .intro {
+    display: flex;
+    gap: 1.5rem;
+    align-items: start;
+    justify-content: space-between;
+  }
+
+  .intro p {
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .years {
+    display: flex;
+    gap: 0.25rem;
+    flex: none;
+  }
+
+  .years button {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--quiet);
+    font: inherit;
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+
+  .years button[aria-pressed="true"] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .years button:hover {
+    color: var(--ink);
   }
 
   /* Spread edge to edge like the home page's counts: 4 columns sized to what they hold,
@@ -247,6 +354,11 @@ const commute = MODES.map((key) => ({
     .people .figures {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       justify-content: stretch;
+    }
+
+    .intro {
+      flex-direction: column;
+      gap: 0.75rem;
     }
   }
 
@@ -302,8 +414,8 @@ const commute = MODES.map((key) => ({
     width: var(--w);
   }
 
-  /* The same age at the 2014 census, drawn as the outline the 2024 bar sits inside or
-     runs past, so a band that thinned or filled out shows without a second chart. */
+  /* The same age at the other census, drawn as the outline the bar sits inside or runs
+     past, so a band that thinned or filled out shows without a second chart. */
   .pyramid td .ghost {
     border: 1px solid var(--quiet);
     opacity: 0.55;
@@ -359,7 +471,6 @@ const commute = MODES.map((key) => ({
     color: var(--ink);
   }
 
-  /* The languages: one bar each on a 0 to 100 track, labelled with its share. */
   .bars {
     list-style: none;
     margin: 0;
@@ -367,17 +478,6 @@ const commute = MODES.map((key) => ({
     display: grid;
     gap: 0.35rem;
     font-size: var(--t-sm);
-  }
-
-  /* The same share in 2014, as an outline the 2024 bar sits inside or runs past. */
-  .bars .ghost {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: var(--w);
-    border: 1px solid var(--quiet);
-    border-radius: 3px;
-    opacity: 0.55;
   }
 
   .bars li {
@@ -402,6 +502,19 @@ const commute = MODES.map((key) => ({
     background: var(--seq-3);
   }
 
+  /* The same share at the other census, as a tick rather than a second bar: on a track
+     this thin, an outline reads as a broken bar. */
+  .bars .tick {
+    position: absolute;
+    inset-block: -2px;
+    inset-inline-start: var(--w);
+    width: 2px;
+    margin-inline-start: -1px;
+    border-radius: 1px;
+    background: var(--ink);
+    opacity: 0.55;
+  }
+
   .bars .value {
     text-align: end;
     font-variant-numeric: tabular-nums;
@@ -413,4 +526,5 @@ const commute = MODES.map((key) => ({
       gap: 0.5rem;
     }
   }
+
 </style>
