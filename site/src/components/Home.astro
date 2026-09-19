@@ -6,6 +6,7 @@ import { COUNTED, LEVELS, path, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { aspect } from "../generated/outline";
 import { downloads } from "../generated/downloads";
+import { reference } from "../generated/reference";
 
 interface Props {
   locale: Locale;
@@ -24,7 +25,8 @@ const playgroundCopy = Object.fromEntries(PLAYGROUND_KEYS.map((key) => [key, cop
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
 const tiers = [
-  { name: copy.tierPre, body: copy.tierPreBody, header: copy.tierPreHeader },
+  // Counted from what the API build writes, so it follows every route added.
+  { name: copy.tierPre, body: copy.tierPreBody.replace("{files}", group.format(reference.apiFiles)), header: copy.tierPreHeader },
   { name: copy.tierAlias, body: copy.tierAliasBody, header: "X-Api-Tier: alias" },
   { name: copy.tierComputed, body: copy.tierComputedBody, header: "X-Api-Tier: computed" },
 ];

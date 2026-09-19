@@ -61,13 +61,13 @@ export const ui = {
     tierPreHeader: "no header, because nothing ran",
     tierPre: "A file on the CDN",
     tierPreBody:
-      "3,852 responses are written when the site is built. Nothing runs to serve them, so they cost nothing and hold up under any amount of traffic.",
+      "{files} responses are written when the site is built. Nothing runs to serve them, so they cost nothing and hold up under any amount of traffic.",
     tierAlias: "A rewrite to that file",
     tierAliasBody:
       "A query string can't pick a file, so requests written that way are resolved to the file that already holds the answer, and the response names it.",
     tierComputed: "Worked out on the spot",
     tierComputedBody:
-      "Search, radius queries, and filter combinations no single file covers. These are the only requests that spend anything.",
+      "Search, point and radius queries, and filter combinations no single file covers. These are the only requests that spend anything.",
 
     dataHeading: "Take the whole thing",
     dataBody:
@@ -118,7 +118,8 @@ export const ui = {
     dlProvinces: "Provinces and préfectures",
     dlCercles: "Cercles",
     dlArrondissements: "Arrondissements",
-    dlBoundaries: "Boundaries, one file per région",
+    dlBoundaries: "Boundaries as TopoJSON, one file per région",
+    dlBoundariesGeojson: "Boundaries as GeoJSON, one file per région",
     dlCrosswalk: "2014 to 2024 crosswalk",
     dlSources: "Sources and their vintages",
     notFoundTitle: "No page here",
@@ -165,13 +166,13 @@ export const ui = {
     tierPreHeader: "aucun en-tête : rien ne s’est exécuté",
     tierPre: "Un fichier sur le CDN",
     tierPreBody:
-      "3 852 réponses sont écrites à la construction du site. Rien ne s’exécute pour les servir : elles ne coûtent rien et tiennent sous n’importe quel trafic.",
+      "{files} réponses sont écrites à la construction du site. Rien ne s’exécute pour les servir : elles ne coûtent rien et tiennent sous n’importe quel trafic.",
     tierAlias: "Une réécriture vers ce fichier",
     tierAliasBody:
       "Une chaîne de requête ne peut pas désigner un fichier. Les requêtes écrites ainsi sont donc renvoyées vers le fichier qui porte déjà la réponse, et la réponse le nomme.",
     tierComputed: "Calculée à la demande",
     tierComputedBody:
-      "La recherche, les requêtes par rayon, et les combinaisons de filtres qu’aucun fichier ne couvre. Ce sont les seules requêtes qui consomment quelque chose.",
+      "La recherche, les requêtes par point ou par rayon, et les combinaisons de filtres qu’aucun fichier ne couvre. Ce sont les seules requêtes qui consomment quelque chose.",
 
     dataHeading: "Tout récupérer",
     dataBody:
@@ -222,7 +223,8 @@ export const ui = {
     dlProvinces: "Provinces et préfectures",
     dlCercles: "Cercles",
     dlArrondissements: "Arrondissements",
-    dlBoundaries: "Limites, un fichier par région",
+    dlBoundaries: "Limites en TopoJSON, un fichier par région",
+    dlBoundariesGeojson: "Limites en GeoJSON, un fichier par région",
     dlCrosswalk: "Correspondance 2014 à 2024",
     dlSources: "Sources et leurs dates",
     notFoundTitle: "Aucune page ici",

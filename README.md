@@ -26,11 +26,14 @@ each commune (`centroid`, `bbox` and `osm`) come from OpenStreetMap and are ODbL
 
 Rebuild it with `pnpm dataset:build`. From the same cache the output is byte-identical.
 
+`pnpm build` also writes the boundaries as GeoJSON, a file per région and one per commune,
+from the TopoJSON above. They're served beside it rather than committed.
+
 ## The API
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 3,852 files written at build time and served straight from
+**Pre-rendered.** 5,656 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -58,6 +61,7 @@ GET /api/communes/tanger                     GET /api/communes/001511010
 ```
 GET /api/search?q=tanger&levels=commune&limit=10
 GET /api/communes/near?lat=33.5731&lng=-7.5898&radius=15
+GET /api/communes/at?lat=35.786&lng=-5.8125
 GET /api/communes?province=01.511&type=urban
 ```
 
@@ -80,8 +84,8 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 4 read-only tools (`search`, `get_commune`,
-  `communes_near`, `list_communes`), so Claude, Claude Code and other MCP clients can query
+- **`/mcp`**: an MCP server with 5 read-only tools (`search`, `get_commune`,
+  `communes_near`, `commune_at`, `list_communes`), so Claude, Claude Code and other MCP clients can query
   the data directly. The site's `/docs/mcp/` page has the setup for each client.
 
 ### In a form, or offline

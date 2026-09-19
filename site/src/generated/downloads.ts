@@ -143,6 +143,72 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlBoundariesGeojson",
+    "licence": "odbl",
+    "files": [
+      {
+        "label": "Tanger-Tétouan-Al Hoceima",
+        "href": "/data/v1/geometry/01.geojson",
+        "bytes": 1060342
+      },
+      {
+        "label": "Oriental",
+        "href": "/data/v1/geometry/02.geojson",
+        "bytes": 942883
+      },
+      {
+        "label": "Fès-Meknès",
+        "href": "/data/v1/geometry/03.geojson",
+        "bytes": 739307
+      },
+      {
+        "label": "Rabat-Salé-Kénitra",
+        "href": "/data/v1/geometry/04.geojson",
+        "bytes": 606014
+      },
+      {
+        "label": "Béni Mellal-Khénifra",
+        "href": "/data/v1/geometry/05.geojson",
+        "bytes": 300434
+      },
+      {
+        "label": "Casablanca-Settat",
+        "href": "/data/v1/geometry/06.geojson",
+        "bytes": 572700
+      },
+      {
+        "label": "Marrakech-Safi",
+        "href": "/data/v1/geometry/07.geojson",
+        "bytes": 768442
+      },
+      {
+        "label": "Drâa-Tafilalet",
+        "href": "/data/v1/geometry/08.geojson",
+        "bytes": 279423
+      },
+      {
+        "label": "Souss-Massa",
+        "href": "/data/v1/geometry/09.geojson",
+        "bytes": 484284
+      },
+      {
+        "label": "Guelmim-Oued Noun",
+        "href": "/data/v1/geometry/10.geojson",
+        "bytes": 212483
+      },
+      {
+        "label": "Laâyoune-Sakia El Hamra",
+        "href": "/data/v1/geometry/11.geojson",
+        "bytes": 322415
+      },
+      {
+        "label": "Dakhla-Oued Ed-Dahab",
+        "href": "/data/v1/geometry/12.geojson",
+        "bytes": 543477
+      }
+    ]
+  },
+  {
     "key": "dlSources",
     "licence": "hcp",
     "files": [

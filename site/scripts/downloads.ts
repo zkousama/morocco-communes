@@ -4,12 +4,17 @@
  * data/v1/crosswalk/crosswalk.json — a path that never existed — stays gone.
  */
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { buildGeometry } from "../../api/src/emit/geometry.ts";
 
 interface Group {
   key: string;
   licence: "hcp" | "odbl";
-  files: { label: string; path: string }[];
+  /** `bytes` is set for a file the API build writes rather than one committed under data/v1. */
+  files: { label: string; path: string; bytes?: number }[];
 }
+
+const communes = JSON.parse(await readFile("data/v1/attributes/communes.json", "utf8")) as never[];
+const geometry = await buildGeometry("data/v1", communes);
 
 const regions = JSON.parse(await readFile("data/v1/attributes/regions.json", "utf8")) as {
   code: string;
@@ -49,6 +54,20 @@ const GROUPS: Group[] = [
     // One file per région, labelled by the région it holds rather than by its code.
     files: regions.map((r) => ({ label: r.name.fr, path: `data/v1/geometry/${r.code}.topojson` })),
   },
+  {
+    key: "dlBoundariesGeojson",
+    licence: "odbl",
+    // Built from the TopoJSON by the API build, by the same function, so its size is known here.
+    files: regions.map((r) => {
+      const collection = geometry.regions.get(r.code);
+      if (!collection) throw new Error(`no GeoJSON is built for région ${r.code}`);
+      return {
+        label: r.name.fr,
+        path: `data/v1/geometry/${r.code}.geojson`,
+        bytes: Buffer.byteLength(JSON.stringify(collection)),
+      };
+    }),
+  },
   { key: "dlSources", licence: "hcp", files: [{ label: "JSON", path: "data/v1/sources.json" }] },
 ];
 
@@ -58,8 +77,8 @@ for (const group of GROUPS) {
   const files = [];
   for (const file of group.files) {
     try {
-      const { size } = await stat(file.path);
-      files.push({ label: file.label, href: `/${file.path}`, bytes: size });
+      const bytes = file.bytes ?? (await stat(file.path)).size;
+      files.push({ label: file.label, href: `/${file.path}`, bytes });
     } catch {
       missing.push(file.path);
     }

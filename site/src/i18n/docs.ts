@@ -16,6 +16,16 @@ export const SPEC_FR: Record<string, string> = {
   "searchUnits.200": "Les résultats, du meilleur au moins bon.",
   "searchUnits.400": "q manque ou est trop long, ou un paramètre sort de ses bornes.",
 
+  "communeAt.summary": "La commune qui contient un point",
+  "communeAt.description":
+    "Testé contre la limite de chaque commune, précise à environ 2 m. Sidi Mohamed Benmansour n’a pas de limite, pas plus qu’environ 88 km² entre Ifrane et Boulemane.",
+  "communeAt.param.lat": "Latitude, en degrés.",
+  "communeAt.param.lng": "Longitude, en degrés.",
+  "communeAt.200": "La commune.",
+  "communeAt.400": "Une coordonnée manque ou sort de ses bornes.",
+  "communeAt.404":
+    "Aucune limite de commune ne contient le point : il est hors du Maroc, en mer, ou dans l’un des 2 endroits qui n’en ont pas.",
+
   "communesNear.summary": "Les communes dans un rayon autour d’un point",
   "communesNear.description": "La distance se mesure jusqu’au centroïde de chaque commune, de la plus proche à la plus lointaine.",
   "communesNear.param.lat": "Latitude, en degrés.",
@@ -107,6 +117,8 @@ export const docs = {
         commune: "One commune, by dotted code",
         arrondissements: "Every arrondissement",
         arrondissement: "One arrondissement",
+        boundary: "One commune’s boundary, as a GeoJSON Feature",
+        tiles: "The boundaries cut into tiles, which /api/communes/at reads",
       },
       errorsBody:
         "An error comes back as an RFC 9457 problem document, typed `application/problem+json`. Its `type` links to its entry below, and `detail` says what went wrong in words.",
@@ -205,7 +217,7 @@ export const docs = {
       questions: [
         "Which province is Tafraout in, and how many people live there?",
         "Which rural communes of Chefchaouen province lost people between 2014 and 2024?",
-        "What’s the nearest commune to 30.42, −9.60?",
+        "Which commune is 30.42, −9.60 in?",
       ],
     },
   },
@@ -254,6 +266,8 @@ export const docs = {
         commune: "Une commune, par code à points",
         arrondissements: "Tous les arrondissements",
         arrondissement: "Un arrondissement",
+        boundary: "La limite d’une commune, en Feature GeoJSON",
+        tiles: "Les limites découpées en tuiles, que lit /api/communes/at",
       },
       errorsBody:
         "Une erreur revient sous forme de document problem RFC 9457, de type `application/problem+json`. Son champ `type` renvoie à sa description ci-dessous, et `detail` dit en toutes lettres ce qui ne va pas.",
@@ -352,7 +366,7 @@ export const docs = {
       questions: [
         "Dans quelle province se trouve Tafraout, et combien d’habitants compte-t-elle ?",
         "Quelles communes rurales de la province de Chefchaouen ont perdu des habitants entre 2014 et 2024 ?",
-        "Quelle est la commune la plus proche de 30,42, −9,60 ?",
+        "Dans quelle commune se trouve le point 30,42, −9,60 ?",
       ],
     },
   },
