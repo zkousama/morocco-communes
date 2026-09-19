@@ -58,7 +58,7 @@ const operations = reference.operations.map(({ path, method, op }) => {
       status,
       text: say(`${id}.${status}`, r.description),
     })),
-    example: (reference.examples as Record<string, { request: string; body: unknown; cut?: { shown: number; total: number } }>)[id]!,
+    example: (reference.examples as Record<string, { request: string; body: unknown; cut?: { shown: number; total: number }; trimmed?: boolean }>)[id]!,
   };
 });
 
@@ -152,6 +152,7 @@ const toc = [
 
         <Code locale={locale} label={`${d.example} · GET ${op.example.request}`} html={highlightJson(op.example.body)} tall />
         {op.example.cut && <p class="note cut">{fill(d.cutNote, op.example.cut)}</p>}
+        {op.example.trimmed && <p class="note cut">{d.trimNote}</p>}
       </article>
     ))}
   </section>

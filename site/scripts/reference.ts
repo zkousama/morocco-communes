@@ -8,7 +8,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildIndex } from "../../api/src/emit/searchIndex.ts";
-import { emitTree } from "../../api/src/emit/static.ts";
+import { emitIndicators, emitTree } from "../../api/src/emit/static.ts";
+import { readIndicators } from "../../api/src/emit/indicators.ts";
+import { buildIndicatorTable, type IndicatorRecord, type Topics } from "../../api/src/lib/indicators.ts";
 import { envelope, PROBLEMS, problem, type Envelope } from "../../api/src/lib/envelope.ts";
 import { listCommunes, parseFilter } from "../../api/src/lib/list.ts";
 import { buildLookup } from "../../api/src/lib/resolve.ts";
@@ -39,6 +41,9 @@ const index = buildIndex(version, [
 ]);
 const lookup = buildLookup(index);
 const tree = emitTree(dataset);
+const indicatorRecords = await readIndicators("data/v1");
+emitIndicators(tree, indicatorRecords);
+const indicators = buildIndicatorTable(indicatorRecords.filter((r) => r.level === "commune"));
 const geometry = await buildGeometry("data/v1", dataset as never);
 const tileIndex = prepareIndex(geometry.tileIndex);
 const tiles = new Map([...geometry.tiles].map(([key, tile]) => [tilePath(key), tile]));
@@ -64,7 +69,29 @@ interface Example {
   body: unknown;
   /** Set when a long list is cut for the page: how many rows show, out of how many. */
   cut?: { shown: number; total: number };
+  /** Set when an indicators file is cut to a few topics for the page. */
+  trimmed?: boolean;
 }
+
+/**
+ * An indicators file with every area and sex kept but only a few topics in each, since the
+ * whole of one runs to hundreds of lines.
+ */
+const trim = (request: string, body: Envelope<unknown>, people: string[], households: string[]): Example => {
+  const keep = (t: Topics, topics: string[]) => Object.fromEntries(Object.entries(t).filter(([k]) => topics.includes(k)));
+  const r = body.data as IndicatorRecord & { urbanCentres?: unknown[] };
+  const data = {
+    ...r,
+    people: Object.fromEntries(
+      Object.entries(r.people).map(([area, bySex]) => [
+        area,
+        bySex && Object.fromEntries(Object.entries(bySex).map(([sex, t]) => [sex, keep(t, people)])),
+      ]),
+    ),
+    households: Object.fromEntries(Object.entries(r.households).map(([area, t]) => [area, t && keep(t, households)])),
+  };
+  return { request, body: { ...body, data }, trimmed: true };
+};
 
 /** Keeps the first rows of a list response, and says so. */
 const cut = (request: string, body: Envelope<unknown>, keep: number): Example => {
@@ -79,7 +106,7 @@ const computed = (request: string, rows: unknown[]) =>
 const listed = async (request: string, input: Parameters<typeof parseFilter>[0]) => {
   const parsed = parseFilter(input, lookup);
   if ("error" in parsed) throw new Error(`${request}: ${parsed.error.detail}`);
-  const result = await listCommunes(parsed.query, dataset.communes as never[], fetchJson);
+  const result = await listCommunes(parsed.query, dataset.communes as never[], fetchJson, indicators);
   if (!result) throw new Error(`${request} has no page`);
   // The links the Worker writes: the same query with page set.
   const { page, totalPages } = result.meta;
@@ -122,6 +149,13 @@ const examples: Record<string, Example> = {
   listRegions: cut("/api/regions.json", file("/api/regions.json"), 2),
   listProvinces: cut("/api/provinces.json", file("/api/provinces.json"), 2),
   listCercles: cut("/api/cercles.json", file("/api/cercles.json"), 2),
+  getIndicators: trim(
+    "/api/communes/tanger/indicators",
+    file("/api/communes/01.511.01.0/indicators.json"),
+    ["population", "labour"],
+    ["amenities"],
+  ),
+  getNationalIndicators: trim("/api/indicators.json", file("/api/indicators.json"), ["fertility", "localLanguages"], ["households"]),
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },
 };
 
@@ -179,7 +213,7 @@ const errors = Object.fromEntries(
 const errorExample = problem("not-found", "no unit has code 99.999", "/api/communes/99.999", "https://<host>");
 
 // The tools as a client lists them, from a server connected the way the Worker connects it.
-const server = createMcpServer({ index, lookup, fetchJson, tiles: tileIndex, communes: dataset.communes as never[] });
+const server = createMcpServer({ index, lookup, fetchJson, tiles: tileIndex, communes: dataset.communes as never[], indicators });
 const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
 await server.connect(serverSide);
 const client = new Client({ name: "docs", version });

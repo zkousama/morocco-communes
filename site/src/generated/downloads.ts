@@ -256,7 +256,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 1225
+        "bytes": 1709
       }
     ]
   }

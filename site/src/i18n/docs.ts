@@ -44,10 +44,10 @@ export const SPEC_FR: Record<string, string> = {
   "listCommunes.param.min_population": "Seulement les communes d’au moins autant d’habitants en 2024.",
   "listCommunes.param.max_population": "Seulement les communes d’au plus autant d’habitants en 2024.",
   "listCommunes.param.sort":
-    "Trier par nom, population de 2024, évolution depuis 2014, densité ou superficie, avec un moins devant pour les plus grands d’abord. Une commune sans valeur pour ce champ vient en dernier dans les deux sens.",
+    "Trier par `name`, `population` en 2024, `change` depuis 2014, `density` ou `area`, ou par le chemin d’un indicateur du recensement, comme `labour.unemploymentRate`, avec un moins devant pour les plus grands d’abord. Une commune sans valeur vient en dernier dans les deux sens. Triée par un indicateur, chaque commune porte `indicator`, sa valeur.",
   "listCommunes.param.page": "Numéro de page, à partir de 1.",
   "listCommunes.param.q": `Cherche les communes par nom, jusqu’à ${QUERY.maxLength} caractères, et renvoie jusqu’à 10 résultats. Ne prend aucun autre paramètre.`,
-  "listCommunes.200": "Une page de communes.",
+  "listCommunes.200": "Une page de communes, ou les résultats de recherche quand q est donné.",
   "listCommunes.400":
     "Un filtre n’est pas un code valide ou désigne une unité du mauvais niveau, un paramètre sort de ses bornes, ou q est donné avec un autre paramètre.",
   "listCommunes.404": "Un filtre désigne une unité qui n’existe pas, ou la page est au-delà de la dernière.",
@@ -64,6 +64,20 @@ export const SPEC_FR: Record<string, string> = {
   "listArrondissements.param.code": "Le code à points de la commune.",
   "listArrondissements.200": "Les arrondissements de la commune.",
   "listArrondissements.404": "Aucune commune ne porte ce code.",
+
+  "getIndicators.summary": "Les chiffres d’une unité au recensement de 2024",
+  "getIndicators.description":
+    "Les indicateurs du HCP pour une région, une province, un cercle, une commune ou un arrondissement : âge, état matrimonial, fécondité, handicap, scolarisation, alphabétisation et langues, études et travail, et pour les ménages le logement, les équipements, les eaux usées, les déchets et le combustible de cuisson. " +
+    "Pour toute l’unité, sa partie urbaine et sa partie rurale, et pour les hommes et les femmes. Les parts et les taux sont en pourcentage. La plupart viennent du questionnaire long, posé à 20 % des ménages tirés au hasard dans les communes de 2 000 ménages ou plus : là, ce sont des estimations. " +
+    "Le fichier d’une commune porte aussi les chiffres de ses centres urbains. `/data/v1/indicators/fields.json` nomme chaque champ avec l’intitulé du HCP.",
+  "getIndicators.param.collection": "Le niveau de l’unité.",
+  "getIndicators.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
+  "getIndicators.200": "Les indicateurs de l’unité.",
+  "getIndicators.400": "Ce n’est pas un identifiant.",
+  "getIndicators.404": "Aucune unité ne porte cet identifiant, ou elle est dans une autre collection.",
+  "getNationalIndicators.summary": "Les chiffres du Maroc au recensement de 2024",
+  "getNationalIndicators.description": "Les mêmes indicateurs pour l’ensemble du pays.",
+  "getNationalIndicators.200": "Les indicateurs du Maroc.",
 
   "listRegions.summary": "Les 12 régions",
   "listRegions.200": "Toutes les régions.",
@@ -102,6 +116,7 @@ export const docs = {
       responses: "Responses",
       example: "Example",
       cutNote: "{shown} of {total} rows shown here.",
+      trimNote: "Cut here to a few topics. The file has them all.",
       filesBody: "Static files for the questions the routes above don’t cover. Like every `.json` path, they cost nothing to call.",
       path: "Path",
       holds: "Holds",
@@ -254,6 +269,7 @@ export const docs = {
       responses: "Réponses",
       example: "Exemple",
       cutNote: "{shown} lignes sur {total} affichées ici.",
+      trimNote: "Réduit ici à quelques thèmes. Le fichier les a tous.",
       filesBody: "Des fichiers statiques pour ce que les routes ci-dessus ne couvrent pas. Comme tout chemin en `.json`, ils ne coûtent rien.",
       path: "Chemin",
       holds: "Contenu",
