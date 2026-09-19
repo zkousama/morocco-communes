@@ -10,10 +10,11 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { ui } from "../src/i18n/ui.ts";
+import { markup, viewBox } from "../src/generated/map.ts";
 
 function findChrome(): string {
   if (process.env.CHROME && existsSync(process.env.CHROME)) return process.env.CHROME;
@@ -30,19 +31,25 @@ function findChrome(): string {
   throw new Error("no Chrome found; set CHROME=/path/to/chrome");
 }
 
-const svg = (await readFile("site/public/morocco.svg", "utf8")).replace(/<svg /, '<svg class="map" ');
+// The home map in the site's dark theme: density, bright where people are.
+const DARK_RAMP = ["#2c614e", "#367b63", "#3f9578", "#55af8f", "#6fc9a8", "#91e1c3"];
+const svg = `<svg class="map" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg"><style>
+  .communes path { fill: #34362e; stroke: #191b16; stroke-width: 0.35; }
+  ${DARK_RAMP.map((c, i) => `.communes [data-d="${i}"] { fill: ${c}; }`).join("\n  ")}
+  .regions { fill: none; stroke: #191b16; stroke-width: 1.8; stroke-linejoin: round; }
+</style>${markup}</svg>`;
 const copy = ui.en;
 
 const html = `<!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Instrument+Sans:wght@400;500&family=JetBrains+Mono&display=block">
 <style>
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
-  body { background: #0d1a17; color: #e8efe9; display: grid; grid-template-columns: 1fr 500px;
+  body { background: #191b16; color: #ece9df; display: grid; grid-template-columns: 1fr 500px;
          align-items: center; padding: 0 64px 0 76px; box-sizing: border-box; }
   .words { display: flex; flex-direction: column; gap: 26px; }
-  .name { font: 500 22px "Instrument Sans", sans-serif; color: #8ba398; letter-spacing: 0.01em; }
+  .name { font: 500 22px "Instrument Sans", sans-serif; color: #9d9a8d; letter-spacing: 0.01em; }
   h1 { font: 400 70px/1.04 "Instrument Serif", serif; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-  .path { font: 400 18px "JetBrains Mono", monospace; color: #7fcfae; }
+  .path { font: 400 18px "JetBrains Mono", monospace; color: #cfa64a; }
   .map { width: 500px; height: auto; display: block; }
 </style></head><body>
   <div class="words">

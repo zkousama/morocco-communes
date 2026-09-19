@@ -143,7 +143,6 @@ reads `data/v1` once per build: ranks, the communes each one borders, matched on
 boundary points, and small maps drawn the same way as the home map.
 
 The charts are inline SVG and CSS, so they need no JavaScript and no charting library.
-`outline.ts` draws the older single-colour map that the link preview image uses.
 
 Arabic names are in the data and Arabic queries work; the interface is English and French.
 

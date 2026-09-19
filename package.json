@@ -18,7 +18,7 @@
     "site:build": "pnpm site:data && astro build --root site",
     "build": "pnpm site:build && pnpm api:build",
     "site:data": "node --experimental-strip-types site/scripts/map.ts && node --experimental-strip-types site/scripts/hierarchy.ts && node --experimental-strip-types site/scripts/charts.ts && node --experimental-strip-types site/scripts/downloads.ts && node --experimental-strip-types site/scripts/reference.ts",
-    "site:og": "node --experimental-strip-types site/scripts/outline.ts && node --experimental-strip-types site/scripts/og.ts",
+    "site:og": "node --experimental-strip-types site/scripts/og.ts",
     "npm:build": "node --experimental-strip-types packages/morocco-communes/build.ts"
   },
   "devDependencies": {
