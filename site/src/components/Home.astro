@@ -2,8 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
-import Reference from "./Reference.astro";
-import { COUNTED, LEVELS, t, type Locale } from "../i18n/ui";
+import { COUNTED, LEVELS, path, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
 import { aspect } from "../generated/outline";
 import { downloads } from "../generated/downloads";
@@ -49,6 +48,13 @@ const size = (bytes: number) => {
   }
   return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 1 }).format(bytes / 1_000_000)} ${units[2]}`;
 };
+
+const ways = [
+  { route: "docs/api/", name: copy.navApi, text: copy.useApi },
+  { route: "docs/mcp/", name: copy.navMcp, text: copy.useMcp },
+  { route: "docs/components/", name: copy.navComponents, text: copy.useComponents },
+  { route: "docs/npm/", name: copy.navNpm, text: copy.useNpm },
+];
 
 /** The pre-rendered routes, each a link to the file that answers it. */
 const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, ""));
@@ -120,9 +126,16 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
   </section>
 
   <section class="band">
-    <h2>{copy.refHeading}</h2>
-    <p>{copy.refBody}</p>
-    <Reference locale={locale} />
+    <h2>{copy.useHeading}</h2>
+    <p>{copy.useBody}</p>
+    <ul class="ways">
+      {ways.map((way) => (
+        <li>
+          <a href={path(locale, way.route)}>{way.name}</a>
+          <span>{way.text}</span>
+        </li>
+      ))}
+    </ul>
   </section>
 
   <section class="band">
@@ -251,6 +264,34 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     line-height: 1.45;
   }
 
+
+  /* Ways in ---------------------------------------------------------------- */
+
+  .ways {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0 2rem;
+  }
+
+  .ways li {
+    display: grid;
+    align-content: start;
+    gap: 0.2rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .ways a {
+    font-weight: 500;
+  }
+
+  .ways span {
+    color: var(--quiet);
+    font-size: var(--t-sm);
+  }
 
   /* Bands ------------------------------------------------------------------ */
 

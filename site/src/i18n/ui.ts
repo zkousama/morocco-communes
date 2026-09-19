@@ -48,6 +48,12 @@ export const ui = {
 
     tryHeading: "Run a query",
     tryBody: "Every request below goes to this API and comes back unedited.",
+    useHeading: "Build on it",
+    useBody: "Each way in has its own page.",
+    useApi: "Every route, its parameters and a real response",
+    useMcp: "Connect Claude, ChatGPT, Cursor or VS Code",
+    useComponents: "A région, province and commune picker for forms",
+    useNpm: "The data as a typed package, offline",
 
     tiersHeading: "Where a request is answered",
     tiersBody:
@@ -107,23 +113,6 @@ export const ui = {
     chartSpreadNote:
       "Bar spans the 10th to 90th percentile, block the 25th to 75th, line the median. The 2 distributions sit almost on top of each other, which is evidence the matching is sound, though not proof. The reasoning for each pair is in data/v1/crosswalk.",
 
-    refHeading: "Parameters",
-    refBody:
-      "The routes that take a query string, with their defaults and limits. Every response is wrapped as data, meta and links, and an error comes back as an RFC 9457 problem document.",
-    refParam: "Parameter",
-    refDefault: "Default",
-    refRequired: "required",
-    refAll: "all",
-    pQ: "Text to find, in French, Arabic or as a slug, up to {max} characters",
-    pLevels: "Levels to include, separated by commas",
-    pLimit: "How many results, up to {max}",
-    pLat: "Latitude of the point",
-    pLng: "Longitude of the point",
-    pRadius: "Distance in km, up to {max}",
-    pUnit: "A région, province or cercle, by code or slug",
-    pType: "urban or rural",
-    pPage: "Page number, {per} communes to a page",
-    pCommunesQ: "Searches communes only, without filters",
     dlCommunes: "Communes",
     dlRegions: "Régions",
     dlProvinces: "Provinces and préfectures",
@@ -163,6 +152,12 @@ export const ui = {
 
     tryHeading: "Lancer une requête",
     tryBody: "Chaque requête ci-dessous part vers cette API et revient telle quelle.",
+    useHeading: "Construire dessus",
+    useBody: "Chaque accès a sa propre page.",
+    useApi: "Chaque route, ses paramètres et une vraie réponse",
+    useMcp: "Connecter Claude, ChatGPT, Cursor ou VS Code",
+    useComponents: "Un sélecteur région, province et commune pour les formulaires",
+    useNpm: "Les données en paquet typé, hors ligne",
 
     tiersHeading: "Où une requête est traitée",
     tiersBody:
@@ -222,23 +217,6 @@ export const ui = {
     chartSpreadNote:
       "La barre couvre les 10e à 90e centiles, le bloc les 25e à 75e, le trait la médiane. Les deux distributions se superposent presque : c’est l’indice que l’appariement tient — ce n’est pas une preuve, et le raisonnement par paire est dans data/v1/crosswalk.",
 
-    refHeading: "Paramètres",
-    refBody:
-      "Les routes qui prennent une chaîne de requête, avec leurs valeurs par défaut et leurs limites. Chaque réponse est enveloppée en data, meta et links, et une erreur revient sous forme de document problem RFC 9457.",
-    refParam: "Paramètre",
-    refDefault: "Par défaut",
-    refRequired: "obligatoire",
-    refAll: "tous",
-    pQ: "Texte à chercher, en français, en arabe ou en slug, jusqu’à {max} caractères",
-    pLevels: "Niveaux à inclure, séparés par des virgules",
-    pLimit: "Nombre de résultats, jusqu’à {max}",
-    pLat: "Latitude du point",
-    pLng: "Longitude du point",
-    pRadius: "Distance en km, jusqu’à {max}",
-    pUnit: "Une région, une province ou un cercle, par code ou slug",
-    pType: "urban ou rural",
-    pPage: "Numéro de page, {per} communes par page",
-    pCommunesQ: "Ne cherche que parmi les communes, sans filtre",
     dlCommunes: "Communes",
     dlRegions: "Régions",
     dlProvinces: "Provinces et préfectures",
