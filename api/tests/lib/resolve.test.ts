@@ -21,6 +21,13 @@ describe("resolve", () => {
     }
   });
 
+  it("prefers the level asked for where a name is shared", () => {
+    expect(resolve(lookup, "tiznit")).toMatchObject({ level: "commune" });
+    expect(resolve(lookup, "tiznit", "province")).toEqual({ kind: "found", code: "09.581", level: "province" });
+    expect(resolve(lookup, "Tiznit", "cercle")).toMatchObject({ level: "cercle" });
+    expect(resolve(lookup, "01.511.01.0", "province")).toMatchObject({ level: "commune" });
+  });
+
   it("accepts a slug", () => {
     expect(resolve(lookup, "tanger")).toEqual({ kind: "found", code: "01.511.01.0", level: "commune" });
   });

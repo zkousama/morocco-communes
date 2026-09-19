@@ -4,6 +4,12 @@ import type { Level, SearchIndex } from "./search.ts";
 export interface Lookup {
   /** Dotted code by dotted code, by zero-padded digits, and by slug. */
   canonical: Map<string, { code: string; level: Level }>;
+  /**
+   * Dotted code by level and slug. Tiznit is a commune and a province, and so are dozens
+   * of others, and `canonical` holds the commune; a caller that knows which level it wants
+   * reads this instead.
+   */
+  byLevel: Map<string, string>;
 }
 
 /**
@@ -16,7 +22,9 @@ export interface Lookup {
  */
 export function buildLookup(index: SearchIndex): Lookup {
   const canonical = new Map<string, { code: string; level: Level }>();
+  const byLevel = new Map<string, string>();
   for (const [code, level, , , slug, , , , , , codeDigits] of index.entries) {
+    if (!byLevel.has(`${level} ${slug}`)) byLevel.set(`${level} ${slug}`, code);
     const target = { code, level };
     canonical.set(code, target);
     canonical.set(codeDigits, target);
@@ -25,7 +33,7 @@ export function buildLookup(index: SearchIndex): Lookup {
     if (unpadded !== "" && !canonical.has(unpadded)) canonical.set(unpadded, target);
     if (!canonical.has(slug)) canonical.set(slug, target);
   }
-  return { canonical };
+  return { canonical, byLevel };
 }
 
 /**
@@ -42,7 +50,13 @@ export function buildLookup(index: SearchIndex): Lookup {
 export function resolve(
   lookup: Lookup,
   raw: string,
+  /** The level the caller wants, where a name is shared: a province filter means the province. */
+  prefer?: Level,
 ): { kind: "found"; code: string; level: Level } | { kind: "absent" } | { kind: "malformed" } {
+  if (prefer) {
+    const code = lookup.byLevel.get(`${prefer} ${normalise(raw).replace(/ /g, "-")}`);
+    if (code) return { kind: "found", code, level: prefer };
+  }
   const hit = lookup.canonical.get(raw);
   if (hit) return { kind: "found", ...hit };
   const slug = normalise(raw).replace(/ /g, "-");

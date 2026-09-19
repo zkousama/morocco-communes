@@ -73,7 +73,7 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
   for (const key of ["region", "province", "cercle"] as const) {
     const raw = input[key];
     if (raw === undefined) continue;
-    const found = resolve(lookup, raw);
+    const found = resolve(lookup, raw, key);
     if (found.kind === "malformed") return { error: { kind: "invalid-code", detail: `${raw} can’t be read as a code or a slug` } };
     if (found.kind === "absent") return { error: { kind: "not-found", detail: `no ${key} has code ${raw}` } };
     // A code of the wrong level would otherwise address a path that does not exist and

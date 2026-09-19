@@ -51,6 +51,8 @@ const COLLECTIONS: Record<Level, string> = {
   region: "regions",
   cercle: "cercles",
 };
+/** The level a collection holds, so /api/provinces/tiznit means the province, not the commune. */
+const LEVEL_OF = Object.fromEntries(Object.entries(COLLECTIONS).map(([level, collection]) => [collection, level as Level]));
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -285,7 +287,7 @@ app.get("/api/:collection/:id", async (c) => {
   const { collection, id } = c.req.param();
   if (id.endsWith(".json")) return fail(url, "not-found", `${url.pathname} does not exist`, url.pathname);
 
-  const found = resolve(lookup, id);
+  const found = resolve(lookup, id, LEVEL_OF[collection]);
   if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
   if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
 
@@ -309,7 +311,7 @@ app.get("/api/:collection/:id", async (c) => {
 app.get("/api/:collection/:id/indicators", async (c) => {
   const url = new URL(c.req.url);
   const { collection, id } = c.req.param();
-  const found = resolve(lookup, id);
+  const found = resolve(lookup, id, LEVEL_OF[collection]);
   if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
   if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
 
