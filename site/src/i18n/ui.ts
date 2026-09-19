@@ -42,7 +42,7 @@ export const ui = {
     onThisPage: "On this page",
     tagline: "Morocco’s 1,503 communes, as open data.",
     intro:
-      "Official HCP codes, names in French and Arabic, population from the 2024 and 2014 censuses, what the 2024 census found about people and homes, and a boundary for every commune but one. Free to use.",
+      "Official HCP codes, names in French and Arabic, population from the 2024 and 2014 censuses, what each of them found about people and homes, and a boundary for every commune but one. Free to use.",
     mapCaption: "{n} communes, from the boundaries this API serves.",
     mapAlt: "Map of Morocco’s {n} communes",
     mapShade: "Shade the map by",
@@ -159,6 +159,7 @@ export const ui = {
     dlOutlines: "Province and région outlines, GeoJSON",
     dlCrosswalk: "2014 to 2024 crosswalk",
     dlIndicators: "2024 census figures, with fields.json naming each one",
+    dlIndicators2014: "2014 census figures, in the same shape, and what each one can be read against",
     dlSources: "Sources",
     notFoundTitle: "No page here",
     notFoundBody: "Nothing lives at this address. If you were after the API, its routes start with /api/.",
@@ -187,7 +188,7 @@ export const ui = {
     onThisPage: "Sur cette page",
     tagline: "Les 1 503 communes du Maroc, en données ouvertes.",
     intro:
-      "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, ce que le recensement de 2024 dit des habitants et des logements, et une limite pour chaque commune sauf une. Libre d’usage.",
+      "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, ce que chacun dit des habitants et des logements, et une limite pour chaque commune sauf une. Libre d’usage.",
     mapCaption: "{n} communes, d’après les limites que sert cette API.",
     mapAlt: "Carte des {n} communes du Maroc",
     mapShade: "Colorer la carte selon",
@@ -304,6 +305,7 @@ export const ui = {
     dlOutlines: "Contours des provinces et des régions, GeoJSON",
     dlCrosswalk: "Correspondance 2014 à 2024",
     dlIndicators: "Chiffres du recensement de 2024, avec fields.json qui nomme chacun",
+    dlIndicators2014: "Chiffres du recensement de 2014, dans la même forme, avec ce à quoi chacun se compare",
     dlSources: "Sources",
     notFoundTitle: "Aucune page ici",
     notFoundBody: "Rien ne se trouve à cette adresse. Si vous cherchiez l’API, ses routes commencent par /api/.",

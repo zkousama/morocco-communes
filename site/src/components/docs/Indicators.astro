@@ -1,7 +1,9 @@
 ---
 /**
- * The census figures' data dictionary, read from the fields.json the dataset ships, so the
- * page lists exactly the fields the files and the API carry, each under HCP's own heading.
+ * The census figures' data dictionary, read from the fields.json files the dataset ships,
+ * so the page lists exactly the fields the files and the API carry, each under HCP's own
+ * heading. A 2024 field the 2014 census asked the same way is marked as such, and the
+ * fields 2014 asked its own way are listed on their own at the end.
  */
 import { readFileSync } from "node:fs";
 import Docs from "../../layouts/Docs.astro";
@@ -24,8 +26,16 @@ interface Field {
   category?: string;
   unit: keyof typeof d.units;
   sexes?: ("all" | "male" | "female")[];
+  comparableTo?: string;
+  note?: string;
 }
 const dictionary = JSON.parse(readFileSync("data/v1/indicators/fields.json", "utf8")) as { people: Field[]; households: Field[] };
+const dictionary2014 = JSON.parse(readFileSync("data/v1/indicators/2014/fields.json", "utf8")) as { people: Field[]; households: Field[] };
+const fields2014 = [...dictionary2014.people, ...dictionary2014.households];
+const alsoIn2014 = new Set(fields2014.map((f) => f.comparableTo).filter(Boolean));
+// The 2014 fields that don't line up with a 2024 one: a question that changed between the
+// censuses, or one only 2014 asked.
+const ownTo2014 = fields2014.filter((f) => f.comparableTo === undefined);
 
 // Which sexes HCP gives a figure for: all three, everyone only, or everyone and women.
 const sexesOf = (f: Field) => {
@@ -62,6 +72,7 @@ const toc = [
   { id: "reading", label: d.reading },
   { id: "people", label: d.people },
   { id: "households", label: d.households },
+  { id: "before", label: d.before },
   { id: "get", label: d.get },
 ];
 ---
@@ -93,6 +104,7 @@ const toc = [
                     <dd>
                       <span>{english ? f.label : f.category ?? f.heading}</span>
                       <span class="meta">{meta(f)}</span>
+                      {alsoIn2014.has(f.path) && <span class="meta also">{d.also}</span>}
                       {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
                     </dd>
                   </div>
@@ -104,6 +116,28 @@ const toc = [
       ))}
     </section>
   ))}
+
+  <section id="before">
+    <h2>{d.before}</h2>
+    <ul class="notes">
+      {d.beforeBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+    <dl class="fields">
+      {ownTo2014.map((f) => (
+        <div>
+          <dt>
+            <code>{f.path}</code>
+            <span class="column">{d.column} <code>{f.column}</code></span>
+          </dt>
+          <dd>
+            <span>{english ? f.label : f.category ?? f.heading}</span>
+            <span class="meta">{meta(f)}</span>
+            {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </section>
 
   <section id="get">
     <h2>{d.get}</h2>
@@ -180,6 +214,18 @@ const toc = [
     flex-basis: 100%;
     font-size: var(--t-xs);
     color: var(--quiet);
+  }
+
+  /* Marks a figure the 2014 census asked the same way, so the two subtract. */
+  .also::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-inline-end: 0.35rem;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 0.05em;
   }
 
   @media (max-width: 40rem) {

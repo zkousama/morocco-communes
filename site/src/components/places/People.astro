@@ -1,12 +1,13 @@
 ---
 /**
- * HCP's 2024 census figures for a unit: its age pyramid, a row of headline figures with
- * the women's and the country's beside them, and the languages its people use and read.
+ * HCP's census figures for a unit: its age pyramid, a row of headline figures with the
+ * women's, the country's and the 2014 census's beside them, and the languages its people
+ * use and read.
  */
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
-import { figure, national, type IndicatorRecord } from "../../lib/indicators";
+import { figure, figureIn2014, national, type IndicatorRecord } from "../../lib/indicators";
 
 interface Props {
   locale: Locale;
@@ -37,14 +38,19 @@ const widest = Math.max(...rows.flatMap((r) => [r.men ?? 0, r.women ?? 0]));
 const hasAges = widest > 0;
 const width = (v: number | null) => `${((v ?? 0) / widest) * 100}%`;
 
-/** A headline figure, with women's and Morocco's beside it where they tell something. */
+/**
+ * A headline figure, with women's, Morocco's and the 2014 census's beside it where they
+ * tell something. A figure the 2014 census asked another way has no line for it.
+ */
 const headline = (label: string, path: string, note: string, opts: { women?: boolean; format?: (v: number) => string; homes?: boolean } = {}) => {
   const source = opts.homes ? homes : all;
   const value = figure(source, path);
   const show = opts.format ?? share;
   const theirs = opts.women ? figure(women, path) : null;
   const countryValue = figure(opts.homes ? countryHomes : country, path);
+  const then = figureIn2014(record, path, opts.homes);
   const beside = [
+    then !== null ? fill(p.since2014, { v: show(then) }) : null,
     theirs !== null ? fill(p.womenFigure, { v: show(theirs) }) : null,
     record.level !== "country" && countryValue !== null ? fill(p.moroccoFigure, { v: show(countryValue) }) : null,
   ].filter(Boolean);

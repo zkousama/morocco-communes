@@ -13,7 +13,7 @@ export const GET: APIRoute = ({ site }) => {
 
   const body = `# Morocco communes
 
-> Open dataset and HTTP API for Morocco's administrative divisions: ${counts.regions} régions, ${counts.provinces} provinces and préfectures, ${counts.cercles} cercles, ${n.format(counts.communes)} communes and ${counts.arrondissements} arrondissements. Official HCP geographic codes, names in French and Arabic, population from the 2024 and 2014 censuses, HCP's 2024 census indicators on age, education, languages, work and housing, and boundaries from OpenStreetMap. Free to call, no key, CORS open.
+> Open dataset and HTTP API for Morocco's administrative divisions: ${counts.regions} régions, ${counts.provinces} provinces and préfectures, ${counts.cercles} cercles, ${n.format(counts.communes)} communes and ${counts.arrondissements} arrondissements. Official HCP geographic codes, names in French and Arabic, population from the 2024 and 2014 censuses, HCP's census indicators on age, education, languages, work and housing for both years, and boundaries from OpenStreetMap. Free to call, no key, CORS open.
 
 An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`, \`001511010\`, \`1511010\` or the slug \`tanger\`. Every response is an envelope of \`data\`, \`meta\` and \`links\`, and errors are RFC 9457 problem documents. Routes ending in \`.json\` are static files.
 
@@ -39,7 +39,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [MCP setup](${at("/docs/mcp/")}): how to connect Claude, ChatGPT, Cursor, VS Code and the Claude and OpenAI APIs
 - [Components](${at("/docs/components/")}): a région, province and commune picker for forms, in HTML or React
 - [npm package](${at("/docs/npm/")}): \`morocco-communes\`, the data as typed ES modules, offline
-- [Census figures](${at("/docs/indicators/")}): every 2024 census indicator, with HCP's heading for it, its unit, its path and CSV column, and how to read it
+- [Census figures](${at("/docs/indicators/")}): every census indicator from 2024 and 2014, with HCP's heading for it, its unit, its path and CSV column, and how to read it
 
 ## Data
 

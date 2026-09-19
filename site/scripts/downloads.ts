@@ -92,6 +92,19 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    key: "dlIndicators2014",
+    licence: "hcp",
+    files: [
+      { label: "people.csv", path: "data/v1/indicators/2014/people.csv" },
+      { label: "households.csv", path: "data/v1/indicators/2014/households.csv" },
+      { label: "communes.json", path: "data/v1/indicators/2014/communes.json" },
+      { label: "provinces.json", path: "data/v1/indicators/2014/provinces.json" },
+      { label: "regions.json", path: "data/v1/indicators/2014/regions.json" },
+      { label: "fields.json", path: "data/v1/indicators/2014/fields.json" },
+      { label: "unplaced.json", path: "data/v1/indicators/2014/unplaced.json" },
+    ],
+  },
+  {
     key: "dlBoundaries",
     licence: "odbl",
     // One file per région, labelled by the région it holds rather than by its code.

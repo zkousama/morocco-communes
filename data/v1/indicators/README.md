@@ -24,6 +24,7 @@ Both come for the whole unit, its urban part and its rural part.
 
 ## Files
 
+- `2014/` holds the same figures from the 2014 census, with a README of its own.
 - `national.json`, `regions.json`, `provinces.json`, `cercles.json`, `communes.json`,
   `arrondissements.json` and `urban-centres.json` hold one record per unit.
 - `people.csv` has a row per unit, area and sex, and `households.csv` a row per unit and

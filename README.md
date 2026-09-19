@@ -4,8 +4,8 @@ An open dataset and HTTP API for Morocco's administrative divisions: 12 régions
 provinces and préfectures, 8 préfectures d'arrondissements, 213 cercles, 1,503 communes
 and 41 arrondissements, with
 official HCP geographic codes, names in French and Arabic, 2024 and 2014 population, HCP's
-2024 census figures on age, education, languages, work and housing, and boundaries from
-OpenStreetMap.
+census figures on age, education, languages, work and housing from both years, and
+boundaries from OpenStreetMap.
 
 HCP publishes the census as spreadsheets. This builds a dataset, an API and a site from them
 and from OpenStreetMap, and shows the working.
@@ -18,7 +18,7 @@ and from OpenStreetMap, and shows the working.
 |---|---|---|
 | `attributes/` | every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `geometry/` | one TopoJSON per région | **ODbL**, share-alike |
-| `indicators/` | the 2024 census indicators for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
+| `indicators/` | the census indicators for every unit, 2024 and 2014, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
@@ -75,7 +75,8 @@ GET /api/communes?region=01&sort=-labour.unemploymentRate
 ```
 
 A list sorts by any of the census indicators, by its path, and each commune it lists then
-carries the figure it was sorted by.
+carries the figure it was sorted by. `2014.` before the path sorts by the 2014 figure and
+`change.` by how far a commune moved between the censuses.
 
 Search takes French, Arabic or a slug. It folds the alef variants, ta-marbuta and alef
 maqsura the names actually carry, and the tatweel and vowel marks they never do but people
@@ -205,6 +206,12 @@ every one of the 1,852 units and the 164 urban centres. Each column is named aft
 heading HCP gives it, and the build refuses the workbook if a heading has moved. It then
 checks that each unit's population and household count equal the population file's and
 that the figures add up. `indicators/README.md` has the details.
+
+The 2014 census published the same kind of figures, in two workbooks of its own, and they
+land on the units of today: 1,965 of the 1,979 rows, by code, through the crosswalk, or by
+name inside a commune. 65 fields ask what 2024 asks and can be subtracted from it; the
+rest changed base or categories, and each says how. `indicators/2014/README.md` has the
+details, and `indicators/2014/unplaced.json` names the 14 rows with nowhere to land.
 
 207 communes were renumbered by the 2015 reform and have no 2014 figure under their
 current code. `crosswalk/` reconciles them in two deterministic passes and records the

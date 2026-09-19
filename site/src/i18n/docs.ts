@@ -44,7 +44,7 @@ export const SPEC_FR: Record<string, string> = {
   "listCommunes.param.min_population": "Seulement les communes d’au moins autant d’habitants en 2024.",
   "listCommunes.param.max_population": "Seulement les communes d’au plus autant d’habitants en 2024.",
   "listCommunes.param.sort":
-    "Trier par `name`, `population` en 2024, `change` depuis 2014, `density` ou `area`, ou par le chemin d’un indicateur du recensement, comme `labour.unemploymentRate`, avec un moins devant pour les plus grands d’abord. Une commune sans valeur vient en dernier dans les deux sens. Triée par un indicateur, chaque commune porte `indicator`, sa valeur.",
+    "Trier par `name`, `population` en 2024, `change` depuis 2014, `density` ou `area`, ou par le chemin d’un indicateur du recensement, comme `labour.unemploymentRate`. Mettre `2014.` devant le chemin trie sur le chiffre de 2014, et `change.` sur l’écart entre les deux recensements, comme `change.illiteracy.rate10Plus` ; les deux existent pour les chiffres que les recensements posent de la même façon. Un moins devant met les plus grands d’abord, et une commune sans valeur vient en dernier dans les deux sens. Triée par un indicateur, chaque commune porte `indicator`, sa valeur.",
   "listCommunes.param.page": "Numéro de page, à partir de 1.",
   "listCommunes.param.q": `Cherche les communes par nom, jusqu’à ${QUERY.maxLength} caractères, et renvoie jusqu’à 10 résultats. Ne prend aucun autre paramètre.`,
   "listCommunes.200": "Une page de communes, ou les résultats de recherche quand q est donné.",
@@ -65,17 +65,18 @@ export const SPEC_FR: Record<string, string> = {
   "listArrondissements.200": "Les arrondissements de la commune.",
   "listArrondissements.404": "Aucune commune ne porte ce code.",
 
-  "getIndicators.summary": "Les chiffres d’une unité au recensement de 2024",
+  "getIndicators.summary": "Les chiffres d’une unité aux recensements de 2024 et 2014",
   "getIndicators.description":
     "Les indicateurs du HCP pour une région, une province, un cercle, une commune ou un arrondissement : âge, état matrimonial, fécondité, handicap, scolarisation, alphabétisation et langues, études et travail, et pour les ménages le logement, les équipements, les eaux usées, les déchets et le combustible de cuisson. " +
     "Pour toute l’unité, sa partie urbaine et sa partie rurale, et pour les hommes et les femmes. Les parts et les taux sont en pourcentage. La plupart viennent du questionnaire long, posé à 20 % des ménages tirés au hasard dans les communes de 2 000 ménages ou plus : là, ce sont des estimations. " +
-    "Le fichier d’une commune porte aussi les chiffres de ses centres urbains. `/data/v1/indicators/fields.json` nomme chaque champ avec l’intitulé du HCP.",
+    "Les chiffres de 2024 sont au premier niveau et le recensement de 2014 est sous `2014`, null pour une unité qu’il n’a pas recensée. " +
+    "Le fichier d’une commune porte aussi les chiffres de ses centres urbains. `/data/v1/indicators/fields.json` nomme chaque champ avec l’intitulé du HCP, et `/data/v1/indicators/2014/fields.json` nomme ceux de 2014 et ce à quoi chacun se compare.",
   "getIndicators.param.collection": "Le niveau de l’unité.",
   "getIndicators.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
   "getIndicators.200": "Les indicateurs de l’unité.",
   "getIndicators.400": "Ce n’est pas un identifiant.",
   "getIndicators.404": "Aucune unité ne porte cet identifiant, ou elle est dans une autre collection.",
-  "getNationalIndicators.summary": "Les chiffres du Maroc au recensement de 2024",
+  "getNationalIndicators.summary": "Les chiffres du Maroc aux recensements de 2024 et 2014",
   "getNationalIndicators.description": "Les mêmes indicateurs pour l’ensemble du pays.",
   "getNationalIndicators.200": "Les indicateurs du Maroc.",
 
@@ -184,8 +185,8 @@ export const docs = {
     },
     indicators: {
       title: "Census figures",
-      description: "Every figure HCP published from Morocco’s 2024 census for each unit, what it measures and what HCP calls it.",
-      lede: "Every figure HCP published from the 2024 census, for Morocco and each of its units, with the heading HCP gives it.",
+      description: "Every figure HCP published from Morocco’s 2024 and 2014 censuses for each unit, what it measures and what HCP calls it.",
+      lede: "Every figure HCP published from the 2024 census, for Morocco and each of its units, with the heading HCP gives it. The 2014 census is here too.",
       reading: "Reading them",
       readingBody: [
         "Shares and rates are percentages, which HCP rounds to one decimal. Fertility is to two.",
@@ -193,15 +194,26 @@ export const docs = {
         "Homeless people aren’t counted in fertility, the schooling rate, the languages or anything about work.",
         "Each figure comes for the whole unit, its urban part and its rural part, and most for men and women too. A part the unit doesn’t have is null.",
         "Null is where HCP prints `…`, nothing to report, or `.`, unavailable. Mijik, Lagouira, Aghouinite and Zoug, which HCP counted through the local administration, have only their population.",
+        "A figure marked *also in 2014* was asked the same way at both censuses, so the two subtract.",
       ],
       people: "About people",
       households: "About households",
+      before: "In 2014",
+      beforeBody: [
+        "The 2014 census asked most of these questions, and `/data/v1/indicators/2014/` holds its answers in the same shape. Each unit’s API record carries them under `2014`.",
+        "Marital status covered everyone in 2014, children included, rather than people aged 15 and over.",
+        "Schooling covered children aged 7 to 12, a year older at each end than in 2024.",
+        "Reading and writing was asked as a combination of languages, so each literate person counted once.",
+        "A household counted under every cooking fuel it used, so those shares pass 100. The employment shares took in unemployed people who had worked before, and waste dumped in the open sat with everything that is neither a bin nor a truck.",
+        "Casablanca and the 5 other cities with arrondissements have no 2014 figures of their own: the census published those cities by arrondissement, and each arrondissement is here. The 13 cercles redrawn since and 1 urban centre have none either, and `2014/unplaced.json` names them.",
+        "These are the fields that ask something 2024 doesn’t:",
+      ],
       get: "Getting them",
       getBody: [
-        "`/api/communes/tanger/indicators` gives one unit’s, for any level, and `/api/indicators.json` Morocco’s.",
-        "`/api/communes?sort=-labour.unemploymentRate` ranks communes by any figure below, by its path.",
-        "`people.csv` and `households.csv` hold every unit’s, with the columns named below.",
-        "The MCP server’s `get_indicators` tool gives them to an assistant.",
+        "`/api/communes/tanger/indicators` gives one unit’s, for any level, and `/api/indicators.json` Morocco’s. Both carry 2014 under `2014`.",
+        "`/api/communes?sort=-labour.unemploymentRate` ranks communes by any figure below, by its path. `2014.` before the path ranks them by the 2014 figure, `change.` by how far they moved.",
+        "`people.csv` and `households.csv` hold every unit’s, with the columns named below, and `2014/` holds the same pair for 2014.",
+        "The MCP server’s `get_indicators` tool gives them to an assistant, from either census or both at once.",
       ],
       sexes: {
         "all,male,female": "for everyone, men and women",
@@ -242,6 +254,7 @@ export const docs = {
         cookingFuel: "Cooking fuel",
       },
       column: "CSV",
+      also: "also in 2014",
     },
     npm: {
       title: "npm package",
@@ -306,6 +319,7 @@ export const docs = {
         "Which commune is 30.42, −9.60 in?",
         "Where is unemployment highest among communes of more than 50,000 people?",
         "How many women in Tafraout can’t read or write, compared with men?",
+        "Where did illiteracy fall the most between the 2014 and 2024 censuses?",
       ],
     },
   },
@@ -403,8 +417,8 @@ export const docs = {
     },
     indicators: {
       title: "Chiffres du recensement",
-      description: "Chaque chiffre publié par le HCP pour chaque unité au recensement de 2024 au Maroc, ce qu’il mesure et comment le HCP l’appelle.",
-      lede: "Chaque chiffre publié par le HCP au recensement de 2024, pour le Maroc et chacune de ses unités, avec l’intitulé que lui donne le HCP.",
+      description: "Chaque chiffre publié par le HCP pour chaque unité aux recensements de 2024 et de 2014 au Maroc, ce qu’il mesure et comment le HCP l’appelle.",
+      lede: "Chaque chiffre publié par le HCP au recensement de 2024, pour le Maroc et chacune de ses unités, avec l’intitulé que lui donne le HCP. Le recensement de 2014 est là aussi.",
       reading: "Les lire",
       readingBody: [
         "Les parts et les taux sont en pourcentage, arrondis par le HCP à une décimale. La fécondité l’est à deux.",
@@ -412,15 +426,26 @@ export const docs = {
         "Les sans-abri ne sont comptés ni dans la fécondité, ni dans le taux de scolarisation, ni dans les langues, ni dans rien de ce qui touche au travail.",
         "Chaque chiffre est donné pour toute l’unité, sa partie urbaine et sa partie rurale, et la plupart aussi pour les hommes et les femmes. Une partie que l’unité n’a pas vaut null.",
         "Null, c’est là où le HCP imprime `…`, rien à signaler, ou `.`, indisponible. Mijik, Lagouira, Aghouinite et Zoug, recensées par l’administration locale, n’ont que leur population.",
+        "Un chiffre marqué *aussi en 2014* a été demandé de la même façon aux deux recensements : les deux se soustraient.",
       ],
       people: "Les habitants",
       households: "Les ménages",
+      before: "En 2014",
+      beforeBody: [
+        "Le recensement de 2014 posait la plupart de ces questions, et `/data/v1/indicators/2014/` en contient les réponses, dans la même forme. La fiche d’une unité dans l’API les porte sous `2014`.",
+        "L’état matrimonial portait en 2014 sur toute la population, enfants compris, et non sur les 15 ans et plus.",
+        "La scolarisation portait sur les enfants de 7 à 12 ans, un an de plus à chaque bout qu’en 2024.",
+        "Les langues lues et écrites étaient demandées par combinaison : chaque personne alphabétisée comptait une seule fois.",
+        "Un ménage comptait sous chaque combustible de cuisson qu’il utilisait, si bien que ces parts dépassent 100. Les parts du statut professionnel incluaient les chômeurs ayant déjà travaillé, et les déchets jetés dans la nature étaient comptés avec tout ce qui n’est ni un bac ni un camion.",
+        "Casablanca et les 5 autres villes à arrondissements n’ont pas de chiffres 2014 à elles : le recensement les publiait par arrondissement, et chaque arrondissement est ici. Les 13 cercles redécoupés depuis et 1 centre urbain n’en ont pas non plus, et `2014/unplaced.json` les nomme.",
+        "Voici les champs qui mesurent ce que 2024 ne mesure pas :",
+      ],
       get: "Les obtenir",
       getBody: [
-        "`/api/communes/tanger/indicators` donne ceux d’une unité, à tous les niveaux, et `/api/indicators.json` ceux du Maroc.",
-        "`/api/communes?sort=-labour.unemploymentRate` classe les communes selon n’importe quel chiffre ci-dessous, par son chemin.",
-        "`people.csv` et `households.csv` contiennent ceux de chaque unité, avec les colonnes nommées ci-dessous.",
-        "L’outil `get_indicators` du serveur MCP les donne à un assistant.",
+        "`/api/communes/tanger/indicators` donne ceux d’une unité, à tous les niveaux, et `/api/indicators.json` ceux du Maroc. Les deux portent 2014 sous `2014`.",
+        "`/api/communes?sort=-labour.unemploymentRate` classe les communes selon n’importe quel chiffre ci-dessous, par son chemin. `2014.` devant le chemin les classe sur le chiffre de 2014, `change.` sur l’écart entre les deux.",
+        "`people.csv` et `households.csv` contiennent ceux de chaque unité, avec les colonnes nommées ci-dessous, et `2014/` contient la même paire pour 2014.",
+        "L’outil `get_indicators` du serveur MCP les donne à un assistant, pour l’un ou l’autre recensement, ou les deux à la fois.",
       ],
       sexes: {
         "all,male,female": "pour tous, les hommes et les femmes",
@@ -461,6 +486,7 @@ export const docs = {
         cookingFuel: "Combustible de cuisson",
       },
       column: "CSV",
+      also: "aussi en 2014",
     },
     npm: {
       title: "Paquet npm",
@@ -525,6 +551,7 @@ export const docs = {
         "Dans quelle commune se trouve le point 30,42 ; −9,60 ?",
         "Où le chômage est-il le plus élevé parmi les communes de plus de 50 000 habitants ?",
         "À Tafraout, combien de femmes ne savent ni lire ni écrire, par rapport aux hommes ?",
+        "Où l’analphabétisme a-t-il le plus reculé entre les recensements de 2014 et 2024 ?",
       ],
     },
   },

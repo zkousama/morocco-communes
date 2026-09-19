@@ -65,4 +65,5 @@ cover 685,281 km². The smallest communes are under half a km²: Moulay Yacoub, 
 Méchouar de Casablanca around the royal palace.
 
 The boundaries themselves are in `../geometry/`, which carries its own LICENSE, and HCP's
-2024 census indicators for every unit are in `../indicators/`.
+Census indicators for every unit are in `../indicators/`, with the 2014 census in
+`../indicators/2014/`.
