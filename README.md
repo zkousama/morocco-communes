@@ -115,9 +115,9 @@ Full reference: [`api/README.md`](api/README.md).
 ## The docs site
 
 `site/` is an Astro site in English and French, with a light and dark theme and a control
-to pick either or follow the system. It builds to static HTML: the home page, 4 docs pages
-(the API reference, the MCP setup, the components and the npm package), and a page for
-every région, province and commune, 3,210 pages in all.
+to pick either or follow the system. It builds to static HTML: the home page, 5 docs pages
+(the API reference, the MCP setup, the components, the npm package and the census
+figures), and a page for every région, province and commune, 3,212 pages in all.
 
 The home page opens on a map of every commune, shaded by density, change since 2014, or
 urban and rural. Hovering one shows its figures and clicking opens its page. A commune's
@@ -170,6 +170,7 @@ pnpm build             # the docs site, then the API tree, into dist/
 pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
+pnpm eval              # asks a model 34 questions through the MCP server; see evals/
 ```
 
 The order inside `pnpm build` matters: Astro clears its output directory, so the site
