@@ -1,6 +1,7 @@
 import { paginate, type Envelope, type PageMeta } from "./envelope.ts";
 import { PAGE, PER_PAGE, POPULATION } from "./params.ts";
 import { aliasPath, resolve, withArticle, type FilterQuery, type Lookup, type SortKey } from "./resolve.ts";
+import { indicatorProblem, INDICATOR_PATHS, type IndicatorTable } from "./indicators.ts";
 
 /** Reads a pre-rendered file as JSON, or null when there is no such file. */
 export type FetchJson = (path: string) => Promise<Envelope<unknown[]> | null>;
@@ -31,8 +32,19 @@ export type FilterError = { kind: "invalid-code" | "not-found" | "invalid-query"
 
 export const SORT_KEYS = ["code", "name", "population", "change", "density", "area"] as const;
 
-/** Every value `sort` takes: a field for ascending, the same with a minus for descending. */
+/** Every record field `sort` takes: a field for ascending, the same with a minus for descending. */
 export const SORTS: string[] = SORT_KEYS.flatMap((k) => [k, `-${k}`]);
+
+/** Whether a sort names a census indicator, such as -labour.unemploymentRate. */
+export const byIndicator = (sort: string | undefined) => sort !== undefined && INDICATOR_PATHS.includes(sort.replace(/^-/, ""));
+
+/** Why a sort isn't one, or null when it is. */
+function sortProblem(sort: string): string | null {
+  if (SORTS.includes(sort) || byIndicator(sort)) return null;
+  const path = sort.replace(/^-/, "");
+  if (path.includes(".")) return `sort: ${indicatorProblem(path)}`;
+  return `sort must be one of ${SORT_KEYS.join(", ")}, or an indicator such as labour.unemploymentRate, with a leading minus for largest first`;
+}
 
 const whole = (n: number | undefined) => n === undefined || (Number.isInteger(n) && n >= 0 && n <= POPULATION.max);
 
@@ -49,9 +61,8 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
   if (input.type !== undefined && input.type !== "urban" && input.type !== "rural") {
     return { error: { kind: "invalid-query", detail: "type must be urban or rural" } };
   }
-  if (input.sort !== undefined && !SORTS.includes(input.sort)) {
-    return { error: { kind: "invalid-query", detail: `sort must be one of ${SORTS.join(", ")}` } };
-  }
+  const badSort = input.sort === undefined ? null : sortProblem(input.sort);
+  if (badSort) return { error: { kind: "invalid-query", detail: badSort } };
   if (!whole(input.minPopulation) || !whole(input.maxPopulation)) {
     return { error: { kind: "invalid-query", detail: "min_population and max_population must be whole numbers from 0" } };
   }
@@ -73,7 +84,7 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
     query[key] = found.code;
   }
   if (input.type !== undefined) query.type = input.type as "urban" | "rural";
-  if (input.sort !== undefined) query.sort = input.sort as FilterQuery["sort"];
+  if (input.sort !== undefined) query.sort = input.sort;
   if (input.minPopulation !== undefined) query.minPopulation = input.minPopulation;
   if (input.maxPopulation !== undefined) query.maxPopulation = input.maxPopulation;
   return { query };
@@ -88,12 +99,25 @@ const VALUE: Record<SortKey, (c: ListedCommune) => number | string | null> = {
   area: (c) => c.areaKm2,
 };
 
+/** How to read the value a sort orders by, off a record or, for an indicator, off the table. */
+function valueOf(sort: string, indicators: IndicatorTable | undefined): (c: ListedCommune) => number | string | null {
+  const key = sort.replace(/^-/, "");
+  if (key in VALUE) return VALUE[key as SortKey];
+  if (!indicators) throw new Error(`sorting by ${key} needs the indicator table`);
+  const i = indicators.paths.indexOf(key);
+  return (c) => indicators.values[c.code]?.[i] ?? null;
+}
+
 /**
  * Every commune a query selects, in the order it asks for. A missing value sorts last in
  * either direction, since "largest first" shouldn't open on the one commune with no
  * boundary. Ties fall back to the code, so a page boundary never moves.
  */
-export function collectCommunes<T extends ListedCommune>(query: FilterQuery, communes: readonly T[]): T[] {
+export function collectCommunes<T extends ListedCommune>(
+  query: FilterQuery,
+  communes: readonly T[],
+  indicators?: IndicatorTable,
+): T[] {
   const { minPopulation: min, maxPopulation: max } = query;
   const rows = communes.filter((c) => {
     const people = c.population["2024"].total;
@@ -108,7 +132,7 @@ export function collectCommunes<T extends ListedCommune>(query: FilterQuery, com
   });
   const sort = query.sort ?? "code";
   const descending = sort.startsWith("-");
-  const value = VALUE[sort.replace(/^-/, "") as SortKey];
+  const value = valueOf(sort, indicators);
   return rows.sort((a, b) => {
     const x = value(a);
     const y = value(b);
@@ -121,12 +145,14 @@ export function collectCommunes<T extends ListedCommune>(query: FilterQuery, com
 /**
  * One page of the communes a query selects, from a single pre-rendered file when one
  * holds it, or null past the last page. A filter that matches nothing still has a page 1,
- * empty, the same as the pre-rendered lists.
+ * empty, the same as the pre-rendered lists. Sorted by an indicator, each row carries the
+ * figure it was sorted by, which its record doesn't hold.
  */
 export async function listCommunes<T extends ListedCommune>(
   query: FilterQuery,
   communes: readonly T[],
   fetchJson: FetchJson,
+  indicators?: IndicatorTable,
 ): Promise<{ rows: unknown[]; meta: PageMeta } | null> {
   const direct = aliasPath(query);
   if (direct) {
@@ -134,7 +160,10 @@ export async function listCommunes<T extends ListedCommune>(
     if (!body) return null;
     return { rows: body.data, meta: body.meta as PageMeta };
   }
-  const { slice, meta } = paginate(collectCommunes(query, communes), query.page, PER_PAGE);
+  const { slice, meta } = paginate(collectCommunes(query, communes, indicators), query.page, PER_PAGE);
   if (query.page > meta.totalPages) return null;
-  return { rows: slice, meta };
+  if (!byIndicator(query.sort)) return { rows: slice, meta };
+  const path = query.sort!.replace(/^-/, "");
+  const value = valueOf(path, indicators);
+  return { rows: slice.map((c) => ({ ...c, indicator: { path, value: value(c) } })), meta };
 }

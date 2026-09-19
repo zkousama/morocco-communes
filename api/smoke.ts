@@ -55,6 +55,10 @@ for (const path of [
   "/api/provinces/01.511/communes/page/1.json",
   "/api/communes/type/urban/page/1.json",
   "/api/communes/01.511.01.0/arrondissements.json",
+  "/api/communes/01.511.01.0/indicators.json",
+  "/api/regions/01/indicators.json",
+  "/api/indicators.json",
+  "/data/v1/indicators/fields.json",
 ]) {
   const r = await get(path);
   check(path, r.status === 200 && r.tier === null && r.contentType.includes("json") && r.cors === "*",
@@ -90,6 +94,9 @@ for (const [path, expected] of [
   ["/api/communes/01.511.01.0", "/api/communes/01.511.01.0.json"],
   ["/api/communes/001511010", "/api/communes/01.511.01.0.json"],
   ["/api/communes/tanger", "/api/communes/01.511.01.0.json"],
+  ["/api/communes/tanger/indicators", "/api/communes/01.511.01.0/indicators.json"],
+  ["/api/provinces/01.511/indicators", "/api/provinces/01.511/indicators.json"],
+  ["/api/indicators", "/api/indicators.json"],
   ["/api/regions", "/api/regions.json"],
 ] as const) {
   const r = await get(path);
@@ -150,6 +157,15 @@ console.log("\ncomputed tier — answers no file holds");
     `status=${r.status} ${people.join(",")}`);
 }
 {
+  const r = await get("/api/communes?region=01&sort=-labour.unemploymentRate");
+  const rows = (r.body?.data ?? []) as { indicator?: { path: string; value: number | null } }[];
+  const values = rows.map((c) => c.indicator?.value).filter((v): v is number => typeof v === "number");
+  check("a list sorted by a census indicator carries the figure, largest first",
+    r.status === 200 && r.tier === "computed" && rows[0]?.indicator?.path === "labour.unemploymentRate" &&
+      values.length > 0 && values.every((v, i) => i === 0 || v <= values[i - 1]!),
+    `status=${r.status} ${values.slice(0, 5).join(",")}`);
+}
+{
   // Province 04.421 is in région 04: the province's list is read, and every row filtered out.
   const r = await get("/api/communes?region=01&province=04.421");
   check("filters that contradict each other find nothing",
@@ -181,6 +197,8 @@ for (const [path, status] of [
   ["/api/communes?q=tanger&region=03", 400],
   ["/api/communes?q=", 400],
   ["/api/communes?sort=banana", 400],
+  ["/api/communes?sort=-labour.unemployment", 400],
+  ["/api/regions/tanger/indicators", 404],
   ["/api/communes?min_population=5&max_population=1", 400],
   ["/api/nonsense", 404],
 ] as const) {
@@ -223,11 +241,17 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
   const list = await rpc("tools/list", {});
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
-  check("/mcp lists the 5 tools", names.join(",") === "commune_at,communes_near,get_commune,list_communes,search", names.join(","));
+  check("/mcp lists the 6 tools",
+    names.join(",") === "commune_at,communes_near,get_commune,get_indicators,list_communes,search", names.join(","));
   const call = await rpc("tools/call", { name: "get_commune", arguments: { id: "tanger" } });
   const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
   check("/mcp get_commune answers with the parent named",
     commune?.code === "01.511.01.0" && commune.province.name === "Tanger-Assilah", JSON.stringify(commune)?.slice(0, 80));
+  const figures = await rpc("tools/call", { name: "get_indicators", arguments: { unit: "tanger", topics: ["labour"] } });
+  const total = (figures.body.result?.structuredContent as { figures?: { total?: { people?: { all?: { labour?: { unemploymentRate: number } } } } } } | undefined)
+    ?.figures?.total;
+  check("/mcp get_indicators reads a commune's census figures",
+    total?.people?.all?.labour?.unemploymentRate === 15.3, JSON.stringify(total)?.slice(0, 80));
 }
 
 console.log("\nnot found, for a person rather than a client");

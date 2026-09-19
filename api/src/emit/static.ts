@@ -1,5 +1,6 @@
 import { envelope, pageMeta, paginate, PER_PAGE, type Envelope } from "../lib/envelope.ts";
 import { groupBy, type Dataset } from "../lib/dataset.ts";
+import type { IndicatorRecord } from "../lib/indicators.ts";
 
 export type Tree = Map<string, Envelope<unknown>>;
 
@@ -119,6 +120,40 @@ export function emitTree(d: Dataset): Tree {
 
   put(api("version.json"), buildVersion(d));
   return tree;
+}
+
+const COLLECTION: Record<string, string> = {
+  region: "regions",
+  province: "provinces",
+  cercle: "cercles",
+  commune: "communes",
+  arrondissement: "arrondissements",
+};
+
+/**
+ * HCP's census indicators, a file per unit beside its record, and the country's at
+ * /api/indicators.json. A commune's file carries its urban centres' figures too, since a
+ * centre has no record of its own.
+ */
+export function emitIndicators(tree: Tree, records: IndicatorRecord[]): void {
+  const put = (path: string, data: unknown) => {
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(data, { self: path }));
+  };
+  const centres = groupBy(
+    records.filter((r) => r.level === "urbanCentre"),
+    (r) => r.communeCode ?? null,
+  );
+  for (const r of records) {
+    if (r.level === "urbanCentre") continue;
+    if (r.level === "country") {
+      put(api("indicators.json"), r);
+      continue;
+    }
+    const collection = COLLECTION[r.level];
+    if (!collection) throw new Error(`no collection for ${r.level}`);
+    put(api(`${collection}/${r.code}/indicators.json`), r.level === "commune" ? { ...r, urbanCentres: centres.get(r.code!) ?? [] } : r);
+  }
 }
 
 export function buildVersion(d: Dataset): Envelope<unknown> {

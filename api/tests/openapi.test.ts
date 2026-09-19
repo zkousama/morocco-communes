@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildOpenApi } from "../src/openapi.ts";
-import { emitTree } from "../src/emit/static.ts";
+import { emitIndicators, emitTree } from "../src/emit/static.ts";
+import { readIndicators } from "../src/emit/indicators.ts";
 import { LIMIT, PAGE, RADIUS_KM } from "../src/lib/params.ts";
 import type { Dataset } from "../src/lib/dataset.ts";
 
@@ -15,6 +16,7 @@ const tree = emitTree({
   arrondissements: read("arrondissements"),
   sources: JSON.parse(readFileSync("data/v1/sources.json", "utf8")),
 } as Dataset);
+emitIndicators(tree, await readIndicators("data/v1"));
 
 type Param = { name: string; schema: Record<string, unknown> };
 const paramsOf = (path: string) =>

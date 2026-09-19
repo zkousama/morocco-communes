@@ -4,10 +4,12 @@ import rawIndex from "../../generated/search-index.json";
 import rawTiles from "../../generated/tile-index.json";
 import rawCommunes from "../../../data/v1/attributes/communes.json";
 import rawArrondissements from "../../../data/v1/attributes/arrondissements.json";
+import rawIndicators from "../../generated/commune-indicators.json";
 import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
 import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from "../lib/list.ts";
+import type { IndicatorTable } from "../lib/indicators.ts";
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
@@ -24,6 +26,8 @@ const tileIndex = prepareIndex(rawTiles as TileIndex);
 // country. 1.7 MB, which parses in about 8 ms here, once, instead of 31 page reads on
 // every request.
 const communes = rawCommunes as unknown as ListedCommune[];
+// Each commune's census indicators, for lists sorted by one. 0.7 MB.
+const indicators = rawIndicators as IndicatorTable;
 // The 6 communes divided into arrondissements, whose boundaries a point lookup reads too.
 const cities = new Set((rawArrondissements as { communeCode: string }[]).map((a) => a.communeCode));
 
@@ -253,7 +257,7 @@ app.get("/api/communes", async (c) => {
   }
 
   // Past the last page is a 404 here as it is for the single-filter files above.
-  const listed = await listCommunes(query, communes, fetchJsonFrom(c.env, url));
+  const listed = await listCommunes(query, communes, fetchJsonFrom(c.env, url), indicators);
   if (!listed) return fail(url, "not-found", `no page ${page} for this filter`, instance);
   const { rows, meta } = listed;
   const link = (n: number) => {
@@ -301,6 +305,30 @@ app.get("/api/:collection/:id", async (c) => {
   });
 });
 
+/** A unit's census indicators by any spelling of its identifier, as /api/communes/tanger/indicators. */
+app.get("/api/:collection/:id/indicators", async (c) => {
+  const url = new URL(c.req.url);
+  const { collection, id } = c.req.param();
+  const found = resolve(lookup, id);
+  if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
+  if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
+
+  const canonical = `/api/${collection}/${found.code}/indicators.json`;
+  const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
+  if (!asset.ok) {
+    const home = `/api/${COLLECTIONS[found.level]}/${found.code}/indicators.json`;
+    return fail(url, "not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
+  }
+  return new Response(asset.body, {
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "public, max-age=300",
+      "x-api-tier": "alias",
+      "content-location": canonical,
+    },
+  });
+});
+
 /** Bare collection names, so /api/regions works as well as /api/regions.json. */
 app.get("/api/:collection", async (c) => {
   const url = new URL(c.req.url);
@@ -329,6 +357,7 @@ app.all("/mcp", async (c) => {
     lookup,
     tiles: tileIndex,
     communes,
+    indicators,
     fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)),
   });
   const transport = new WebStandardStreamableHTTPServerTransport({

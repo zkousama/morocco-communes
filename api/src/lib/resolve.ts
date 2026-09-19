@@ -62,8 +62,11 @@ export interface FilterQuery {
   province?: string;
   cercle?: string;
   type?: "urban" | "rural";
-  /** A field to order by, with a leading minus for largest first. Code order when absent. */
-  sort?: SortKey | `-${SortKey}`;
+  /**
+   * A record field or an indicator path to order by, with a leading minus for largest
+   * first. Code order when absent.
+   */
+  sort?: string;
   minPopulation?: number;
   maxPopulation?: number;
   page: number;

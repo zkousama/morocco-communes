@@ -1,6 +1,8 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { emitTree, HEADERS_FILE, type Tree } from "./static.ts";
+import { emitIndicators, emitTree, HEADERS_FILE, type Tree } from "./static.ts";
+import { buildIndicatorTable } from "../lib/indicators.ts";
+import { readIndicators } from "./indicators.ts";
 import { buildIndex } from "./searchIndex.ts";
 import { buildOpenApi } from "../openapi.ts";
 import { buildGeometry, outlineCollections } from "./geometry.ts";
@@ -12,6 +14,7 @@ const DATA = "data/v1";
 const OUT = "dist";
 const INDEX_OUT = "api/generated/search-index.json";
 const TILE_INDEX_OUT = "api/generated/tile-index.json";
+const INDICATOR_TABLE_OUT = "api/generated/commune-indicators.json";
 
 async function readDataset(): Promise<Dataset> {
   const level = async (name: string) =>
@@ -39,6 +42,11 @@ export async function writeTree(tree: Tree, outDir: string): Promise<void> {
 
 const dataset = await readDataset();
 const tree = emitTree(dataset);
+const indicators = await readIndicators(DATA);
+emitIndicators(tree, indicators);
+// Committed like the search index: the figures a list of communes can be sorted by, which
+// the Worker holds in memory.
+await writeFile(INDICATOR_TABLE_OUT, `${JSON.stringify(buildIndicatorTable(indicators.filter((r) => r.level === "commune")))}\n`);
 
 // Committed, like the dataset itself, so the Worker can be deployed from a clone without
 // a build step. The Worker imports it at module scope, where parsing it costs a few ms

@@ -1,5 +1,5 @@
 import { LIMIT, PAGE, PER_PAGE, POPULATION, QUERY, RADIUS_KM } from "./lib/params.ts";
-import { SORTS } from "./lib/list.ts";
+import { HOUSEHOLD_TOPICS, PEOPLE_TOPICS } from "./lib/indicators.ts";
 
 /**
  * The OpenAPI 3.1 description of the API, built from the same limits the Worker enforces,
@@ -41,10 +41,10 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       version: opts.version,
       summary: "Morocco's administrative divisions as open data.",
       description:
-        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, and boundaries from OpenStreetMap.\n\n" +
+        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's 2024 census indicators, and boundaries from OpenStreetMap.\n\n" +
         "An identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\n" +
         "Every response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
-      license: { name: "MIT (code). Attributes: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
+      license: { name: "MIT (code). Attributes and indicators: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
     },
     servers: [{ url: opts.serverUrl ?? "/" }],
     // Public and unauthenticated: an empty list says so explicitly.
@@ -154,8 +154,10 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               name: "sort",
               in: "query",
               description:
-                "Order by name, 2024 population, change since 2014, density or area, with a leading minus for largest first. A commune with no value for the field comes last either way.",
-              schema: { type: "string", enum: SORTS, default: "code" },
+                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`, with a leading minus for largest first. A commune with no value comes last either way. Sorted by an indicator, each commune carries `indicator`, its figure.",
+              // A string rather than an enum: with every indicator path both ways it would be
+              // 214 values, which the server checks anyway, naming a topic's keys when one is wrong.
+              schema: { type: "string", default: "code", examples: ["-population", "-labour.unemploymentRate"] },
               example: "-population",
             },
             {
@@ -203,6 +205,40 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             "200": ok("The commune's arrondissements.", { type: "array", items: { type: "object" } }),
             "404": problem("No commune has that code."),
           },
+        },
+      },
+      "/api/{collection}/{code}/indicators": {
+        get: {
+          operationId: "getIndicators",
+          summary: "A unit's figures from the 2024 census",
+          description:
+            "HCP's indicators for a région, province, cercle, commune or arrondissement: age, marital status, fertility, disability, schooling, literacy and languages, education and work, and each household's dwelling, amenities, wastewater, waste and cooking fuel. " +
+            "For the whole unit, its urban and its rural part, and for men and women. Shares and rates are percentages. Most come from the long questionnaire, which went to a random 20% of households in communes of 2,000 households or more, so there they're estimates. " +
+            "A commune's file carries its urban centres' figures too. `/data/v1/indicators/fields.json` names every field with HCP's heading.",
+          parameters: [
+            {
+              name: "collection",
+              in: "path",
+              required: true,
+              description: "The unit's level.",
+              schema: { type: "string", enum: ["regions", "provinces", "cercles", "communes", "arrondissements"] },
+              example: "communes",
+            },
+            code("A dotted code, padded or unpadded digits, or a slug.", "tanger"),
+          ],
+          responses: {
+            "200": ok("The unit's indicators.", ref("Indicators")),
+            "400": problem("Not an identifier."),
+            "404": problem("No unit has that identifier, or it's in another collection."),
+          },
+        },
+      },
+      "/api/indicators.json": {
+        get: {
+          operationId: "getNationalIndicators",
+          summary: "Morocco's figures from the 2024 census",
+          description: "The same indicators for the country as a whole.",
+          responses: { "200": ok("Morocco's indicators.", ref("Indicators")) },
         },
       },
       "/api/regions.json": {
@@ -299,6 +335,29 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             name: ref("Name"),
             slug: { type: "string" },
             distanceKm: { type: "number" },
+          },
+        },
+        Indicators: {
+          type: "object",
+          required: ["code", "level", "name", "fromLocalAdministration", "people", "households"],
+          properties: {
+            code: { type: ["string", "null"], description: "Null for Morocco." },
+            codeDigits: { type: ["string", "null"] },
+            level: { type: "string", enum: ["country", "region", "province", "cercle", "commune", "arrondissement", "urbanCentre"] },
+            name: { type: "object", properties: { fr: { type: "string" }, ar: { type: ["string", "null"] } } },
+            fromLocalAdministration: {
+              type: "boolean",
+              description: "HCP collected the figures from the local administration, as the population moves with the seasons. Only the counts are published.",
+            },
+            people: {
+              type: "object",
+              description: `By area (total, urban, rural; null where the unit has none of it), then by sex (all, male, female), then by topic: ${PEOPLE_TOPICS.join(", ")}.`,
+            },
+            households: {
+              type: "object",
+              description: `By area, then by topic: ${HOUSEHOLD_TOPICS.join(", ")}.`,
+            },
+            urbanCentres: { type: "array", description: "A commune's urban centres, each with the same fields.", items: { type: "object" } },
           },
         },
         Commune: {
