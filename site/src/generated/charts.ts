@@ -212,3 +212,25 @@ export const urban = [
     "total": 251
   }
 ];
+
+export const half = {
+  "communes": 71,
+  "total": 1503,
+  "peopleShare": 50.1,
+  "landShare": 0.83
+};
+
+export const shrinking = [
+  {
+    "type": "rural",
+    "shrank": 792,
+    "grew": 466,
+    "pct": 3
+  },
+  {
+    "type": "urban",
+    "shrank": 63,
+    "grew": 178,
+    "pct": 12.8
+  }
+];

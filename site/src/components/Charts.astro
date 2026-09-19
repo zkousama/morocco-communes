@@ -1,6 +1,7 @@
 ---
-import { change, sizes, spread } from "../generated/charts";
+import { change, half, shrinking, sizes, spread } from "../generated/charts";
 import { t, type Locale } from "../i18n/ui";
+import { percent as formatPercent } from "../lib/format";
 
 interface Props {
   locale: Locale;
@@ -21,13 +22,19 @@ const widthOf = (pct: number) => (Math.abs(pct) / span) * 100;
 /* Chart 2: the size histogram. */
 const maxCount = Math.max(...sizes.map((b) => b.count));
 
+/* Charts 4 and 5: shares of a whole, as 100% bars with the part that matters filled. */
+const fillIn = (text: string, values: Record<string, string | number>) =>
+  text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? ""));
+const percent = (v: number) => formatPercent(locale, v);
+const shrinkMax = Math.max(...shrinking.map((s) => s.shrank + s.grew));
+
 /* Chart 3: the two growth distributions, on one shared scale. */
 const lo = Math.min(...spread.map((s) => s.p10));
 const hi = Math.max(...spread.map((s) => s.p90));
 const pad = (hi - lo) * 0.08;
 const scale = (v: number) => ((v - (lo - pad)) / (hi - lo + pad * 2)) * 100;
 const ticks = [-20, -10, 0, 10, 20];
-const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`;
+const signed = (v: number) => formatPercent(locale, v, { signed: true });
 const spoken = (row: (typeof spread)[number]) =>
   copy.srSpread.replace(/\{(\w+)\}/g, (_, key: string) =>
     signed((row as unknown as Record<string, number>)[key] ?? 0),
@@ -55,7 +62,7 @@ const spoken = (row: (typeof spread)[number]) =>
               }
             ></span>
           </span>
-          <span class="rval">{region.pct >= 0 ? "+" : "−"}{Math.abs(region.pct).toFixed(1)}%</span>
+          <span class="rval">{signed(region.pct)}</span>
         </li>
       ))}
     </ul>
@@ -77,6 +84,54 @@ const spoken = (row: (typeof spread)[number]) =>
         </li>
       ))}
     </ul>
+  </figure>
+
+  <figure class="chart">
+    <figcaption>
+      <h3>{copy.chartHalf}</h3>
+      <p>{fillIn(copy.chartHalfBody, { n: half.communes, rest: group.format(half.total - half.communes) })}</p>
+    </figcaption>
+    <dl class="shares">
+      {[
+        { label: copy.halfPeople, share: half.peopleShare },
+        { label: copy.halfLand, share: half.landShare },
+      ].map((row) => (
+        <div>
+          <dt>{row.label}</dt>
+          <dd>
+            <span class="share-track" aria-hidden="true">
+              <span class="share-fill" style={`width:max(${row.share}%, 3px)`}></span>
+            </span>
+            <span class="share-value">{percent(row.share)}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </figure>
+
+  <figure class="chart">
+    <figcaption>
+      <h3>{copy.chartShrank}</h3>
+      <p>{fillIn(copy.chartShrankBody, { urban: signed(shrinking.find((s) => s.type === "urban")!.pct), rural: signed(shrinking.find((s) => s.type === "rural")!.pct) })}</p>
+    </figcaption>
+    <dl class="shares">
+      {shrinking.map((row) => (
+        <div>
+          <dt>{row.type === "urban" ? copy.shrankUrban : copy.shrankRural}</dt>
+          <dd>
+            <span class="stack" style={`width:${((row.shrank + row.grew) / shrinkMax) * 100}%`} aria-hidden="true">
+              <span class="lost" style={`flex:${row.shrank}`}>{group.format(row.shrank)}</span>
+              <span class="gained" style={`flex:${row.grew}`}>{group.format(row.grew)}</span>
+            </span>
+            <span class="sr-only">{fillIn(copy.srShrank, { lost: row.shrank, gained: row.grew })}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+    <p class="legend-row">
+      <span><span class="key lost"></span>{copy.shrankLost}</span>
+      <span><span class="key gained"></span>{copy.shrankGained}</span>
+    </p>
   </figure>
 
   <figure class="chart wide">
@@ -111,7 +166,7 @@ const spoken = (row: (typeof spread)[number]) =>
       <span class="spacer" aria-hidden="true"></span>
       <span class="scalebar" aria-hidden="true">
         {ticks.map((tick) => (
-          <span style={`inset-inline-start:${scale(tick)}%`} class="tick-label">{tick > 0 ? `+${tick}` : tick}%</span>
+          <span style={`inset-inline-start:${scale(tick)}%`} class="tick-label">{formatPercent(locale, tick, { signed: true, digits: 0 })}</span>
         ))}
       </span>
     </div>
@@ -167,6 +222,106 @@ const spoken = (row: (typeof spread)[number]) =>
     color: var(--quiet);
     font-size: var(--t-xs);
     max-width: 62ch;
+  }
+
+  /* Shares of a whole ------------------------------------------------------- */
+
+  .shares {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+  }
+
+  .shares dt {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    margin-bottom: 0.3rem;
+  }
+
+  .shares dd {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .share-track {
+    position: relative;
+    flex: 1;
+    height: 1.1rem;
+    border-radius: 3px;
+    background: var(--rule);
+    overflow: hidden;
+  }
+
+  .share-fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    background: var(--chart-up);
+  }
+
+  .share-value {
+    min-width: 4rem;
+    text-align: end;
+    font-size: var(--t-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Two segments separated by a gap of the page, each labelled with its count. */
+  .stack {
+    display: flex;
+    gap: 2px;
+    height: 1.6rem;
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stack span {
+    display: flex;
+    align-items: center;
+    padding-inline: 0.45rem;
+    color: var(--paper);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .stack .lost {
+    background: var(--chart-down);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .stack .gained {
+    background: var(--chart-up);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .legend-row {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+    font-size: var(--t-xs);
+    color: var(--ink);
+  }
+
+  .legend-row > span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .legend-row .key {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 2px;
+  }
+
+  .key.lost {
+    background: var(--chart-down);
+  }
+
+  .key.gained {
+    background: var(--chart-up);
   }
 
   /* Diverging bars ---------------------------------------------------------- */

@@ -8,6 +8,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 const ATTR = "data/v1/attributes";
 
 interface Commune {
+  areaKm2: number | null;
   parents: { region: string };
   type: "urban" | "rural";
   population: {
@@ -96,6 +97,35 @@ const urban = regions
   })
   .sort((a, b) => b.urban / b.total - a.urban / a.total);
 
+/* 5. Where people live: how few communes hold half of them, on how little land. */
+
+const byPeople = [...communes].sort((a, b) => (b.population["2024"].total ?? 0) - (a.population["2024"].total ?? 0));
+const people = communes.reduce((s, c) => s + (c.population["2024"].total ?? 0), 0);
+const land = communes.reduce((s, c) => s + (c.areaKm2 ?? 0), 0);
+let held = 0;
+let count = 0;
+while (held < people / 2) held += byPeople[count++]!.population["2024"].total ?? 0;
+const half = {
+  communes: count,
+  total: communes.length,
+  peopleShare: Number(((held / people) * 100).toFixed(1)),
+  landShare: Number(((byPeople.slice(0, count).reduce((s, c) => s + (c.areaKm2 ?? 0), 0) / land) * 100).toFixed(2)),
+};
+
+/* 6. Which communes lost people, urban and rural apart. ---------------------- */
+
+const shrinking = (["rural", "urban"] as const).map((type) => {
+  const withBoth = communes.filter((c) => c.type === type && c.population.change);
+  const before = withBoth.reduce((s, c) => s + c.population["2014"]!.total!, 0);
+  const after = withBoth.reduce((s, c) => s + c.population["2024"].total!, 0);
+  return {
+    type,
+    shrank: withBoth.filter((c) => c.population.change!.pct < 0).length,
+    grew: withBoth.filter((c) => c.population.change!.pct >= 0).length,
+    pct: Number((((after - before) / before) * 100).toFixed(1)),
+  };
+});
+
 await mkdir("site/src/generated", { recursive: true });
 await writeFile(
   "site/src/generated/charts.ts",
@@ -107,6 +137,10 @@ export const sizes = ${JSON.stringify(sizes, null, 2)};
 export const spread = ${JSON.stringify(spread, null, 2)};
 
 export const urban = ${JSON.stringify(urban, null, 2)};
+
+export const half = ${JSON.stringify(half, null, 2)};
+
+export const shrinking = ${JSON.stringify(shrinking, null, 2)};
 `,
 );
 

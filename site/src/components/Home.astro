@@ -2,9 +2,9 @@
 import Base from "../layouts/Base.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
+import Atlas from "./Map.astro";
 import { AUTHOR, COUNTED, LEVELS, path, REPO_URL, t, type Locale } from "../i18n/ui";
 import { chain, counts } from "../generated/hierarchy";
-import { aspect } from "../generated/outline";
 import { downloads } from "../generated/downloads";
 import { reference } from "../generated/reference";
 
@@ -105,13 +105,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
       <p class="lede">{copy.intro}</p>
     </div>
 
-    <figure class="plate">
-      <img src="/morocco.svg" alt={copy.mapCaption} width="1000" height={Math.round(1000 * aspect)} />
-      <figcaption>
-        <span>{copy.mapCaption}</span>
-        <span>© OpenStreetMap contributors, ODbL</span>
-      </figcaption>
-    </figure>
+    <Atlas locale={locale} />
 
     <dl class="tally">
         <div><dt>{group.format(counts.regions)}</dt><dd>{counted.region}</dd></div>
@@ -279,28 +273,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     color: var(--quiet);
   }
 
-  /* The geometry sits on its own ground, the way it sits under its own licence. */
-  figure.plate {
-    margin: 0;
-  }
-
-  .plate img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  figure.plate figcaption {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    margin-top: 1rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--plate-rule);
-    color: var(--plate-quiet);
-    font-size: var(--t-xs);
-    line-height: 1.45;
-  }
 
 
   /* Ways in ---------------------------------------------------------------- */
@@ -473,7 +445,8 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     list-style: none;
     margin: 1.75rem 0 0;
     padding: 1.1rem 1.25rem;
-    background: var(--plate);
+    background: var(--well);
+    border: 1px solid var(--rule);
     border-radius: 4px;
     font-family: var(--mono);
     font-size: var(--t-xs);
@@ -486,11 +459,11 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
   }
 
   ul.routes .verb {
-    color: var(--plate-quiet);
+    color: var(--quiet);
   }
 
   ul.routes a {
-    color: var(--plate-accent);
+    color: var(--code-string);
     text-decoration: none;
   }
 

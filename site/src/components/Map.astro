@@ -1,0 +1,359 @@
+---
+import { changeBreaks, densityBreaks, markup, shapes, viewBox } from "../generated/map";
+import { path, t, type Locale } from "../i18n/ui";
+import { percent } from "../lib/format";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+
+// One legend per view. Each swatch names its class the way the map's data attributes do.
+const range = (breaks: number[], i: number, format: (v: number) => string) =>
+  i === 0 ? `< ${format(breaks[0]!)}` : i === breaks.length ? `${format(breaks[i - 1]!)}+` : `${format(breaks[i - 1]!)}–${format(breaks[i]!)}`;
+const views = [
+  {
+    id: "density",
+    label: copy.mapDensity,
+    unit: copy.legendDensity,
+    swatches: [0, 1, 2, 3, 4, 5].map((i) => ({ cls: `d${i}`, text: range(densityBreaks, i, (v) => n.format(v)) })),
+  },
+  {
+    id: "change",
+    label: copy.mapChange,
+    unit: copy.legendChange,
+    // "−10 to −2%": the unit once, at the end, so two minus signs don't meet across a dash.
+    swatches: [
+      ...[0, 1, 2, 3, 4, 5].map((i) => {
+        const pc = (v: number) => percent(locale, v, { signed: true, digits: 0 });
+        const bare = (v: number) => pc(v).replace(/\s?%$/, "").replace(/\u202f%$/, "");
+        const text =
+          i === 2
+            ? copy.mapAbout
+            : i === 0
+              ? `< ${pc(changeBreaks[0]!)}`
+              : i === changeBreaks.length
+                ? `> ${pc(changeBreaks[i - 1]!)}`
+                : `${bare(changeBreaks[i - 1]!)} ${copy.mapTo} ${pc(changeBreaks[i]!)}`;
+        return { cls: `g${i}`, text };
+      }),
+      { cls: "gn", text: copy.mapNoFigure },
+    ],
+  },
+  {
+    id: "type",
+    label: copy.mapType,
+    unit: "",
+    swatches: [
+      { cls: "tu", text: copy.urban },
+      { cls: "tr", text: copy.rural },
+    ],
+  },
+];
+const communesRoute = path(locale, "communes/");
+---
+
+<figure class="atlas" data-view="density" data-base={communesRoute} data-lang={locale}
+  data-people={copy.tipPeople} data-density={copy.tipDensity} data-change={copy.tipChange}
+  data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}>
+  <div class="frame">
+    <svg viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={markup} />
+    <div class="tip" hidden></div>
+  </div>
+  <figcaption>
+    <div class="views" role="group" aria-label={copy.mapShade}>
+      {views.map((v, i) => (
+        <button type="button" data-view={v.id} aria-pressed={i === 0 ? "true" : "false"}>{v.label}</button>
+      ))}
+    </div>
+    {views.map((v, i) => (
+      <div class="legend" data-for={v.id} hidden={i !== 0}>
+        <ul>
+          {v.swatches.map((s) => <li><span class:list={["swatch", s.cls]} />{s.text}</li>)}
+        </ul>
+        {v.unit && <p>{v.unit}</p>}
+      </div>
+    ))}
+    <p class="credit">
+      <span>{copy.mapCaption.replace("{n}", n.format(shapes))}</span>
+      <a href={communesRoute}>{copy.mapBrowse}</a>
+      <span>© OpenStreetMap contributors, ODbL</span>
+    </p>
+  </figcaption>
+</figure>
+
+<script>
+  type Row = [slug: string, name: string, type: "urban" | "rural", people: number, density: number | null, change: number | null];
+
+  const atlas = document.querySelector<HTMLElement>(".atlas");
+  const svg = atlas?.querySelector("svg");
+  const tip = atlas?.querySelector<HTMLElement>(".tip");
+  if (atlas && svg && tip) {
+    const d = atlas.dataset;
+    const number = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+    let rows: Record<string, Row> | null = null;
+    let loading: Promise<void> | null = null;
+    const load = () =>
+      (loading ??= fetch("/map/communes.json")
+        .then((r) => r.json())
+        .then((json) => {
+          rows = json;
+        })
+        .catch(() => undefined));
+
+    // The shape under the pointer is drawn again on top, so its outline isn't hidden under
+    // its neighbours.
+    const focus = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    focus.setAttribute("class", "focus");
+    svg.append(focus);
+
+    const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    const show = (shape: SVGPathElement, x: number, y: number, pinned: boolean) => {
+      focus.setAttribute("d", shape.getAttribute("d") ?? "");
+      const row = rows?.[shape.dataset.c ?? ""];
+      if (!row) return;
+      const [slug, name, type, people, density, change] = row;
+      const signed =
+        change === null
+          ? ""
+          : `${change > 0 ? "+" : change < 0 ? "−" : ""}${number.format(Math.abs(change))}${d.lang === "fr" ? "\u202f%" : "%"}`;
+      tip.innerHTML =
+        `<strong>${escape(name)}</strong><span>${type === "urban" ? d.urban : d.rural}</span>` +
+        `<span>${number.format(people)} ${d.people}</span>` +
+        (density === null ? "" : `<span>${number.format(density)} ${d.density}</span>`) +
+        (signed ? `<span>${signed} ${d.change}</span>` : "") +
+        (pinned ? `<a href="${d.base}${slug}/">${d.open}</a>` : "");
+      tip.dataset.slug = slug;
+      tip.hidden = false;
+      const box = atlas.querySelector(".frame")!.getBoundingClientRect();
+      const left = Math.min(Math.max(x - box.left + 14, 0), box.width - tip.offsetWidth);
+      const top = y - box.top + 14 + tip.offsetHeight > box.height ? y - box.top - tip.offsetHeight - 14 : y - box.top + 14;
+      tip.style.transform = `translate(${left}px, ${Math.max(top, 0)}px)`;
+    };
+    const hide = () => {
+      tip.hidden = true;
+      focus.setAttribute("d", "");
+    };
+
+    svg.addEventListener("pointerenter", () => void load());
+    svg.addEventListener("pointermove", (event) => {
+      if (event.pointerType !== "mouse") return;
+      const shape = (event.target as Element).closest<SVGPathElement>("path[data-c]");
+      if (shape) show(shape, event.clientX, event.clientY, false);
+      else hide();
+    });
+    svg.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse") hide();
+    });
+    // A mouse click opens the commune. A tap shows it first, with a link, since there's no
+    // hover to read it by.
+    svg.addEventListener("click", async (event) => {
+      const shape = (event.target as Element).closest<SVGPathElement>("path[data-c]");
+      if (!shape) return hide();
+      await load();
+      const row = rows?.[shape.dataset.c ?? ""];
+      if (!row) return;
+      if ((event as PointerEvent).pointerType === "mouse") window.location.href = `${d.base}${row[0]}/`;
+      else show(shape, event.clientX, event.clientY, true);
+    });
+
+    for (const button of atlas.querySelectorAll<HTMLButtonElement>(".views button")) {
+      button.addEventListener("click", () => {
+        const view = button.dataset.view!;
+        atlas.dataset.view = view;
+        for (const b of atlas.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b === button));
+        for (const legend of atlas.querySelectorAll<HTMLElement>(".legend")) legend.hidden = legend.dataset.for !== view;
+      });
+    }
+  }
+</script>
+
+<style>
+  .atlas {
+    margin: 0;
+  }
+
+  .frame {
+    position: relative;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Every commune is filled by the class it falls in for the view shown, and separated from
+     its neighbours by a hairline of the page. */
+  svg :global(.communes path) {
+    fill: var(--map-none);
+    fill-rule: evenodd;
+    stroke: var(--paper);
+    stroke-width: 0.35;
+    stroke-linejoin: round;
+    cursor: pointer;
+  }
+
+  svg :global(.regions) {
+    fill: none;
+    stroke: var(--paper);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  svg :global(.focus) {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .atlas[data-view="density"] :global([data-d="0"]),
+  .swatch.d0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="density"] :global([data-d="1"]),
+  .swatch.d1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="density"] :global([data-d="2"]),
+  .swatch.d2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="density"] :global([data-d="3"]),
+  .swatch.d3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="density"] :global([data-d="4"]),
+  .swatch.d4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="density"] :global([data-d="5"]),
+  .swatch.d5 { fill: var(--seq-5); background: var(--seq-5); }
+
+  .atlas[data-view="change"] :global([data-g="0"]),
+  .swatch.g0 { fill: var(--div-0); background: var(--div-0); }
+  .atlas[data-view="change"] :global([data-g="1"]),
+  .swatch.g1 { fill: var(--div-1); background: var(--div-1); }
+  .atlas[data-view="change"] :global([data-g="2"]),
+  .swatch.g2 { fill: var(--div-2); background: var(--div-2); }
+  .atlas[data-view="change"] :global([data-g="3"]),
+  .swatch.g3 { fill: var(--div-3); background: var(--div-3); }
+  .atlas[data-view="change"] :global([data-g="4"]),
+  .swatch.g4 { fill: var(--div-4); background: var(--div-4); }
+  .atlas[data-view="change"] :global([data-g="5"]),
+  .swatch.g5 { fill: var(--div-5); background: var(--div-5); }
+
+  .swatch.gn { background: var(--map-none); }
+
+  .atlas[data-view="type"] :global([data-t="u"]),
+  .swatch.tu { fill: var(--chart-down); background: var(--chart-down); }
+  .atlas[data-view="type"] :global([data-t="r"]),
+  .swatch.tr { fill: var(--chart-up); background: var(--chart-up); }
+
+  .tip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: grid;
+    gap: 0.1rem;
+    min-width: 11rem;
+    max-width: 16rem;
+    padding: 0.55rem 0.75rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.12);
+    font-size: var(--t-xs);
+    line-height: 1.45;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tip[hidden],
+  .legend[hidden] {
+    display: none;
+  }
+
+  .tip :global(strong) {
+    font-size: var(--t-sm);
+    font-weight: 500;
+  }
+
+  .tip :global(span) {
+    color: var(--quiet);
+  }
+
+  .tip :global(a) {
+    margin-top: 0.3rem;
+    pointer-events: auto;
+  }
+
+  figcaption {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .views button {
+    font: inherit;
+    color: var(--quiet);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    cursor: pointer;
+  }
+
+  .views button:hover {
+    color: var(--ink);
+  }
+
+  .views button[aria-pressed="true"] {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .legend ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ink);
+  }
+
+  .legend p {
+    margin: 0.35rem 0 0;
+  }
+
+  .swatch {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 2px;
+  }
+
+  .credit {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+    margin: 0;
+  }
+
+  .credit a {
+    color: var(--ink);
+  }
+</style>
