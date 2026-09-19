@@ -7,7 +7,8 @@ abstract: >-
   with official HCP geographic codes, names in French and Arabic, population from the
   2014 and 2024 censuses, and boundaries from OpenStreetMap.
 authors:
-  - given-names: Ousama
+  - family-names: Ajebbar
+    given-names: Ousama
     alias: zkousama
 version: 1.0.0
 repository-code: "https://github.com/zkousama/morocco-communes-api"
