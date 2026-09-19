@@ -5,7 +5,7 @@ Every response is JSON, enveloped as:
 ```json
 {
   "data": [],
-  "meta": { "datasetVersion": "1.0.0", "page": 1, "perPage": 50, "total": 0, "totalPages": 1 },
+  "meta": { "datasetVersion": "1.1.0", "page": 1, "perPage": 50, "total": 0, "totalPages": 1 },
   "links": { "self": "...", "prev": null, "next": null }
 }
 ```
@@ -37,23 +37,29 @@ GET /api/regions/:code.json
 GET /api/regions/:code/provinces.json
 GET /api/regions/:code/communes/page/:n.json
 GET /api/regions/:code/boundary.geojson
+GET /api/regions/:code/indicators.json
 GET /api/provinces.json
 GET /api/provinces/:code.json
 GET /api/provinces/:code/cercles.json
 GET /api/provinces/:code/communes/page/:n.json
 GET /api/provinces/:code/boundary.geojson
+GET /api/provinces/:code/indicators.json
 GET /api/cercles.json
 GET /api/cercles/:code.json
 GET /api/cercles/:code/communes/page/:n.json
+GET /api/cercles/:code/indicators.json
 GET /api/communes/page/:n.json
 GET /api/communes/type/:urban|rural/page/:n.json
 GET /api/communes/:code.json
 GET /api/communes/:code/arrondissements.json
 GET /api/communes/:code/arrondissements.geojson
 GET /api/communes/:code/boundary.geojson
+GET /api/communes/:code/indicators.json
 GET /api/arrondissements.json
 GET /api/arrondissements/:code.json
 GET /api/arrondissements/:code/boundary.geojson
+GET /api/arrondissements/:code/indicators.json
+GET /api/indicators.json
 GET /api/tiles/:z/:x/:y.json
 GET /data/v1/**
 ```
@@ -72,6 +78,14 @@ of them in `/data/v1/geometry/arrondissements.geojson`. All of it carries the OD
 attribution. The tiles are those
 boundaries cut up for `/api/communes/at`, below.
 
+Every unit has HCP's 2024 census indicators beside its record, at `indicators.json`, and
+Morocco's are at `/api/indicators.json`: age, marital status, fertility, disability,
+schooling, literacy and languages, education and work, and each household's dwelling,
+amenities, wastewater, waste and cooking fuel, for the whole unit, its urban and its rural
+part, and for men and women. A commune's file carries its urban centres' figures too.
+`/data/v1/indicators/README.md` says how to read them, and `fields.json` there names every
+field with HCP's heading for it.
+
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of
 them answer with an empty `data` and `totalPages: 1` rather than a 404.
@@ -89,6 +103,7 @@ the answer:
 | `/api/communes?region=01&page=2` | `/api/regions/01/communes/page/2.json` |
 | `/api/communes?type=urban` | `/api/communes/type/urban/page/1.json` |
 | `/api/communes/01.511.01.0` | `/api/communes/01.511.01.0.json` |
+| `/api/communes/tanger/indicators` | `/api/communes/01.511.01.0/indicators.json` |
 | `/api/regions` | `/api/regions.json` |
 
 Identifiers are accepted in four spellings, all resolving to one unit:
@@ -170,20 +185,26 @@ boundaries at 5,000 random points, and at every commune's inside point.
 ### Filter combinations, population and order
 
 `/api/communes` also takes `min_population` and `max_population`, and `sort`, which is one
-of `name`, `population`, `change`, `density` and `area`, with a leading minus for largest
-first. A commune with no value for the field sorts last either way: Sidi Mohamed
-Benmansour has no area, and 4 communes have no 2014 figure to change from.
+of `name`, `population`, `change`, `density` and `area`, or the path of any census
+indicator for the whole commune, such as `labour.unemploymentRate` or
+`amenities.runningWater`, with a leading minus for largest first. Sorted by an indicator,
+each commune carries `indicator`, the path and its figure. A commune with no value sorts
+last either way: Sidi Mohamed Benmansour has no area, 4 communes have no 2014 figure to
+change from, and HCP publishes no figure for some indicators in some communes. A wrong
+path is a 400 that lists the keys of the topic it named.
 
 ```
 GET /api/communes?sort=-population                      the largest communes in the country
 GET /api/communes?type=rural&sort=-density              the densest rural ones
 GET /api/communes?province=01.151&sort=change           the fastest shrinking in Chefchaouen
 GET /api/communes?region=01&min_population=100000
+GET /api/communes?min_population=50000&sort=-labour.unemploymentRate
 ```
 
 A single filter with neither of those is a pre-rendered file. Anything more is computed
 from the commune records, which the Worker holds in memory: 1.7 MB, parsed once per
-isolate in about 8 ms against its 1 s startup budget. A request then filters and sorts
+isolate in about 8 ms against its 1 s startup budget, and a 0.7 MB table of each commune's
+indicators beside them. A request then filters and sorts
 them in well under a millisecond.
 
 ## MCP
@@ -198,9 +219,10 @@ session: each request gets a fresh server that answers in plain JSON.
 | `get_commune` | one commune's names, type, parents, 2024 and 2014 population, and a point inside it |
 | `communes_near` | communes within a radius of a point, nearest first |
 | `commune_at` | the commune whose boundary contains a point |
-| `list_communes` | communes by région, province, cercle or type, 50 to a page |
+| `list_communes` | communes by région, province, cercle or type, 50 to a page, sorted by any figure or indicator |
+| `get_indicators` | HCP's 2024 census figures for Morocco or any unit, by topic, area and sex |
 
-All five are read-only and say so in their annotations, so a client can call them without
+All six are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just
 coded, and a tool that cannot answer says why and what to call instead: asking
 `get_commune` for a province's code gets pointed to `list_communes`.
@@ -270,9 +292,10 @@ simply left out.
 rendering it needs Chrome; regenerate it with `pnpm site:og` when the map or the headline
 changes.
 
-`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 3,875 KiB
-uncompressed against a 64 MiB limit, most of it the commune records it holds, and `dist/`
-is 9,061 files, pages included, against a 20,000 limit.
+`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 4,708 KiB
+uncompressed against a 64 MiB limit, most of it the commune records and indicators it
+holds, and `dist/` is 10,924 files, pages included, against a 20,000 limit. Wrangler's
+own count reads higher because it includes directories.
 
 Two more things a build can take:
 
@@ -282,7 +305,6 @@ Two more things a build can take:
   official MCP Registry. Publish it with `mcp-publisher login github`, then
   `mcp-publisher publish dist/server.json`. Glama and PulseMCP pick up what the registry
   lists; Smithery and mcp.so take their own submissions.
-Wrangler's own count reads higher because it includes directories.
 
 A problem document's `type` is `/docs/api/#<kind>` on the origin the request came in on,
 so it points at the error's description on whichever deployment answered.

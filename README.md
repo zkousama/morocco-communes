@@ -3,8 +3,9 @@
 An open dataset and HTTP API for Morocco's administrative divisions: 12 régions, 75
 provinces and préfectures, 8 préfectures d'arrondissements, 213 cercles, 1,503 communes
 and 41 arrondissements, with
-official HCP geographic codes, names in French and Arabic, 2024 and 2014 population, and
-boundaries from OpenStreetMap.
+official HCP geographic codes, names in French and Arabic, 2024 and 2014 population, HCP's
+2024 census figures on age, education, languages, work and housing, and boundaries from
+OpenStreetMap.
 
 Nothing equivalent was published openly, so this builds it from the primary sources and
 shows the working.
@@ -17,6 +18,7 @@ shows the working.
 |---|---|---|
 | `attributes/` | every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `geometry/` | one TopoJSON per région | **ODbL**, share-alike |
+| `indicators/` | the 2024 census indicators for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
@@ -35,7 +37,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 5,790 files written at build time and served straight from
+**Pre-rendered.** 7,643 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -45,7 +47,9 @@ GET /api/provinces/01.511.json               GET /api/provinces/01.511/cercles.j
 GET /api/cercles/01.511.05.json              GET /api/communes/01.511.01.0.json
 GET /api/communes/page/1.json                GET /api/communes/type/urban/page/1.json
 GET /api/communes/01.511.01.0/arrondissements.json
-GET /api/arrondissements/01.511.01.05.json   GET /api/version.json
+GET /api/communes/01.511.01.0/indicators.json
+GET /api/arrondissements/01.511.01.05.json   GET /api/indicators.json
+GET /api/version.json
 GET /data/v1/**
 ```
 
@@ -56,6 +60,7 @@ answer and names it in `Content-Location`:
 ```
 GET /api/communes?province=01.511&page=1     GET /api/communes?type=urban
 GET /api/communes/tanger                     GET /api/communes/001511010
+GET /api/communes/tanger/indicators
 ```
 
 **Computed.** The answers no file holds:
@@ -66,7 +71,11 @@ GET /api/communes/near?lat=33.5731&lng=-7.5898&radius=15
 GET /api/communes/at?lat=35.786&lng=-5.8125
 GET /api/communes?province=01.511&type=urban
 GET /api/communes?sort=-population&min_population=100000
+GET /api/communes?region=01&sort=-labour.unemploymentRate
 ```
+
+A list sorts by any of the census indicators, by its path, and each commune it lists then
+carries the figure it was sorted by.
 
 Search takes French, Arabic or a slug. It folds the alef variants, ta-marbuta and alef
 maqsura the names actually carry, and the tatweel and vowel marks they never do but people
@@ -87,9 +96,10 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 5 read-only tools (`search`, `get_commune`,
-  `communes_near`, `commune_at`, `list_communes`), so Claude, Claude Code and other MCP clients can query
-  the data directly. The site's `/docs/mcp/` page has the setup for each client.
+- **`/mcp`**: an MCP server with 6 read-only tools (`search`, `get_commune`,
+  `communes_near`, `commune_at`, `list_communes`, `get_indicators`), so Claude, Claude Code
+  and other MCP clients can query the data directly, census figures included. The site's
+  `/docs/mcp/` page has the setup for each client.
 
 ### In a form, or offline
 
@@ -110,9 +120,10 @@ every région, province and commune, 3,210 pages in all.
 
 The home page opens on a map of every commune, shaded by density, change since 2014, or
 urban and rural. Hovering one shows its figures and clicking opens its page. A commune's
-page has its figures and rank, a map of its province, the communes it borders, and where
-its change sits among all of them. A list of every commune filters as you type, in French
-or Arabic.
+page has its figures and rank, a map of its province, the communes it borders, where its
+change sits among all of them, and its census figures: an age pyramid of men and women,
+headline rates beside the women's and the country's, and the languages its people use.
+A list of every commune filters as you type, in French or Arabic.
 
 Its JavaScript is the map's hover and switch, the list's filter, the playground (a Solid
 island that queries whatever API it's deployed beside and shows the `X-Api-Tier` of each
@@ -187,14 +198,20 @@ ships with its geometry fields null rather than a repaired guess. The 41 arrondi
 come from `admin_level=10` relations the same way, all of them, and each has to sit
 inside its commune and the set has to cover the city.
 
+HCP's indicators workbook lists the same units under the same codes, so it joins by code:
+every one of the 1,852 units and the 164 urban centres. Each column is named after the
+heading HCP gives it, and the build refuses the workbook if a heading has moved. It then
+checks that each unit's population and household count equal the population file's and
+that the figures add up. `indicators/README.md` has the details.
+
 207 communes were renumbered by the 2015 reform and have no 2014 figure under their
 current code. `crosswalk/` reconciles them in two deterministic passes and records the
 evidence for every pairing, so each row can be checked rather than taken on trust.
 
 ## Credits and prior work
 
-- **Haut-Commissariat au Plan**: RGPH 2024 and RGPH 2014, the source of every code, name
-  and population figure.
+- **Haut-Commissariat au Plan**: RGPH 2024 and RGPH 2014, the source of every code, name,
+  population figure and census indicator.
 - **OpenStreetMap contributors**: every boundary, centroid and bounding box, under ODbL.
 - [mahdiboughrous/moroccan-administrative-division-data](https://github.com/mahdiboughrous/moroccan-administrative-division-data)
   and [zeys/regionsPrefecturesProvincesCommunesMaroc](https://github.com/zeys/regionsPrefecturesProvincesCommunesMaroc):

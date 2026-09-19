@@ -80,6 +80,18 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    key: "dlIndicators",
+    licence: "hcp",
+    files: [
+      { label: "people.csv", path: "data/v1/indicators/people.csv" },
+      { label: "households.csv", path: "data/v1/indicators/households.csv" },
+      { label: "communes.json", path: "data/v1/indicators/communes.json" },
+      { label: "provinces.json", path: "data/v1/indicators/provinces.json" },
+      { label: "regions.json", path: "data/v1/indicators/regions.json" },
+      { label: "fields.json", path: "data/v1/indicators/fields.json" },
+    ],
+  },
+  {
     key: "dlBoundaries",
     licence: "odbl",
     // One file per région, labelled by the région it holds rather than by its code.

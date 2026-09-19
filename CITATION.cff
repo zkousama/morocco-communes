@@ -5,7 +5,7 @@ title: "Morocco communes"
 abstract: >-
   Morocco's régions, provinces and préfectures, cercles, communes and arrondissements,
   with official HCP geographic codes, names in French and Arabic, population from the
-  2014 and 2024 censuses, and boundaries from OpenStreetMap.
+  2014 and 2024 censuses, HCP's 2024 census indicators, and boundaries from OpenStreetMap.
 authors:
   - family-names: Ajebbar
     given-names: Ousama
@@ -29,6 +29,11 @@ references:
     authors:
       - name: "Haut-Commissariat au Plan"
     url: "https://www.hcp.ma/file/242341/"
+  - type: data
+    title: "Indicateurs démographiques et socioéconomiques du Royaume du Maroc selon les résultats du RGPH 2024"
+    authors:
+      - name: "Haut-Commissariat au Plan"
+    url: "https://www.hcp.ma/file/242671/"
   - type: data
     title: "Recensement Général de la Population et de l'Habitat 2014"
     authors:

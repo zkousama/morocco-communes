@@ -97,6 +97,42 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlIndicators",
+    "licence": "hcp",
+    "files": [
+      {
+        "label": "people.csv",
+        "href": "/data/v1/indicators/people.csv",
+        "bytes": 4240349
+      },
+      {
+        "label": "households.csv",
+        "href": "/data/v1/indicators/households.csv",
+        "bytes": 881217
+      },
+      {
+        "label": "communes.json",
+        "href": "/data/v1/indicators/communes.json",
+        "bytes": 14171495
+      },
+      {
+        "label": "provinces.json",
+        "href": "/data/v1/indicators/provinces.json",
+        "bytes": 1076631
+      },
+      {
+        "label": "regions.json",
+        "href": "/data/v1/indicators/regions.json",
+        "bytes": 163239
+      },
+      {
+        "label": "fields.json",
+        "href": "/data/v1/indicators/fields.json",
+        "bytes": 32014
+      }
+    ]
+  },
+  {
     "key": "dlBoundaries",
     "licence": "odbl",
     "files": [
