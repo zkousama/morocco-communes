@@ -169,6 +169,15 @@ console.log("\ncomputed tier — answers no file holds");
     `status=${r.status} ${values.slice(0, 5).join(",")}`);
 }
 {
+  const r = await get("/api/communes?region=01&sort=change.illiteracy.rate10Plus");
+  const rows = (r.body?.data ?? []) as { indicator?: { path: string; value: number | null } }[];
+  const values = rows.map((c) => c.indicator?.value).filter((v): v is number => typeof v === "number");
+  check("a list sorted by the change between the censuses carries it, and it is a fall",
+    r.status === 200 && r.tier === "computed" && rows[0]?.indicator?.path === "change.illiteracy.rate10Plus" &&
+      values.length > 0 && values[0]! < 0 && values.every((v, i) => i === 0 || v >= values[i - 1]!),
+    `status=${r.status} ${values.slice(0, 5).join(",")}`);
+}
+{
   // Province 04.421 is in région 04: the province's list is read, and every row filtered out.
   const r = await get("/api/communes?region=01&province=04.421");
   check("filters that contradict each other find nothing",
@@ -250,11 +259,17 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
   const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
   check("/mcp get_commune answers with the parent named",
     commune?.code === "01.511.01.0" && commune.province.name === "Tanger-Assilah", JSON.stringify(commune)?.slice(0, 80));
+  type Figures = { results?: { figures: Record<string, { total?: { people?: { all?: Record<string, Record<string, number>> } } } | null> }[] };
   const figures = await rpc("tools/call", { name: "get_indicators", arguments: { unit: "tanger", topics: ["labour"] } });
-  const total = (figures.body.result?.structuredContent as { results?: { figures: { total?: { people?: { all?: { labour?: { unemploymentRate: number } } } } } }[] } | undefined)
-    ?.results?.[0]?.figures.total;
+  const total = (figures.body.result?.structuredContent as Figures | undefined)?.results?.[0]?.figures["2024"]?.total;
   check("/mcp get_indicators reads a commune's census figures",
     total?.people?.all?.labour?.unemploymentRate === 15.3, JSON.stringify(total)?.slice(0, 80));
+  const both = await rpc("tools/call", { name: "get_indicators", arguments: { unit: "assilah", topics: ["illiteracy"], census: "both" } });
+  const censuses = (both.body.result?.structuredContent as Figures | undefined)?.results?.[0]?.figures;
+  check("/mcp get_indicators reads both censuses at once",
+    censuses?.["2024"]?.total?.people?.all?.illiteracy?.rate10Plus === 16 &&
+      censuses?.["2014"]?.total?.people?.all?.illiteracy?.rate10Plus === 21.7,
+    JSON.stringify(censuses)?.slice(0, 120));
 }
 
 console.log("\nnot found, for a person rather than a client");

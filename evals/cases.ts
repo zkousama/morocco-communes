@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 
 const attributes = (name: string) => JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as Unit[];
 const indicators = (name: string) => JSON.parse(readFileSync(`data/v1/indicators/${name}.json`, "utf8")) as Figures[];
+const indicators2014 = (name: string) => JSON.parse(readFileSync(`data/v1/indicators/2014/${name}.json`, "utf8")) as Figures[];
 
 interface Unit {
   code: string;
@@ -36,6 +37,9 @@ const figuresOf = new Map(
   [...indicators("communes"), ...indicators("provinces"), ...indicators("regions"), ...indicators("arrondissements")].map((f) => [f.code, f]),
 );
 const national = JSON.parse(readFileSync("data/v1/indicators/national.json", "utf8")) as Figures;
+const figures2014 = new Map(
+  [...indicators2014("communes"), ...indicators2014("provinces"), ...indicators2014("regions")].map((f) => [f.code, f]),
+);
 
 const commune = (slug: string) => communes.find((c) => c.slug === slug) ?? fail(`no commune ${slug}`);
 const province = (name: string) => provinces.find((p) => p.name.fr === name) ?? fail(`no province ${name}`);
@@ -84,6 +88,7 @@ const sale = commune("sale");
 const jadida = commune("el-jadida");
 const kenitra = commune("kenitra");
 const casablanca = commune("casablanca");
+const assilah = commune("assilah");
 const ouarzazate = commune("ouarzazate");
 const hoceima = commune("al-hoceima");
 const sidiBennour = commune("sidi-bennour");
@@ -102,6 +107,8 @@ const tangerRegion = region("Tanger-Tétouan-Al Hoceima");
 const urbanInTanger = communes.filter((c) => c.parents!.region === tangerRegion.code && c.type === "urban").length;
 
 const labour = (code: string, sex = "all", area = "total") => people(code)[area]![sex]!.labour!;
+/** A figure at the 2014 census, for the cases that ask what changed. */
+const illiteracy2014 = (code: string) => figures2014.get(code)?.people.total?.all?.illiteracy?.rate10Plus ?? null;
 const illiteracy = (code: string, sex = "all", area = "total") => people(code)[area]![sex]!.illiteracy!.rate10Plus!;
 const over50k = communes.filter((c) => pop(c) > 50_000);
 const jobless = [...over50k].sort((a, b) => (labour(b.code).unemploymentRate ?? -1) - (labour(a.code).unemploymentRate ?? -1))[0]!;
@@ -111,6 +118,9 @@ const tiznitProvince = province("Tiznit");
 const driest = communes
   .filter((c) => c.parents!.province === tiznitProvince.code && homes(c.code).total?.amenities?.runningWater != null)
   .sort((a, b) => homes(a.code).total!.amenities!.runningWater! - homes(b.code).total!.amenities!.runningWater!)[0]!;
+const fellMost = communes
+  .filter((c) => pop(c) > 20_000 && c.parents!.region === "01" && illiteracy2014(c.code) !== null)
+  .sort((a, b) => illiteracy(a.code) - illiteracy2014(a.code)! - (illiteracy(b.code) - illiteracy2014(b.code)!))[0]!;
 const womenAtWork = [...regions].sort(
   (a, b) => labour(b.code, "female").activityRate! - labour(a.code, "female").activityRate!,
 )[0]!;
@@ -321,6 +331,33 @@ export const CASES: Case[] = [
     category: "indicators",
     question: "Which of Morocco's 12 régions has the highest labour force participation among women?",
     expect: { names: [[womenAtWork.name.fr]], numbers: [labour(womenAtWork.code, "female").activityRate!], tools: ["get_indicators"], maxCalls: 3 },
+  },
+  {
+    id: "assilah-since-2014",
+    category: "indicators",
+    question: "In the commune of Assilah, how did illiteracy change between the 2014 and 2024 censuses?",
+    expect: {
+      numbers: [illiteracy2014(assilah.code)!, illiteracy(assilah.code)],
+      tools: ["get_indicators"],
+      maxCalls: 3,
+    },
+  },
+  {
+    id: "illiteracy-fell-most",
+    category: "indicators",
+    question:
+      "Among communes of Tanger-Tétouan-Al Hoceima with more than 20,000 people, where did illiteracy fall the most between the 2014 and 2024 censuses?",
+    expect: {
+      names: [[fellMost.name.fr]],
+      tools: ["list_communes"],
+      maxCalls: 4,
+    },
+  },
+  {
+    id: "casablanca-2014",
+    category: "coverage",
+    question: "What was the illiteracy rate in the commune of Casablanca at the 2014 census?",
+    expect: { pattern: /arrondissement/i, maxCalls: 4 },
   },
   {
     id: "casablanca-arrondissements",
