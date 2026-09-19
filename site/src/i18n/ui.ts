@@ -94,6 +94,23 @@ export const ui = {
     tierComputedBody:
       "Search, point and radius queries, and filter combinations no single file covers. These are the only requests that spend anything.",
 
+    compareHeading: "Other sources",
+    compareBody: "What else holds Morocco’s divisions, checked in September 2026 against each one’s own files and licence.",
+    compareSource: "Source",
+    compareHas: "What it has",
+    compareTerms: "Licence and limits",
+    compareRows: [
+      { name: "Wikidata", href: "https://www.wikidata.org/wiki/Property:P11958", has: "The 2024 code for 1,495 of the 1,503 communes, Arabic names, and 2024 population equal to HCP’s for 1,488. A boundary for 13.", terms: "CC0" },
+      { name: "OCHA HDX", href: "https://data.humdata.org/dataset/cod-ab-mar", has: "Région and province boundaries from HCP, on UN p-codes, for 10 of the 12 régions.", terms: "CC BY-IGO" },
+      { name: "geoBoundaries", href: "https://www.geoboundaries.org/", has: "Région and province boundaries from OpenStreetMap, as of 2017.", terms: "ODbL" },
+      { name: "GADM 4.1", href: "https://gadm.org/", has: "1,515 commune polygons on the map before the 2015 reform, without codes.", terms: "No commercial use without permission" },
+      { name: "GeoNames", href: "https://www.geonames.org/", has: "Points for 1,794 places at commune level, on its own codes, with older population figures.", terms: "CC BY 4.0, 1,000 credits an hour" },
+      { name: "Nominatim", href: "https://nominatim.org/", has: "Live OpenStreetMap, each commune’s HCP code included.", terms: "ODbL, 1 request a second" },
+      { name: "HCP", href: "https://www.hcp.ma/downloads/RGPH-2024_t22752.html", has: "The census itself, as spreadsheets.", terms: "CC BY 4.0 terms" },
+    ],
+    compareOnly:
+      "Only this has a boundary for every commune but one on the 2024 codes, the 2014 to 2024 reconciliation, the census indicators for every unit, and an API that finds a place by any spelling, by a point or by distance, with no key.",
+
     dataHeading: "Take the whole thing",
     dataBody:
       "Every file here is built from the dataset in the repository, which works without the API too. Boundaries, and every figure drawn from them, are under ODbL. The {readme} describes each field.",
@@ -186,7 +203,7 @@ export const ui = {
     copy: "Copier",
     copied: "Copié",
     onThisPage: "Sur cette page",
-    tagline: "Les 1 503 communes du Maroc, en données ouvertes.",
+    tagline: "Les 1 503 communes du Maroc, en données ouvertes.",
     intro:
       "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, ce que le recensement de 2024 dit des habitants et des logements, et une limite pour chaque commune sauf une. Libre d’usage.",
     mapCaption: "{n} communes, d’après les limites que sert cette API.",
@@ -240,6 +257,23 @@ export const ui = {
     tierComputedBody:
       "La recherche, les requêtes par point ou par rayon, et les combinaisons de filtres qu’aucun fichier ne couvre. Ce sont les seules requêtes qui consomment quelque chose.",
 
+    compareHeading: "Autres sources",
+    compareBody: "Ce qui existe d’autre sur le découpage du Maroc, vérifié en septembre 2026 dans les fichiers et la licence de chacun.",
+    compareSource: "Source",
+    compareHas: "Ce qu’elle contient",
+    compareTerms: "Licence et limites",
+    compareRows: [
+      { name: "Wikidata", href: "https://www.wikidata.org/wiki/Property:P11958", has: "Le code 2024 de 1 495 des 1 503 communes, les noms arabes, et la population 2024 égale à celle du HCP pour 1 488. Une limite pour 13.", terms: "CC0" },
+      { name: "OCHA HDX", href: "https://data.humdata.org/dataset/cod-ab-mar", has: "Les limites des régions et des provinces, du HCP, sur les p-codes de l’ONU, pour 10 des 12 régions.", terms: "CC BY-IGO" },
+      { name: "geoBoundaries", href: "https://www.geoboundaries.org/", has: "Les limites des régions et des provinces, d’OpenStreetMap, en 2017.", terms: "ODbL" },
+      { name: "GADM 4.1", href: "https://gadm.org/", has: "1 515 polygones de communes sur la carte d’avant la réforme de 2015, sans codes.", terms: "Pas d’usage commercial sans autorisation" },
+      { name: "GeoNames", href: "https://www.geonames.org/", has: "Des points pour 1 794 lieux au niveau de la commune, sur ses propres codes, avec des populations plus anciennes.", terms: "CC BY 4.0, 1 000 crédits par heure" },
+      { name: "Nominatim", href: "https://nominatim.org/", has: "OpenStreetMap en direct, avec le code HCP de chaque commune.", terms: "ODbL, 1 requête par seconde" },
+      { name: "HCP", href: "https://www.hcp.ma/downloads/RGPH-2024_t22752.html", has: "Le recensement lui-même, en tableurs.", terms: "Conditions CC BY 4.0" },
+    ],
+    compareOnly:
+      "Seul ce jeu a une limite pour chaque commune sauf une sur les codes de 2024, la correspondance de 2014 à 2024, les indicateurs du recensement pour chaque unité, et une API qui trouve un lieu quelle que soit son orthographe, par un point ou par la distance, sans clé.",
+
     dataHeading: "Tout récupérer",
     dataBody:
       "Chaque fichier ici est construit à partir du jeu de données du dépôt, qui s’utilise aussi sans l’API. Les limites, et tout ce qui en est tiré, sont sous ODbL. Le {readme} décrit chaque champ.",
@@ -279,7 +313,7 @@ export const ui = {
     chartSpread: "Ce que vaut la table de correspondance",
     chartSpreadBody:
       "207 communes ont été renumérotées par la réforme de 2015 : leur population de 2014 a dû être appariée par nom et par élimination, faute d’un code inchangé. Si ces appariements étaient faux, leur croissance se disperserait autrement.",
-    chartHalf: "La moitié des habitants sur moins de 1 % du territoire",
+    chartHalf: "La moitié des habitants sur moins de 1 % du territoire",
     chartHalfBody: "Les {n} communes les plus peuplées, face aux {rest} autres.",
     halfPeople: "Part de la population, 2024",
     halfLand: "Part du territoire",
