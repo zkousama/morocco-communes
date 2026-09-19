@@ -20,7 +20,8 @@
     "build": "pnpm site:build && pnpm api:build",
     "site:data": "node --experimental-strip-types site/scripts/map.ts && node --experimental-strip-types site/scripts/hierarchy.ts && node --experimental-strip-types site/scripts/charts.ts && node --experimental-strip-types site/scripts/downloads.ts && node --experimental-strip-types site/scripts/reference.ts",
     "site:og": "node --experimental-strip-types site/scripts/og.ts",
-    "npm:build": "node --experimental-strip-types packages/morocco-communes/build.ts"
+    "npm:build": "node --experimental-strip-types packages/morocco-communes/build.ts",
+    "eval": "node --experimental-strip-types evals/run.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

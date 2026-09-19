@@ -5,3 +5,4 @@ dist/
 .superpowers/
 .wrangler/
 packages/morocco-communes/dist/
+evals/results/
