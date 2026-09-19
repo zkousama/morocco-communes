@@ -33,8 +33,18 @@ const one = numbers(locale, 1, true);
 // Oldest at the top, as a pyramid is read.
 const BANDS = ["75+", "70-74", "65-69", "60-64", "55-59", "50-54", "45-49", "40-44", "35-39", "30-34", "25-29", "20-24", "15-19", "10-14", "5-9", "0-4"];
 const band = (key: string) => (key.endsWith("+") ? fill(p.over, { n: key.slice(0, -1) }) : key.replace("-", "–"));
-const rows = BANDS.map((key) => ({ key, men: figure(men, `age.${key}`), women: figure(women, `age.${key}`) }));
-const widest = Math.max(...rows.flatMap((r) => [r.men ?? 0, r.women ?? 0]));
+const before = record["2014"];
+const men2014 = before?.people.total?.male;
+const women2014 = before?.people.total?.female;
+const rows = BANDS.map((key) => ({
+  key,
+  men: figure(men, `age.${key}`),
+  women: figure(women, `age.${key}`),
+  men2014: figure(men2014, `age.${key}`),
+  women2014: figure(women2014, `age.${key}`),
+}));
+const hasThen = rows.some((r) => r.men2014 !== null || r.women2014 !== null);
+const widest = Math.max(...rows.flatMap((r) => [r.men ?? 0, r.women ?? 0, r.men2014 ?? 0, r.women2014 ?? 0]));
 const hasAges = widest > 0;
 const width = (v: number | null) => `${((v ?? 0) / widest) * 100}%`;
 
@@ -107,7 +117,7 @@ const names = p.languageNames as Record<string, string>;
         {hasAges && (
           <div>
             <h3>{p.age}</h3>
-            <p class="note">{p.ageBody}</p>
+            <p class="note">{hasThen ? p.ageBodyThen : p.ageBody}</p>
             <table class="pyramid">
               <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
               <thead>
@@ -120,9 +130,17 @@ const names = p.languageNames as Record<string, string>;
               <tbody>
                 {rows.map((r) => (
                   <tr>
-                    <td class="men"><span class="bar" style={`--w: ${width(r.men)}`} /><span class="value">{pct(r.men)}</span></td>
+                    <td class="men">
+                      <span class="bar" style={`--w: ${width(r.men)}`} />
+                      {r.men2014 !== null && <span class="ghost" style={`--w: ${width(r.men2014)}`} />}
+                      <span class="value">{pct(r.men)}</span>
+                    </td>
                     <th scope="row">{band(r.key)}</th>
-                    <td class="women"><span class="bar" style={`--w: ${width(r.women)}`} /><span class="value">{pct(r.women)}</span></td>
+                    <td class="women">
+                      <span class="bar" style={`--w: ${width(r.women)}`} />
+                      {r.women2014 !== null && <span class="ghost" style={`--w: ${width(r.women2014)}`} />}
+                      <span class="value">{pct(r.women)}</span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -246,11 +264,32 @@ const names = p.languageNames as Record<string, string>;
     width: calc(50% - 3.25rem);
   }
 
-  .pyramid td .bar {
+  .pyramid td .bar,
+  .pyramid td .ghost {
     position: absolute;
     top: 2px;
     bottom: 2px;
     width: var(--w);
+  }
+
+  /* The same age at the 2014 census, drawn as the outline the 2024 bar sits inside or
+     runs past, so a band that thinned or filled out shows without a second chart. */
+  .pyramid td .ghost {
+    border: 1px solid var(--quiet);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .pyramid td.men .ghost {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+    border-inline-end: 0;
+  }
+
+  .pyramid td.women .ghost {
+    left: 0;
+    border-radius: 0 3px 3px 0;
+    border-inline-start: 0;
   }
 
   .pyramid td.men .bar {
