@@ -38,7 +38,7 @@ const cercle = c.parents.cercle ? cercleOf.get(c.parents.cercle) : undefined;
 
 const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 const n1 = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
-const signed = (v: number) => percent(locale, v, { signed: true });
+const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 const people = c.population["2024"];
 const change = c.population.change;
 const ptype = p.unitTypesLower[province.type];

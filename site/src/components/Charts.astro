@@ -26,7 +26,8 @@ const maxCount = Math.max(...sizes.map((b) => b.count));
 /* Charts 4 and 5: shares of a whole, as 100% bars with the part that matters filled. */
 const fillIn = (text: string, values: Record<string, string | number>) =>
   text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? ""));
-const percent = (v: number) => formatPercent(locale, v);
+// Shares to one decimal, kept even when it's 0, and to 2 under 1%, so 0.45% doesn't round to a half.
+const percent = (v: number) => formatPercent(locale, v, { digits: Math.abs(v) < 1 ? 2 : 1, fixed: true });
 const shrinkMax = Math.max(...shrinking.map((s) => s.shrank + s.grew));
 
 /* Chart 3: the two growth distributions, on one shared scale. */
@@ -35,7 +36,7 @@ const hi = Math.max(...spread.map((s) => s.p90));
 const pad = (hi - lo) * 0.08;
 const scale = (v: number) => ((v - (lo - pad)) / (hi - lo + pad * 2)) * 100;
 const ticks = [-20, -10, 0, 10, 20];
-const signed = (v: number) => formatPercent(locale, v, { signed: true });
+const signed = (v: number) => formatPercent(locale, v, { signed: true, fixed: true });
 const spoken = (row: (typeof spread)[number]) =>
   copy.srSpread.replace(/\{(\w+)\}/g, (_, key: string) =>
     signed((row as unknown as Record<string, number>)[key] ?? 0),
@@ -79,8 +80,10 @@ const spoken = (row: (typeof spread)[number]) =>
       {sizes.map((bucket) => (
         <li>
           <span class="sr-only">{bucket.label}: {group.format(bucket.count)}</span>
-          <span class="hcount" aria-hidden="true">{group.format(bucket.count)}</span>
-          <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`} aria-hidden="true"></span>
+          <span class="hwell" aria-hidden="true">
+            <span class="hcount">{group.format(bucket.count)}</span>
+            <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`}></span>
+          </span>
           <span class="hlabel" aria-hidden="true">{bucket.label}</span>
         </li>
       ))}
@@ -349,12 +352,12 @@ const spoken = (row: (typeof spread)[number]) =>
     padding-block: 0.22rem;
   }
 
+  /* A long name wraps rather than being cut, which on a phone is most of them. */
   .rname {
     font-size: var(--t-xs);
     color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
   }
 
   .track {
@@ -414,10 +417,21 @@ const spoken = (row: (typeof spread)[number]) =>
   .histogram li {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     gap: 0.35rem;
     height: 100%;
     text-align: center;
+  }
+
+  /* The bars are sized against this well, and the count above the tallest one spills into
+     its top padding, so it never reaches the caption. */
+  .hwell {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    padding-top: 1.6rem;
   }
 
   .hcount {

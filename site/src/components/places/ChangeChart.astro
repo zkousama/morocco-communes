@@ -23,7 +23,7 @@ const pct = (v: number) => ((Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * 
 const x = (v: number) => (pct(v) / 100) * W;
 const barWidth = W / bins.length;
 const y = (count: number) => (1 - count / max) * H;
-const signed = (v: number) => percent(locale, v, { signed: true });
+const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 const ticks = [-40, 0, 40, 100];
 const tick = (v: number) => (v === 0 ? "0" : percent(locale, v, { signed: true, digits: 0 }) + (v === hi ? "+" : ""));
 const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");

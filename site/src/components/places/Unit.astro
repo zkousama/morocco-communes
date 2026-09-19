@@ -33,7 +33,7 @@ const unit = province ?? region;
 const census = indicatorsOf.get(unit.code);
 
 const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
-const signed = (v: number) => percent(locale, v, { signed: true });
+const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 
 const communes = province ? communesIn(province.code) : provincesIn(region.code).flatMap((pr) => communesIn(pr.code));
 const arrondissements = province?.type === "prefecture_of_arrondissements" ? arrondissementsInPrefecture(province.code) : [];
