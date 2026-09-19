@@ -187,7 +187,7 @@ const toc = [
         <div id={kind}>
           <dt><code>{kind}</code> <span class="mono quiet">{e.status}</span></dt>
           <dd>
-            <span class="title">{e.title}.</span> {d.errorWhen[kind]}
+            <span class="title" lang={locale === "en" ? undefined : "en"}>{e.title}.</span> {d.errorWhen[kind]}
           </dd>
         </div>
       ))}

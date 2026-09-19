@@ -131,7 +131,7 @@ export const docs = {
         "An error comes back as an RFC 9457 problem document, typed `application/problem+json`. Its `type` links to its entry below, and `detail` says what went wrong in words.",
       errorWhen: {
         "not-found":
-          "The identifier is well formed but names nothing, the page is past the last, or the path isn’t a route. Don’t retry.",
+          "The identifier is well formed but names nothing, the page is past the last, or the path isn’t a route.",
         "invalid-code": "The identifier can’t be read as a code or a slug.",
         "invalid-query": "A parameter is missing, out of range, or can’t go with another one.",
       } as Record<string, string>,
@@ -283,7 +283,7 @@ export const docs = {
         "Une erreur revient sous forme de document problem RFC 9457, de type `application/problem+json`. Son champ `type` renvoie à sa description ci-dessous, et `detail` dit en toutes lettres ce qui ne va pas.",
       errorWhen: {
         "not-found":
-          "L’identifiant est bien formé mais ne désigne rien, la page est au-delà de la dernière, ou le chemin n’est pas une route. Inutile de réessayer.",
+          "L’identifiant est bien formé mais ne désigne rien, la page est au-delà de la dernière, ou le chemin n’est pas une route.",
         "invalid-code": "L’identifiant ne se lit ni comme un code ni comme un slug.",
         "invalid-query": "Un paramètre manque, sort de ses bornes, ou ne va pas avec un autre.",
       } as Record<string, string>,

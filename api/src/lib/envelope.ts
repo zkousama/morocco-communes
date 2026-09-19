@@ -66,7 +66,7 @@ export const PROBLEM_PAGE = "/docs/api/";
 
 export const PROBLEMS = {
   "not-found": { status: 404, title: "Resource not found" },
-  "invalid-code": { status: 400, title: "Malformed geographic code" },
+  "invalid-code": { status: 400, title: "Malformed code or slug" },
   "invalid-query": { status: 400, title: "Invalid query parameter" },
 } as const;
 

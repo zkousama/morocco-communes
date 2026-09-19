@@ -63,7 +63,7 @@ export function parseFilter(input: FilterInput, lookup: Lookup): { query: Filter
     const raw = input[key];
     if (raw === undefined) continue;
     const found = resolve(lookup, raw);
-    if (found.kind === "malformed") return { error: { kind: "invalid-code", detail: `${raw} is not a geographic code` } };
+    if (found.kind === "malformed") return { error: { kind: "invalid-code", detail: `${raw} can’t be read as a code or a slug` } };
     if (found.kind === "absent") return { error: { kind: "not-found", detail: `no ${key} has code ${raw}` } };
     // A code of the wrong level would otherwise address a path that does not exist and
     // come back as a missing page, which says nothing about what went wrong.

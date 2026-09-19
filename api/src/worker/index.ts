@@ -282,7 +282,7 @@ app.get("/api/:collection/:id", async (c) => {
   if (id.endsWith(".json")) return fail(url, "not-found", `${url.pathname} does not exist`, url.pathname);
 
   const found = resolve(lookup, id);
-  if (found.kind === "malformed") return fail(url, "invalid-code", `${id} is not a geographic code`, url.pathname);
+  if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
   if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
 
   const canonical = `/api/${collection}/${found.code}.json`;
