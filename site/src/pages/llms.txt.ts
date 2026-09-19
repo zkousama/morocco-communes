@@ -27,6 +27,13 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Filtered list](${at("/api/communes?province=01.511")}): communes by région, province, cercle or type, 50 to a page
 - [Version](${at("/api/version.json")}): dataset version, record counts and when each source was read
 
+## Docs
+
+- [API reference](${at("/docs/api/")}): every route with a real response, and what each error means
+- [MCP setup](${at("/docs/mcp/")}): how to connect Claude, ChatGPT, Cursor, VS Code and the Claude and OpenAI APIs
+- [Components](${at("/docs/components/")}): a région, province and commune picker for forms, in HTML or React
+- [npm package](${at("/docs/npm/")}): \`morocco-communes\`, the data as typed ES modules, offline
+
 ## Data
 
 - [Communes as JSON](${at("/data/v1/attributes/communes.json")}): every commune with its codes, names, population and a point inside it

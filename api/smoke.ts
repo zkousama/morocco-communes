@@ -205,5 +205,28 @@ for (const [path, marker] of [
     `status=${response.status} ct=${response.headers.get("content-type")}`);
 }
 
+console.log("\ndocs");
+for (const path of ["/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/fr/docs/api/", "/fr/docs/mcp/"]) {
+  const response = await fetch(base + path);
+  check(`${path} is a page`, response.status === 200 && (response.headers.get("content-type") ?? "").includes("text/html"),
+    `status=${response.status}`);
+}
+{
+  // A problem's type is a link, and it has to land on the entry that describes it.
+  const r = await get("/api/communes/99.999.99.99");
+  const type = new URL(String(r.body?.type ?? "about:blank"));
+  const page = type.origin === new URL(base).origin ? await (await fetch(base + type.pathname)).text() : "";
+  check("a problem's type links to its entry on the API page",
+    type.pathname === "/docs/api/" && page.includes(`id="${type.hash.slice(1)}"`), String(r.body?.type));
+}
+{
+  const response = await fetch(base + "/components/commune-picker.js");
+  check("the picker script can be loaded from another site",
+    response.status === 200 &&
+      response.headers.get("access-control-allow-origin") === "*" &&
+      (response.headers.get("content-type") ?? "").includes("javascript"),
+    `cors=${response.headers.get("access-control-allow-origin")} ct=${response.headers.get("content-type")}`);
+}
+
 console.log(`\n${failures === 0 ? "all probes passed" : `${failures} probe(s) failed`}`);
 process.exit(failures === 0 ? 0 : 1);
