@@ -1,4 +1,4 @@
-name = "morocco-communes-api"
+name = "morocco-communes"
 main = "api/src/worker/index.ts"
 compatibility_date = "2026-09-17"
 

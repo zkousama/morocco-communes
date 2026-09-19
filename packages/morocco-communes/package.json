@@ -50,8 +50,8 @@
   "author": "Ousama Ajebbar (https://github.com/zkousama)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zkousama/morocco-communes-api.git",
+    "url": "git+https://github.com/zkousama/morocco-communes.git",
     "directory": "packages/morocco-communes"
   },
-  "homepage": "https://github.com/zkousama/morocco-communes-api/tree/main/packages/morocco-communes"
+  "homepage": "https://github.com/zkousama/morocco-communes/tree/main/packages/morocco-communes"
 }

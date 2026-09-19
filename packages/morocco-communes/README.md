@@ -48,7 +48,7 @@ The code is the hierarchy: `01.511.01.0` is a commune of province `01.511`, in r
 ## More
 
 Boundaries, centroids, the 2014 census in full, households and search are in the
-[repository](https://github.com/zkousama/morocco-communes-api) and its API. The
+[repository](https://github.com/zkousama/morocco-communes) and its API. The
 boundaries come from OpenStreetMap under ODbL, so they aren't in this package.
 
 ## Licence

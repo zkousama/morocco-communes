@@ -94,7 +94,7 @@ async function fetchSnapshot(name: string, query: string, cacheDir: string): Pro
       const response = await fetch(endpoint, {
         method: "POST",
         body,
-        headers: { "user-agent": "morocco-communes-api/0.1" },
+        headers: { "user-agent": "morocco-communes/0.1" },
         signal: AbortSignal.timeout(180_000),
       });
       if (!response.ok) {

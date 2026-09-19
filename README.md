@@ -1,4 +1,4 @@
-# Morocco communes API
+# Morocco communes
 
 An open dataset and HTTP API for Morocco's administrative divisions: 12 régions, 75
 provinces and préfectures, 8 préfectures d'arrondissements, 213 cercles, 1,503 communes

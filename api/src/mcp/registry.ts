@@ -17,7 +17,7 @@ export function serverJson(opts: { siteUrl: string; version: string }) {
     title: "Morocco communes",
     description: "Morocco's régions, provinces and communes: HCP codes, names, census population and boundaries",
     version: opts.version,
-    repository: { url: "https://github.com/zkousama/morocco-communes-api", source: "github" },
+    repository: { url: "https://github.com/zkousama/morocco-communes", source: "github" },
     remotes: [{ type: "streamable-http", url: new URL("/mcp", opts.siteUrl).href }],
   };
 }

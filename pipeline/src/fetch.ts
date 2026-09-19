@@ -37,7 +37,7 @@ export async function fetchAll(cacheDir: string): Promise<Map<string, Uint8Array
     if (existsSync(path)) {
       bytes = new Uint8Array(await readFile(path));
     } else {
-      const response = await fetch(source.url, { headers: { "user-agent": "morocco-communes-api/0.1" } });
+      const response = await fetch(source.url, { headers: { "user-agent": "morocco-communes/0.1" } });
       if (!response.ok) throw new Error(`${source.id}: HTTP ${response.status} from ${source.url}`);
       bytes = new Uint8Array(await response.arrayBuffer());
       await writeFile(path, bytes);
