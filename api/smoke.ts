@@ -65,7 +65,13 @@ for (const path of [
   check("/data/v1/geometry/01.topojson is typed by _headers",
     r.status === 200 && r.contentType.includes("json"), `ct=${r.contentType}`);
 }
-for (const path of ["/data/v1/geometry/01.geojson", "/api/communes/01.511.01.0/boundary.geojson"]) {
+for (const path of [
+  "/data/v1/geometry/01.geojson",
+  "/data/v1/geometry/provinces.geojson",
+  "/api/communes/01.511.01.0/boundary.geojson",
+  "/api/provinces/01.511/boundary.geojson",
+  "/api/regions/01/boundary.geojson",
+]) {
   const r = await get(path);
   check(`${path} is served as GeoJSON`,
     r.status === 200 && r.contentType.includes("application/geo+json") && r.cors === "*" &&

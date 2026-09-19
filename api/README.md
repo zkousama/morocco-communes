@@ -36,10 +36,12 @@ GET /api/regions.json
 GET /api/regions/:code.json
 GET /api/regions/:code/provinces.json
 GET /api/regions/:code/communes/page/:n.json
+GET /api/regions/:code/boundary.geojson
 GET /api/provinces.json
 GET /api/provinces/:code.json
 GET /api/provinces/:code/cercles.json
 GET /api/provinces/:code/communes/page/:n.json
+GET /api/provinces/:code/boundary.geojson
 GET /api/cercles.json
 GET /api/cercles/:code.json
 GET /api/cercles/:code/communes/page/:n.json
@@ -58,9 +60,11 @@ GET /data/v1/**
 `01.511.05` for a cercle, `01.511.01.0` for a commune, `01.511.01.05` for an
 arrondissement.
 
-The GeoJSON is written by the build from the committed TopoJSON: each commune's boundary as a
-Feature at `boundary.geojson`, and each région as a FeatureCollection at
-`/data/v1/geometry/:code.geojson`. Both carry the ODbL attribution. The tiles are those
+The GeoJSON is written by the build from the committed TopoJSON. Each commune's boundary is
+a Feature at `boundary.geojson`, and so is each province's and région's outline, dissolved
+from its communes along the borders they share. `/data/v1/geometry/:code.geojson` holds a
+région's communes, and `provinces.geojson` and `regions.geojson` every outline of one level.
+All of it carries the ODbL attribution. The tiles are those
 boundaries cut up for `/api/communes/at`, below.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no

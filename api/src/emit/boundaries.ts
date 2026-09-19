@@ -4,6 +4,7 @@
  */
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { merge } from "topojson-client";
 
 export type Position = [number, number];
 /** Rings of one polygon, the outer ring first, each closed. */
@@ -15,7 +16,7 @@ export interface Boundary {
   polygons: Polygon[];
 }
 
-interface Topology {
+export interface Topology {
   transform: { scale: [number, number]; translate: [number, number] };
   arcs: [number, number][][];
   objects: {
@@ -57,15 +58,44 @@ export function decodeTopology(topo: Topology): Boundary[] {
   }));
 }
 
-/** Every commune boundary, région by région, in file order. */
-export async function readBoundaries(dir: string): Promise<{ region: string; boundaries: Boundary[] }[]> {
+/** Every commune boundary, région by région, in file order, with the topology it came from. */
+export async function readBoundaries(
+  dir: string,
+): Promise<{ region: string; topology: Topology; boundaries: Boundary[] }[]> {
   const files = (await readdir(dir)).filter((f) => f.endsWith(".topojson")).sort();
   const out = [];
   for (const file of files) {
-    const topo = JSON.parse(await readFile(join(dir, file), "utf8")) as Topology;
-    out.push({ region: file.replace(".topojson", ""), boundaries: decodeTopology(topo) });
+    const topology = JSON.parse(await readFile(join(dir, file), "utf8")) as Topology;
+    out.push({ region: file.replace(".topojson", ""), topology, boundaries: decodeTopology(topology) });
   }
   return out;
+}
+
+/**
+ * The outline of a group of communes, dissolved along the borders they share. Arcs used by
+ * one commune of the group are its edge; arcs used by two are inside it. A gap in the
+ * group's coverage stays a hole.
+ */
+export function mergeCommunes(topology: Topology, codeDigits: Set<string>): Polygon[] {
+  const geometries = topology.objects.communes.geometries.filter((g) => codeDigits.has(g.properties.code));
+  const merged = merge(topology as never, geometries as never) as unknown as { coordinates: Position[][][] };
+  return merged.coordinates.map((polygon) => polygon.map((ring) => ring.map(([x, y]) => [round(x), round(y)] as Position)));
+}
+
+interface Unit {
+  code: string;
+  name: { fr: string; ar: string };
+  type?: string;
+}
+
+/** A province or a région as a GeoJSON Feature. */
+export function unitFeature(unit: Unit, polygons: Polygon[]) {
+  return {
+    type: "Feature" as const,
+    id: unit.code,
+    properties: { code: unit.code, name_fr: unit.name.fr, name_ar: unit.name.ar, ...(unit.type ? { type: unit.type } : {}) },
+    geometry: geometry(polygons),
+  };
 }
 
 export const ATTRIBUTION = "© OpenStreetMap contributors, ODbL 1.0, opendatacommons.org/licenses/odbl/1-0/";

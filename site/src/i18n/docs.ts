@@ -122,6 +122,8 @@ export const docs = {
         arrondissements: "Every arrondissement",
         arrondissement: "One arrondissement",
         boundary: "One commune’s boundary, as a GeoJSON Feature",
+        provinceBoundary: "A province’s outline, dissolved from its communes",
+        regionBoundary: "A région’s outline, dissolved from its communes",
         tiles: "The boundaries cut into tiles, which /api/communes/at reads",
       },
       errorsBody:
@@ -271,6 +273,8 @@ export const docs = {
         arrondissements: "Tous les arrondissements",
         arrondissement: "Un arrondissement",
         boundary: "La limite d’une commune, en Feature GeoJSON",
+        provinceBoundary: "Le contour d’une province, fondu à partir de ses communes",
+        regionBoundary: "Le contour d’une région, fondu à partir de ses communes",
         tiles: "Les limites découpées en tuiles, que lit /api/communes/at",
       },
       errorsBody:

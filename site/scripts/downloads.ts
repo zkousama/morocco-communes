@@ -4,7 +4,7 @@
  * data/v1/crosswalk/crosswalk.json — a path that never existed — stays gone.
  */
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { buildGeometry } from "../../api/src/emit/geometry.ts";
+import { buildGeometry, outlineCollections } from "../../api/src/emit/geometry.ts";
 
 interface Group {
   key: string;
@@ -13,8 +13,13 @@ interface Group {
   files: { label: string; path: string; bytes?: number }[];
 }
 
-const communes = JSON.parse(await readFile("data/v1/attributes/communes.json", "utf8")) as never[];
-const geometry = await buildGeometry("data/v1", communes);
+const level = async (name: string) => JSON.parse(await readFile(`data/v1/attributes/${name}.json`, "utf8")) as never[];
+const geometry = await buildGeometry("data/v1", {
+  communes: await level("communes"),
+  provinces: await level("provinces"),
+  regions: await level("regions"),
+});
+const outlines = outlineCollections(geometry);
 
 const regions = JSON.parse(await readFile("data/v1/attributes/regions.json", "utf8")) as {
   code: string;
@@ -32,13 +37,37 @@ const GROUPS: Group[] = [
       { label: "CSV", path: "data/v1/attributes/communes.csv" },
     ],
   },
-  { key: "dlRegions", licence: "hcp", files: [{ label: "JSON", path: "data/v1/attributes/regions.json" }] },
-  { key: "dlProvinces", licence: "hcp", files: [{ label: "JSON", path: "data/v1/attributes/provinces.json" }] },
-  { key: "dlCercles", licence: "hcp", files: [{ label: "JSON", path: "data/v1/attributes/cercles.json" }] },
+  {
+    key: "dlRegions",
+    licence: "hcp",
+    files: [
+      { label: "JSON", path: "data/v1/attributes/regions.json" },
+      { label: "CSV", path: "data/v1/attributes/regions.csv" },
+    ],
+  },
+  {
+    key: "dlProvinces",
+    licence: "hcp",
+    files: [
+      { label: "JSON", path: "data/v1/attributes/provinces.json" },
+      { label: "CSV", path: "data/v1/attributes/provinces.csv" },
+    ],
+  },
+  {
+    key: "dlCercles",
+    licence: "hcp",
+    files: [
+      { label: "JSON", path: "data/v1/attributes/cercles.json" },
+      { label: "CSV", path: "data/v1/attributes/cercles.csv" },
+    ],
+  },
   {
     key: "dlArrondissements",
     licence: "hcp",
-    files: [{ label: "JSON", path: "data/v1/attributes/arrondissements.json" }],
+    files: [
+      { label: "JSON", path: "data/v1/attributes/arrondissements.json" },
+      { label: "CSV", path: "data/v1/attributes/arrondissements.csv" },
+    ],
   },
   {
     key: "dlCrosswalk",
@@ -67,6 +96,14 @@ const GROUPS: Group[] = [
         bytes: Buffer.byteLength(JSON.stringify(collection)),
       };
     }),
+  },
+  {
+    key: "dlOutlines",
+    licence: "odbl",
+    files: [
+      { label: "provinces", path: "data/v1/geometry/provinces.geojson", bytes: Buffer.byteLength(JSON.stringify(outlines.provinces)) },
+      { label: "régions", path: "data/v1/geometry/regions.geojson", bytes: Buffer.byteLength(JSON.stringify(outlines.regions)) },
+    ],
   },
   { key: "dlSources", licence: "hcp", files: [{ label: "JSON", path: "data/v1/sources.json" }] },
 ];

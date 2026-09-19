@@ -36,6 +36,9 @@ importers:
       '@types/polylabel':
         specifier: ^2.0.0
         version: 2.0.0
+      '@types/topojson-client':
+        specifier: ^3.1.5
+        version: 3.1.5
       '@types/topojson-server':
         specifier: ^3.0.4
         version: 3.0.4
@@ -45,6 +48,9 @@ importers:
       solid-js:
         specifier: ^1.9.15
         version: 1.9.15
+      topojson-client:
+        specifier: ^3.1.0
+        version: 3.1.0
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -1284,6 +1290,9 @@ packages:
   '@types/polylabel@2.0.0':
     resolution: {integrity: sha512-di+2+kta2AQu9/SPkDuPZi23sWucX9QpchPIv9ZgTU215piNWODbFeuFF7k6NtUlYVtz+d6QB9pMHohASuD9Mg==}
 
+  '@types/topojson-client@3.1.5':
+    resolution: {integrity: sha512-C79rySTyPxnQNNguTZNI1Ct4D7IXgvyAs3p9HPecnl6mNrJ5+UhvGNYcZfpROYV2lMHI48kJPxwR+F9C6c7nmw==}
+
   '@types/topojson-server@3.0.4':
     resolution: {integrity: sha512-5+ieK8ePfP+K2VH6Vgs1VCt+fO1U8XZHj0UsF+NktaF0DavAo1q3IvCBXgokk/xmtvoPltSUs6vxuR/zMdOE1g==}
 
@@ -2512,6 +2521,10 @@ packages:
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+
+  topojson-client@3.1.0:
+    resolution: {integrity: sha512-605uxS6bcYxGXw9qi62XyrV6Q3xwbndjachmNxu8HWTtVPxZfEJN9fd/SZS1Q54Sn2y0TMyMxFj/cJINqGHrKw==}
+    hasBin: true
 
   topojson-server@3.0.1:
     resolution: {integrity: sha512-/VS9j/ffKr2XAOjlZ9CgyyeLmgJ9dMwq6Y0YEON8O7p/tGGk+dCWnrE03zEdu7i4L7YsFZLEPZPzCvcB7lEEXw==}
@@ -3974,6 +3987,11 @@ snapshots:
 
   '@types/polylabel@2.0.0': {}
 
+  '@types/topojson-client@3.1.5':
+    dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/topojson-specification': 1.0.5
+
   '@types/topojson-server@3.0.4':
     dependencies:
       '@types/geojson': 7946.0.16
@@ -5361,6 +5379,10 @@ snapshots:
   tinyspy@4.0.6: {}
 
   toidentifier@1.0.1: {}
+
+  topojson-client@3.1.0:
+    dependencies:
+      commander: 2.20.3
 
   topojson-server@3.0.1:
     dependencies:

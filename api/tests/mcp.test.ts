@@ -30,7 +30,7 @@ const index = buildIndex("1.0.0", [
 ]);
 // The tools read the same pre-rendered files the API serves, here straight from the tree.
 const tree: Map<string, unknown> = emitTree(dataset);
-const geometry = await buildGeometry("data/v1", dataset.communes as never[]);
+const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 const fetchJson = async (path: string) => (tree.get(path) as Envelope<unknown[]> | undefined) ?? null;
 

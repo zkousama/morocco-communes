@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { emitTree, HEADERS_FILE, type Tree } from "./static.ts";
 import { buildIndex } from "./searchIndex.ts";
 import { buildOpenApi } from "../openapi.ts";
-import { buildGeometry } from "./geometry.ts";
+import { buildGeometry, outlineCollections } from "./geometry.ts";
 import { tilePath } from "../lib/locate.ts";
 import { serverJson } from "../mcp/registry.ts";
 import type { Dataset } from "../lib/dataset.ts";
@@ -52,7 +52,7 @@ const index = buildIndex(version, [
   { level: "cercle", rows: dataset.cercles as never[] },
 ]);
 await writeFile(INDEX_OUT, `${JSON.stringify(index)}\n`);
-const geometry = await buildGeometry(DATA, dataset.communes as never[]);
+const geometry = await buildGeometry(DATA, dataset as never);
 // Committed for the same reason, and small: it only says which tiles exist.
 await writeFile(TILE_INDEX_OUT, `${JSON.stringify(geometry.tileIndex)}\n`);
 // A stale file from a previous shape would be served as if it were current, so these are
@@ -76,6 +76,11 @@ const put = async (path: string, body: unknown) => {
 };
 for (const [region, collection] of geometry.regions) await put(`/data/v1/geometry/${region}.geojson`, collection);
 for (const [code, feature] of geometry.communes) await put(`/api/communes/${code}/boundary.geojson`, feature);
+for (const [code, feature] of geometry.provinceOutlines) await put(`/api/provinces/${code}/boundary.geojson`, feature);
+for (const [code, feature] of geometry.regionOutlines) await put(`/api/regions/${code}/boundary.geojson`, feature);
+const outlines = outlineCollections(geometry);
+await put("/data/v1/geometry/provinces.geojson", outlines.provinces);
+await put("/data/v1/geometry/regions.geojson", outlines.regions);
 for (const [key, tile] of geometry.tiles) await put(tilePath(key), tile);
 
 // The MCP Registry entry names the deployed URL, so it's only written once that's known.
@@ -83,7 +88,8 @@ if (process.env.SITE_URL) {
   await put("/server.json", serverJson({ siteUrl: process.env.SITE_URL, version }));
 }
 console.log(
-  `wrote ${tree.size} API files, ${geometry.communes.size + geometry.regions.size} GeoJSON files, ` +
+  `wrote ${tree.size} API files, ` +
+    `${geometry.communes.size + geometry.provinceOutlines.size + geometry.regionOutlines.size + geometry.regions.size + 2} GeoJSON files, ` +
     `${geometry.tiles.size} tiles and the dataset to ${OUT}/, ` +
     `and a ${index.entries.length}-entry search index to ${INDEX_OUT}`,
 );

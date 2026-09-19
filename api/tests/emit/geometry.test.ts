@@ -11,12 +11,14 @@ interface Commune {
   type: string;
   centroid: { lat: number; lng: number } | null;
 }
-const communes = JSON.parse(readFileSync("data/v1/attributes/communes.json", "utf8")) as Commune[];
+const read = <T>(name: string) => JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as T[];
+const communes = read<Commune>("communes");
+const provinces = read<{ code: string; name: { fr: string; ar: string }; type: string; communeCount: number }>("provinces");
 
 let geometry: Geometry;
 let index: PreparedIndex;
 beforeAll(async () => {
-  geometry = await buildGeometry("data/v1", communes);
+  geometry = await buildGeometry("data/v1", { communes: communes as never[], provinces, regions: read("regions") });
   index = prepareIndex(geometry.tileIndex);
   uncut = [...geometry.communes].map(([code, feature]) => {
     const g = feature.geometry;
@@ -106,6 +108,20 @@ describe("the GeoJSON", () => {
         expect(ring[0], code).toEqual(ring[ring.length - 1]);
       }
     }
+  });
+
+  it("outlines every région, and every province that has communes", () => {
+    expect(geometry.regionOutlines.size).toBe(12);
+    const withCommunes = provinces.filter((p) => p.communeCount > 0).map((p) => p.code).sort();
+    expect([...geometry.provinceOutlines.keys()].sort()).toEqual(withCommunes);
+  });
+
+  it("dissolves the borders inside a province, so its outline has far fewer points", () => {
+    // Tanger-Assilah: its 12 communes, against the one outline they make.
+    const points = (g: { type: string; coordinates: unknown }) => JSON.stringify(g.coordinates).split("],[").length;
+    const inside = [...geometry.communes.values()].filter((f) => f.properties.code.startsWith("01.511."));
+    const sum = inside.reduce((n, f) => n + points(f.geometry), 0);
+    expect(points(geometry.provinceOutlines.get("01.511")!.geometry)).toBeLessThan(sum / 2);
   });
 
   it("puts each commune in its own région's file", () => {

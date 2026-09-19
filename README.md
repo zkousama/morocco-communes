@@ -27,8 +27,9 @@ cleanly in Excel, Arabic included.
 
 Rebuild it with `pnpm dataset:build`. From the same cache the output is byte-identical.
 
-`pnpm build` also writes the boundaries as GeoJSON, a file per région and one per commune,
-from the TopoJSON above. They're served beside it rather than committed.
+`pnpm build` also writes the boundaries as GeoJSON from the TopoJSON above: each commune,
+and each province and région outlined from its communes. They're served beside it rather
+than committed.
 
 ## The API
 

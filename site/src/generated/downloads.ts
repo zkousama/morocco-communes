@@ -24,6 +24,11 @@ export const downloads = [
         "label": "JSON",
         "href": "/data/v1/attributes/regions.json",
         "bytes": 5312
+      },
+      {
+        "label": "CSV",
+        "href": "/data/v1/attributes/regions.csv",
+        "bytes": 957
       }
     ]
   },
@@ -35,6 +40,11 @@ export const downloads = [
         "label": "JSON",
         "href": "/data/v1/attributes/provinces.json",
         "bytes": 39474
+      },
+      {
+        "label": "CSV",
+        "href": "/data/v1/attributes/provinces.csv",
+        "bytes": 6203
       }
     ]
   },
@@ -46,6 +56,11 @@ export const downloads = [
         "label": "JSON",
         "href": "/data/v1/attributes/cercles.json",
         "bytes": 97285
+      },
+      {
+        "label": "CSV",
+        "href": "/data/v1/attributes/cercles.csv",
+        "bytes": 14809
       }
     ]
   },
@@ -57,6 +72,11 @@ export const downloads = [
         "label": "JSON",
         "href": "/data/v1/attributes/arrondissements.json",
         "bytes": 19364
+      },
+      {
+        "label": "CSV",
+        "href": "/data/v1/attributes/arrondissements.csv",
+        "bytes": 3202
       }
     ]
   },
@@ -205,6 +225,22 @@ export const downloads = [
         "label": "Dakhla-Oued Ed-Dahab",
         "href": "/data/v1/geometry/12.geojson",
         "bytes": 543477
+      }
+    ]
+  },
+  {
+    "key": "dlOutlines",
+    "licence": "odbl",
+    "files": [
+      {
+        "label": "provinces",
+        "href": "/data/v1/geometry/provinces.geojson",
+        "bytes": 3116938
+      },
+      {
+        "label": "régions",
+        "href": "/data/v1/geometry/regions.geojson",
+        "bytes": 2318703
       }
     ]
   },

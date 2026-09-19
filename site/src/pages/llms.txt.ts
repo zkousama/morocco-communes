@@ -41,6 +41,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Communes as CSV](${at("/data/v1/attributes/communes.csv")}): the same, flattened
 - [Boundaries](${at("/data/v1/geometry/01.topojson")}): one TopoJSON file per région, 01 to 12, under ODbL
 - [Boundaries as GeoJSON](${at("/data/v1/geometry/01.geojson")}): the same, one file per région; each commune's alone is at /api/communes/{code}/boundary.geojson
+- [Province outlines](${at("/data/v1/geometry/provinces.geojson")}) and [région outlines](${at("/data/v1/geometry/regions.geojson")}): each dissolved from its communes; one alone is at /api/provinces/{code}/boundary.geojson or /api/regions/{code}/boundary.geojson
 - [2014 to 2024 crosswalk](${at("/data/v1/crosswalk/2014-2024.json")}): how the communes renumbered in 2015 were matched to their 2014 figures
 
 ## Optional

@@ -39,7 +39,7 @@ const index = buildIndex(version, [
 ]);
 const lookup = buildLookup(index);
 const tree = emitTree(dataset);
-const geometry = await buildGeometry("data/v1", dataset.communes as never[]);
+const geometry = await buildGeometry("data/v1", dataset as never);
 const tileIndex = prepareIndex(geometry.tileIndex);
 const tiles = new Map([...geometry.tiles].map(([key, tile]) => [tilePath(key), tile]));
 const fetchJson = async (path: string) =>
@@ -141,12 +141,16 @@ const files = [
   { key: "arrondissements", pattern: "/api/arrondissements.json", example: "/api/arrondissements.json" },
   { key: "arrondissement", pattern: "/api/arrondissements/{code}.json", example: "/api/arrondissements/01.511.01.05.json" },
   { key: "boundary", pattern: "/api/communes/{code}/boundary.geojson", example: "/api/communes/01.511.01.0/boundary.geojson" },
+  { key: "provinceBoundary", pattern: "/api/provinces/{code}/boundary.geojson", example: "/api/provinces/01.511/boundary.geojson" },
+  { key: "regionBoundary", pattern: "/api/regions/{code}/boundary.geojson", example: "/api/regions/01/boundary.geojson" },
   { key: "tiles", pattern: "/api/tiles/{z}/{x}/{y}.json", example: tilePath(geometry.tileIndex.leaf[0]!) },
 ] as const;
 const written = new Set([
   ...tree.keys(),
   ...tiles.keys(),
   ...[...geometry.communes.keys()].map((code) => `/api/communes/${code}/boundary.geojson`),
+  ...[...geometry.provinceOutlines.keys()].map((code) => `/api/provinces/${code}/boundary.geojson`),
+  ...[...geometry.regionOutlines.keys()].map((code) => `/api/regions/${code}/boundary.geojson`),
 ]);
 for (const f of files) {
   if (!written.has(f.example)) throw new Error(`the reference quotes ${f.example}, which the API doesn't emit`);
