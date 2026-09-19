@@ -113,7 +113,7 @@ export const mcp = {
     {
       "name": "commune_at",
       "title": "Commune at a point",
-      "description": "The commune whose boundary contains a point, with its names, type, parents and population. Use it to turn coordinates, from a map or a device, into a commune. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+      "description": "The commune whose boundary contains a point, with its names, type, parents and population, and in Casablanca, Rabat, Fès, Marrakech, Salé and Tanger the arrondissement too. Use it to turn coordinates, from a map or a device, into a commune. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
       "params": [
         {
           "name": "lat",

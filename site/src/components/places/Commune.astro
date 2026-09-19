@@ -14,6 +14,7 @@ import {
   communeOf,
   communes,
   communesIn,
+  drawArrondissements,
   drawProvince,
   inset,
   nationalRank,
@@ -74,6 +75,13 @@ const bordering = (neighbours.get(c.code) ?? [])
   .map((code) => communeOf.get(code)!)
   .sort((a, b) => a.name.fr.localeCompare(b.name.fr, "fr"));
 const arrondissements = arrondissementsOf(c.code);
+const cityDrawing = drawArrondissements(c.code);
+const arrondissementClass = (code: string) => {
+  const d = arrondissements.find((a) => a.code === code)?.density;
+  if (d == null) return "n";
+  const i = densityBreaks.findIndex((b) => d < b);
+  return String(i < 0 ? densityBreaks.length : i);
+};
 
 const description =
   `${c.name.fr} (${c.name.ar}): ${n.format(people.total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}` +
@@ -205,18 +213,39 @@ getCommune("${c.slug}");`;
   {arrondissements.length > 0 && (
     <section>
       <h2>{p.arrondissements}</h2>
-      <div class="scroll" tabindex="0">
-        <table>
-          <thead><tr><th>{p.colArrondissement}</th><th class="num">{p.colPopulation}</th></tr></thead>
-          <tbody>
-            {arrondissements.map((a) => (
+      <p>{p.arrondissementsBody}</p>
+      <div class="pair">
+        {cityDrawing && (
+          <PlaceMap
+            drawing={cityDrawing}
+            label={fill(p.mapLabel, { name: c.name.fr })}
+            classOf={arrondissementClass}
+            linkOf={(code) => {
+              const a = arrondissements.find((x) => x.code === code);
+              return a ? { name: a.name.fr } : null;
+            }}
+          />
+        )}
+        <div class="scroll" tabindex="0">
+          <table>
+            <thead>
               <tr>
-                <td>{a.name.fr} <span lang="ar" dir="rtl" class="ar">{a.name.ar}</span></td>
-                <td class="num">{n.format(a.population["2024"].total)}</td>
+                <th>{p.colArrondissement}</th>
+                <th class="num">{p.colPopulation}</th>
+                <th class="num">{p.colDensity}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {arrondissements.map((a) => (
+                <tr>
+                  <td>{a.name.fr} <span lang="ar" dir="rtl" class="ar">{a.name.ar}</span></td>
+                  <td class="num">{n.format(a.population["2024"].total)}</td>
+                  <td class="num">{a.density === null ? "—" : n1.format(a.density)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   )}

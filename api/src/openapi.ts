@@ -78,13 +78,27 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "communeAt",
           summary: "The commune that contains a point",
           description:
-            "Tested against each commune's boundary, stored to about 2 m. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+            "Tested against each commune's boundary, stored to about 2 m. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
           parameters: [
             { name: "lat", in: "query", required: true, description: "Latitude, in degrees.", schema: { type: "number", minimum: -90, maximum: 90 }, example: 35.786 },
             { name: "lng", in: "query", required: true, description: "Longitude, in degrees.", schema: { type: "number", minimum: -180, maximum: 180 }, example: -5.8125 },
           ],
           responses: {
-            "200": ok("The commune.", ref("Commune")),
+            "200": ok("The commune, with the arrondissement the point is in.", {
+              allOf: [
+                ref("Commune"),
+                {
+                  type: "object",
+                  required: ["arrondissement"],
+                  properties: {
+                    arrondissement: {
+                      type: ["object", "null"],
+                      properties: { code: { type: "string" }, name: ref("Name") },
+                    },
+                  },
+                },
+              ],
+            }),
             "400": problem("A coordinate is missing or out of range."),
             "404": problem("No commune boundary contains the point: it's outside Morocco, at sea, or in one of the 2 places without one."),
           },

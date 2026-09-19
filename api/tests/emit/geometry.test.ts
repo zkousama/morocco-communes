@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildGeometry, type Geometry } from "../../src/emit/geometry.ts";
 import { clipRing } from "../../src/emit/tiles.ts";
-import { communeIn, prepareIndex, tileAt, type PreparedIndex } from "../../src/lib/locate.ts";
+import { communeIn, featureContaining, prepareIndex, tileAt, type PreparedIndex } from "../../src/lib/locate.ts";
 import { sphericalArea } from "../../../pipeline/src/geo/rings.ts";
 
 interface Commune {
@@ -19,7 +19,12 @@ const provinces = read<{ code: string; name: { fr: string; ar: string }; type: s
 let geometry: Geometry;
 let index: PreparedIndex;
 beforeAll(async () => {
-  geometry = await buildGeometry("data/v1", { communes: communes as never[], provinces, regions: read("regions") });
+  geometry = await buildGeometry("data/v1", {
+    communes: communes as never[],
+    provinces,
+    regions: read("regions"),
+    arrondissements: read("arrondissements"),
+  });
   index = prepareIndex(geometry.tileIndex);
   uncut = [...geometry.communes].map(([code, feature]) => {
     const g = feature.geometry;
@@ -145,6 +150,20 @@ describe("the GeoJSON", () => {
     const inside = [...geometry.communes.values()].filter((f) => f.properties.code.startsWith("01.511."));
     const sum = inside.reduce((n, f) => n + points(f.geometry), 0);
     expect(points(geometry.provinceOutlines.get("01.511")!.geometry)).toBeLessThan(sum / 2);
+  });
+
+  it("has all 41 arrondissements, grouped under the 6 cities, each finding itself at its inside point", () => {
+    expect(geometry.arrondissements.size).toBe(41);
+    expect([...geometry.arrondissementsByCommune.keys()].sort()).toEqual(
+      ["01.511.01.0", "03.231.01.0", "04.421.01.0", "04.441.01.0", "06.141.01.0", "07.351.01.0"].sort(),
+    );
+    const records = read<{ code: string; communeCode: string; centroid: { lat: number; lng: number } }>("arrondissements");
+    for (const a of records) {
+      const city = geometry.arrondissementsByCommune.get(a.communeCode)!;
+      expect(featureContaining(city.features as never[], a.centroid.lat, a.centroid.lng), a.code).toMatchObject({ id: a.code });
+      // The same point is in the city by the commune tiles.
+      expect(locate(a.centroid.lat, a.centroid.lng), a.code).toBe(a.communeCode);
+    }
   });
 
   it("puts each commune in its own région's file", () => {

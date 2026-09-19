@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
 import rawTiles from "../../generated/tile-index.json";
 import rawCommunes from "../../../data/v1/attributes/communes.json";
+import rawArrondissements from "../../../data/v1/attributes/arrondissements.json";
 import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
@@ -10,7 +11,7 @@ import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from ".
 import { createMcpServer } from "../mcp/server.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
-import { communeIn, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } from "../lib/locate.ts";
+import { communeIn, featureContaining, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } from "../lib/locate.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -23,6 +24,8 @@ const tileIndex = prepareIndex(rawTiles as TileIndex);
 // country. 1.7 MB, which parses in about 8 ms here, once, instead of 31 page reads on
 // every request.
 const communes = rawCommunes as unknown as ListedCommune[];
+// The 6 communes divided into arrondissements, whose boundaries a point lookup reads too.
+const cities = new Set((rawArrondissements as { communeCode: string }[]).map((a) => a.communeCode));
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -121,8 +124,8 @@ function point(url: URL): { lat: number; lng: number } | { error: string } {
 
 /**
  * The commune whose boundary contains a point. The tile index says which one file to
- * read; the answer is the commune's own record, the same bytes /api/communes/<code>.json
- * serves.
+ * read; the answer is the commune's own record, with `arrondissement` added: the one the
+ * point is in, for the 6 cities that have them, and null everywhere else.
  */
 app.get("/api/communes/at", async (c) => {
   const url = new URL(c.req.url);
@@ -140,8 +143,9 @@ app.get("/api/communes/at", async (c) => {
   if (!code) return none();
 
   const canonical = `/api/communes/${code}.json`;
-  const record = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
-  return new Response(record.body, {
+  const record = (await (await c.env.ASSETS.fetch(new Request(new URL(canonical, url)))).json()) as Envelope<object>;
+  const arrondissement = cities.has(code) ? await arrondissementAt(c.env, url, code, at.lat, at.lng) : null;
+  return new Response(JSON.stringify({ ...record, data: { ...record.data, arrondissement } }), {
     headers: {
       "content-type": "application/json",
       "cache-control": "public, max-age=300",
@@ -150,6 +154,15 @@ app.get("/api/communes/at", async (c) => {
     },
   });
 });
+
+/** The arrondissement of a city a point falls in, from that city's own boundary file. */
+async function arrondissementAt(env: Env, base: URL, commune: string, lat: number, lng: number) {
+  const file = await env.ASSETS.fetch(new Request(new URL(`/api/communes/${commune}/arrondissements.geojson`, base)));
+  if (!file.ok) return null;
+  const { features } = (await file.json()) as { features: Parameters<typeof featureContaining>[0] };
+  const hit = featureContaining(features, lat, lng);
+  return hit ? { code: hit.properties.code, name: { fr: hit.properties.name_fr, ar: hit.properties.name_ar } } : null;
+}
 
 app.get("/api/communes/near", (c) => {
   const url = new URL(c.req.url);

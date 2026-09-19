@@ -71,12 +71,12 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/attributes/arrondissements.json",
-        "bytes": 19364
+        "bytes": 32978
       },
       {
         "label": "CSV",
         "href": "/data/v1/attributes/arrondissements.csv",
-        "bytes": 3202
+        "bytes": 3792
       }
     ]
   },
@@ -241,6 +241,11 @@ export const downloads = [
         "label": "régions",
         "href": "/data/v1/geometry/regions.geojson",
         "bytes": 2215440
+      },
+      {
+        "label": "arrondissements",
+        "href": "/data/v1/geometry/arrondissements.geojson",
+        "bytes": 196056
       }
     ]
   },

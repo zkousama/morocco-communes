@@ -32,6 +32,7 @@ const index = buildIndex("1.0.0", [
 const tree: Map<string, unknown> = emitTree(dataset);
 const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
+for (const [code, group] of geometry.arrondissementsByCommune) tree.set(`/api/communes/${code}/arrondissements.geojson`, group);
 const fetchJson = async (path: string) => (tree.get(path) as Envelope<unknown[]> | undefined) ?? null;
 
 let client: Client;
@@ -139,6 +140,15 @@ describe("the MCP server, through a real client", () => {
     const r = await call("commune_at", { lat: 35.786, lng: -5.8125 });
     expect(r.isError).toBeFalsy();
     expect((r.structuredContent!.commune as { code: string }).code).toBe("01.511.01.0");
+  });
+
+  it("names the arrondissement too, in a city that has them", async () => {
+    // Twin Center, on boulevard Zerktouni, in Maârif.
+    const r = await call("commune_at", { lat: 33.5862, lng: -7.6325 });
+    expect((r.structuredContent!.commune as { code: string }).code).toBe("06.141.01.0");
+    expect(r.structuredContent!.arrondissement).toMatchObject({ name_fr: "Maârif" });
+    const rural = await call("commune_at", { lat: 30.42, lng: -9.6 });
+    expect(rural.structuredContent!.arrondissement).toBeNull();
   });
 
   it("says so when no boundary contains a point", async () => {

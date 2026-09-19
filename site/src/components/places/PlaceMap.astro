@@ -6,8 +6,8 @@ interface Props {
   label: string;
   /** Each shape's density class, 0 to 5, for the shading the home map uses. */
   classOf: (code: string) => string;
-  /** A page for each shape, and its name for the tooltip. */
-  linkOf: (code: string) => { href: string; name: string } | null;
+  /** A page for each shape, and its name for the tooltip. A shape with no page keeps its name. */
+  linkOf: (code: string) => { href?: string; name: string } | null;
   /** The shape the page is about, drawn over the rest. */
   highlight?: string;
   /** What to call land no commune's boundary covers. */
@@ -28,7 +28,8 @@ const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : und
   {drawing.shapes.map((shape) => {
     const link = linkOf(shape.code);
     const path = <path d={shape.d} data-d={classOf(shape.code)} />;
-    return link ? <a href={link.href}><title>{link.name}</title>{path}</a> : path;
+    if (!link) return path;
+    return link.href ? <a href={link.href}><title>{link.name}</title>{path}</a> : <g><title>{link.name}</title>{path}</g>;
   })}
   {drawing.gaps.map((d) => <path class="gap" d={d}><title>{gapLabel}</title></path>)}
   {drawing.provinces && <path class="provinces" d={drawing.provinces.map((p) => p.d).join("")} />}

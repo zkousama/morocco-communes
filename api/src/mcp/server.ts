@@ -5,7 +5,7 @@ import { listCommunes, parseFilter, SORTS, type FetchJson, type ListedCommune } 
 import { LIMIT, PAGE, POPULATION, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
-import { communeIn, tileAt, tilePath, type PreparedIndex, type Tile } from "../lib/locate.ts";
+import { communeIn, featureContaining, tileAt, tilePath, type PreparedIndex, type Tile } from "../lib/locate.ts";
 
 export interface McpDeps {
   index: SearchIndex;
@@ -245,14 +245,18 @@ export function createMcpServer(deps: McpDeps): McpServer {
     {
       title: "Commune at a point",
       description:
-        "The commune whose boundary contains a point, with its names, type, parents and population. " +
+        "The commune whose boundary contains a point, with its names, type, parents and population, " +
+        "and in Casablanca, Rabat, Fès, Marrakech, Salé and Tanger the arrondissement too. " +
         "Use it to turn coordinates, from a map or a device, into a commune. " +
         "Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
       inputSchema: {
         lat: z.number().min(-90).max(90).describe("Latitude, in degrees."),
         lng: z.number().min(-180).max(180).describe("Longitude, in degrees."),
       },
-      outputSchema: { commune: communeShape },
+      outputSchema: {
+        commune: communeShape,
+        arrondissement: z.object({ code: z.string(), name_fr: z.string(), name_ar: z.string() }).nullable(),
+      },
       annotations: READ_ONLY,
     },
     async ({ lat, lng }) => {
@@ -266,7 +270,15 @@ export function createMcpServer(deps: McpDeps): McpServer {
       }
       const body = await fetchJson(`/api/communes/${code}.json`);
       if (!body) return fail(`The record for ${code} could not be read.`);
-      return ok({ commune: trim(body.data as unknown as CommuneRecord) });
+      // Only the 6 cities have this file; everywhere else there's no arrondissement to name.
+      const city = (await fetchJson(`/api/communes/${code}/arrondissements.geojson`)) as unknown as {
+        features: Parameters<typeof featureContaining>[0];
+      } | null;
+      const hit = city ? featureContaining(city.features, lat, lng) : null;
+      return ok({
+        commune: trim(body.data as unknown as CommuneRecord),
+        arrondissement: hit ? { code: hit.properties.code, name_fr: hit.properties.name_fr, name_ar: hit.properties.name_ar } : null,
+      });
     },
   );
 

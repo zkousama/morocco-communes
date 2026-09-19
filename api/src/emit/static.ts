@@ -32,6 +32,12 @@ export const HEADERS_FILE = `/api/*
 /api/regions/*/boundary.geojson
   Content-Type: application/geo+json
 
+/api/arrondissements/*/boundary.geojson
+  Content-Type: application/geo+json
+
+/api/communes/*/arrondissements.geojson
+  Content-Type: application/geo+json
+
 /components/*
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400

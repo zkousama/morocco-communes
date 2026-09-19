@@ -18,6 +18,7 @@ const geometry = await buildGeometry("data/v1", {
   communes: await level("communes"),
   provinces: await level("provinces"),
   regions: await level("regions"),
+  arrondissements: await level("arrondissements"),
 });
 const outlines = outlineCollections(geometry);
 
@@ -104,6 +105,11 @@ const GROUPS: Group[] = [
     files: [
       { label: "provinces", path: "data/v1/geometry/provinces.geojson", bytes: Buffer.byteLength(JSON.stringify(outlines.provinces)) },
       { label: "régions", path: "data/v1/geometry/regions.geojson", bytes: Buffer.byteLength(JSON.stringify(outlines.regions)) },
+      {
+        label: "arrondissements",
+        path: "data/v1/geometry/arrondissements.geojson",
+        bytes: Buffer.byteLength(JSON.stringify(outlines.arrondissements)),
+      },
     ],
   },
   { key: "dlSources", licence: "hcp", files: [{ label: "JSON", path: "data/v1/sources.json" }] },

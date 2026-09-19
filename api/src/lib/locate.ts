@@ -73,3 +73,30 @@ export function communeIn(tile: Tile, lat: number, lng: number): string | null {
   }
   return null;
 }
+
+interface GeoFeature {
+  properties: { code: string; name_fr: string; name_ar: string };
+  geometry: { type: "Polygon" | "MultiPolygon"; coordinates: unknown };
+}
+
+/**
+ * The feature of a small collection that contains a point, by the even-odd rule over all
+ * its rings. For the arrondissements of one commune, a few dozen rings, reading the file
+ * whole costs less than cutting it into tiles would save.
+ */
+export function featureContaining<T extends GeoFeature>(features: T[], lat: number, lng: number): T | null {
+  for (const feature of features) {
+    const g = feature.geometry;
+    const rings = g.type === "Polygon" ? (g.coordinates as number[][][]) : (g.coordinates as number[][][][]).flat();
+    let inside = false;
+    for (const ring of rings) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i] as [number, number];
+        const [xj, yj] = ring[j] as [number, number];
+        if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+      }
+    }
+    if (inside) return feature;
+  }
+  return null;
+}

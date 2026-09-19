@@ -71,6 +71,9 @@ for (const path of [
   "/api/communes/01.511.01.0/boundary.geojson",
   "/api/provinces/01.511/boundary.geojson",
   "/api/regions/01/boundary.geojson",
+  "/api/arrondissements/01.511.01.05/boundary.geojson",
+  "/api/communes/06.141.01.0/arrondissements.geojson",
+  "/data/v1/geometry/arrondissements.geojson",
 ]) {
   const r = await get(path);
   check(`${path} is served as GeoJSON`,
@@ -132,10 +135,11 @@ console.log("\ncomputed tier — answers no file holds");
 {
   // Tangier's old medina, answered from one tile.
   const r = await get("/api/communes/at?lat=35.786&lng=-5.8125");
-  check("/api/communes/at finds the commune that contains a point",
+  check("/api/communes/at finds the commune that contains a point, and its arrondissement",
     r.status === 200 && r.tier === "computed" && r.body?.data?.code === "01.511.01.0" &&
+      r.body?.data?.arrondissement?.code === "01.511.01.07" &&
       r.contentLocation === "/api/communes/01.511.01.0.json",
-    `status=${r.status} code=${r.body?.data?.code}`);
+    `status=${r.status} code=${r.body?.data?.code} arrondissement=${JSON.stringify(r.body?.data?.arrondissement)}`);
 }
 {
   const r = await get("/api/communes?sort=-population&min_population=500000");

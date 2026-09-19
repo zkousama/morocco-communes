@@ -81,6 +81,9 @@ for (const [code, feature] of geometry.regionOutlines) await put(`/api/regions/$
 const outlines = outlineCollections(geometry);
 await put("/data/v1/geometry/provinces.geojson", outlines.provinces);
 await put("/data/v1/geometry/regions.geojson", outlines.regions);
+await put("/data/v1/geometry/arrondissements.geojson", outlines.arrondissements);
+for (const [code, feature] of geometry.arrondissements) await put(`/api/arrondissements/${code}/boundary.geojson`, feature);
+for (const [code, group] of geometry.arrondissementsByCommune) await put(`/api/communes/${code}/arrondissements.geojson`, group);
 for (const [key, tile] of geometry.tiles) await put(tilePath(key), tile);
 
 // The MCP Registry entry names the deployed URL, so it's only written once that's known.
@@ -89,7 +92,7 @@ if (process.env.SITE_URL) {
 }
 console.log(
   `wrote ${tree.size} API files, ` +
-    `${geometry.communes.size + geometry.provinceOutlines.size + geometry.regionOutlines.size + geometry.regions.size + 2} GeoJSON files, ` +
+    `${geometry.communes.size + geometry.provinceOutlines.size + geometry.regionOutlines.size + geometry.regions.size + geometry.arrondissements.size + geometry.arrondissementsByCommune.size + 3} GeoJSON files, ` +
     `${geometry.tiles.size} tiles and the dataset to ${OUT}/, ` +
     `and a ${index.entries.length}-entry search index to ${INDEX_OUT}`,
 );

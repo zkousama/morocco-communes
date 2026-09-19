@@ -18,10 +18,10 @@ export const SPEC_FR: Record<string, string> = {
 
   "communeAt.summary": "La commune qui contient un point",
   "communeAt.description":
-    "Le point est comparé à la limite de chaque commune, conservée à environ 2 m près. Sidi Mohamed Benmansour n’a pas de limite, et une zone d’environ 88 km² entre Ifrane et Boulemane n’en a pas non plus.",
+    "Le point est comparé à la limite de chaque commune, conservée à environ 2 m près. Dans les 6 villes divisées en arrondissements, `arrondissement` nomme celui où se trouve le point ; ailleurs, il vaut null. Sidi Mohamed Benmansour n’a pas de limite, et une zone d’environ 88 km² entre Ifrane et Boulemane n’en a pas non plus.",
   "communeAt.param.lat": "Latitude, en degrés.",
   "communeAt.param.lng": "Longitude, en degrés.",
-  "communeAt.200": "La commune.",
+  "communeAt.200": "La commune, avec l’arrondissement où se trouve le point.",
   "communeAt.400": "Une coordonnée manque ou sort de ses bornes.",
   "communeAt.404":
     "Aucune limite de commune ne contient le point : il est hors du Maroc, en mer, ou dans l’un des 2 endroits qui n’en ont pas.",
@@ -123,6 +123,8 @@ export const docs = {
         arrondissements: "Every arrondissement",
         arrondissement: "One arrondissement",
         boundary: "One commune’s boundary, as a GeoJSON Feature",
+        cityArrondissements: "A city’s arrondissements, as a GeoJSON FeatureCollection",
+        arrondissementBoundary: "One arrondissement’s boundary",
         provinceBoundary: "A province’s outline, merged from its communes",
         regionBoundary: "A région’s outline, merged from its communes",
         tiles: "The boundaries cut into tiles, which /api/communes/at reads",
@@ -277,6 +279,8 @@ export const docs = {
         arrondissements: "Tous les arrondissements",
         arrondissement: "Un arrondissement",
         boundary: "La limite d’une commune, en Feature GeoJSON",
+        cityArrondissements: "Les arrondissements d’une ville, en FeatureCollection GeoJSON",
+        arrondissementBoundary: "La limite d’un arrondissement",
         provinceBoundary: "Le contour d’une province, obtenu par fusion de ses communes",
         regionBoundary: "Le contour d’une région, obtenu par fusion de ses communes",
         tiles: "Les limites découpées en tuiles, que lit /api/communes/at",

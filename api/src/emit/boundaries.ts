@@ -16,18 +16,18 @@ export interface Boundary {
   polygons: Polygon[];
 }
 
+type Geometries = { geometries: { type: string; arcs: number[][] | number[][][]; properties: { code: string } }[] };
+
 export interface Topology {
   transform: { scale: [number, number]; translate: [number, number] };
   arcs: [number, number][][];
-  objects: {
-    communes: { geometries: { type: string; arcs: number[][] | number[][][]; properties: { code: string } }[] };
-  };
+  objects: { communes: Geometries } & Record<string, Geometries>;
 }
 
 // The files are quantised to about 2 m. Six decimals holds that without float noise.
 const round = (n: number) => Math.round(n * 1e6) / 1e6;
 
-export function decodeTopology(topo: Topology): Boundary[] {
+export function decodeTopology(topo: Topology, object = "communes"): Boundary[] {
   const { scale, translate } = topo.transform;
   const arcs = topo.arcs.map((arc) => {
     let x = 0;
@@ -49,7 +49,7 @@ export function decodeTopology(topo: Topology): Boundary[] {
     return out;
   };
 
-  return topo.objects.communes.geometries.map((g) => ({
+  return topo.objects[object]!.geometries.map((g) => ({
     codeDigits: g.properties.code,
     polygons:
       g.type === "Polygon"
@@ -72,6 +72,12 @@ export async function readBoundaries(
     out.push({ region: file.replace(".topojson", ""), topology, boundaries: decodeTopology(topology) });
   }
   return out;
+}
+
+/** The arrondissements, from their own file. */
+export async function readArrondissements(dir: string): Promise<Boundary[]> {
+  const topology = JSON.parse(await readFile(join(dir, "arrondissements.topojson"), "utf8")) as Topology;
+  return decodeTopology(topology, "arrondissements");
 }
 
 /**

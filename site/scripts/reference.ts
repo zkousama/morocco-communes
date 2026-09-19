@@ -17,7 +17,7 @@ import type { Dataset } from "../../api/src/lib/dataset.ts";
 import { createMcpServer } from "../../api/src/mcp/server.ts";
 import { buildOpenApi } from "../../api/src/openapi.ts";
 import { buildGeometry } from "../../api/src/emit/geometry.ts";
-import { communeIn, prepareIndex, tileAt, tilePath } from "../../api/src/lib/locate.ts";
+import { communeIn, featureContaining, prepareIndex, tileAt, tilePath } from "../../api/src/lib/locate.ts";
 
 const level = async (name: string) =>
   JSON.parse(await readFile(`data/v1/attributes/${name}.json`, "utf8")) as never[];
@@ -89,10 +89,21 @@ const listed = async (request: string, input: Parameters<typeof parseFilter>[0])
 
 const examples: Record<string, Example> = {
   searchUnits: { request: "/api/search?q=fez&limit=2", body: computed("/api/search?q=fez&limit=2", search(index, "fez", { limit: 2 })) },
-  communeAt: {
-    request: "/api/communes/at?lat=35.786&lng=-5.8125",
-    body: file(`/api/communes/${at(35.786, -5.8125)}.json`),
-  },
+  communeAt: (() => {
+    // The Worker's answer: the commune's record, and the arrondissement the point is in.
+    const [lat, lng] = [35.786, -5.8125];
+    const code = at(lat, lng);
+    const record = file(`/api/communes/${code}.json`);
+    const city = geometry.arrondissementsByCommune.get(code);
+    const hit = city ? featureContaining(city.features as never[], lat, lng) : null;
+    const arrondissement = hit
+      ? { code: (hit as { properties: { code: string } }).properties.code, name: { fr: (hit as { properties: { name_fr: string } }).properties.name_fr, ar: (hit as { properties: { name_ar: string } }).properties.name_ar } }
+      : null;
+    return {
+      request: `/api/communes/at?lat=${lat}&lng=${lng}`,
+      body: { ...record, data: { ...(record.data as object), arrondissement } },
+    };
+  })(),
   communesNear: {
     request: "/api/communes/near?lat=33.5731&lng=-7.5898&radius=15&limit=2",
     body: computed("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15&limit=2", near(index, 33.5731, -7.5898, 15, 2)),
@@ -141,6 +152,8 @@ const files = [
   { key: "arrondissements", pattern: "/api/arrondissements.json", example: "/api/arrondissements.json" },
   { key: "arrondissement", pattern: "/api/arrondissements/{code}.json", example: "/api/arrondissements/01.511.01.05.json" },
   { key: "boundary", pattern: "/api/communes/{code}/boundary.geojson", example: "/api/communes/01.511.01.0/boundary.geojson" },
+  { key: "cityArrondissements", pattern: "/api/communes/{code}/arrondissements.geojson", example: "/api/communes/01.511.01.0/arrondissements.geojson" },
+  { key: "arrondissementBoundary", pattern: "/api/arrondissements/{code}/boundary.geojson", example: "/api/arrondissements/01.511.01.05/boundary.geojson" },
   { key: "provinceBoundary", pattern: "/api/provinces/{code}/boundary.geojson", example: "/api/provinces/01.511/boundary.geojson" },
   { key: "regionBoundary", pattern: "/api/regions/{code}/boundary.geojson", example: "/api/regions/01/boundary.geojson" },
   { key: "tiles", pattern: "/api/tiles/{z}/{x}/{y}.json", example: tilePath(geometry.tileIndex.leaf[0]!) },
@@ -150,6 +163,8 @@ const written = new Set([
   ...tiles.keys(),
   ...[...geometry.communes.keys()].map((code) => `/api/communes/${code}/boundary.geojson`),
   ...[...geometry.provinceOutlines.keys()].map((code) => `/api/provinces/${code}/boundary.geojson`),
+  ...[...geometry.arrondissements.keys()].map((code) => `/api/arrondissements/${code}/boundary.geojson`),
+  ...[...geometry.arrondissementsByCommune.keys()].map((code) => `/api/communes/${code}/arrondissements.geojson`),
   ...[...geometry.regionOutlines.keys()].map((code) => `/api/regions/${code}/boundary.geojson`),
 ]);
 for (const f of files) {

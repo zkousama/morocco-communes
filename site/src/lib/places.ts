@@ -65,6 +65,8 @@ export interface Arrondissement {
   communeCode: string;
   prefectureOfArrondissementsCode: string | null;
   population: { "2024": { total: number } };
+  areaKm2: number | null;
+  density: number | null;
 }
 
 const read = <T>(name: string) => JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as T[];
@@ -248,7 +250,7 @@ export function drawProvince(code: string): Drawing | null {
 
 // The province and région outlines, unioned from their communes by the same build step
 // that writes them to the API.
-const geometry = await buildGeometry("data/v1", { communes, provinces, regions });
+const geometry = await buildGeometry("data/v1", { communes, provinces, regions, arrondissements: arrondissements as never[] });
 /** The holes in an outline bigger than a km²: land none of its communes covers. */
 function gapsIn(feature: { geometry: { type: string; coordinates: unknown } } | undefined): Point[][] {
   if (!feature) return [];
@@ -281,6 +283,26 @@ export function drawRegion(code: string) {
   }));
   const drawing = { ...base, provinces: provinceLines };
   regionDrawings.set(code, drawing);
+  return drawing;
+}
+
+const arrondissementDrawings = new Map<string, Drawing>();
+/** A city's arrondissements, for the 6 communes divided into them. */
+export function drawArrondissements(communeCode: string): Drawing | null {
+  if (arrondissementDrawings.has(communeCode)) return arrondissementDrawings.get(communeCode)!;
+  const city = geometry.arrondissementsByCommune.get(communeCode);
+  if (!city) return null;
+  const ringsOf = (g: { type: string; coordinates: unknown }): Point[][] =>
+    g.type === "Polygon" ? (g.coordinates as Point[][]) : (g.coordinates as Point[][][]).flat();
+  const { height, unit, project } = fit(boxOf(city.features.flatMap((f) => ringsOf(f.geometry))), 400);
+  const shapes = city.features.map((f) => ({
+    code: f.properties.code,
+    d: ringsOf(f.geometry)
+      .map((ring) => pathOf(simplify(ring, 0.5 * unit).map(project), true))
+      .join(""),
+  }));
+  const drawing = { viewBox: `0 0 400 ${height}`, shapes, outline: "", gaps: [] };
+  arrondissementDrawings.set(communeCode, drawing);
   return drawing;
 }
 
