@@ -123,6 +123,17 @@ export function emitTree(d: Dataset): Tree {
   return tree;
 }
 
+/**
+ * The levels that also come as one file of every unit at that level. Reading a level one
+ * unit at a time would take more subrequests than a Worker on the free plan gets, and a
+ * city's arrondissements are the only figures those 6 cities have.
+ */
+const LEVEL_FILES = [
+  ["region", "regions"],
+  ["province", "provinces"],
+  ["arrondissement", "arrondissements"],
+] as const;
+
 const COLLECTION: Record<string, string> = {
   region: "regions",
   province: "provinces",
@@ -157,7 +168,7 @@ export function emitIndicators(tree: Tree, records: IndicatorRecord[]): void {
     if (!collection) throw new Error(`no collection for ${r.level}`);
     put(api(`${collection}/${r.code}/indicators.json`), r.level === "commune" ? { ...r, urbanCentres: centres.get(r.code!) ?? [] } : r);
   }
-  for (const [level, collection] of [["region", "regions"], ["province", "provinces"]] as const) {
+  for (const [level, collection] of LEVEL_FILES) {
     const rows = records.filter((r) => r.level === level);
     const path = api(`${collection}/indicators.json`);
     if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
@@ -184,7 +195,7 @@ export function emitEconomy(tree: Tree, records: EconomyRecord[]): void {
     if (!collection) throw new Error(`no collection for ${r.level}`);
     put(api(`${collection}/${r.code}/economy.json`), r);
   }
-  for (const [level, collection] of [["region", "regions"], ["province", "provinces"]] as const) {
+  for (const [level, collection] of LEVEL_FILES) {
     const rows = records.filter((r) => r.level === level);
     const path = api(`${collection}/economy.json`);
     if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);

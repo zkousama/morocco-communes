@@ -396,8 +396,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "education, work, employment status and how people get to work, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel. " +
         "Shares and rates are percentages from 0 to 100. Most of these come from the long questionnaire, which went to a random 20% of households " +
         "in communes of 2,000 households or more, so there they're estimates. Null means HCP publishes no figure there. " +
-        "To rank communes by one figure, call list_communes with sort set to its path; to compare the régions or the provinces, " +
-        "give level without a unit and get them all at once. " +
+        "To rank communes by one figure, call list_communes with sort set to its path; to compare the régions, the provinces or the " +
+        "arrondissements, give level without a unit and get them all at once. " +
         "The 2014 census is here too, under census. Its figures for age, education, local languages, illiteracy, fertility, disability, " +
         "work, the ways of getting to work, dwellings, amenities, wastewater and waste ask what 2024 asks and can be read against it. " +
         "It also asked where people work and how children get to school, which 2024 doesn't. Five don't: marital status covered " +
@@ -416,7 +416,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           .optional()
           .describe(
             "With a unit, the level it's at, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune. " +
-              "Without a unit, region or province gives every one of that level.",
+              "Without a unit, region, province or arrondissement gives every one of that level in one call.",
           ),
         topics: z.array(z.enum(TOPIC_NAMES)).optional().describe("Only these topics. Every topic when left out."),
         area: z
@@ -465,8 +465,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
         if (!body) return fail(`The indicators for ${unit} could not be read.`);
         records = [body.data as unknown as IndicatorRecord];
       } else if (level !== undefined) {
-        if (level !== "region" && level !== "province") {
-          return fail(`Without a unit, level can be region or province. To rank communes by a figure, call list_communes with sort.`);
+        if (level !== "region" && level !== "province" && level !== "arrondissement") {
+          return fail(`Without a unit, level can be region, province or arrondissement. To rank communes by a figure, call list_communes with sort.`);
         }
         const body = await fetchJson(`/api/${COLLECTION[level]}/indicators.json`);
         if (!body) return fail(`The indicators for every ${level} could not be read.`);
@@ -528,8 +528,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "Every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out: the workbook counts every " +
         "sector but agriculture, and the jobs are the permanent ones. " +
         "To rank communes by one of these, call list_communes with sort set to its path, such as economy.establishments.jobs; to compare the " +
-        "régions or the provinces, give level without a unit. Casablanca and the 5 other cities with arrondissements are counted by arrondissement " +
-        "and carry no figures of their own.",
+        "régions, the provinces or the arrondissements, give level without a unit and get them all in one call. Casablanca and the 5 other cities " +
+        "with arrondissements are counted by arrondissement and carry no figures of their own.",
       inputSchema: {
         unit: z
           .string()
@@ -541,7 +541,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           .optional()
           .describe(
             "With a unit, the level it's at, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune. " +
-              "Without a unit, region or province gives every one of that level.",
+              "Without a unit, region, province or arrondissement gives every one of that level in one call.",
           ),
         topics: z.array(z.enum(ECONOMY_TOPIC_NAMES)).optional().describe("Only these topics. Every topic when left out."),
       },
@@ -572,13 +572,14 @@ export function createMcpServer(deps: McpDeps): McpServer {
         if (!body) {
           return fail(
             `No establishments are published for ${found.code}. ` +
-              `Casablanca and the 5 other cities with arrondissements are counted by arrondissement; call get_commune for the list.`,
+              `Casablanca and the 5 other cities with arrondissements are counted by arrondissement: call get_economy with level "arrondissement" ` +
+              `and no unit for all 41 at once, and get_commune to see which of them are in this city.`,
           );
         }
         records = [body.data as unknown as EconomyRecord];
       } else if (level !== undefined) {
-        if (level !== "region" && level !== "province") {
-          return fail(`Without a unit, level can be region or province. To rank communes by a figure, call list_communes with sort.`);
+        if (level !== "region" && level !== "province" && level !== "arrondissement") {
+          return fail(`Without a unit, level can be region, province or arrondissement. To rank communes by a figure, call list_communes with sort.`);
         }
         const body = await fetchJson(`/api/${COLLECTION[level]}/economy.json`);
         if (!body) return fail(`The establishments for every ${level} could not be read.`);

@@ -70,6 +70,8 @@ GET /api/regions/indicators.json
 GET /api/provinces/indicators.json
 GET /api/regions/economy.json
 GET /api/provinces/economy.json
+GET /api/arrondissements/indicators.json
+GET /api/arrondissements/economy.json
 GET /api/tiles/:z/:x/:y.json
 GET /data/v1/**
 ```
@@ -101,9 +103,10 @@ The 2024 census counted workplaces too, and those are at `economy.json` beside e
 record, with Morocco's at `/api/economy.json`: the establishments mapped, how many are
 public services, associations or businesses, the permanent jobs those businesses hold, the
 weekly souks in use, and the businesses by sector, by the people they employ and by when
-they were founded. `/api/regions/economy.json` and `/api/provinces/economy.json` hold every
-one of that level. The 6 cities with arrondissements are counted through them and have no
-file of their own. `/data/v1/economy/README.md` says how to read the counts.
+they were founded. `/api/regions/economy.json`, `/api/provinces/economy.json` and
+`/api/arrondissements/economy.json` hold a whole level at once. The 6 cities with
+arrondissements are counted through them and have no file of their own, so a question
+about one of those cities is answered from the arrondissement file. `/data/v1/economy/README.md` says how to read the counts.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of

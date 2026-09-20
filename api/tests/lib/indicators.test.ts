@@ -153,8 +153,8 @@ describe("emitEconomy", () => {
   emitEconomy(tree, economy);
 
   it("writes a file per unit, and the country's at the top", () => {
-    // A file per unit, and the 2 that hold every région and every province at once.
-    expect(tree.size).toBe(economy.length + 2);
+    // A file per unit, and the 3 that hold every région, province and arrondissement at once.
+    expect(tree.size).toBe(economy.length + 3);
     expect(tree.has("/api/economy.json")).toBe(true);
     expect(tree.has("/api/communes/09.581.01.07/economy.json")).toBe(true);
     expect(tree.has("/api/arrondissements/01.511.01.07/economy.json")).toBe(true);
@@ -162,10 +162,12 @@ describe("emitEconomy", () => {
     expect(tree.has("/api/communes/01.511.01.0/economy.json")).toBe(false);
   });
 
-  it("gives the régions and the provinces in one file each, to compare them", () => {
-    const regions = tree.get("/api/regions/economy.json")!.data as unknown[];
-    expect(regions).toHaveLength(12);
+  it("gives a level in one file, to compare its units without a call each", () => {
+    expect((tree.get("/api/regions/economy.json")!.data as unknown[])).toHaveLength(12);
     expect((tree.get("/api/provinces/economy.json")!.data as unknown[])).toHaveLength(83);
+    // The 6 cities have no figures of their own, so their arrondissements are the answer
+    // to a question about them, and 41 calls for it is too many.
+    expect((tree.get("/api/arrondissements/economy.json")!.data as unknown[])).toHaveLength(41);
   });
 });
 
@@ -174,8 +176,10 @@ describe("emitIndicators", () => {
   emitIndicators(tree, records);
 
   it("writes a file for the country and for every unit", () => {
-    expect(tree.size).toBe(1 + 12 + 83 + 213 + 1503 + 41 + 2);
+    // Every unit, and the 3 files that hold a whole level at once.
+    expect(tree.size).toBe(1 + 12 + 83 + 213 + 1503 + 41 + 3);
     expect((tree.get("/api/provinces/indicators.json")!.data as unknown[]).length).toBe(83);
+    expect((tree.get("/api/arrondissements/indicators.json")!.data as unknown[]).length).toBe(41);
     expect(tree.has("/api/indicators.json")).toBe(true);
     expect(tree.has("/api/cercles/01.511.05/indicators.json")).toBe(true);
     expect(tree.has("/api/arrondissements/01.511.01.05/indicators.json")).toBe(true);

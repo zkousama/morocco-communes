@@ -202,6 +202,8 @@ const files = [
   { key: "provincesIndicators", pattern: "/api/provinces/indicators.json", example: "/api/provinces/indicators.json" },
   { key: "regionsEconomy", pattern: "/api/regions/economy.json", example: "/api/regions/economy.json" },
   { key: "provincesEconomy", pattern: "/api/provinces/economy.json", example: "/api/provinces/economy.json" },
+  { key: "arrondissementsIndicators", pattern: "/api/arrondissements/indicators.json", example: "/api/arrondissements/indicators.json" },
+  { key: "arrondissementsEconomy", pattern: "/api/arrondissements/economy.json", example: "/api/arrondissements/economy.json" },
   { key: "tiles", pattern: "/api/tiles/{z}/{x}/{y}.json", example: tilePath(geometry.tileIndex.leaf[0]!) },
 ] as const;
 const written = new Set([

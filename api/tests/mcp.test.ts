@@ -310,6 +310,11 @@ describe("get_indicators", () => {
     expect(results(r).every((x) => typeof (x.figures["2024"]!.total!.people!.female!.labour!.activityRate) === "number")).toBe(true);
   });
 
+  it("gives every arrondissement at once, since the 6 cities have no figures of their own", async () => {
+    const r = await call("get_indicators", { level: "arrondissement", topics: ["illiteracy"] });
+    expect(results(r)).toHaveLength(41);
+  });
+
   it("takes the level to tell a province from the commune of the same name", async () => {
     const commune = await call("get_indicators", { unit: "tiznit", topics: ["households"] });
     const province = await call("get_indicators", { unit: "tiznit", level: "province", topics: ["households"] });
@@ -435,6 +440,14 @@ describe("get_economy", () => {
     const r = await call("get_economy", { unit: "tanger" });
     expect(r.isError).toBe(true);
     expect(text(r)).toContain("counted by arrondissement");
+    expect(text(r)).toContain('level "arrondissement"');
+  });
+
+  it("gives every arrondissement at once, which is how the 6 cities are counted", async () => {
+    const r = await call("get_economy", { level: "arrondissement", topics: ["establishments"] });
+    expect(results(r)).toHaveLength(41);
+    const most = [...results(r)].sort((a, b) => (b.figures.establishments!.jobs ?? 0) - (a.figures.establishments!.jobs ?? 0))[0]!;
+    expect(most.unit).toMatchObject({ name_fr: "Aïn-Chock" });
   });
 });
 

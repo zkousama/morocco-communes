@@ -63,6 +63,8 @@ for (const path of [
   "/api/communes/01.511.01.01/economy.json",
   "/api/regions/01/economy.json",
   "/api/provinces/economy.json",
+  "/api/arrondissements/economy.json",
+  "/api/arrondissements/indicators.json",
   "/api/economy.json",
   "/data/v1/economy/fields.json",
 ]) {
