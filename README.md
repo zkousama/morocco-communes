@@ -13,6 +13,8 @@ and from OpenStreetMap, and shows the working.
 ## The dataset
 
 `data/v1/` is committed and versioned, so you can use it without the API at all.
+[`CHANGELOG.md`](CHANGELOG.md) says what each version added; the build refuses a version
+with no entry in it.
 
 | Directory | Holds | Licence |
 |---|---|---|

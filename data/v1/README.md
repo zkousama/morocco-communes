@@ -11,7 +11,7 @@ retrieval date, and the OpenStreetMap snapshot. The OSM vintage is a **range**, 
 the boundaries come from separate Overpass queries, one per région and one for the
 arrondissements, that rate-limiting spreads over time, so they're snapshots taken at
 different moments rather than one consistent extract. `datasetVersion` is this directory's own version, which
-moves independently of the API's.
+moves independently of the API's, and `../../CHANGELOG.md` says what each one added.
 
 Rebuilding from the same cache is byte-identical. Rebuilding after re-fetching is not,
 and should not be: a newer OSM snapshot is different input, and `sources.json` is where

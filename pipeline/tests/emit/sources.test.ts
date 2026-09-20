@@ -139,4 +139,20 @@ describe("the version the dataset publishes", () => {
     const citation = await readFile("CITATION.cff", "utf8");
     expect(citation).toContain(`version: ${DATASET_VERSION}`);
   });
+
+  it("is the one the two packages give", async () => {
+    const npm = JSON.parse(await readFile("packages/morocco-communes/package.json", "utf8")) as { version: string };
+    const python = await readFile("packages/morocco-communes-py/pyproject.toml", "utf8");
+    expect(npm.version).toBe(DATASET_VERSION);
+    expect(python).toContain(`version = "${DATASET_VERSION}"`);
+  });
+
+  it("has an entry in the changelog, so a bump says what it did", async () => {
+    const changelog = await readFile("CHANGELOG.md", "utf8");
+    expect(changelog).toContain(`\n## ${DATASET_VERSION}\n`);
+    // Every version the changelog names, newest first, with none skipped.
+    const versions = [...changelog.matchAll(/^## (\d+\.\d+\.\d+)$/gm)].map((m) => m[1]!);
+    expect(versions[0]).toBe(DATASET_VERSION);
+    expect(versions).toEqual([...versions].sort((a, b) => b.localeCompare(a, "en", { numeric: true })));
+  });
 });
