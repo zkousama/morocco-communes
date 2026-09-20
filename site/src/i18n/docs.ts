@@ -239,7 +239,7 @@ export const docs = {
       beforeBody: [
         "The 2014 census asked most of these questions, and `/data/v1/indicators/2014/` holds its answers in the same shape. Each unit’s API record carries them under `2014`.",
         "Marital status covered everyone in 2014, children included, rather than people aged 15 and over.",
-        "Schooling covered children aged 7 to 12, a year older at each end than in 2024.",
+        "Schooling covered children aged 7 to 12. The 2024 census counts ages 6 to 11 during the school year, which it says are 7 to 12 at the census date; the 2014 workbook gives no basis for its own band, so the two are left apart.",
         "Reading and writing was asked as a combination of languages, so each literate person counted once.",
         "A household counted under every cooking fuel it used, so those shares pass 100. The employment shares took in unemployed people who had worked before, and waste dumped in the open sat with everything that is neither a bin nor a truck.",
         "Casablanca and the 5 other cities with arrondissements have no 2014 figures of their own: the census published those cities by arrondissement, and each arrondissement is here. The 13 cercles redrawn since and 1 urban centre have none either, and `2014/unplaced.json` names them.",
@@ -565,7 +565,7 @@ export const docs = {
       beforeBody: [
         "Le recensement de 2014 posait la plupart de ces questions, et `/data/v1/indicators/2014/` en contient les réponses, dans la même forme. La fiche d’une unité dans l’API les porte sous `2014`.",
         "L’état matrimonial portait en 2014 sur toute la population, enfants compris, et non sur les 15 ans et plus.",
-        "La scolarisation portait sur les enfants de 7 à 12 ans, un an de plus à chaque bout qu’en 2024.",
+        "La scolarisation portait sur les enfants de 7 à 12 ans. Le recensement de 2024 compte les 6-11 ans de l’année scolaire, dont il dit qu’ils sont les 7-12 ans à la date du recensement ; le classeur de 2014 ne dit pas sur quoi repose sa propre tranche, les deux restent donc séparés.",
         "Les langues lues et écrites étaient demandées par combinaison : chaque personne alphabétisée comptait une seule fois.",
         "Un ménage comptait sous chaque combustible de cuisson qu’il utilisait, si bien que ces parts dépassent 100. Les parts du statut professionnel incluaient les chômeurs ayant déjà travaillé, et les déchets jetés dans la nature étaient comptés avec tout ce qui n’est ni un bac ni un camion.",
         "Casablanca et les 5 autres villes à arrondissements n’ont pas de chiffres 2014 à elles : le recensement les publiait par arrondissement, et chaque arrondissement est ici. Les 13 cercles redécoupés depuis et 1 centre urbain n’en ont pas non plus, et `2014/unplaced.json` les nomme.",

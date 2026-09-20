@@ -115,7 +115,8 @@ export const PEOPLE_FIELDS_2014: Field2014[] = [
     comparableTo: "fertility.totalFertilityRate",
   }),
   field("schooling", "rate7to12", "School enrolment at 7 to 12", "Taux de scolarisation des enfants âgés de 7 à 12 ans", "percent", {
-    note: "The 2024 census published enrolment for children aged 6 to 11, a year younger at each end.",
+    note:
+      "The 2024 census publishes enrolment for children aged 6 to 11 during the school year, which it says are 7 to 12 at the census date. The 2014 workbook gives no basis for its own 7 to 12, so the two are left apart.",
   }),
   field("illiteracy", "rate10Plus", "Illiteracy rate, aged 10 and over", "Taux d'analphabétisme", "percent", {
     comparableTo: "illiteracy.rate10Plus",

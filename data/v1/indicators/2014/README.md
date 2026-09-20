@@ -61,7 +61,9 @@ The rest changed between the censuses, and each says how in its `note`:
 - Marital status covered everyone in 2014, children included, rather than people aged 15
   and over. Dividing a 2014 share by the share of the population aged 15 and over brings
   it close to the 2024 base.
-- Schooling covered children aged 7 to 12, a year older at each end than 2024's 6 to 11.
+- Schooling covered children aged 7 to 12. The 2024 census counts ages 6 to 11 during the
+  school year, which it says are 7 to 12 at the census date; the 2014 workbook gives no
+  basis for its own band, so the two are left apart rather than subtracted.
 - Reading and writing was asked as a combination of languages, so each literate person
   counted once, under one of `arabicOnly`, `arabicAndFrench`, `arabicFrenchEnglish` or
   `other`. In 2024 each language was asked separately.
