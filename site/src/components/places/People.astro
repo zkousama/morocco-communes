@@ -161,8 +161,9 @@ const empty = views.length === 0;
           {record.fromLocalAdministration ? fill(p.peopleLocal, { name }) : p.peopleBody}{" "}
           <a href={path(locale, "docs/indicators/")}>{p.peopleMore}</a>
         </p>
+        {/* Hidden until the script that makes them work has run. */}
         {both && (
-          <div class="years" role="group" aria-label={p.censusGroup}>
+          <div class="years" role="group" aria-label={p.censusGroup} hidden>
             <span aria-hidden="true">{p.censusGroup}</span>
             {views.map((v, i) => (
               <button type="button" data-year={v.year} aria-pressed={i === 0 ? "true" : "false"}>{v.year}</button>
@@ -255,7 +256,9 @@ const empty = views.length === 0;
   <script>
     // One section to a page: the buttons show the census they name and hide the other.
     const section = document.querySelector<HTMLElement>(".people[data-census]");
-    section?.querySelector(".years")?.addEventListener("click", (event) => {
+    const years = section?.querySelector<HTMLElement>(".years");
+    if (years) years.hidden = false;
+    years?.addEventListener("click", (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-year]");
       if (!button) return;
       const year = button.dataset.year!;
@@ -294,6 +297,11 @@ const empty = views.length === 0;
   .intro p {
     margin: 0;
     max-width: var(--measure);
+  }
+
+  /* display: flex would otherwise beat the hidden attribute the script clears. */
+  .years[hidden] {
+    display: none;
   }
 
   .years {

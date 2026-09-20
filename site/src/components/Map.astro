@@ -77,7 +77,7 @@ const communesRoute = path(locale, "communes/");
     <div class="tip" hidden></div>
   </div>
   <figcaption>
-    <div class="views" role="group" aria-label={copy.mapShade}>
+    <div class="views" role="group" aria-label={copy.mapShade} hidden>
       {views.map((v, i) => (
         <button type="button" data-view={v.id} aria-pressed={i === 0 ? "true" : "false"}>{v.label}</button>
       ))}
@@ -201,6 +201,8 @@ const communesRoute = path(locale, "communes/");
       else show(shape, event.clientX, event.clientY, true);
     });
 
+    const views = atlas.querySelector<HTMLElement>(".views");
+    if (views) views.hidden = false;
     for (const button of atlas.querySelectorAll<HTMLButtonElement>(".views button")) {
       button.addEventListener("click", () => {
         const view = button.dataset.view!;
@@ -367,6 +369,11 @@ const communesRoute = path(locale, "communes/");
     margin-top: 1rem;
     font-size: var(--t-xs);
     color: var(--quiet);
+  }
+
+  /* display: flex would otherwise beat the hidden attribute the script clears. */
+  .views[hidden] {
+    display: none;
   }
 
   .views {
