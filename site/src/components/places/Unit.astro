@@ -156,6 +156,7 @@ const standouts = [
             return c ? { href: communeHref(c.slug), name: c.name.fr } : null;
           }}
         />
+        <p class="note map-note">{p.mapNote}</p>
       </div>
       <div class="side">
         <Inset {...where} label={fill(p.insetLabel, { name: title })} />
@@ -267,6 +268,12 @@ const standouts = [
 </Place>
 
 <style>
+  .map-note {
+    margin: 0.5rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
   .side {
     display: grid;
     gap: 1.5rem;
