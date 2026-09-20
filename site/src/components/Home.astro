@@ -384,7 +384,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 
   /* Flush left, so the shared prefix lines up down the column: 01, then 01.511, then
      01.511.05. Indenting by depth looked like a tree but pushed those apart, and the
-     code already says how deep it is — the dots are the depth. */
+     code already says how deep it is, since the dots are the depth. */
   .ladder .code {
     padding-inline-end: 1.5rem;
     white-space: nowrap;

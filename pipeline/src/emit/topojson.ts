@@ -20,7 +20,7 @@ export interface GeoJsonFeatureCollection {
 
 /**
  * Each outer ring paired with the holes that sit inside it. A commune can have both
- * several outer rings and a hole — Rabat has four outer rings and one hole — so
+ * several outer rings and a hole, as Rabat has four outer rings and one hole, so
  * attaching holes to the first polygon only, or dropping them whenever there is more
  * than one outer ring, silently loses them. Containment uses the same every-vertex
  * rule as the interior point, so the two agree about which ring owns a hole.

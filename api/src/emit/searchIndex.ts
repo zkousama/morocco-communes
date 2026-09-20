@@ -49,8 +49,8 @@ export function buildIndex(
     }
   }
 
-  // Byte-identical rebuilds come from the walk above being deterministic — rows sorted by
-  // code — which fixes both the key set and the insertion order. This sort only makes the
+  // Byte-identical rebuilds come from the walk above being deterministic, rows sorted by
+  // code, which fixes both the key set and the insertion order. This sort only makes the
   // file pleasant to diff, and it cannot fully order the keys: 21 communes share a name,
   // so their slugs carry the code digits, and trigrams like "101" are integer-like keys
   // that V8 hoists ahead of every string key whatever order they were inserted in.
@@ -81,7 +81,7 @@ export function buildSkeletons(entries: IndexEntry[], aliases: Record<string, nu
 /**
  * Resolves the exonym list against the index, and refuses two things rather than
  * shipping them: a code no unit has, and an alias that is already some unit's real
- * name. The second matters more — an alias shadowing a real name would send a search
+ * name. The second matters more, since an alias shadowing a real name would send a search
  * for that place somewhere else entirely, so the real name always wins by the alias
  * being rejected at build time.
  */

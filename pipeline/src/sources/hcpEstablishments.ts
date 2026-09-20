@@ -6,8 +6,8 @@ import { ECONOMY_FIELDS, type EconomyField } from "./economyFields.ts";
  * down to the commune, and 22 counts across. Every heading is checked against the field
  * list before a figure is read.
  *
- * The workbook holds the count of jobs as a float with the noise a division leaves —
- * 3585475.000000014 for 3,585,475 — so a count is rounded to the whole thing it counts.
+ * The workbook holds the count of jobs as a float with the noise a division leaves,
+ * 3585475.000000014 for 3,585,475, so a count is rounded to the whole thing it counts.
  */
 
 export interface EstablishmentRow {

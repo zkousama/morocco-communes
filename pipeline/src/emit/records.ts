@@ -62,8 +62,8 @@ const strip = (name: string) => {
 };
 /**
  * Applied until it stops changing the string. Casablanca's eight préfectures
- * d'arrondissements carry a compound label — "عمالة مقاطعات X" for the six that group
- * several arrondissements, "عمالة مقاطعة X" for the two that group one — so a single
+ * d'arrondissements carry a compound label, "عمالة مقاطعات X" for the six that group
+ * several arrondissements and "عمالة مقاطعة X" for the two that group one, so a single
  * anchored replace removes only the outer word and leaves the inner one in the name.
  */
 const stripAr = (name: string) => {

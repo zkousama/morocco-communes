@@ -17,7 +17,7 @@ export interface Lookup {
  * `01.511.01.0`, `001511010`, `1511010` and `tanger` all address one commune.
  *
  * Built at module scope. The unpadded digit form is included because a code copied out
- * of a spreadsheet has lost its leading zeros — the same thing that made the source
+ * of a spreadsheet has lost its leading zeros, the same thing that made the source
  * workbooks hard to parse.
  */
 export function buildLookup(index: SearchIndex): Lookup {

@@ -59,7 +59,7 @@ const trigrams = (name: string) => {
 
 /**
  * How close two spellings of a place are, 0 to 1. Transliteration moves between the
- * censuses — Rhafsai is Ghafsai, My Driss Aghbal is Moulay Driss Aghbal — so a match
+ * censuses: Rhafsai is Ghafsai, My Driss Aghbal is Moulay Driss Aghbal. So a match
  * can't ask for the same string, and this says how far it is being asked to stretch.
  */
 export function similarity(a: string, b: string): number {

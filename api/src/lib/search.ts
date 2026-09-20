@@ -73,7 +73,7 @@ const SPELLING = 300;
  * Scores only the entries that share a trigram with the query, or its consonant skeleton.
  *
  * The postings walk both selects the candidates and counts how many distinct query
- * trigrams each one shares, so scoring never re-derives anything about an entry — which
+ * trigrams each one shares, so scoring never re-derives anything about an entry, which
  * is the difference between a query costing 27 ms and costing well under one. Ties break
  * on the level and then on the code, never on iteration order, so two identical queries
  * rank identically.

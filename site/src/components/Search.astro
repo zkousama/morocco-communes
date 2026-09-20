@@ -1,7 +1,7 @@
 ---
 /**
- * Finding a place from any page. The dialog asks the API the question the API is for —
- * `/api/search?q=` — so a name typed any way finds its unit: another spelling, the Arabic,
+ * Finding a place from any page. The dialog asks the API the question the API is for,
+ * `/api/search?q=`, so a name typed any way finds its unit: another spelling, the Arabic,
  * an exonym, or the code.
  *
  * Cercles are left out, since they have no page. An arrondissement has none either, and
@@ -96,7 +96,7 @@ const cities = Object.fromEntries(
 
     /**
      * A code is not a name, and the name search would answer it with whatever it sounds
-     * like. Each collection resolves an identifier of its own — dotted, padded, bare — so
+     * like. Each collection resolves an identifier of its own, dotted, padded or bare, so
      * a query of digits and dots asks them in turn and stops at the one that answers.
      */
     const byCode = async (q: string): Promise<Hit[]> => {

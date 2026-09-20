@@ -1,5 +1,5 @@
 /**
- * Probes a running deployment — `wrangler dev` locally, or the live URL after a deploy.
+ * Probes a running deployment: `wrangler dev` locally, or the live URL after a deploy.
  *
  * The pure logic behind these routes is unit-tested; what this checks is the part only a
  * real runtime can answer: which tier served a request, whether the asset store bypasses
@@ -13,7 +13,7 @@ const base = (process.argv[2] ?? "http://127.0.0.1:8788").replace(/\/$/, "");
 let failures = 0;
 const check = (name: string, ok: boolean, detail = "") => {
   if (!ok) failures++;
-  console.log(`  ${ok ? "ok  " : "FAIL"}  ${name}${detail && !ok ? ` — ${detail}` : ""}`);
+  console.log(`  ${ok ? "ok  " : "FAIL"}  ${name}${detail && !ok ? `: ${detail}` : ""}`);
 };
 
 async function get(path: string) {
@@ -23,7 +23,7 @@ async function get(path: string) {
   } catch (error) {
     // A dead server is the commonest reason to be running this, so it reports as a line
     // in the list rather than a stack trace over the results.
-    console.log(`\n  cannot reach ${base} — ${(error as Error).message}`);
+    console.log(`\n  cannot reach ${base}: ${(error as Error).message}`);
     console.log("  start it with: pnpm api:dev\n");
     process.exit(1);
   }
@@ -46,7 +46,7 @@ async function get(path: string) {
 
 console.log(`probing ${base}\n`);
 
-console.log("pre-rendered tier — served by the asset store, never invoking the Worker");
+console.log("pre-rendered tier, served by the asset store, never invoking the Worker");
 for (const path of [
   "/api/version.json",
   "/api/regions.json",
@@ -97,7 +97,7 @@ for (const path of [
     `status=${r.status} ct=${r.contentType} cors=${r.cors}`);
 }
 
-console.log("\nalias tier — the Worker rewrites to a pre-rendered file");
+console.log("\nalias tier, where the Worker rewrites to a pre-rendered file");
 for (const [path, expected] of [
   ["/api/communes?province=01.511&page=1", "/api/provinces/01.511/communes/page/1.json"],
   ["/api/communes?type=urban&page=2", "/api/communes/type/urban/page/2.json"],
@@ -121,7 +121,7 @@ for (const [path, expected] of [
     `status=${r.status} tier=${r.tier} location=${r.contentLocation}`);
 }
 
-console.log("\ncomputed tier — answers no file holds");
+console.log("\ncomputed tier, the answers no file holds");
 {
   const r = await get("/api/search?q=tanger&limit=3");
   const first = r.body?.data?.[0];

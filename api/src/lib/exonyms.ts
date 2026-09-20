@@ -3,7 +3,7 @@
  *
  * Trigram overlap already finds transliteration variants: `Shefshaouen` reaches
  * Chefchaouen, `Ayt Qamra` reaches Ait Kamra, `Tetuan` reaches Tétouan. What it cannot
- * reach is a name built from different letters altogether — `Fez` shares no useful trigram
+ * reach is a name built from different letters altogether: `Fez` shares no useful trigram
  * with `Fès`, and `Mogador` shares none with `Essaouira`. Those are exonyms and historical
  * names, and the only thing that finds them is a list.
  *

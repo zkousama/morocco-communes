@@ -1,7 +1,7 @@
 /**
  * The API reads the published dataset, not the pipeline's internals, so these types name
  * only the keys the API groups, sorts or routes by. Records carry many more fields and
- * pass through whole — structural typing means adding a field to the dataset does not
+ * pass through whole: structural typing means adding a field to the dataset does not
  * touch this file.
  */
 export interface RegionRow {
@@ -48,7 +48,7 @@ export interface Dataset {
   sources: unknown;
 }
 
-/** Groups by a key, skipping rows whose key is null — a commune with no cercle. */
+/** Groups by a key, skipping rows whose key is null, such as a commune with no cercle. */
 export function groupBy<T>(rows: T[], key: (row: T) => string | null): Map<string, T[]> {
   const out = new Map<string, T[]>();
   for (const row of rows) {

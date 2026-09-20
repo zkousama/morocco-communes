@@ -6,8 +6,8 @@ const LEVELS = ["national", "regions", "provinces", "cercles", "communes", "arro
 
 /**
  * Every indicators record in the dataset: the country, each level, then the urban centres,
- * each carrying the 2014 census beside the 2024 one. A unit the 2014 census didn't count
- * — a commune that has since split, a cercle drawn since — carries null there.
+ * each carrying the 2014 census beside the 2024 one. A unit the 2014 census didn't count,
+ * a commune that has since split or a cercle drawn since, carries null there.
  */
 export async function readIndicators(dataDir: string): Promise<IndicatorRecord[]> {
   const flatten = async (census: string) =>

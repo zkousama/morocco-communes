@@ -13,7 +13,7 @@ const copy = t(locale);
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
 /* Chart 1: percent change per région, diverging from a zero axis. The axis sits where
-   the data puts it — one région shrank, and barely, so the gutter left of zero is thin. */
+   the data puts it: one région shrank, and barely, so the gutter left of zero is thin. */
 const mostNegative = Math.min(0, ...change.map((r) => r.pct));
 const mostPositive = Math.max(0, ...change.map((r) => r.pct));
 const span = mostPositive - mostNegative;

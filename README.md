@@ -183,7 +183,7 @@ the only Worker and the pages cost nothing to serve.
 pnpm install
 pnpm dataset:build     # rebuilds data/v1 from the cached sources
 pnpm build             # the docs site, then the API tree, into dist/
-pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
+pnpm api:dev           # wrangler dev on :8788, serving the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
 pnpm eval              # asks a model 49 questions through the MCP server; see evals/

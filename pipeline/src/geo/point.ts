@@ -24,8 +24,8 @@ export function interiorPoint(outer: Ring[], inner: Ring[]): { lat: number; lng:
   // Every vertex, not any: a hole with one stray vertex inside this ring probably
   // belongs to a different outer ring of the same multipolygon, and punching it out
   // here would shrink the region the point may sit in. Measured across the 23 cached
-  // communes that have holes, both readings give the same point — this is robustness
-  // against boundaries changing upstream, not a fix for anything observed.
+  // communes that have holes, both readings give the same point. This is robustness
+  // against boundaries changing upstream rather than a fix for anything observed.
   const holes = inner.filter((h) => h.every((p) => pointInRing(p, largest)));
   // polylabel declares [number, number] & { distance: number }, so this destructures
   // directly. No cast is needed.

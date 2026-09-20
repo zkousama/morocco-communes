@@ -1,7 +1,7 @@
 /**
  * Chart data, computed from the published dataset so every figure on the page is one the
  * API would return. Nothing here is rounded for effect or carried over from a previous
- * build — the script reads data/v1 and writes the numbers it finds.
+ * build: the script reads data/v1 and writes the numbers it finds.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 

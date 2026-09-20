@@ -12,15 +12,15 @@ Each row records how the pairing was reached, not only that it was:
   and unique within the province. Province is the anchor because the province code is stable
   across both censuses; only cercle numbering changed.
 - `method` is `sole_remaining_in_province` for 4 rows, where the French spelling differs
-  and the pairing follows from exhaustion — one commune and one 2014 unit left in that
+  and the pairing follows from exhaustion: one commune and one 2014 unit left in that
   province. Those four are `Bni Abdellah`/`Bni Abdallah`, `Ouled Salah`/`Oulad Salah`,
   `Ouled M'hamed`/`Oulad M'Hamed` and `Ouannana`/`Ounnana`, whose Arabic names agree or
   differ only in an alef form.
 
 ## The reconciliation is one to one
 
-All 207 rows pair exactly one 2024 commune with exactly one 2014 unit, and nothing is left
-unplaced on either side. That is the evidence that every one of them is a rename rather
+All 207 rows pair exactly one 2024 commune with exactly one 2014 unit, and both sides come
+out fully placed. That is the evidence that every one of them is a rename rather
 than a merge or a split: a merge would leave a 2024 commune claiming two 2014 units, and a
 split would leave a 2014 unit unclaimed. The build refuses to publish if either side has a
 leftover.
@@ -44,10 +44,9 @@ Both censuses are Haut-Commissariat au Plan publications, attributed. This direc
 HCP-derived and carries no OpenStreetMap data, so the ODbL terms that apply to
 `../geometry/` do not apply here.
 
-`population_ratio` is corroboration, not an input to the matching. Its median across the
-207 rows is 0.96, and 185 of them fall between 0.7 and 1.4 — a count rather than a
-percentile, so you can check it by filtering this file instead of guessing which
-percentile convention was used.
+`population_ratio` corroborates a pairing, and the matching never reads it. Its median
+across the 207 rows is 0.96, and 185 of them fall between 0.7 and 1.4. That second figure
+is a count, so you can check it by filtering this file.
 
 One row sits below 0.5 and four exceed 2.5: Hjar Ennhal, Sidi Hajjaj Oued Hassar,
 Almajjatia Oulad Taleb and Ouled Salah, all peri-urban communes of Casablanca and Tanger,

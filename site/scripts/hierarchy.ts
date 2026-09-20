@@ -1,7 +1,7 @@
 /**
  * The hierarchy strip on the home page, taken from the dataset so every figure on it is
  * the published one. Two chains, because the tiers are not a single ladder: a rural
- * commune sits under a cercle, and an urban one does not — it may instead hold
+ * commune sits under a cercle, and an urban one does not: it may instead hold
  * arrondissements. Showing both is the only honest way to draw five levels.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";

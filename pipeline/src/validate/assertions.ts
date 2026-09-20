@@ -78,7 +78,7 @@ export function assertDataset(
   check(total === NATIONAL_POPULATION_2024, `commune populations sum to ${total}, expected ${NATIONAL_POPULATION_2024}`);
 
   // Catches the Méchouar mis-parenting: a province code is always five digits.
-  // The set membership checks are the stronger form — a well-shaped code that names
+  // The set membership checks are the stronger form: a well-shaped code that names
   // nothing is still a broken parent.
   const regionCodes = new Set(h.regions.map((r) => r.code));
   const provinceCodes = new Set(h.provinces.map((p) => p.code));

@@ -6,7 +6,7 @@
  * haraka, and the French accents (â è é → a e e). What it cannot reach are the four
  * characters that carry no decomposition, mapped explicitly below.
  *
- * Two of those four — tatweel and the harakat — appear in **no** commune name. They are
+ * Two of those four, tatweel and the harakat, appear in **no** commune name. They are
  * folded because of what people type, not because of what the data holds, so a reader
  * measuring the rules against the corpus will find them dead and should leave them
  * alone: dropping them would make a query written with vowel marks fail to match a name

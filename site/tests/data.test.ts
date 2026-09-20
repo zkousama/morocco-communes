@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 /**
  * The dataset paths the build reads and the download page offers.
  *
- * A published level is either one file or a directory of files — the commune figures of a
- * census are written one file per région — and a reader written for one shape breaks
+ * A published level is either one file or a directory of files, since the commune figures
+ * of a census are written one file per région, and a reader written for one shape breaks
  * silently on the other until someone runs the whole build. This walks the source for
  * every literal data/v1 path and asks the disk for it exactly as written: a reader that
  * names a file reads a file, a reader that names a level names its directory. The API

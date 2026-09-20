@@ -82,7 +82,7 @@ export interface Problem {
 
 /**
  * RFC 9457. The kind is what separates "this code is well-formed but no such commune
- * exists" (404) from "this is not a code at all" (400) — a distinction a client needs in
+ * exists" (404) from "this is not a code at all" (400), a distinction a client needs in
  * order to know whether retrying with a different spelling could help.
  */
 export function problem(kind: ProblemKind, detail: string, instance: string, origin: string): Problem {

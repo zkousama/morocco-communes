@@ -430,7 +430,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       title: "A région, province or cercle",
       description:
         "One région, province, préfecture or cercle: its name in French and Arabic, its 2024 population and households, the units above it, " +
-        "how many units it holds, and the ones directly under it, named — a région's provinces, a province's cercles. " +
+        "how many units it holds, and the ones directly under it, named: a région's provinces, a province's cercles. " +
         "This is the tool for a question about a unit above the commune, such as how many cercles a province has. " +
         "For a commune or an arrondissement, call get_commune; to list a unit's communes, call list_communes with that unit.",
       inputSchema: {
@@ -649,7 +649,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "Reading them: every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out, the " +
         "workbook counts every sector but agriculture, and the jobs are the permanent ones.\n\n" +
         "Ranking and comparing: to order communes by one of these, call list_communes with sort set to its path, such as " +
-        "economy.establishments.jobs, or by one of the 3 it works out from them — economy.per1000.establishments, economy.per1000.jobs, " +
+        "economy.establishments.jobs, or by one of the 3 it works out from them: economy.per1000.establishments, economy.per1000.jobs, " +
         "economy.perBusiness.jobs. To compare the régions, the provinces or the arrondissements, give level without a unit and get them all in " +
         "one call.\n\n" +
         "Casablanca and the 5 other cities divided into arrondissements are counted by arrondissement, so their figures are the sum of those, " +

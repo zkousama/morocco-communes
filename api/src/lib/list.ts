@@ -67,7 +67,7 @@ const bare = (value: string | undefined) => {
 };
 
 /**
- * Turns filter input — from a query string or from an MCP tool call — into a query with
+ * Turns filter input, from a query string or from an MCP tool call, into a query with
  * every unit resolved to its canonical code. Shared, so the HTTP route and the tool reject
  * the same things with the same words.
  */

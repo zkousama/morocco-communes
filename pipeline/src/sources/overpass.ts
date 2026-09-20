@@ -36,7 +36,7 @@ interface CacheEnvelope {
  *
  * For a bare file the mtime stands in for the fetch time: it is when the file was
  * written, which is when it was fetched. That is weaker evidence than a recorded
- * timestamp — a copy or a restore would move it — so it is worth knowing that the
+ * timestamp, since a copy or a restore would move it, so it is worth knowing that the
  * enveloped form is authoritative and this is a fallback, but it is true, and a dataset
  * that argues from provenance should not report "unknown" for something it can observe.
  */

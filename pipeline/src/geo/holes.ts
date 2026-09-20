@@ -113,7 +113,7 @@ export function coverageHoles(topo: TopologyLike, minAreaKm2 = 0.5): CoverageHol
 
 /**
  * Holes the source is known to have, keyed by région and centre. Each is a gap in
- * OpenStreetMap rather than in Morocco — HCP puts every place in some commune — and is
+ * OpenStreetMap rather than in Morocco, since HCP puts every place in some commune, and is
  * listed so that a new one fails the build instead of shipping unnoticed.
  */
 export const KNOWN_HOLES = new Map<string, string>([
@@ -128,7 +128,7 @@ export const holeKey = (region: string, hole: Pick<CoverageHole, "centre">) =>
 
 /**
  * Failures for one région: a hole that is not on the known list, and a known hole that is
- * no longer there. The second keeps the list honest — once OpenStreetMap is fixed, the
+ * no longer there. The second keeps the list honest: once OpenStreetMap is fixed, the
  * entry has to come out rather than sit there excusing nothing.
  */
 export function checkHoles(region: string, holes: CoverageHole[]): string[] {

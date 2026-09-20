@@ -1,7 +1,7 @@
 /**
  * The download list, built from the files that actually exist under data/v1 with their
  * real sizes. A file named here that is missing fails the build, which is how a link to
- * data/v1/crosswalk/crosswalk.json — a path that never existed — stays gone.
+ * data/v1/crosswalk/crosswalk.json, a path that never existed, stays gone.
  */
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { buildGeometry, outlineCollections } from "../../api/src/emit/geometry.ts";

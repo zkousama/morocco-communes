@@ -4,8 +4,8 @@
  * The indicators workbook is the bulk of it; commuting comes in a workbook of its own for
  * each census, and 2014 puts professions and diplomas in two more, all with the same units
  * in the same order. The rows are joined here, at the
- * source, so everything downstream — the join to the dataset, the checks, the files, the
- * API — sees one census with one field list rather than several.
+ * source, so everything downstream, the join to the dataset, the checks, the files and
+ * the API, sees one census with one field list rather than several.
  */
 
 import { HOUSEHOLD_FIELDS, PEOPLE_FIELDS, type Field, type Sex } from "./indicatorFields.ts";

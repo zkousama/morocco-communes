@@ -121,7 +121,7 @@ const TYPE_CONCEPT: Record<string, string> = {
  * The concept HCP defines a column under.
  *
  * This workbook's second sheet defines 15 of them. None of the columns is headed with the
- * term HCP defines it under — the villa column is headed "Villa ou niveau de villa" — so
+ * term HCP defines it under, and the villa column is headed "Villa ou niveau de villa", so
  * every column that has a definition is named here. The totals HCP adds up itself, sound
  * and precarious housing, are defined by the types under them rather than on their own.
  */
