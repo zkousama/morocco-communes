@@ -14,6 +14,7 @@ import { readBoundaries, unionOf } from "../../api/src/emit/boundaries.ts";
 import { sphericalArea } from "../../pipeline/src/geo/rings.ts";
 import { coverageHoles, type TopologyLike } from "../../pipeline/src/geo/holes.ts";
 import { boxOf, fit, pathOf, simplify, type Point } from "../src/lib/geo.ts";
+import { readLevel } from "../../pipeline/src/lib/levels.ts";
 
 const WIDTH = 1000;
 /** In viewBox units: under a pixel wherever the map is drawn. */
@@ -51,7 +52,7 @@ interface Figures {
   code: string;
   people: { total: { all: Record<string, Record<string, number | null>> } | null };
 }
-const indicators = JSON.parse(await readFile("data/v1/indicators/communes.json", "utf8")) as Figures[];
+const indicators = readLevel<Figures>("data/v1/indicators", "communes");
 const illiteracyOf = new Map(
   indicators.map((r) => [r.code, r.people.total?.all.illiteracy?.rate10Plus ?? null]),
 );
