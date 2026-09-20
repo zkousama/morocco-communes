@@ -23,11 +23,20 @@ export function checkIndicators2014(
   const num = (v: number | null | undefined): v is number => typeof v === "number";
   const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance + 1e-9;
 
-  const PEOPLE_SHARES = ["age", "maritalStatus", "languageCombinations", "education", "employmentStatus", "workplace", "commute", "study", "studyCommute"];
+  const PEOPLE_SHARES = [
+    "age", "maritalStatus", "languageCombinations", "education", "employmentStatus", "workplace", "commute", "study", "studyCommute",
+    "profession", "workSector", "diploma", "vocationalDiploma",
+  ];
   const HOUSEHOLD_SHARES = ["dwellingType", "occupancy", "dwellingAge", "wastewater", "householdWaste"];
-  /** A topic's shares, leaving out the counts and averages it also carries. */
+  /**
+   * A topic's shares, leaving out the counts and averages it also carries. Worked out once
+   * for each topic rather than per unit: there are 127 people fields and 1,965 units, and
+   * filtering the list inside the walk is most of the work this function does.
+   */
   const shareKeys = (fields: Field2014[], topic: string) =>
     fields.filter((f) => f.topic === topic && f.unit === "percent").map((f) => f.key);
+  const peopleShareKeys = new Map(PEOPLE_SHARES.map((topic) => [topic, shareKeys(PEOPLE_FIELDS_2014_ALL, topic)]));
+  const householdShareKeys = new Map(HOUSEHOLD_SHARES.map((topic) => [topic, shareKeys(HOUSEHOLD_FIELDS_2014_ALL, topic)]));
 
   const sumOf = (block: Record<string, number | null>, keys: string[]) => {
     const values = keys.map((key) => block[key]);
@@ -76,7 +85,7 @@ export function checkIndicators2014(
         say(`${area}: average household ${averageSize}, the counts give ${(all / count).toFixed(2)}`);
       }
       for (const topic of HOUSEHOLD_SHARES) {
-        const keys = shareKeys(HOUSEHOLD_FIELDS_2014_ALL, topic);
+        const keys = householdShareKeys.get(topic)!;
         const sum = sumOf(homes[topic] ?? {}, keys);
         if (sum !== null && sum > 0 && !near(sum, 100, 0.05 * keys.length)) say(`${area}: ${topic} sums to ${sum.toFixed(1)}`);
       }
@@ -84,7 +93,7 @@ export function checkIndicators2014(
       for (const sex of SEXES) {
         const t = people[sex];
         for (const topic of PEOPLE_SHARES) {
-          const keys = shareKeys(PEOPLE_FIELDS_2014_ALL, topic);
+          const keys = peopleShareKeys.get(topic)!;
           const sum = sumOf(t[topic] ?? {}, keys);
           if (sum !== null && sum > 0 && !near(sum, 100, 0.05 * keys.length)) say(`${area}/${sex}: ${topic} sums to ${sum.toFixed(1)}`);
         }

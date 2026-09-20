@@ -85,7 +85,6 @@ const GROUPS: Group[] = [
     files: [
       { label: "people.csv", path: "data/v1/indicators/people.csv" },
       { label: "households.csv", path: "data/v1/indicators/households.csv" },
-      { label: "communes.json", path: "data/v1/indicators/communes.json" },
       { label: "provinces.json", path: "data/v1/indicators/provinces.json" },
       { label: "regions.json", path: "data/v1/indicators/regions.json" },
       { label: "fields.json", path: "data/v1/indicators/fields.json" },
@@ -97,7 +96,6 @@ const GROUPS: Group[] = [
     files: [
       { label: "people.csv", path: "data/v1/indicators/2014/people.csv" },
       { label: "households.csv", path: "data/v1/indicators/2014/households.csv" },
-      { label: "communes.json", path: "data/v1/indicators/2014/communes.json" },
       { label: "provinces.json", path: "data/v1/indicators/2014/provinces.json" },
       { label: "regions.json", path: "data/v1/indicators/2014/regions.json" },
       { label: "fields.json", path: "data/v1/indicators/2014/fields.json" },

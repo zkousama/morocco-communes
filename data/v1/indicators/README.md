@@ -31,8 +31,12 @@ Both come for the whole unit, its urban part and its rural part.
 ## Files
 
 - `2014/` holds the same figures from the 2014 census, with a README of its own.
-- `national.json`, `regions.json`, `provinces.json`, `cercles.json`, `communes.json`,
+- `national.json`, `regions.json`, `provinces.json`, `cercles.json`,
   `arrondissements.json` and `urban-centres.json` hold one record per unit.
+- `communes/` holds the communes, one file per région, `01.json` to `12.json`. All of them
+  in one file passes what an asset store will serve, and is more than anyone wants in
+  order to read one commune. `people.csv` and `households.csv` below have every unit,
+  communes included.
 - `people.csv` has a row per unit, area and sex, and `households.csv` a row per unit and
   area. Both start with a UTF-8 byte-order mark, for Excel.
 - `fields.json` lists every field with its path, its CSV column, an English label, HCP's

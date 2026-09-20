@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { readLevel } from "../../../pipeline/src/lib/levels.ts";
 import type { Census, IndicatorRecord } from "../lib/indicators.ts";
 
 const LEVELS = ["national", "regions", "provinces", "cercles", "communes", "arrondissements", "urban-centres"];
@@ -10,10 +10,8 @@ const LEVELS = ["national", "regions", "provinces", "cercles", "communes", "arro
  * — a commune that has since split, a cercle drawn since — carries null there.
  */
 export async function readIndicators(dataDir: string): Promise<IndicatorRecord[]> {
-  const read = async (census: string, name: string) =>
-    JSON.parse(await readFile(join(dataDir, "indicators", census, `${name}.json`), "utf8"));
   const flatten = async (census: string) =>
-    (await Promise.all(LEVELS.map((name) => read(census, name)))).flatMap((body) => (Array.isArray(body) ? body : [body]));
+    LEVELS.flatMap((name) => readLevel<IndicatorRecord>(join(dataDir, "indicators", census), name));
 
   const records: IndicatorRecord[] = await flatten(".");
   const before = new Map<string, Census>(

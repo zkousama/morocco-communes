@@ -4,6 +4,21 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.6.0
+
+- What people did for a living in 2014, from HCP's professions workbook: the employed
+  population aged 15 and over by 10 occupation groups and by 9 sectors, under `profession`
+  and `workSector`.
+- The qualifications people held in 2014, from the diplomas workbook: everyone aged 10 and
+  over by highest general-education diploma and by highest vocational one, under `diploma`
+  and `vocationalDiploma`. The two ladders are separate, so each sums to 100 on its own.
+- The commune-level figures of each census move from `communes.json` to `communes/`, a
+  file per région. The 2014 file had reached 34 MB in one piece, past what an asset store
+  will serve. Every other level stays as it was.
+- Neither of the two new workbooks has a 2024 figure to be read against: that census publishes the level of
+  education people reached rather than the diploma they hold, and doesn't publish
+  occupations by commune at all. Each field says so in its `note`.
+
 ## 1.5.0
 
 - Which communes border which, in `geometry/adjacency.json` and `adjacency.csv`: 4,134

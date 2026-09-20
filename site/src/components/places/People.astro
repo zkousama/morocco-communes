@@ -34,6 +34,10 @@ const names = p.languageNames as Record<string, string>;
 const commuteNames = p.commuteNames as Record<string, string>;
 const combinationNames = p.combinationNames as Record<string, string>;
 const workplaceNames = p.workplaceNames as Record<string, string>;
+const professionNames = p.professionNames as Record<string, string>;
+const diplomaNames = p.diplomaNames as Record<string, string>;
+const PROFESSIONS = ["managersAndProfessionals", "technicians", "clerks", "traders", "farmers", "artisans", "farmLabourers", "machineOperators", "labourers", "unclassified"];
+const DIPLOMAS = ["none", "primary", "lowerSecondary", "upperSecondary", "bachelor", "masterOrDoctorate", "undeclared"];
 const MODES = ["walking", "privateCar", "taxi", "bus", "bikeOrMotorcycle", "employerTransport"];
 
 interface Figure {
@@ -127,6 +131,9 @@ function view(census: Census, other: Census | null, year: "2024" | "2014") {
       year === "2014"
         ? bars("workplace", ["ownNeighbourhood", "otherNeighbourhood", "otherCommune", "otherProvince", "noFixedPlace", "atHome", "elsewhere"], workplaceNames)
         : [],
+    // The 2014 census is the only one that publishes these by commune.
+    profession: year === "2014" ? bars("profession", PROFESSIONS, professionNames) : [],
+    diploma: year === "2014" ? bars("diploma", DIPLOMAS, diplomaNames) : [],
   };
 }
 
@@ -135,7 +142,7 @@ const before = record["2014"];
 const holds = (v: ReturnType<typeof view>) =>
   v.figures.length > 0 ||
   v.ages.some((r) => r.men !== null || r.women !== null) ||
-  [v.used, v.read, v.commute, v.workplace].some((rows) => rows.length > 0);
+  [v.used, v.read, v.commute, v.workplace, v.profession, v.diploma].some((rows) => rows.length > 0);
 const views = [view(record, before, "2024"), ...(before ? [view(before, record, "2014")] : [])].filter(holds);
 const both = views.length > 1;
 
@@ -221,13 +228,15 @@ const empty = views.length === 0;
                 </table>
               </div>
             )}
-            {(v.used.length > 0 || v.read.length > 0 || v.commute.length > 0) && (
+            {(v.used.length > 0 || v.read.length > 0 || v.commute.length > 0 || v.profession.length > 0) && (
               <div class="languages">
                 {[
                   { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used },
                   { heading: p.languagesRead, body: v.readBody, rows: v.read },
                   { heading: p.commute, body: p.commuteBody, rows: v.commute },
                   { heading: p.workplace, body: p.workplaceBody, rows: v.workplace },
+                  { heading: p.profession, body: p.professionBody, rows: v.profession },
+                  { heading: p.diploma, body: p.diplomaBody, rows: v.diploma },
                 ].filter((block) => block.rows.length > 0).map((block) => (
                   <>
                     <h3>{block.heading}</h3>

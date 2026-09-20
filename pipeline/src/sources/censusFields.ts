@@ -2,7 +2,8 @@
  * What a census says about a unit, gathered from every workbook HCP publishes it in.
  *
  * The indicators workbook is the bulk of it; commuting comes in a workbook of its own for
- * each census, with the same units in the same order. The rows are joined here, at the
+ * each census, and 2014 puts professions and diplomas in two more, all with the same units
+ * in the same order. The rows are joined here, at the
  * source, so everything downstream — the join to the dataset, the checks, the files, the
  * API — sees one census with one field list rather than several.
  */
@@ -10,6 +11,8 @@
 import { HOUSEHOLD_FIELDS, PEOPLE_FIELDS, type Field, type Sex } from "./indicatorFields.ts";
 import { HOUSEHOLD_FIELDS_2014, PEOPLE_FIELDS_2014, type Field2014 } from "./indicator2014Fields.ts";
 import { COMMUTE_FIELDS_2024, MOBILITY_FIELDS_2014 } from "./mobilityFields.ts";
+import { PROFESSION_FIELDS_2014 } from "./professionFields.ts";
+import { DIPLOMA_FIELDS_2014 } from "./diplomaFields.ts";
 import type { IndicatorRow } from "./hcpIndicators.ts";
 import type { Indicator2014Row } from "./hcp2014Indicators.ts";
 import type { MobilityRow } from "./hcpMobility.ts";
@@ -18,8 +21,13 @@ import type { MobilityRow } from "./hcpMobility.ts";
 export const PEOPLE_FIELDS_ALL: Field[] = [...PEOPLE_FIELDS, ...(COMMUTE_FIELDS_2024 as Field[])];
 export const HOUSEHOLD_FIELDS_ALL: Field[] = HOUSEHOLD_FIELDS;
 
-/** Every people field of the 2014 census, indicators then mobility. */
-export const PEOPLE_FIELDS_2014_ALL: Field2014[] = [...PEOPLE_FIELDS_2014, ...MOBILITY_FIELDS_2014];
+/** Every people field of the 2014 census: indicators, mobility, professions, diplomas. */
+export const PEOPLE_FIELDS_2014_ALL: Field2014[] = [
+  ...PEOPLE_FIELDS_2014,
+  ...MOBILITY_FIELDS_2014,
+  ...PROFESSION_FIELDS_2014,
+  ...DIPLOMA_FIELDS_2014,
+];
 export const HOUSEHOLD_FIELDS_2014_ALL: Field2014[] = HOUSEHOLD_FIELDS_2014;
 
 /** One sex's columns, in the order the cells come in. */
@@ -30,9 +38,9 @@ const SEXES: Sex[] = ["all", "male", "female"];
 const AREAS = ["total", "urban", "rural"] as const;
 
 /**
- * Puts a commuting workbook's cells after an indicators workbook's, row by row. Both list
- * the same units in the same order, which is checked here by code before anything is
- * joined: a row out of place would put one commune's commuting on another.
+ * Puts one workbook's cells after another's, row by row. Both list the same units in the
+ * same order, which is checked here by code before anything is joined: a row out of place
+ * would put one commune's figures on another.
  */
 function join<T extends { codeDigits?: string | null; code?: string | null; people: MobilityRow["people"] }>(
   rows: T[],
@@ -63,6 +71,9 @@ function join<T extends { codeDigits?: string | null; code?: string | null; peop
 export const joinCensus2024 = (rows: IndicatorRow[], commute: MobilityRow[]): IndicatorRow[] =>
   join(rows, commute, (row) => row.code);
 
-/** The 2014 census: indicator rows with each unit's mobility after them. */
-export const joinCensus2014 = (rows: Indicator2014Row[], mobility: MobilityRow[]): Indicator2014Row[] =>
-  join(rows, mobility, (row) => (row.codeDigits === null ? null : String(Number(row.codeDigits))));
+/**
+ * The 2014 census: indicator rows with each unit's mobility, professions and diplomas
+ * after them, in the order `PEOPLE_FIELDS_2014_ALL` lists the fields.
+ */
+export const joinCensus2014 = (rows: Indicator2014Row[], ...workbooks: MobilityRow[][]): Indicator2014Row[] =>
+  workbooks.reduce<Indicator2014Row[]>((so, next) => join(so, next, (row) => (row.codeDigits === null ? null : String(Number(row.codeDigits)))), rows);

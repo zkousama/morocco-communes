@@ -24,6 +24,12 @@ def published(*parts: str):
     return json.loads((DATA / Path(*parts)).read_text(encoding="utf-8"))
 
 
+def published_communes(census: str) -> list:
+    """The communes of a census, which are published a file per région."""
+    folder = DATA / "indicators" / census / "communes" if census else DATA / "indicators" / "communes"
+    return [row for path in sorted(folder.glob("*.json")) for row in json.loads(path.read_text(encoding="utf-8"))]
+
+
 class TestUnits(unittest.TestCase):
     def test_every_unit_is_here(self) -> None:
         for name, table in [
@@ -64,8 +70,7 @@ class TestCensus(unittest.TestCase):
     def test_a_figure_matches_the_dataset(self) -> None:
         people = mc.indicators("people")
         tanger = people[(people["code"] == "01.511.01.0") & (people["area"] == "total") & (people["sex"] == "all")]
-        published_rate = published("indicators", "communes.json")
-        figure = next(r for r in published_rate if r["code"] == "01.511.01.0")
+        figure = next(r for r in published_communes("") if r["code"] == "01.511.01.0")
         self.assertAlmostEqual(
             float(tanger["labour_unemployment_rate"].iloc[0]),
             figure["people"]["total"]["all"]["labour"]["unemploymentRate"],

@@ -18,6 +18,9 @@ import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/so
 import { parseHcpIndicators } from "./sources/hcpIndicators.ts";
 import { parseHcp2014Indicators } from "./sources/hcp2014Indicators.ts";
 import { parseHcp2014Mobility, parseHcpCommute2024 } from "./sources/hcpMobility.ts";
+import { parse2014Blocks } from "./sources/hcp2014Blocks.ts";
+import { PROFESSION_FIELDS_2014 } from "./sources/professionFields.ts";
+import { DIPLOMA_FIELDS_2014 } from "./sources/diplomaFields.ts";
 import { parseHcpEstablishments } from "./sources/hcpEstablishments.ts";
 import { joinCensus2014, joinCensus2024 } from "./sources/censusFields.ts";
 import { buildIndicators } from "./build/indicators.ts";
@@ -146,6 +149,8 @@ console.log(`indicators: ${indicators.length} rows, ${indicators.filter((r) => r
 const rows2014 = joinCensus2014(
   parseHcp2014Indicators(sources.get("hcp-2014-indicators-people")!, sources.get("hcp-2014-indicators-households")!),
   parseHcp2014Mobility(sources.get("hcp-2014-mobility")!),
+  parse2014Blocks(sources.get("hcp-2014-professions")!, PROFESSION_FIELDS_2014, "professions"),
+  parse2014Blocks(sources.get("hcp-2014-diplomas")!, DIPLOMA_FIELDS_2014, "diplomas"),
 );
 const population2014 = new Map(records.communes.map((c) => [c.code, c.population["2014"]]));
 const placed2014 = buildIndicators2014(

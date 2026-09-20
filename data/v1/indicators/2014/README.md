@@ -1,10 +1,12 @@
 # 2014 census indicators
 
 The same kind of figures from the census before, on the units the dataset publishes
-today. HCP publishes them in three workbooks,
+today. HCP publishes them in five workbooks,
 [Indicateurs sur la population](https://www.hcp.ma/file/230045/),
-[Indicateurs sur les ménages et les conditions d'habitation](https://www.hcp.ma/file/230042/)
-and [Indicateurs sur la mobilité et le transport](https://www.hcp.ma/file/230011/).
+[Indicateurs sur les ménages et les conditions d'habitation](https://www.hcp.ma/file/230042/),
+[Indicateurs sur la mobilité et le transport](https://www.hcp.ma/file/230011/),
+[les professions et les secteurs d'activité](https://www.hcp.ma/file/230028/)
+and [les diplômes](https://www.hcp.ma/file/230031/).
 
 ## What's in it
 
@@ -19,6 +21,12 @@ Getting about: how many people are in work and how they get there, where they wo
 for people in education, where they study and how they get there. The 2024 census asks
 only how people in work get there.
 
+Work and qualifications, which the 2024 census doesn't publish by commune: the employed
+population aged 15 and over by occupation, in 10 groups, and by the sector they worked in,
+in 9; and everyone aged 10 and over by their highest diploma, on two ladders that are
+counted apart, general education and vocational training. Each is given for everyone, for
+men and for women.
+
 About households: how many there are, their average size, dwelling type, people per room,
 occupancy, the dwelling's age, amenities, wastewater, household waste, cooking fuel, the
 equipment a household owns, and the distance to a paved road.
@@ -29,8 +37,12 @@ Both come for the whole unit, its urban part and its rural part.
 
 The file names are the 2024 ones, and a record keeps the code and name the unit has today.
 
-- `national.json`, `regions.json`, `provinces.json`, `cercles.json`, `communes.json`,
+- `national.json`, `regions.json`, `provinces.json`, `cercles.json`,
   `arrondissements.json` and `urban-centres.json` hold one record per unit.
+- `communes/` holds the communes, one file per région, `01.json` to `12.json`. All of them
+  in one file passes what an asset store will serve, and is more than anyone wants in
+  order to read one commune. `people.csv` and `households.csv` below have every unit,
+  communes included.
 - `people.csv` has a row per unit, area and sex, and `households.csv` a row per unit and
   area. Both start with a UTF-8 byte-order mark, for Excel.
 - `fields.json` lists every field with its path, its CSV column, an English label, HCP's

@@ -4,10 +4,11 @@
  * running API, so the eval stays right when the data is rebuilt.
  */
 import { readFileSync } from "node:fs";
+import { readLevel } from "../pipeline/src/lib/levels.ts";
 
 const attributes = (name: string) => JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as Unit[];
-const indicators = (name: string) => JSON.parse(readFileSync(`data/v1/indicators/${name}.json`, "utf8")) as Figures[];
-const indicators2014 = (name: string) => JSON.parse(readFileSync(`data/v1/indicators/2014/${name}.json`, "utf8")) as Figures[];
+const indicators = (name: string) => readLevel<Figures>("data/v1/indicators", name);
+const indicators2014 = (name: string) => readLevel<Figures>("data/v1/indicators/2014", name);
 const economy = (name: string) => JSON.parse(readFileSync(`data/v1/economy/${name}.json`, "utf8")) as Establishments[];
 
 interface Unit {
@@ -42,7 +43,7 @@ const cercles = attributes("cercles");
 const figuresOf = new Map(
   [...indicators("communes"), ...indicators("provinces"), ...indicators("regions"), ...indicators("arrondissements")].map((f) => [f.code, f]),
 );
-const national = JSON.parse(readFileSync("data/v1/indicators/national.json", "utf8")) as Figures;
+const national = indicators("national")[0]!;
 const establishmentsOf = new Map(
   [...economy("communes"), ...economy("provinces"), ...economy("regions"), ...economy("arrondissements")].map((r) => [r.code, r]),
 );

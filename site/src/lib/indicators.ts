@@ -2,23 +2,22 @@
  * HCP's census indicators, read once at build time for the région, province and commune
  * pages. Each record carries 2014 beside 2024, where the census counted the unit.
  */
-import { readFileSync } from "node:fs";
 import { COMPARABLE_2014, type Census, type IndicatorRecord, type Topics } from "../../../api/src/lib/indicators.ts";
+import { readLevel } from "../../../pipeline/src/lib/levels.ts";
 
-const read = (name: string, census = ".") =>
-  JSON.parse(readFileSync(`data/v1/indicators/${census}/${name}.json`, "utf8"));
+const read = (name: string, census = ".") => readLevel<IndicatorRecord>(`data/v1/indicators/${census}`, name);
 
 const LEVELS = ["regions", "provinces", "communes"];
 const before = new Map<string, Census>(
-  LEVELS.flatMap((name) => read(name, "2014") as IndicatorRecord[]).map((r) => [r.code!, { people: r.people, households: r.households }]),
+  LEVELS.flatMap((name) => read(name, "2014")).map((r) => [r.code!, { people: r.people, households: r.households }]),
 );
 const withPrior = (r: IndicatorRecord): IndicatorRecord => ({ ...r, "2014": before.get(r.code!) ?? null });
 
-const nation = read("national") as IndicatorRecord;
-const nationBefore = read("national", "2014") as IndicatorRecord;
-export const national: IndicatorRecord = { ...nation, "2014": { people: nationBefore.people, households: nationBefore.households } };
+const [nation] = read("national");
+const [nationBefore] = read("national", "2014");
+export const national: IndicatorRecord = { ...nation!, "2014": { people: nationBefore!.people, households: nationBefore!.households } };
 export const indicatorsOf = new Map(
-  ([...read("regions"), ...read("provinces"), ...read("communes")] as IndicatorRecord[]).map((r) => [r.code!, withPrior(r)]),
+  [...read("regions"), ...read("provinces"), ...read("communes")].map((r) => [r.code!, withPrior(r)]),
 );
 
 /** A figure off one block, or null. */

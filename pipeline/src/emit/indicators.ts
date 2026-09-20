@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { regionOfCode } from "../lib/levels.ts";
 import { join } from "node:path";
 import { AREAS, SEXES, type Field } from "../sources/hcpIndicators.ts";
 import { HOUSEHOLD_FIELDS_ALL as HOUSEHOLD_FIELDS, PEOPLE_FIELDS_ALL as PEOPLE_FIELDS } from "../sources/censusFields.ts";
@@ -75,6 +76,21 @@ export async function writeIndicators(records: IndicatorRecord[], dir: string, s
 
   for (const [level, file] of Object.entries(FILES) as [Level, string][]) {
     const rows = records.filter((r) => r.level === level);
+    if (level === "commune") {
+      // One file per région. All of them in one file comes to 34 MB for 2014, past the
+      // 25 MB an asset store will serve and past what anyone wants for one commune.
+      await rm(join(dir, `${file}.json`), { force: true });
+      await mkdir(join(dir, file), { recursive: true });
+      const byRegion = new Map<string, typeof rows>();
+      for (const r of rows) {
+        const region = regionOfCode(r.code!);
+        byRegion.set(region, [...(byRegion.get(region) ?? []), r]);
+      }
+      for (const [region, inside] of [...byRegion].sort(([a], [b]) => a.localeCompare(b))) {
+        await writeFile(join(dir, file, `${region}.json`), `${JSON.stringify(inside)}\n`);
+      }
+      continue;
+    }
     const body = level === "country" ? rows[0] : rows;
     await writeFile(join(dir, `${file}.json`), `${JSON.stringify(body)}\n`);
   }

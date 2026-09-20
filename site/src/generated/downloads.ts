@@ -111,11 +111,6 @@ export const downloads = [
         "bytes": 881217
       },
       {
-        "label": "communes.json",
-        "href": "/data/v1/indicators/communes.json",
-        "bytes": 16147233
-      },
-      {
         "label": "provinces.json",
         "href": "/data/v1/indicators/provinces.json",
         "bytes": 1229188
@@ -139,7 +134,7 @@ export const downloads = [
       {
         "label": "people.csv",
         "href": "/data/v1/indicators/2014/people.csv",
-        "bytes": 6259178
+        "bytes": 8193308
       },
       {
         "label": "households.csv",
@@ -147,24 +142,19 @@ export const downloads = [
         "bytes": 979992
       },
       {
-        "label": "communes.json",
-        "href": "/data/v1/indicators/2014/communes.json",
-        "bytes": 26207244
-      },
-      {
         "label": "provinces.json",
         "href": "/data/v1/indicators/2014/provinces.json",
-        "bytes": 1520045
+        "bytes": 2042072
       },
       {
         "label": "regions.json",
         "href": "/data/v1/indicators/2014/regions.json",
-        "bytes": 222366
+        "bytes": 297918
       },
       {
         "label": "fields.json",
         "href": "/data/v1/indicators/2014/fields.json",
-        "bytes": 58311
+        "bytes": 77261
       },
       {
         "label": "unplaced.json",
@@ -380,7 +370,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 4222
+        "bytes": 5231
       }
     ]
   }

@@ -240,10 +240,12 @@ the country every figure has to add up the tree. The 6 cities the workbook count
 arrondissement carry the exact sum of their own, marked `basis`, the same route their 2014
 population takes. `economy/README.md` has the details.
 
-The 2014 census published the same kind of figures, in workbooks of its own, and they
+The 2014 census published the same kind of figures, in 4 workbooks of its own, and they
 land on the units of today: 1,965 of the 1,979 rows, by code, through the crosswalk, or by
-name inside a commune. 65 fields ask what 2024 asks and can be subtracted from it; the
-rest changed base or categories, and each says how. `indicators/2014/README.md` has the
+name inside a commune. Three of those workbooks share a layout, so one reader takes each
+of them against its own field list. 65 fields ask what 2024 asks and can be subtracted
+from it; the rest changed base or categories, or are 2014's alone: what people did for a
+living, the sector they worked in, and the diplomas they held. Each says how. `indicators/2014/README.md` has the
 details, and `indicators/2014/unplaced.json` names the 14 rows with nowhere to land.
 
 The boundaries also say which communes border which. Two share a border when their

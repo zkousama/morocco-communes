@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.5.0",
+  "datasetVersion": "1.6.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -55,6 +55,20 @@
       "url": "https://www.hcp.ma/file/242672/",
       "licence": "Haut-Commissariat au Plan, RGPH 2024, Cartographie des établissements économiques. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "33887f36154129e9fc8eceb6d5393d5b26fae0851f153cdb1ed6358e0aed38ee",
+      "retrievedAt": "2026-09-20"
+    },
+    {
+      "id": "hcp-2014-professions",
+      "url": "https://www.hcp.ma/file/230028/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les professions et les secteurs d'activité de la population active occupée. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "c3b94173217e306fa14ce628269bd6b1f0855ccf03eb3503e5da08340c58c644",
+      "retrievedAt": "2026-09-20"
+    },
+    {
+      "id": "hcp-2014-diplomas",
+      "url": "https://www.hcp.ma/file/230031/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les diplômes de la population. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "5b6e4785caa3ef42265d4af4b4e1390195d7c114bbf58a1d9867866826329ad6",
       "retrievedAt": "2026-09-20"
     },
     {

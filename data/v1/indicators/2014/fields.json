@@ -1464,6 +1464,564 @@
         "female"
       ],
       "note": "Asked in 2014 and not in 2024."
+    },
+    {
+      "path": "profession.employed",
+      "column": "profession_employed",
+      "topic": "profession",
+      "key": "employed",
+      "label": "Employed people aged 15 and over",
+      "heading": "",
+      "category": "Population active occupée âgée de 15 ans et plus",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "profession.managersAndProfessionals",
+      "column": "profession_managers_and_professionals",
+      "topic": "profession",
+      "key": "managersAndProfessionals",
+      "label": "Legislators, officials, directors and senior professionals",
+      "heading": "Grand groupe de professions",
+      "category": "Membres des corps législatifs, élus locaux, responsables hiérarchiques de la fonction publique, directeurs et cadres de direction d'entreprises, cadres supérieurs et membres des professions libérales",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.technicians",
+      "column": "profession_technicians",
+      "topic": "profession",
+      "key": "technicians",
+      "label": "Technicians and associate professionals",
+      "heading": "Grand groupe de professions",
+      "category": "Techniciens et professions intermédiaires",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.clerks",
+      "column": "profession_clerks",
+      "topic": "profession",
+      "key": "clerks",
+      "label": "Clerical workers",
+      "heading": "Grand groupe de professions",
+      "category": "Employés",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.traders",
+      "column": "profession_traders",
+      "topic": "profession",
+      "key": "traders",
+      "label": "Traders, and commercial and financial intermediaries",
+      "heading": "Grand groupe de professions",
+      "category": "Commerçants et intermédiaires commerciaux et financiers",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.farmers",
+      "column": "profession_farmers",
+      "topic": "profession",
+      "key": "farmers",
+      "label": "Farmers, fishers, foresters and hunters",
+      "heading": "Grand groupe de professions",
+      "category": "Exploitants agricoles, pêcheurs de poissons et d'autres espèces aquatiques, forestiers, chasseurs et travailleurs assimilés",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.artisans",
+      "column": "profession_artisans",
+      "topic": "profession",
+      "key": "artisans",
+      "label": "Artisans and skilled craft workers",
+      "heading": "Grand groupe de professions",
+      "category": "Artisans et ouvriers qualifiés des métiers artisanaux (non compris les ouvriers de l'agriculture)",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.farmLabourers",
+      "column": "profession_farm_labourers",
+      "topic": "profession",
+      "key": "farmLabourers",
+      "label": "Farm and fishing labourers",
+      "heading": "Grand groupe de professions",
+      "category": "Ouvriers et manœuvres agricoles et de la pêche (y compris les ouvriers qualifiés)",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.machineOperators",
+      "column": "profession_machine_operators",
+      "topic": "profession",
+      "key": "machineOperators",
+      "label": "Plant and machine operators, and assemblers",
+      "heading": "Grand groupe de professions",
+      "category": "Conducteurs d'installations et de machines et ouvriers de l'assemblage",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.labourers",
+      "column": "profession_labourers",
+      "topic": "profession",
+      "key": "labourers",
+      "label": "Labourers, handlers and people in small trades",
+      "heading": "Grand groupe de professions",
+      "category": "Manœuvres non agricoles, manutentionnaires et travailleurs des petits métiers",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "profession.unclassified",
+      "column": "profession_unclassified",
+      "topic": "profession",
+      "key": "unclassified",
+      "label": "Work that couldn't be classified",
+      "heading": "Grand groupe de professions",
+      "category": "Travailleurs ne pouvant être classés selon la profession",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.agriculture",
+      "column": "work_sector_agriculture",
+      "topic": "workSector",
+      "key": "agriculture",
+      "label": "Agriculture, forestry and fishing",
+      "heading": "Secteur d'activité",
+      "category": "Agriculture, sylviculture et pêche",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.industry",
+      "column": "work_sector_industry",
+      "topic": "workSector",
+      "key": "industry",
+      "label": "Mining and manufacturing",
+      "heading": "Secteur d'activité",
+      "category": "Industrie extractives et manufacturières",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.utilities",
+      "column": "work_sector_utilities",
+      "topic": "workSector",
+      "key": "utilities",
+      "label": "Water and electricity",
+      "heading": "Secteur d'activité",
+      "category": "Eau et électricité",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.construction",
+      "column": "work_sector_construction",
+      "topic": "workSector",
+      "key": "construction",
+      "label": "Construction",
+      "heading": "Secteur d'activité",
+      "category": "Construction",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.commerce",
+      "column": "work_sector_commerce",
+      "topic": "workSector",
+      "key": "commerce",
+      "label": "Commerce, and vehicle repair",
+      "heading": "Secteur d'activité",
+      "category": "Commerce, réparation d'automobiles et de motocycles",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.transport",
+      "column": "work_sector_transport",
+      "topic": "workSector",
+      "key": "transport",
+      "label": "Transport, warehousing and communication",
+      "heading": "Secteur d'activité",
+      "category": "Transport, entrepôt et communication",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.marketServices",
+      "column": "work_sector_market_services",
+      "topic": "workSector",
+      "key": "marketServices",
+      "label": "Other market services",
+      "heading": "Secteur d'activité",
+      "category": "Autres services marchands",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.publicServices",
+      "column": "work_sector_public_services",
+      "topic": "workSector",
+      "key": "publicServices",
+      "label": "Public administration, education, health and social work",
+      "heading": "Secteur d'activité",
+      "category": "Administration publique, éducation, santé et action sociale",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "workSector.other",
+      "column": "work_sector_other",
+      "topic": "workSector",
+      "key": "other",
+      "label": "Extraterritorial and undeclared activity",
+      "heading": "Secteur d'activité",
+      "category": "Activités extraterritoriales et non déclarées",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census doesn't publish this by commune, so there is nothing to read it against."
+    },
+    {
+      "path": "diploma.population10Plus",
+      "column": "diploma_population_10_plus",
+      "topic": "diploma",
+      "key": "population10Plus",
+      "label": "People aged 10 and over",
+      "heading": "",
+      "category": "Population âgée de 10 ans et plus",
+      "unit": "people",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ]
+    },
+    {
+      "path": "diploma.primary",
+      "column": "diploma_primary",
+      "topic": "diploma",
+      "key": "primary",
+      "label": "Primary",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "Primaire",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "diploma.lowerSecondary",
+      "column": "diploma_lower_secondary",
+      "topic": "diploma",
+      "key": "lowerSecondary",
+      "label": "Lower secondary",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "Secondaire collégial",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "diploma.upperSecondary",
+      "column": "diploma_upper_secondary",
+      "topic": "diploma",
+      "key": "upperSecondary",
+      "label": "Upper secondary",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "Secondaire qualifiant",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "diploma.bachelor",
+      "column": "diploma_bachelor",
+      "topic": "diploma",
+      "key": "bachelor",
+      "label": "DEUG, Licence or equivalent",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "DEUG, Licence ou équivalent",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "diploma.masterOrDoctorate",
+      "column": "diploma_master_or_doctorate",
+      "topic": "diploma",
+      "key": "masterOrDoctorate",
+      "label": "Master's, doctorate or equivalent",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "Master, Doctorat ou équivalent",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "diploma.undeclared",
+      "column": "diploma_undeclared",
+      "topic": "diploma",
+      "key": "undeclared",
+      "label": "Diploma not declared",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "Diplôme non déclaré",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "diploma.none",
+      "column": "diploma_none",
+      "topic": "diploma",
+      "key": "none",
+      "label": "No general-education diploma",
+      "heading": "Plus haut diplôme de l'enseignement général",
+      "category": "Sans diplôme (EG)",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.specialisedTechnician",
+      "column": "vocational_diploma_specialised_technician",
+      "topic": "vocationalDiploma",
+      "key": "specialisedTechnician",
+      "label": "Specialised technician",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Technicien spécialisé",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.technician",
+      "column": "vocational_diploma_technician",
+      "topic": "vocationalDiploma",
+      "key": "technician",
+      "label": "Technician or middle manager",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Technicien ou Cadre moyen",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.qualification",
+      "column": "vocational_diploma_qualification",
+      "topic": "vocationalDiploma",
+      "key": "qualification",
+      "label": "Professional qualification",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Qualification professionnelle",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.specialisation",
+      "column": "vocational_diploma_specialisation",
+      "topic": "vocationalDiploma",
+      "key": "specialisation",
+      "label": "Professional specialisation",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Spécialisation professionnelle",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.initiation",
+      "column": "vocational_diploma_initiation",
+      "topic": "vocationalDiploma",
+      "key": "initiation",
+      "label": "Professional initiation",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Initiation professionnelle",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.undeclared",
+      "column": "vocational_diploma_undeclared",
+      "topic": "vocationalDiploma",
+      "key": "undeclared",
+      "label": "Diploma not declared",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Diplôme non déclaré",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
+    },
+    {
+      "path": "vocationalDiploma.none",
+      "column": "vocational_diploma_none",
+      "topic": "vocationalDiploma",
+      "key": "none",
+      "label": "No vocational diploma",
+      "heading": "Plus haut diplôme de la formation professionnelle",
+      "category": "Sans diplôme (FP)",
+      "unit": "percent",
+      "sexes": [
+        "all",
+        "male",
+        "female"
+      ],
+      "note": "The 2024 census publishes the level of education people reached rather than the diploma they hold, so there is nothing to read this against."
     }
   ],
   "households": [

@@ -11,7 +11,7 @@ authors:
   - family-names: Ajebbar
     given-names: Ousama
     alias: zkousama
-version: 1.5.0
+version: 1.6.0
 repository-code: "https://github.com/zkousama/morocco-communes"
 license:
   - MIT
