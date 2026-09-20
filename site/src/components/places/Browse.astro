@@ -35,9 +35,18 @@ const bones = (s: string) => skeleton(normalise(s));
     <p class="none" hidden>{p.noMatch}</p>
   </div>
 
+  <nav class="jump" aria-label={p.jumpLabel}>
+    {[...regions].sort((a, b) => a.code.localeCompare(b.code)).map((r) => (
+      <a href={`#region-${r.slug}`}>{r.name.fr}</a>
+    ))}
+  </nav>
+
   {[...regions].sort((a, b) => a.code.localeCompare(b.code)).map((r) => (
-    <section class="region" data-region>
-      <h2><a href={path(locale, `regions/${r.slug}/`)}>{r.name.fr}</a></h2>
+    <section class="region" data-region id={`region-${r.slug}`}>
+      <h2>
+        <a href={path(locale, `regions/${r.slug}/`)}>{r.name.fr}</a>
+        <a class="up" href="#content">{p.backToTop}</a>
+      </h2>
       {provincesIn(r.code).sort(byName).filter((pr) => communesIn(pr.code).length > 0).map((pr) => (
         <div class="province" data-province>
           <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{pr.name.fr}</a></h3>
@@ -59,6 +68,7 @@ const bones = (s: string) => skeleton(normalise(s));
 
   const input = document.querySelector<HTMLInputElement>("#filter");
   const none = document.querySelector<HTMLElement>(".filter .none");
+  const jump = document.querySelector<HTMLElement>(".jump");
   // The same folding the page wrote into data-name: accents and Arabic vowel marks off.
   const fold = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ]/g, "").toLowerCase().trim();
   input?.addEventListener("input", () => {
@@ -81,10 +91,47 @@ const bones = (s: string) => skeleton(normalise(s));
       region.hidden = !region.querySelector("[data-province]:not([hidden])");
     }
     if (none) none.hidden = shown > 0;
+    // The régions to jump to are the ones still on the page.
+    if (jump) jump.hidden = q !== "";
   });
 </script>
 
 <style>
+  /* The régions, as a line to jump by: the page runs to 1,503 names. */
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    margin: 1.5rem 0 0;
+    font-size: var(--t-xs);
+  }
+
+  .jump a {
+    color: var(--quiet);
+  }
+
+  .jump a:hover {
+    color: var(--ink);
+  }
+
+  .region h2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .up {
+    font-family: var(--sans);
+    font-size: var(--t-xs);
+    font-weight: 400;
+    color: var(--quiet);
+  }
+
+  .up:hover {
+    color: var(--ink);
+  }
+
   .filter {
     display: grid;
     gap: 0.4rem;

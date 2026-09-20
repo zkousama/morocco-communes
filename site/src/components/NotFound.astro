@@ -14,7 +14,10 @@ const copy = t(locale);
     <p class="mono code">404</p>
     <h1>{copy.notFoundTitle}</h1>
     <p>{copy.notFoundBody}</p>
-    <p><a href={path(locale)}>{copy.notFoundHome}</a></p>
+    <p class="ways">
+      <a href={path(locale)}>{copy.notFoundHome}</a>
+      <a href={path(locale, "communes/")}>{copy.notFoundCommunes}</a>
+    </p>
   </section>
 </Base>
 
@@ -22,6 +25,12 @@ const copy = t(locale);
   .lost {
     padding-block: clamp(3rem, 12vw, 8rem);
     max-width: 40rem;
+  }
+
+  .ways {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
   }
 
   .code {

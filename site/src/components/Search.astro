@@ -1,0 +1,366 @@
+---
+/**
+ * Finding a place from any page. The dialog asks the API the question the API is for —
+ * `/api/search?q=` — so a name typed any way finds its unit: another spelling, the Arabic,
+ * an exonym, or the code.
+ *
+ * Cercles are left out, since they have no page. An arrondissement has none either, and
+ * goes to the page of the city that holds it.
+ */
+import { arrondissements, communes } from "../lib/places";
+import { path, t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+
+// The 6 cities that hold arrondissements, so a result for one of them has a page to go to.
+// Checked against the data: an arrondissement's code is its city's first three groups
+// and a 0, for all 41 of them.
+const cityOf = new Map(communes.map((c) => [c.code, { slug: c.slug, name: c.name.fr }]));
+const cities = Object.fromEntries(
+  [...new Set(arrondissements.map((a) => a.communeCode))].map((code) => [code, cityOf.get(code)]),
+);
+---
+
+<div class="find">
+  <button type="button" class="open" aria-haspopup="dialog" hidden>
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <circle cx="7" cy="7" r="4.5" />
+      <line x1="10.4" y1="10.4" x2="14" y2="14" />
+    </svg>
+    {copy.findOpen}
+  </button>
+
+  <dialog
+    class="sheet"
+    aria-label={copy.findTitle}
+    data-base-commune={path(locale, "communes/")}
+    data-base-province={path(locale, "provinces/")}
+    data-base-region={path(locale, "regions/")}
+    data-cities={JSON.stringify(cities)}
+    data-browse={path(locale, "communes/")}
+    data-in={copy.findIn}
+    data-none={copy.findNone}
+    data-offline={copy.findOffline}
+    data-levels={JSON.stringify(copy.findLevels)}
+  >
+    <form method="dialog" class="row">
+      <label for="find-q">{copy.findTitle}</label>
+      <input id="find-q" type="search" autocomplete="off" spellcheck="false" placeholder={copy.findPlaceholder} />
+      <button type="submit" class="close">{copy.findClose}</button>
+    </form>
+    <ul class="hits"></ul>
+    <p class="hint">{copy.findHint}</p>
+    <p class="none" hidden></p>
+  </dialog>
+</div>
+
+<script>
+  import { slugify } from "../lib/slug";
+
+  interface Hit {
+    code: string;
+    level: string;
+    name: { fr: string; ar: string };
+    slug: string;
+  }
+
+  const find = document.querySelector<HTMLElement>(".find");
+  const open = find?.querySelector<HTMLButtonElement>("button.open");
+  const sheet = find?.querySelector<HTMLDialogElement>("dialog.sheet");
+  const input = sheet?.querySelector<HTMLInputElement>("input");
+  const hits = sheet?.querySelector<HTMLUListElement>(".hits");
+  const none = sheet?.querySelector<HTMLParagraphElement>(".none");
+
+  if (find && open && sheet && input && hits && none) {
+    const d = sheet.dataset;
+    const cities = JSON.parse(d.cities ?? "{}") as Record<string, { slug: string; name: string }>;
+    const levels = JSON.parse(d.levels ?? "{}") as Record<string, string>;
+    const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    open.hidden = false;
+
+    /** Where a hit's page is. An arrondissement's is the page of its city. */
+    const href = (hit: Hit) => {
+      if (hit.level === "commune") return `${d.baseCommune}${hit.slug}/`;
+      if (hit.level === "province") return `${d.baseProvince}${hit.slug}/`;
+      if (hit.level === "region") return `${d.baseRegion}${hit.slug}/`;
+      // 01.511.01.05 is an arrondissement of 01.511.01.0, the commune of Tanger.
+      const city = cities[`${hit.code.split(".").slice(0, 3).join(".")}.0`];
+      return city ? `${d.baseCommune}${city.slug}/` : null;
+    };
+
+    const cityName = (hit: Hit) => cities[`${hit.code.split(".").slice(0, 3).join(".")}.0`]?.name ?? "";
+
+    /**
+     * A code is not a name, and the name search would answer it with whatever it sounds
+     * like. Each collection resolves an identifier of its own — dotted, padded, bare — so
+     * a query of digits and dots asks them in turn and stops at the one that answers.
+     */
+    const byCode = async (q: string): Promise<Hit[]> => {
+      const all = [
+        ["communes", "commune"],
+        ["arrondissements", "arrondissement"],
+        ["provinces", "province"],
+        ["regions", "region"],
+      ] as const;
+      // The shape of the code says which collection to ask first: 01 is a région, 01.511 a
+      // province, and anything longer a commune or one of its arrondissements.
+      const groups = q.split(".").length;
+      const first = groups === 1 ? "regions" : groups === 2 ? "provinces" : "communes";
+      const collections = [...all].sort((a, b) => (a[0] === first ? -1 : b[0] === first ? 1 : 0));
+      for (const [collection, level] of collections) {
+        try {
+          const response = await fetch(`/api/${collection}/${encodeURIComponent(q)}`);
+          if (!response.ok) continue;
+          const unit = (await response.json()).data as { code: string; name: { fr: string; ar: string }; slug?: string };
+          // A province and a région carry no slug of their own; their page is under the
+          // same slug the build writes from the French name.
+          return [{ code: unit.code, level, name: unit.name, slug: unit.slug ?? slugify(unit.name.fr) }];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    };
+
+    let latest = 0;
+    const search = async (q: string) => {
+      const mine = ++latest;
+      hits.innerHTML = "";
+      none.hidden = true;
+      if (q.trim().length < 2) return;
+      const code = /^[\d.\s]+$/.test(q.trim());
+      let rows: Hit[] = [];
+      try {
+        if (code) {
+          rows = await byCode(q.trim().replace(/\s+/g, ""));
+        } else {
+          const response = await fetch(
+            `/api/search?q=${encodeURIComponent(q)}&levels=commune,arrondissement,province,region&limit=8`,
+          );
+          if (!response.ok && response.status !== 404) throw new Error(String(response.status));
+          rows = response.ok ? ((await response.json()).data as Hit[]) : [];
+        }
+      } catch {
+        if (mine !== latest) return;
+        hits.innerHTML = "";
+        none.textContent = d.offline ?? "";
+        none.hidden = false;
+        return;
+      }
+      if (mine !== latest) return;
+      const listed = rows.map((hit) => ({ hit, url: href(hit) })).filter((r) => r.url !== null);
+      hits.innerHTML = listed
+        .map(({ hit, url }) => {
+          const level = levels[hit.level] ?? hit.level;
+          const where = hit.level === "arrondissement" ? ` ${d.in} ${escape(cityName(hit))}` : "";
+          return `<li><a href="${url}"><span class="hit-name">${escape(hit.name.fr)}</span><span class="hit-where">${escape(level)}${where}</span></a></li>`;
+        })
+        .join("");
+      none.textContent = d.none ?? "";
+      none.hidden = listed.length > 0;
+    };
+
+    let timer = 0;
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => void search(input.value), 120);
+    });
+
+    const show = () => {
+      sheet.showModal();
+      input.value = "";
+      hits.innerHTML = "";
+      none.hidden = true;
+      input.focus();
+    };
+    open.addEventListener("click", show);
+
+    // The arrows walk the results, and Enter on the input opens the first.
+    sheet.addEventListener("keydown", (event) => {
+      const links = [...hits.querySelectorAll<HTMLAnchorElement>("a")];
+      if (links.length === 0) return;
+      const at = links.indexOf(document.activeElement as HTMLAnchorElement);
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        links[Math.min(at + 1, links.length - 1)]?.focus();
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        if (at <= 0) input.focus();
+        else links[at - 1]?.focus();
+      } else if (event.key === "Enter" && document.activeElement === input) {
+        event.preventDefault();
+        links[0]?.click();
+      }
+    });
+
+    // A click on the backdrop, which is the dialog's own box outside the sheet.
+    sheet.addEventListener("click", (event) => {
+      if (event.target === sheet) sheet.close();
+    });
+
+    // "/" anywhere but a field opens it, the way a search box is reached everywhere else.
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const on = document.activeElement;
+      if (on instanceof HTMLInputElement || on instanceof HTMLTextAreaElement || on instanceof HTMLSelectElement) return;
+      if (sheet.open) return;
+      event.preventDefault();
+      show();
+    });
+  }
+</script>
+
+<style>
+  .find {
+    display: flex;
+  }
+
+  .open[hidden] {
+    display: none;
+  }
+
+  .open {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--quiet);
+    font: inherit;
+    font-size: var(--t-xs);
+    cursor: pointer;
+  }
+
+  .open:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .open svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  .sheet {
+    width: min(34rem, calc(100vw - 2rem));
+    margin-top: 12vh;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .sheet::backdrop {
+    background: color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .row label {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    white-space: nowrap;
+  }
+
+  .row input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    padding: 0.2rem 0;
+  }
+
+  .row input:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+  .close {
+    font: inherit;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .close:hover {
+    color: var(--ink);
+  }
+
+  .hint,
+  .none {
+    margin: 0;
+    padding: 0.6rem 0.9rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .hits {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: min(24rem, 60vh);
+    overflow-y: auto;
+  }
+
+  /* The hint gives way to results as soon as there are any. */
+  .hits:not(:empty) ~ .hint {
+    display: none;
+  }
+
+  .none[hidden] {
+    display: none;
+  }
+
+  .hits a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.9rem;
+    color: var(--ink);
+    text-decoration: none;
+    border-top: 1px solid var(--rule);
+  }
+
+  .hits li:first-child a {
+    border-top: 0;
+  }
+
+  .hits a:hover,
+  .hits a:focus-visible {
+    background: var(--rule);
+  }
+
+  .hits :global(.hit-where) {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 30rem) {
+    .row label {
+      display: none;
+    }
+  }
+</style>

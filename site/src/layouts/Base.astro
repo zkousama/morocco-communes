@@ -1,5 +1,6 @@
 ---
 import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
+import Search from "../components/Search.astro";
 
 interface Props {
   locale: Locale;
@@ -109,6 +110,7 @@ const themes = [
         ))}
       </nav>
       <div class="controls">
+        <Search locale={locale} />
         <nav class="tongues" aria-label={copy.language}>
           {LOCALES.map((l) => (
             <a href={path(l, route)} hreflang={l} lang={l} aria-current={current && l === locale ? "page" : undefined}>

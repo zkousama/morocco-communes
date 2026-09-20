@@ -8,6 +8,7 @@ import { readBoundaries, type Topology } from "../../../api/src/emit/boundaries.
 import { buildGeometry } from "../../../api/src/emit/geometry.ts";
 import { sphericalArea } from "../../../pipeline/src/geo/rings.ts";
 import { boxOf, fit, pathOf, simplify, type Point } from "./geo.ts";
+import { slugify } from "./slug";
 
 interface Name {
   fr: string;
@@ -73,13 +74,7 @@ export interface Arrondissement {
 
 const read = <T>(name: string) => JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as T[];
 
-export const slugify = (text: string) =>
-  text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+export { slugify } from "./slug";
 
 export const regions = read<Omit<Region, "slug">>("regions").map((r) => ({ ...r, slug: slugify(r.name.fr) })) as Region[];
 export const provinces = read<Omit<Province, "slug">>("provinces").map((p) => ({ ...p, slug: slugify(p.name.fr) })) as Province[];
