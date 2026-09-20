@@ -43,7 +43,8 @@ const problemsFor = (
   fields.forEach((f, i) => {
     const col = firstColumn + i;
     if (clean(rows[headingRow]?.[col])) heading = clean(rows[headingRow]?.[col]);
-    if (heading !== f.heading) problems.push(`column ${col}: heading ${JSON.stringify(heading)}, expected ${JSON.stringify(f.heading)}`);
+    const expected = f.sheetHeading ?? f.heading;
+    if (heading !== expected) problems.push(`column ${col}: heading ${JSON.stringify(heading)}, expected ${JSON.stringify(expected)}`);
     const category = clean(rows[categoryRow]?.[col]);
     if (category !== (f.category ?? "")) problems.push(`column ${col}: category ${JSON.stringify(category)}, expected ${JSON.stringify(f.category ?? "")}`);
   });

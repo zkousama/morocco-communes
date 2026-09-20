@@ -202,6 +202,8 @@ const written = new Set([
   ...[...geometry.arrondissements.keys()].map((code) => `/api/arrondissements/${code}/boundary.geojson`),
   ...[...geometry.arrondissementsByCommune.keys()].map((code) => `/api/communes/${code}/arrondissements.geojson`),
   ...[...geometry.regionOutlines.keys()].map((code) => `/api/regions/${code}/boundary.geojson`),
+  // The API build writes the spec beside the rest, and the API page links to it.
+  "/api/openapi.json",
 ]);
 for (const f of files) {
   if (!written.has(f.example)) throw new Error(`the reference quotes ${f.example}, which the API doesn't emit`);

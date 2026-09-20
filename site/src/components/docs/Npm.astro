@@ -12,11 +12,12 @@ interface Props {
 const { locale } = Astro.props;
 const d = docs[locale].npm;
 
+// The comments are what a reader of the page reads, so they follow the page's language.
 const use = `import { regions, provincesOf, communesOf, getCommune } from "morocco-communes";
 
 regions[0].name.fr;         // "Tanger-Tétouan-Al Hoceima"
-provincesOf("01");          // its 8 provinces and préfectures
-communesOf("01.511");       // the 12 communes of Tanger-Assilah
+provincesOf("01");          // ${d.useProvinces}
+communesOf("01.511");       // ${d.useCommunes}
 getCommune("tanger");       // { code: "01.511.01.0", type: "urban", population: 1275428, ... }`;
 
 const one = `import regions from "morocco-communes/regions";`;

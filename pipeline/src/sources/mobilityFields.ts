@@ -21,7 +21,7 @@ const field = (
   label: string,
   heading: string,
   unit: Unit,
-  extra: { category?: string; comparableTo?: string; note?: string } = {},
+  extra: { category?: string; comparableTo?: string; note?: string; sheetHeading?: string } = {},
 ): MobilityField => ({
   topic,
   key,
@@ -32,6 +32,7 @@ const field = (
   sexes: EVERY,
   ...(extra.comparableTo ? { comparableTo: extra.comparableTo } : {}),
   ...(extra.note ? { note: extra.note } : {}),
+  ...(extra.sheetHeading ? { sheetHeading: extra.sheetHeading } : {}),
 });
 
 const group = (
@@ -100,10 +101,12 @@ export const MOBILITY_FIELDS_2014: MobilityField[] = [
       "The 2024 census asks instead whether a person travels to work at all, which covers more than working at home."],
     ["undetermined", "Non déterminé", "Not stated", undefined, "The 2024 workbook has no such category."],
   ]),
-  // The count of people in education sits under the transport heading in the workbook,
-  // with nothing of its own above it, so that is the heading it is checked against.
-  field("study", "students", "People in education", MODE_2014, "people", {
+  // The count of people in education sits under the workers' transport heading, which the
+  // workbook fills down over it. That heading belongs to the topic above, so it is checked
+  // against and not published.
+  field("study", "students", "People in education", "", "people", {
     category: "Population scolarisée",
+    sheetHeading: MODE_2014,
     note: "Asked in 2014 and not in 2024.",
   }),
   ...group("study", STUDY_PLACE_2014, [

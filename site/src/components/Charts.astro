@@ -188,7 +188,7 @@ const spoken = (row: (typeof spread)[number]) =>
           <span class="rangename">
             {row.basis === "exact_code" ? copy.spreadUnchanged : copy.spreadCrosswalk}
             <span class="n">{group.format(row.count)}</span>
-            <span class="sr-only">: {spoken(row)}</span>
+            <span class="sr-only">{locale === "fr" ? " : " : ": "}{spoken(row)}</span>
           </span>
           <span class="rangetrack" aria-hidden="true">
             {ticks.map((tick) => (

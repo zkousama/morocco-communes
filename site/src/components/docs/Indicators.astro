@@ -62,7 +62,9 @@ const topicsOf = (fields: Field[]) => {
 // HCP's headings are French. The French page reads them as they are; the English one
 // leads with an English label and keeps HCP's wording beside it, marked as French.
 const english = locale === "en";
-const source = (f: Field) => (f.category ? `${f.heading} · ${f.category}` : f.heading);
+// A column that opens a block has no heading above it, only a category, so the separator
+// would lead. HCP's own wording is whichever of the two the workbook prints.
+const source = (f: Field) => [f.heading, f.category].filter(Boolean).join(" · ");
 const sections = [
   { id: "people", label: d.people, topics: topicsOf(dictionary.people) },
   { id: "households", label: d.households, topics: topicsOf(dictionary.households) },

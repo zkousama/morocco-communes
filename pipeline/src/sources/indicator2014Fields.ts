@@ -26,6 +26,11 @@ export interface Field2014 {
   comparableTo?: string;
   /** What differs, for a field that looks comparable and isn't. */
   note?: string;
+  /**
+   * The heading the workbook fills down over this column, where it belongs to the topic
+   * above rather than to this field. The layout check reads this; nothing else does.
+   */
+  sheetHeading?: string;
 }
 
 const EVERY: Sex[] = ["all", "male", "female"];

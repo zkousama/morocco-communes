@@ -47,7 +47,9 @@ const size = (bytes: number) => {
   // Decimal units, since KB and MB are what they are labelled; a file manager agrees.
   if (bytes < 1000) return `${bytes} ${units[0]}`;
   if (bytes < 1_000_000) {
-    return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 0 }).format(bytes / 1000)} ${units[1]}`;
+    // A decimal under 10 KB, where rounding to whole kilobytes is out by a fifth.
+    const digits = bytes < 10_000 ? 1 : 0;
+    return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: digits }).format(bytes / 1000)} ${units[1]}`;
   }
   return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 1 }).format(bytes / 1_000_000)} ${units[2]}`;
 };

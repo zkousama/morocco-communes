@@ -151,7 +151,7 @@ const toc = [
         </ul>
 
         <Code locale={locale} label={`${d.example} · GET ${op.example.request}`} html={highlightJson(op.example.body)} tall />
-        {op.example.cut && <p class="note cut">{fill(d.cutNote, op.example.cut)}</p>}
+        {op.example.cut && <p class="note cut">{fill(op.example.cut.shown === 1 ? d.cutNoteOne : d.cutNote, op.example.cut)}</p>}
         {op.example.trimmed && <p class="note cut">{d.trimNote}</p>}
       </article>
     ))}

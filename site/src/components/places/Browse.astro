@@ -43,7 +43,7 @@ const bones = (s: string) => skeleton(normalise(s));
           <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{pr.name.fr}</a></h3>
           <ul>
             {communesIn(pr.code).sort(byName).map((c) => (
-              <li data-name={`${fold(c.name.fr)} ${fold(c.name.ar)} ${c.slug}`} data-bones={bones(c.name.fr)}>
+              <li data-name={`${fold(c.name.fr)} ${fold(c.name.ar)} ${c.slug} ${c.code} ${c.codeDigits}`} data-bones={bones(c.name.fr)}>
                 <a href={path(locale, `communes/${c.slug}/`)}>{c.name.fr}</a>
               </li>
             ))}
