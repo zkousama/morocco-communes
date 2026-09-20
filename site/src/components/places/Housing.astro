@@ -1,0 +1,161 @@
+---
+/**
+ * The dwellings of a unit's urban area, as the 2024 census counted them.
+ *
+ * This is the one section on the page whose base is neither people nor households, and
+ * the section above it already says something about homes, so the heading names what is
+ * counted and the first line names where and what of. Every share drawn here is a share
+ * of those dwellings.
+ *
+ * A unit with no urban area has no record, and no section.
+ */
+import { fill, places } from "../../i18n/places";
+import { path, type Locale } from "../../i18n/ui";
+import { numbers, percent } from "../../lib/format";
+import { dwellings, type HousingRecord } from "../../lib/housing";
+
+interface Props {
+  locale: Locale;
+  record: HousingRecord;
+  name: string;
+}
+const { locale, record, name } = Astro.props;
+const p = places[locale];
+const n = numbers(locale);
+const share = (v: number) => percent(locale, v, { fixed: true });
+
+const at = (path: string) => dwellings(record, path);
+const figure = (label: string, value: number | null, format: (v: number) => string, beside: (string | null)[] = []) =>
+  value === null ? null : { label, value: format(value), beside: beside.filter(Boolean) as string[] };
+
+const figures = [
+  figure(p.dwellingsCount, at("dwellings.total"), (v) => n.format(v)),
+  figure(p.standingEmpty, at("occupancy.unoccupied"), share, [
+    at("occupancy.vacant") !== null ? fill(p.vacantShare, { v: share(at("occupancy.vacant")!) }) : null,
+    at("occupancy.seasonal") !== null ? fill(p.seasonalShare, { v: share(at("occupancy.seasonal")!) }) : null,
+  ]),
+  figure(p.precarious, at("type.precarious"), share, [
+    at("type.slum") !== null ? fill(p.slumShare, { v: share(at("type.slum")!) }) : null,
+  ]),
+  figure(p.onSewerage, at("networks.sewerage"), share, [
+    at("networks.water") !== null ? fill(p.onWater, { v: share(at("networks.water")!) }) : null,
+    at("networks.electricity") !== null ? fill(p.onElectricity, { v: share(at("networks.electricity")!) }) : null,
+  ]),
+  figure(p.shortfall, at("dwellings.deficitRate"), share, [p.shortfallNote]),
+].filter((f) => f !== null) as { label: string; value: string; beside: string[] }[];
+
+const kindNames = p.kindNames as Record<string, string>;
+const ageNames = p.dwellingAgeNames as Record<string, string>;
+
+/** One split of the dwellings, as shares of them. Kinds are ordered by size, ages by age. */
+const bars = (topic: string, keys: string[], labels: Record<string, string>, sorted = false) => {
+  const rows = keys
+    .map((key) => ({ key, label: labels[key] ?? key, value: at(`${topic}.${key}`) }))
+    .filter((b): b is { key: string; label: string; value: number } => b.value !== null);
+  if (!rows.some((b) => b.value > 0)) return [];
+  return sorted ? rows.sort((a, b) => b.value - a.value) : rows;
+};
+
+const kinds = bars("type", ["villa", "apartment", "traditional", "modern", "slum", "ruralType", "other"], kindNames, true);
+const ages = bars("age", ["under20", "20-49", "50+"], ageNames);
+---
+
+<section class="dwellings">
+  <h2>{p.dwellingsTitle}</h2>
+  <p>
+    {fill(p.dwellingsBody, { name })} <a href={path(locale, "docs/indicators/#dwellings")}>{p.dwellingsMore}</a>
+  </p>
+
+  {figures.length > 0 && (
+    <dl class="figures">
+      {figures.map((f) => (
+        <div>
+          <dt>{f.label}</dt>
+          <dd>
+            {f.value}
+            {f.beside.map((line) => <small>{line}</small>)}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )}
+
+  {(kinds.length > 0 || ages.length > 0) && (
+    <div class="pair">
+      <div>
+        {kinds.length > 0 && (
+          <>
+            <h3>{p.byKind}</h3>
+            <p class="note">{p.byKindBody}</p>
+            <ul class="bars">
+              {kinds.map((b) => (
+                <li>
+                  <span class="label">{b.label}</span>
+                  <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                  <span class="value">{share(b.value)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+      <div>
+        {ages.length > 0 && (
+          <>
+            <h3>{p.byAge}</h3>
+            <p class="note">{p.byAgeBody}</p>
+            <ul class="bars">
+              {ages.map((b) => (
+                <li>
+                  <span class="label">{b.label}</span>
+                  <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                  <span class="value">{share(b.value)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  h3 {
+    font-size: var(--t-sm);
+    font-weight: 500;
+    margin: 1.75rem 0 0.2rem;
+  }
+
+  .note {
+    margin: 0 0 0.75rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  /* As the sections above: 4 to a row, edges on the margins, ruled top and bottom. */
+  .dwellings .figures {
+    margin-top: 1.25rem;
+    grid-template-columns: repeat(4, max-content);
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .dwellings .figures > div {
+    padding: 1rem 0 0;
+    border-bottom: 0;
+  }
+
+  .dwellings .figures dd small + small {
+    margin-top: 0.1rem;
+  }
+
+  @media (max-width: 60rem) {
+    .dwellings .figures {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: stretch;
+    }
+  }
+</style>

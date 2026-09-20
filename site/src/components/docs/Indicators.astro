@@ -32,6 +32,7 @@ interface Field {
 const dictionary = JSON.parse(readFileSync("data/v1/indicators/fields.json", "utf8")) as { people: Field[]; households: Field[] };
 const dictionary2014 = JSON.parse(readFileSync("data/v1/indicators/2014/fields.json", "utf8")) as { people: Field[]; households: Field[] };
 const establishments = (JSON.parse(readFileSync("data/v1/economy/fields.json", "utf8")) as { fields: Field[] }).fields;
+const dwellings = (JSON.parse(readFileSync("data/v1/housing/fields.json", "utf8")) as { fields: Field[] }).fields;
 const fields2014 = [...dictionary2014.people, ...dictionary2014.households];
 const alsoIn2014 = new Set(fields2014.map((f) => f.comparableTo).filter(Boolean));
 // The 2014 fields that don't line up with a 2024 one: a question that changed between the
@@ -76,6 +77,7 @@ const toc = [
   { id: "people", label: d.people },
   { id: "households", label: d.households },
   { id: "establishments", label: d.establishments },
+  { id: "dwellings", label: d.dwellings },
   { id: "before", label: d.before },
   { id: "get", label: d.get },
 ];
@@ -150,6 +152,37 @@ const toc = [
               ))}
             </dl>
           </>
+        ))}
+      </div>
+    ))}
+  </section>
+
+  <section id="dwellings">
+    <h2>{d.dwellings}</h2>
+    <ul class="notes">
+      {d.dwellingsBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+    {topicsOf(dwellings).map(({ topic, groups }, i, all) => (
+      // dwellings.total opens the sheet and dwellings.deficitRate closes it, so that
+      // topic comes back twice and only the first run answers to the id.
+      <div class="topic" id={all.findIndex((t) => t.topic === topic) === i ? `topic-${topic}` : undefined}>
+        <h3>{d.dwellingTopics[topic as keyof typeof d.dwellingTopics] ?? topic}</h3>
+        {groups.map((g) => (
+          <dl class="fields">
+            {g.fields.map((f) => (
+              <div>
+                <dt>
+                  <code>{f.path}</code>
+                  <span class="column">{d.column} <code>{f.column}</code></span>
+                </dt>
+                <dd>
+                  <span>{english ? f.label : f.heading.split(" · ").at(-1)}</span>
+                  <span class="meta">{d.units[f.unit]}</span>
+                  {english && <span class="source" lang="fr">HCP: {f.heading}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
         ))}
       </div>
     ))}
