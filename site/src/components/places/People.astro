@@ -154,6 +154,7 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
         </p>
         {both && (
           <div class="years" role="group" aria-label={p.censusGroup}>
+            <span aria-hidden="true">{p.censusGroup}</span>
             {views.map((v, i) => (
               <button type="button" data-year={v.year} aria-pressed={i === 0 ? "true" : "false"}>{v.year}</button>
             ))}
@@ -289,7 +290,14 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
   .years {
     display: flex;
     gap: 0.25rem;
+    align-items: center;
     flex: none;
+  }
+
+  .years > span {
+    margin-inline-end: 0.15rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
   }
 
   .years button {
