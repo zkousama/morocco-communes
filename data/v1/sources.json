@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.3.0",
+  "datasetVersion": "1.4.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -49,6 +49,13 @@
       "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur la mobilité et le transport par commune. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "ed3c24c0c9dba69cac98c03bf27235211ffdf66e6edd97a84b61d9f0c64aa957",
       "retrievedAt": "2026-09-19"
+    },
+    {
+      "id": "hcp-2024-establishments",
+      "url": "https://www.hcp.ma/file/242672/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2024, Cartographie des établissements économiques. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "33887f36154129e9fc8eceb6d5393d5b26fae0851f153cdb1ed6358e0aed38ee",
+      "retrievedAt": "2026-09-20"
     },
     {
       "id": "osm",

@@ -1,0 +1,232 @@
+{
+  "census": "2024",
+  "source": {
+    "id": "hcp-2024-establishments",
+    "url": "https://www.hcp.ma/file/242672/"
+  },
+  "fields": [
+    {
+      "path": "establishments.total",
+      "column": "establishments_total",
+      "topic": "establishments",
+      "key": "total",
+      "label": "Establishments mapped",
+      "heading": "Nombre total des établissements géoréférencés",
+      "unit": "establishments"
+    },
+    {
+      "path": "establishments.publicServices",
+      "column": "establishments_public_services",
+      "topic": "establishments",
+      "key": "publicServices",
+      "label": "Public service establishments",
+      "heading": "Nombre d'établissements de services publics",
+      "unit": "establishments"
+    },
+    {
+      "path": "establishments.nonProfit",
+      "column": "establishments_non_profit",
+      "topic": "establishments",
+      "key": "nonProfit",
+      "label": "Non-profit establishments, in premises of their own",
+      "heading": "Nombre d'établissements à but non lucratif (Associations opérant dans des locaux indépendants)",
+      "unit": "establishments"
+    },
+    {
+      "path": "establishments.weeklySouks",
+      "column": "establishments_weekly_souks",
+      "topic": "establishments",
+      "key": "weeklySouks",
+      "label": "Weekly souks in use",
+      "heading": "Nombre de Souks hebodomadaires actifs",
+      "unit": "souks"
+    },
+    {
+      "path": "establishments.business",
+      "column": "establishments_business",
+      "topic": "establishments",
+      "key": "business",
+      "label": "Businesses",
+      "heading": "Nombre d'établissements à but lucratif (entreprises et leurs établissements hors secteur de l'agriculture)",
+      "category": "Nombre d'établissements",
+      "unit": "establishments"
+    },
+    {
+      "path": "establishments.jobs",
+      "column": "establishments_jobs",
+      "topic": "establishments",
+      "key": "jobs",
+      "label": "Permanent jobs in those businesses",
+      "heading": "Nombre d'établissements à but lucratif (entreprises et leurs établissements hors secteur de l'agriculture)",
+      "category": "Emplois permanents occupés par ces établissements",
+      "unit": "jobs"
+    },
+    {
+      "path": "sector.industry",
+      "column": "sector_industry",
+      "topic": "sector",
+      "key": "industry",
+      "label": "Industry",
+      "heading": "Nombre d'établissements à but lucratif : par secteur d'activité",
+      "category": "Industrie",
+      "unit": "establishments"
+    },
+    {
+      "path": "sector.construction",
+      "column": "sector_construction",
+      "topic": "sector",
+      "key": "construction",
+      "label": "Construction",
+      "heading": "Nombre d'établissements à but lucratif : par secteur d'activité",
+      "category": "Construction",
+      "unit": "establishments"
+    },
+    {
+      "path": "sector.commerce",
+      "column": "sector_commerce",
+      "topic": "sector",
+      "key": "commerce",
+      "label": "Commerce",
+      "heading": "Nombre d'établissements à but lucratif : par secteur d'activité",
+      "category": "Commerce",
+      "unit": "establishments"
+    },
+    {
+      "path": "sector.services",
+      "column": "sector_services",
+      "topic": "sector",
+      "key": "services",
+      "label": "Services",
+      "heading": "Nombre d'établissements à but lucratif : par secteur d'activité",
+      "category": "Services",
+      "unit": "establishments"
+    },
+    {
+      "path": "size.1",
+      "column": "size_1",
+      "topic": "size",
+      "key": "1",
+      "label": "One person",
+      "heading": "Nombre d'établissements à but lucratif : par classe d'emploi",
+      "category": "un seul employé",
+      "unit": "establishments"
+    },
+    {
+      "path": "size.2-3",
+      "column": "size_2_3",
+      "topic": "size",
+      "key": "2-3",
+      "label": "2 to 3 people",
+      "heading": "Nombre d'établissements à but lucratif : par classe d'emploi",
+      "category": "2 à 3",
+      "unit": "establishments"
+    },
+    {
+      "path": "size.4-9",
+      "column": "size_4_9",
+      "topic": "size",
+      "key": "4-9",
+      "label": "4 to 9 people",
+      "heading": "Nombre d'établissements à but lucratif : par classe d'emploi",
+      "category": "4 à 9",
+      "unit": "establishments"
+    },
+    {
+      "path": "size.10-49",
+      "column": "size_10_49",
+      "topic": "size",
+      "key": "10-49",
+      "label": "10 to 49 people",
+      "heading": "Nombre d'établissements à but lucratif : par classe d'emploi",
+      "category": "10 à 49",
+      "unit": "establishments"
+    },
+    {
+      "path": "size.50+",
+      "column": "size_50_plus",
+      "topic": "size",
+      "key": "50+",
+      "label": "50 people and over",
+      "heading": "Nombre d'établissements à but lucratif : par classe d'emploi",
+      "category": "50 & +",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.before1956",
+      "column": "founded_before_1956",
+      "topic": "founded",
+      "key": "before1956",
+      "label": "Before 1956",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "Avant 1956",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.1956-1980",
+      "column": "founded_1956_1980",
+      "topic": "founded",
+      "key": "1956-1980",
+      "label": "1956 to 1980",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "1956-1980",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.1981-1990",
+      "column": "founded_1981_1990",
+      "topic": "founded",
+      "key": "1981-1990",
+      "label": "1981 to 1990",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "1981-1990",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.1991-2000",
+      "column": "founded_1991_2000",
+      "topic": "founded",
+      "key": "1991-2000",
+      "label": "1991 to 2000",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "1991-2000",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.2001-2010",
+      "column": "founded_2001_2010",
+      "topic": "founded",
+      "key": "2001-2010",
+      "label": "2001 to 2010",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "2001-2010",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.2011-2019",
+      "column": "founded_2011_2019",
+      "topic": "founded",
+      "key": "2011-2019",
+      "label": "2011 to 2019",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "2011-2019",
+      "unit": "establishments"
+    },
+    {
+      "path": "founded.2020+",
+      "column": "founded_2020_plus",
+      "topic": "founded",
+      "key": "2020+",
+      "label": "2020 and later",
+      "heading": "Nombre d'établissements à but lucratif : par classe de date de création",
+      "category": "2020 et +",
+      "unit": "establishments"
+    }
+  ],
+  "notes": {
+    "counted": "Every establishment HCP's field teams found and put on the map during the 2024 census: a place of business, a public service, or an association in premises of its own.",
+    "agriculture": "Farms are out. The workbook counts the establishments of every sector but agriculture.",
+    "souks": "A weekly souk is a market that stands on one day of the week. It is counted on its own and is not part of the establishment total.",
+    "jobs": "The jobs are the permanent ones the businesses hold, so seasonal and casual work is not in the figure.",
+    "units": "The six cities that hold arrondissements carry no figures: the workbook counts those cities by arrondissement, and each arrondissement is here."
+  }
+}

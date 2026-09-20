@@ -15,13 +15,17 @@ import { buildSources, checkSources, retrievedAt, writeSources } from "./emit/so
 import { parseHcpIndicators } from "./sources/hcpIndicators.ts";
 import { parseHcp2014Indicators } from "./sources/hcp2014Indicators.ts";
 import { parseHcp2014Mobility, parseHcpCommute2024 } from "./sources/hcpMobility.ts";
+import { parseHcpEstablishments } from "./sources/hcpEstablishments.ts";
 import { joinCensus2014, joinCensus2024 } from "./sources/censusFields.ts";
 import { buildIndicators } from "./build/indicators.ts";
 import { buildIndicators2014 } from "./build/indicators2014.ts";
+import { buildEconomy } from "./build/economy.ts";
 import { checkIndicators } from "./validate/indicators.ts";
 import { checkIndicators2014 } from "./validate/indicators2014.ts";
+import { checkEconomy } from "./validate/economy.ts";
 import { writeIndicators } from "./emit/indicators.ts";
 import { toRecords2014, writeIndicators2014 } from "./emit/indicators2014.ts";
+import { writeEconomy } from "./emit/economy.ts";
 import { SOURCES } from "./sources/registry.ts";
 
 const OUT = "data/v1/attributes";
@@ -30,6 +34,7 @@ const GEOMETRY_OUT = "data/v1/geometry";
 const CROSSWALK_OUT = "data/v1/crosswalk";
 const INDICATORS_OUT = "data/v1/indicators";
 const INDICATORS_2014_OUT = "data/v1/indicators/2014";
+const ECONOMY_OUT = "data/v1/economy";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
@@ -163,6 +168,23 @@ await writeIndicators2014(records2014, placed2014.unplaced, INDICATORS_2014_OUT,
   households: { id: households2014Source.id, url: households2014Source.url },
 });
 console.log(`indicators 2014: ${records2014.length} units carry figures, ${placed2014.unplaced.length} rows have no unit to land on`);
+
+// The census's other count, of workplaces rather than people. It stops at the commune,
+// and the six cities with arrondissements are counted through those instead.
+const economy = buildEconomy(parseHcpEstablishments(sources.get("hcp-2024-establishments")!), indicators);
+for (const u of economy.unplaced) console.warn(`  establishments row ${u.code} ${u.label}: ${u.reason}`);
+const economyProblems = checkEconomy(
+  economy.records,
+  new Map(records.communes.map((c) => [c.code, c.parents.cercle])),
+  indicators.filter((r) => r.code !== null).map((r) => ({ code: r.code!, level: r.level, name: r.name.fr })),
+  new Set((records.arrondissements as { communeCode: string }[]).map((a) => a.communeCode)),
+);
+if (economyProblems.length > 0) {
+  throw new Error(`the establishments don't hold together:\n  ${economyProblems.slice(0, 40).join("\n  ")}${economyProblems.length > 40 ? `\n  and ${economyProblems.length - 40} more` : ""}`);
+}
+const economySource = SOURCES.find((s) => s.id === "hcp-2024-establishments")!;
+await writeEconomy(economy.records, economy.unplaced, ECONOMY_OUT, { id: economySource.id, url: economySource.url });
+console.log(`establishments: ${economy.records.length} units carry figures, ${economy.unplaced.length} rows have no unit to land on`);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);

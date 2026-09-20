@@ -14,6 +14,7 @@ const digests = {
   "hcp-2014-indicators-households": "e".repeat(64),
   "hcp-2024-commute": "f".repeat(64),
   "hcp-2014-mobility": "0".repeat(64),
+  "hcp-2024-establishments": "1".repeat(64),
 };
 const retrieved = new Map([
   ["hcp-2024", "2026-09-17"],
@@ -23,6 +24,7 @@ const retrieved = new Map([
   ["hcp-2014-indicators-households", "2026-09-19"],
   ["hcp-2024-commute", "2026-09-20"],
   ["hcp-2014-mobility", "2026-09-20"],
+  ["hcp-2024-establishments", "2026-09-20"],
 ]);
 const twelve = (t: string) => Array.from({ length: 12 }, () => t);
 
