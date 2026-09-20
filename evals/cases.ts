@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 const attributes = (name: string) => JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as Unit[];
 const indicators = (name: string) => JSON.parse(readFileSync(`data/v1/indicators/${name}.json`, "utf8")) as Figures[];
 const indicators2014 = (name: string) => JSON.parse(readFileSync(`data/v1/indicators/2014/${name}.json`, "utf8")) as Figures[];
+const economy = (name: string) => JSON.parse(readFileSync(`data/v1/economy/${name}.json`, "utf8")) as Establishments[];
 
 interface Unit {
   code: string;
@@ -27,6 +28,11 @@ interface Figures {
   people: Record<string, Record<string, Topics> | null>;
   households: Record<string, Topics | null>;
 }
+interface Establishments {
+  code: string;
+  name: { fr: string };
+  topics: Topics;
+}
 
 const communes = attributes("communes");
 const provinces = attributes("provinces");
@@ -37,6 +43,12 @@ const figuresOf = new Map(
   [...indicators("communes"), ...indicators("provinces"), ...indicators("regions"), ...indicators("arrondissements")].map((f) => [f.code, f]),
 );
 const national = JSON.parse(readFileSync("data/v1/indicators/national.json", "utf8")) as Figures;
+const establishmentsOf = new Map(economy("communes").map((r) => [r.code, r]));
+const nationalEconomy = JSON.parse(readFileSync("data/v1/economy/national.json", "utf8")) as Establishments;
+const counts = (code: string) => establishmentsOf.get(code)?.topics ?? fail(`no establishments for ${code}`);
+const mostJobs = [...establishmentsOf.values()].sort(
+  (a, b) => (b.topics.establishments!.jobs ?? 0) - (a.topics.establishments!.jobs ?? 0),
+)[0]!;
 const figures2014 = new Map(
   [...indicators2014("communes"), ...indicators2014("provinces"), ...indicators2014("regions")].map((f) => [f.code, f]),
 );
@@ -67,7 +79,7 @@ export interface Expect {
 
 export interface Case {
   id: string;
-  category: "lookup" | "spelling" | "language" | "geo" | "list" | "indicators" | "coverage" | "refusal";
+  category: "lookup" | "spelling" | "language" | "geo" | "list" | "indicators" | "economy" | "coverage" | "refusal";
   question: string;
   expect: Expect | ((api: string) => Promise<Expect>);
 }
@@ -370,6 +382,39 @@ export const CASES: Case[] = [
     category: "coverage",
     question: "How many cercles does Taroudannt province have?",
     expect: { numbers: [cercles.filter((c) => c.provinceCode === taroudannt.code).length], maxCalls: 4 },
+  },
+  {
+    id: "tiznit-businesses",
+    category: "economy",
+    question: "How many businesses are there in the commune of Tiznit, and how many permanent jobs do they hold?",
+    expect: {
+      numbers: [counts(tiznit.code).establishments!.business!, counts(tiznit.code).establishments!.jobs!],
+      tools: ["get_economy"],
+      maxCalls: 3,
+    },
+  },
+  {
+    id: "most-jobs",
+    category: "economy",
+    question: "Which commune in Morocco has the most permanent jobs in its businesses?",
+    expect: {
+      names: [[mostJobs.name.fr]],
+      numbers: [mostJobs.topics.establishments!.jobs!],
+      tools: ["list_communes"],
+      maxCalls: 3,
+    },
+  },
+  {
+    id: "morocco-commerce",
+    category: "economy",
+    question: "How many of Morocco's businesses are in commerce?",
+    expect: { numbers: [nationalEconomy.topics.sector!.commerce!], tools: ["get_economy"], maxCalls: 2 },
+  },
+  {
+    id: "casablanca-establishments",
+    category: "economy",
+    question: "How many establishments were mapped in the commune of Casablanca?",
+    expect: { pattern: /arrondissement/i, maxCalls: 4 },
   },
   {
     id: "atlantis",

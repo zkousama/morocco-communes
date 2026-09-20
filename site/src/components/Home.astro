@@ -74,15 +74,15 @@ const dataset =
         description:
           `Morocco's ${counts.regions} régions, ${counts.provinces} provinces and préfectures, ${counts.cercles} cercles, ` +
           `${n.format(counts.communes)} communes and ${counts.arrondissements} arrondissements, with official HCP ` +
-          "geographic codes, names in French and Arabic, population from the 2014 and 2024 censuses, and commune " +
-          "boundaries from OpenStreetMap.",
+          "geographic codes, names in French and Arabic, population from the 2014 and 2024 censuses, the 2024 count " +
+          "of economic establishments, and commune boundaries from OpenStreetMap.",
         url: new URL("/", site).href,
         sameAs: REPO_URL,
         version: reference.version,
         isAccessibleForFree: true,
         creator: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url },
         creditText: "Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014. Boundaries © OpenStreetMap contributors, ODbL.",
-        keywords: ["Morocco", "Maroc", "communes", "régions", "provinces", "census", "RGPH 2024", "HCP"],
+        keywords: ["Morocco", "Maroc", "communes", "régions", "provinces", "census", "RGPH 2024", "HCP", "establishments"],
         spatialCoverage: { "@type": "Place", name: "Morocco" },
         temporalCoverage: "2014/2024",
         distribution: downloads.flatMap((g) =>

@@ -31,6 +31,7 @@ interface Field {
 }
 const dictionary = JSON.parse(readFileSync("data/v1/indicators/fields.json", "utf8")) as { people: Field[]; households: Field[] };
 const dictionary2014 = JSON.parse(readFileSync("data/v1/indicators/2014/fields.json", "utf8")) as { people: Field[]; households: Field[] };
+const establishments = (JSON.parse(readFileSync("data/v1/economy/fields.json", "utf8")) as { fields: Field[] }).fields;
 const fields2014 = [...dictionary2014.people, ...dictionary2014.households];
 const alsoIn2014 = new Set(fields2014.map((f) => f.comparableTo).filter(Boolean));
 // The 2014 fields that don't line up with a 2024 one: a question that changed between the
@@ -74,6 +75,7 @@ const toc = [
   { id: "reading", label: d.reading },
   { id: "people", label: d.people },
   { id: "households", label: d.households },
+  { id: "establishments", label: d.establishments },
   { id: "before", label: d.before },
   { id: "get", label: d.get },
 ];
@@ -120,6 +122,38 @@ const toc = [
       ))}
     </section>
   ))}
+
+  <section id="establishments">
+    <h2>{d.establishments}</h2>
+    <ul class="notes">
+      {d.establishmentsBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+    {topicsOf(establishments).map(({ topic, groups }) => (
+      <div class="topic" id={`topic-${topic}`}>
+        <h3>{d.establishmentTopics[topic as keyof typeof d.establishmentTopics] ?? topic}</h3>
+        {groups.map((g) => (
+          <>
+            {g.grouped && !english && <p class="heading">{g.heading}</p>}
+            <dl class="fields">
+              {g.fields.map((f) => (
+                <div>
+                  <dt>
+                    <code>{f.path}</code>
+                    <span class="column">{d.column} <code>{f.column}</code></span>
+                  </dt>
+                  <dd>
+                    <span>{english ? f.label : f.category ?? f.heading}</span>
+                    <span class="meta">{meta(f)}</span>
+                    {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </>
+        ))}
+      </div>
+    ))}
+  </section>
 
   <section id="before">
     <h2>{d.before}</h2>

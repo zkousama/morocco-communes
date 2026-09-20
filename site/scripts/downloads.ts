@@ -105,6 +105,17 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    key: "dlEconomy",
+    licence: "hcp",
+    files: [
+      { label: "establishments.csv", path: "data/v1/economy/establishments.csv" },
+      { label: "communes.json", path: "data/v1/economy/communes.json" },
+      { label: "provinces.json", path: "data/v1/economy/provinces.json" },
+      { label: "regions.json", path: "data/v1/economy/regions.json" },
+      { label: "fields.json", path: "data/v1/economy/fields.json" },
+    ],
+  },
+  {
     key: "dlBoundaries",
     licence: "odbl",
     // One file per région, labelled by the région it holds rather than by its code.

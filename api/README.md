@@ -38,16 +38,19 @@ GET /api/regions/:code/provinces.json
 GET /api/regions/:code/communes/page/:n.json
 GET /api/regions/:code/boundary.geojson
 GET /api/regions/:code/indicators.json
+GET /api/regions/:code/economy.json
 GET /api/provinces.json
 GET /api/provinces/:code.json
 GET /api/provinces/:code/cercles.json
 GET /api/provinces/:code/communes/page/:n.json
 GET /api/provinces/:code/boundary.geojson
 GET /api/provinces/:code/indicators.json
+GET /api/provinces/:code/economy.json
 GET /api/cercles.json
 GET /api/cercles/:code.json
 GET /api/cercles/:code/communes/page/:n.json
 GET /api/cercles/:code/indicators.json
+GET /api/cercles/:code/economy.json
 GET /api/communes/page/:n.json
 GET /api/communes/type/:urban|rural/page/:n.json
 GET /api/communes/:code.json
@@ -55,13 +58,18 @@ GET /api/communes/:code/arrondissements.json
 GET /api/communes/:code/arrondissements.geojson
 GET /api/communes/:code/boundary.geojson
 GET /api/communes/:code/indicators.json
+GET /api/communes/:code/economy.json
 GET /api/arrondissements.json
 GET /api/arrondissements/:code.json
 GET /api/arrondissements/:code/boundary.geojson
 GET /api/arrondissements/:code/indicators.json
+GET /api/arrondissements/:code/economy.json
 GET /api/indicators.json
+GET /api/economy.json
 GET /api/regions/indicators.json
 GET /api/provinces/indicators.json
+GET /api/regions/economy.json
+GET /api/provinces/economy.json
 GET /api/tiles/:z/:x/:y.json
 GET /data/v1/**
 ```
@@ -89,6 +97,14 @@ part, and for men and women. A commune's file carries its urban centres' figures
 every province's, to compare them in one request. `/data/v1/indicators/README.md` says how to read them, and `fields.json` there names every
 field with HCP's heading for it.
 
+The 2024 census counted workplaces too, and those are at `economy.json` beside each
+record, with Morocco's at `/api/economy.json`: the establishments mapped, how many are
+public services, associations or businesses, the permanent jobs those businesses hold, the
+weekly souks in use, and the businesses by sector, by the people they employ and by when
+they were founded. `/api/regions/economy.json` and `/api/provinces/economy.json` hold every
+one of that level. The 6 cities with arrondissements are counted through them and have no
+file of their own. `/data/v1/economy/README.md` says how to read the counts.
+
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of
 them answer with an empty `data` and `totalPages: 1` rather than a 404.
@@ -107,6 +123,7 @@ the answer:
 | `/api/communes?type=urban` | `/api/communes/type/urban/page/1.json` |
 | `/api/communes/01.511.01.0` | `/api/communes/01.511.01.0.json` |
 | `/api/communes/tanger/indicators` | `/api/communes/01.511.01.0/indicators.json` |
+| `/api/communes/tiznit/economy` | `/api/communes/09.581.01.07/economy.json` |
 | `/api/regions` | `/api/regions.json` |
 
 Identifiers are accepted in four spellings, all resolving to one unit:
@@ -195,10 +212,11 @@ boundaries at 5,000 random points, and at every commune's inside point.
 ### Filter combinations, population and order
 
 `/api/communes` also takes `min_population` and `max_population`, and `sort`, which is one
-of `name`, `population`, `change`, `density` and `area`, or the path of any census
+of `name`, `population`, `change`, `density` and `area`, the path of any census
 indicator for the whole commune, such as `labour.unemploymentRate` or
-`amenities.runningWater`, with a leading minus for largest first. Sorted by an indicator,
-each commune carries `indicator`, the path and its figure. A commune with no value sorts
+`amenities.runningWater`, or an establishment count under `economy.`, such as
+`economy.establishments.jobs`, with a leading minus for largest first. Sorted by a figure,
+each commune carries `indicator`, the path and its value. A commune with no value sorts
 last either way: Sidi Mohamed Benmansour has no area, 4 communes have no 2014 figure to
 change from, and HCP publishes no figure for some indicators in some communes. A wrong
 path is a 400 that lists the keys of the topic it named.
@@ -209,12 +227,13 @@ GET /api/communes?type=rural&sort=-density              the densest rural ones
 GET /api/communes?province=01.151&sort=change           the fastest shrinking in Chefchaouen
 GET /api/communes?region=01&min_population=100000
 GET /api/communes?min_population=50000&sort=-labour.unemploymentRate
+GET /api/communes?sort=-economy.establishments.jobs      the most permanent jobs
 ```
 
 A single filter with neither of those is a pre-rendered file. Anything more is computed
 from the commune records, which the Worker holds in memory: 1.7 MB, parsed once per
-isolate in about 8 ms against its 1 s startup budget, and a 0.7 MB table of each commune's
-indicators beside them. A request then filters and sorts
+isolate in about 8 ms against its 1 s startup budget, and a 1.3 MB table of each commune's
+census figures and establishment counts beside them. A request then filters and sorts
 them in well under a millisecond.
 
 ## MCP
@@ -231,8 +250,9 @@ session: each request gets a fresh server that answers in plain JSON.
 | `commune_at` | the commune whose boundary contains a point |
 | `list_communes` | communes by région, province, cercle or type, 50 to a page, sorted by any figure or indicator |
 | `get_indicators` | HCP's 2024 census figures for Morocco, any unit, or every région or province at once, by topic, area and sex |
+| `get_economy` | the 2024 count of economic establishments for Morocco, any unit, or every région or province at once |
 
-All six are read-only and say so in their annotations, so a client can call them without
+All seven are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just
 coded, and a tool that cannot answer says why and what to call instead: asking
 `get_commune` for a province's code gets pointed to `list_communes`.

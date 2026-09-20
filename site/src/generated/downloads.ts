@@ -174,6 +174,37 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlEconomy",
+    "licence": "hcp",
+    "files": [
+      {
+        "label": "establishments.csv",
+        "href": "/data/v1/economy/establishments.csv",
+        "bytes": 196921
+      },
+      {
+        "label": "communes.json",
+        "href": "/data/v1/economy/communes.json",
+        "bytes": 703429
+      },
+      {
+        "label": "provinces.json",
+        "href": "/data/v1/economy/provinces.json",
+        "bytes": 41208
+      },
+      {
+        "label": "regions.json",
+        "href": "/data/v1/economy/regions.json",
+        "bytes": 6276
+      },
+      {
+        "label": "fields.json",
+        "href": "/data/v1/economy/fields.json",
+        "bytes": 7916
+      }
+    ]
+  },
+  {
     "key": "dlBoundaries",
     "licence": "odbl",
     "files": [
@@ -333,7 +364,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 3737
+        "bytes": 4222
       }
     ]
   }

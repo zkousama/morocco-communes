@@ -460,47 +460,4 @@ const empty = views.length === 0;
     color: var(--ink);
   }
 
-  .bars {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.35rem;
-    font-size: var(--t-sm);
-  }
-
-  .bars li {
-    display: grid;
-    grid-template-columns: 9.5rem minmax(0, 1fr) 3.5rem;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .bars .track {
-    position: relative;
-    height: 0.7rem;
-    border-radius: 3px;
-    background: var(--rule);
-  }
-
-  .bars .bar {
-    display: block;
-    height: 100%;
-    width: var(--w);
-    border-radius: 3px;
-    background: var(--seq-3);
-  }
-
-  .bars .value {
-    text-align: end;
-    font-variant-numeric: tabular-nums;
-  }
-
-  @media (max-width: 40rem) {
-    .bars li {
-      grid-template-columns: 7.5rem minmax(0, 1fr) 3.25rem;
-      gap: 0.5rem;
-    }
-  }
-
 </style>

@@ -18,7 +18,7 @@ export interface McpDeps {
   tiles: PreparedIndex;
   /** Every commune record, for lists that sort or bound the population. */
   communes: readonly ListedCommune[];
-  /** Each commune's census indicators, for lists sorted by one. */
+  /** Each commune's census figures and establishment counts, for lists sorted by one. */
   indicators: IndicatorTable;
 }
 

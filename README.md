@@ -4,8 +4,8 @@ An open dataset and HTTP API for Morocco's administrative divisions: 12 régions
 provinces and préfectures, 8 préfectures d'arrondissements, 213 cercles, 1,503 communes
 and 41 arrondissements, with
 official HCP geographic codes, names in French and Arabic, 2024 and 2014 population, HCP's
-census figures on age, education, languages, work and housing from both years, and
-boundaries from OpenStreetMap.
+census figures on age, education, languages, work and housing from both years, the 2024
+count of economic establishments, and boundaries from OpenStreetMap.
 
 HCP publishes the census as spreadsheets. This builds a dataset, an API and a site from them
 and from OpenStreetMap, and shows the working.
@@ -19,6 +19,7 @@ and from OpenStreetMap, and shows the working.
 | `attributes/` | every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `geometry/` | one TopoJSON per région | **ODbL**, share-alike |
 | `indicators/` | the census indicators for every unit, 2024 and 2014, JSON and CSV | HCP, on CC BY 4.0 terms |
+| `economy/` | the 2024 count of economic establishments for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
@@ -37,7 +38,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 7,645 files written at build time and served straight from
+**Pre-rendered.** 9,495 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -48,8 +49,9 @@ GET /api/cercles/01.511.05.json              GET /api/communes/01.511.01.0.json
 GET /api/communes/page/1.json                GET /api/communes/type/urban/page/1.json
 GET /api/communes/01.511.01.0/arrondissements.json
 GET /api/communes/01.511.01.0/indicators.json
+GET /api/communes/09.581.01.07/economy.json
 GET /api/arrondissements/01.511.01.05.json   GET /api/indicators.json
-GET /api/version.json
+GET /api/economy.json                        GET /api/version.json
 GET /data/v1/**
 ```
 
@@ -60,7 +62,7 @@ answer and names it in `Content-Location`:
 ```
 GET /api/communes?province=01.511&page=1     GET /api/communes?type=urban
 GET /api/communes/tanger                     GET /api/communes/001511010
-GET /api/communes/tanger/indicators
+GET /api/communes/tanger/indicators          GET /api/communes/tiznit/economy
 ```
 
 **Computed.** The answers no file holds:
@@ -72,11 +74,13 @@ GET /api/communes/at?lat=35.786&lng=-5.8125
 GET /api/communes?province=01.511&type=urban
 GET /api/communes?sort=-population&min_population=100000
 GET /api/communes?region=01&sort=-labour.unemploymentRate
+GET /api/communes?sort=-economy.establishments.jobs
 ```
 
 A list sorts by any of the census indicators, by its path, and each commune it lists then
 carries the figure it was sorted by. `2014.` before the path sorts by the 2014 figure and
-`change.` by how far a commune moved between the censuses.
+`change.` by how far a commune moved between the censuses. An establishment count goes
+under `economy.`.
 
 Search takes French, Arabic or a slug. It folds the alef variants, ta-marbuta and alef
 maqsura the names actually carry, and the tatweel and vowel marks they never do but people
@@ -98,10 +102,10 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 6 read-only tools (`search`, `get_commune`,
-  `communes_near`, `commune_at`, `list_communes`, `get_indicators`), so Claude, Claude Code
-  and other MCP clients can query the data directly, census figures included. The site's
-  `/docs/mcp/` page has the setup for each client.
+- **`/mcp`**: an MCP server with 7 read-only tools (`search`, `get_commune`,
+  `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`), so
+  Claude, Claude Code and other MCP clients can query the data directly, census figures
+  included. The site's `/docs/mcp/` page has the setup for each client.
 
 ### In a form, or offline
 
@@ -219,6 +223,12 @@ before anything is placed. Each column is named after the
 heading HCP gives it, and the build refuses the workbook if a heading has moved. It then
 checks that each unit's population and household count equal the population file's and
 that the figures add up. `indicators/README.md` has the details.
+
+The census also counted workplaces. HCP's field teams mapped every economic establishment
+and published the count by commune, and it lands on 1,847 units: 22 figures each, from the
+establishments mapped down to the businesses by sector, by the people they employ and by
+the decade they were founded. Inside a unit the parts have to make the total, and across
+the country every figure has to add up the tree. `economy/README.md` has the details.
 
 The 2014 census published the same kind of figures, in workbooks of its own, and they
 land on the units of today: 1,965 of the 1,979 rows, by code, through the crosswalk, or by

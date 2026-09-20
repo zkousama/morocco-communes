@@ -1,0 +1,165 @@
+---
+/**
+ * The establishments the 2024 census mapped in a unit: how many there are, how many are
+ * businesses, how many jobs those hold, and the businesses by sector, by the people they
+ * employ and by when they were founded.
+ *
+ * The three splits are drawn as shares of the businesses, since that is what they divide.
+ * The counts themselves are above, where a figure is worth reading on its own.
+ */
+import { fill, places } from "../../i18n/places";
+import { path, type Locale } from "../../i18n/ui";
+import { numbers, percent } from "../../lib/format";
+import { count, nationalEconomy, type EconomyRecord } from "../../lib/economy";
+import { figure as censusFigure, national as nationalCensus } from "../../lib/indicators";
+
+interface Props {
+  locale: Locale;
+  record: EconomyRecord;
+  /** The unit's 2024 population, for the rate per 1,000 people. */
+  population: number | null;
+}
+const { locale, record, population } = Astro.props;
+const p = places[locale];
+const n = numbers(locale);
+const one = numbers(locale, 1, true);
+const share = (v: number) => percent(locale, v, { fixed: true });
+
+const figure = (key: string) => count(record, `establishments.${key}`);
+const total = figure("total") ?? 0;
+const business = figure("business") ?? 0;
+const jobs = figure("jobs") ?? 0;
+const souks = figure("weeklySouks") ?? 0;
+
+// Morocco's own rate, to read a unit's against. Both are the legal population the same
+// census published, the one the commune records carry.
+const perThousand = (value: number, people: number | null) => (people && people > 0 ? (value / people) * 1000 : null);
+const rate = perThousand(total, population);
+const national = perThousand(
+  count(nationalEconomy, "establishments.total") ?? 0,
+  censusFigure(nationalCensus.people.total?.all, "population.legal"),
+);
+
+const headline = (label: string, value: number | null, beside: (string | null)[] = []) =>
+  value === null ? null : { label, value: n.format(value), beside: beside.filter(Boolean) as string[] };
+
+const figures = [
+  headline(p.establishments, total, [
+    rate !== null ? fill(p.perThousand, { v: one.format(rate) }) : null,
+    rate !== null && national !== null && record.level !== "country" ? fill(p.moroccoPerThousand, { v: one.format(national) }) : null,
+  ]),
+  headline(p.businesses, business, [total > 0 ? fill(p.businessShare, { v: share((business / total) * 100) }) : null]),
+  headline(p.jobs, jobs, [business > 0 ? fill(p.perBusiness, { v: one.format(jobs / business) }) : null]),
+  headline(p.publicServices, figure("publicServices")),
+  headline(p.associations, figure("nonProfit"), [p.associationsNote]),
+  souks > 0 ? headline(p.souks, souks, [p.souksNote]) : null,
+].filter((h) => h !== null) as { label: string; value: string; beside: string[] }[];
+
+const sectorNames = p.sectorNames as Record<string, string>;
+const sizeNames = p.sizeNames as Record<string, string>;
+const foundedNames = p.foundedNames as Record<string, string>;
+
+/** One split of the businesses, as shares of them. Sizes and years keep their own order. */
+const bars = (topic: string, keys: string[], labels: Record<string, string>, sorted = false) => {
+  if (business === 0) return [];
+  const rows = keys.map((key) => ({
+    key,
+    label: labels[key] ?? key,
+    value: ((count(record, `${topic}.${key}`) ?? 0) / business) * 100,
+  }));
+  return sorted ? rows.sort((a, b) => b.value - a.value) : rows;
+};
+
+const blocks = [
+  { heading: p.bySector, body: p.bySectorBody, rows: bars("sector", ["industry", "construction", "commerce", "services"], sectorNames, true) },
+  { heading: p.bySize, body: p.bySizeBody, rows: bars("size", ["1", "2-3", "4-9", "10-49", "50+"], sizeNames) },
+  { heading: p.byFounded, body: p.byFoundedBody, rows: bars("founded", ["2020+", "2011-2019", "2001-2010", "1991-2000", "1981-1990", "1956-1980", "before1956"], foundedNames) },
+];
+const left = blocks.slice(0, 2).filter((b) => b.rows.length > 0);
+const right = blocks.slice(2).filter((b) => b.rows.length > 0);
+---
+
+<section class="work">
+  <h2>{p.work}</h2>
+  <p>
+    {p.workBody} <a href={path(locale, "docs/indicators/#establishments")}>{p.workMore}</a>
+  </p>
+
+  {figures.length > 0 && (
+    <dl class="figures">
+      {figures.map((h) => (
+        <div>
+          <dt>{h.label}</dt>
+          <dd>
+            {h.value}
+            {h.beside.map((line) => <small>{line}</small>)}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )}
+
+  {(left.length > 0 || right.length > 0) && (
+    <div class="pair">
+      {[left, right].map((column) => (
+        <div>
+          {column.map((block) => (
+            <>
+              <h3>{block.heading}</h3>
+              <p class="note">{block.body}</p>
+              <ul class="bars">
+                {block.rows.map((b) => (
+                  <li>
+                    <span class="label">{b.label}</span>
+                    <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                    <span class="value">{share(b.value)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ))}
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+
+<style>
+  h3 {
+    font-size: var(--t-sm);
+    font-weight: 500;
+    margin: 1.75rem 0 0.2rem;
+  }
+
+  .note {
+    margin: 0 0 0.75rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  /* As the census figures above: 4 to a row, edges on the margins, ruled top and bottom. */
+  .work .figures {
+    margin-top: 1.25rem;
+    grid-template-columns: repeat(4, max-content);
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .work .figures > div {
+    padding: 1rem 0 0;
+    border-bottom: 0;
+  }
+
+  .work .figures dd small + small {
+    margin-top: 0.1rem;
+  }
+
+  @media (max-width: 60rem) {
+    .work .figures {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: stretch;
+    }
+  }
+</style>

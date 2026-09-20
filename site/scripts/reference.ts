@@ -8,8 +8,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildIndex } from "../../api/src/emit/searchIndex.ts";
-import { emitIndicators, emitTree } from "../../api/src/emit/static.ts";
+import { emitEconomy, emitIndicators, emitTree } from "../../api/src/emit/static.ts";
 import { readIndicators } from "../../api/src/emit/indicators.ts";
+import { readEconomy } from "../../api/src/emit/economy.ts";
 import { buildIndicatorTable, type IndicatorRecord, type Topics } from "../../api/src/lib/indicators.ts";
 import { envelope, PROBLEMS, problem, type Envelope } from "../../api/src/lib/envelope.ts";
 import { listCommunes, parseFilter } from "../../api/src/lib/list.ts";
@@ -43,7 +44,12 @@ const lookup = buildLookup(index);
 const tree = emitTree(dataset);
 const indicatorRecords = await readIndicators("data/v1");
 emitIndicators(tree, indicatorRecords);
-const indicators = buildIndicatorTable(indicatorRecords.filter((r) => r.level === "commune"));
+const economyRecords = await readEconomy("data/v1");
+emitEconomy(tree, economyRecords);
+const indicators = buildIndicatorTable(
+  indicatorRecords.filter((r) => r.level === "commune"),
+  economyRecords.filter((r) => r.level === "commune"),
+);
 const geometry = await buildGeometry("data/v1", dataset as never);
 const tileIndex = prepareIndex(geometry.tileIndex);
 const tiles = new Map([...geometry.tiles].map(([key, tile]) => [tilePath(key), tile]));
@@ -156,6 +162,8 @@ const examples: Record<string, Example> = {
     ["amenities"],
   ),
   getNationalIndicators: trim("/api/indicators.json", file("/api/indicators.json"), ["fertility", "localLanguages"], ["households"]),
+  getEconomy: { request: "/api/communes/tiznit/economy", body: file("/api/communes/09.581.01.07/economy.json") },
+  getNationalEconomy: { request: "/api/economy.json", body: file("/api/economy.json") },
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },
 };
 
@@ -192,6 +200,8 @@ const files = [
   { key: "regionBoundary", pattern: "/api/regions/{code}/boundary.geojson", example: "/api/regions/01/boundary.geojson" },
   { key: "regionsIndicators", pattern: "/api/regions/indicators.json", example: "/api/regions/indicators.json" },
   { key: "provincesIndicators", pattern: "/api/provinces/indicators.json", example: "/api/provinces/indicators.json" },
+  { key: "regionsEconomy", pattern: "/api/regions/economy.json", example: "/api/regions/economy.json" },
+  { key: "provincesEconomy", pattern: "/api/provinces/economy.json", example: "/api/provinces/economy.json" },
   { key: "tiles", pattern: "/api/tiles/{z}/{x}/{y}.json", example: tilePath(geometry.tileIndex.leaf[0]!) },
 ] as const;
 const written = new Set([

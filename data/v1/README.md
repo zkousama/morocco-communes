@@ -64,6 +64,6 @@ and `density` is the 2024 population over it, in people per km². Together the b
 cover 685,281 km². The smallest communes are under half a km²: Moulay Yacoub, and
 Méchouar de Casablanca around the royal palace.
 
-The boundaries themselves are in `../geometry/`, which carries its own LICENSE, and HCP's
-Census indicators for every unit are in `../indicators/`, with the 2014 census in
-`../indicators/2014/`.
+The boundaries themselves are in `../geometry/`, which carries its own LICENSE. HCP's
+census indicators for every unit are in `../indicators/`, with the 2014 census in
+`../indicators/2014/`, and the 2024 count of economic establishments in `../economy/`.

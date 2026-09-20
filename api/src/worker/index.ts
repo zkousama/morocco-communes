@@ -26,7 +26,7 @@ const tileIndex = prepareIndex(rawTiles as TileIndex);
 // country. 1.7 MB, which parses in about 8 ms here, once, instead of 31 page reads on
 // every request.
 const communes = rawCommunes as unknown as ListedCommune[];
-// Each commune's census indicators, for lists sorted by one. 0.7 MB.
+// Each commune's census figures and establishment counts, for lists sorted by one. 1.3 MB.
 const indicators = rawIndicators as IndicatorTable;
 // The 6 communes divided into arrondissements, whose boundaries a point lookup reads too.
 const cities = new Set((rawArrondissements as { communeCode: string }[]).map((a) => a.communeCode));
