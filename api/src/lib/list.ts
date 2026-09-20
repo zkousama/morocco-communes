@@ -2,6 +2,7 @@ import { paginate, type Envelope, type PageMeta } from "./envelope.ts";
 import { PAGE, PER_PAGE, POPULATION } from "./params.ts";
 import { aliasPath, resolve, withArticle, type FilterQuery, type Lookup, type SortKey } from "./resolve.ts";
 import { changeBetween, indicatorProblem, INDICATOR_SORTS, type IndicatorTable } from "./indicators.ts";
+import { ECONOMY_RATIOS } from "./economy.ts";
 
 /** Reads a pre-rendered file as JSON, or null when there is no such file. */
 export type FetchJson = (path: string) => Promise<Envelope<unknown[]> | null>;
@@ -47,7 +48,7 @@ function sortProblem(sort: string): string | null {
   if (SORTS.includes(sort) || byIndicator(sort)) return null;
   const path = sort.replace(/^-/, "");
   if (path.includes(".")) return `sort: ${indicatorProblem(path)}`;
-  return `sort must be one of ${SORT_KEYS.join(", ")}, or a figure such as labour.unemploymentRate, 2014.labour.unemploymentRate, change.labour.unemploymentRate or economy.establishments.jobs, with a leading minus for largest first`;
+  return `sort must be one of ${SORT_KEYS.join(", ")}, or a figure such as labour.unemploymentRate, 2014.labour.unemploymentRate, change.labour.unemploymentRate, economy.establishments.jobs or economy.per1000.establishments, with a leading minus for largest first`;
 }
 
 const whole = (n: number | undefined) => n === undefined || (Number.isInteger(n) && n >= 0 && n <= POPULATION.max);
@@ -129,6 +130,18 @@ function valueOf(sort: string, indicators: IndicatorTable | undefined): (c: List
   const key = sort.replace(/^-/, "");
   if (key in VALUE) return VALUE[key as SortKey];
   if (!indicators) throw new Error(`sorting by ${key} needs the indicator table`);
+  const ratio = ECONOMY_RATIOS.find((r) => r.path === key);
+  if (ratio) {
+    const top = indicators.pathsEconomy.indexOf(ratio.of);
+    const bottom = ratio.per === "business" ? indicators.pathsEconomy.indexOf("economy.establishments.business") : -1;
+    return (c) => {
+      const count = indicators.valuesEconomy[c.code]?.[top];
+      const per = ratio.per === "population" ? c.population["2024"].total : indicators.valuesEconomy[c.code]?.[bottom];
+      if (count === null || count === undefined || !per) return null;
+      const value = ratio.per === "population" ? (count / per) * 1000 : count / per;
+      return Math.round(value * 10) / 10;
+    };
+  }
   if (key.startsWith("economy.")) {
     const column = indicators.pathsEconomy.indexOf(key);
     return (c) => indicators.valuesEconomy[c.code]?.[column] ?? null;
@@ -200,12 +213,19 @@ export async function listCommunes<T extends ListedCommune>(
   const path = query.sort!.replace(/^-/, "");
   const value = valueOf(path, indicators);
   // The 6 cities counted by arrondissement carry a sum of theirs, so a row ordered by one
-  // of those counts says where the figure came from rather than reading as HCP's own.
+  // of those counts says where the figure came from rather than reading as HCP's own, and
+  // a figure worked out from two counts says which division made it.
   const summed = new Set(path.startsWith("economy.") ? indicators?.summedEconomy ?? [] : []);
+  const ratio = ECONOMY_RATIOS.find((r) => r.path === path);
   return {
     rows: slice.map((c) => ({
       ...c,
-      indicator: { path, value: value(c), ...(summed.has(c.code) ? { basis: "arrondissement_sum" } : {}) },
+      indicator: {
+        path,
+        value: value(c),
+        ...(ratio ? { derived: ratio.derived } : {}),
+        ...(summed.has(c.code) ? { basis: "arrondissement_sum" } : {}),
+      },
     })),
     meta,
   };

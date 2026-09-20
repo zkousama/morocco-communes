@@ -66,6 +66,12 @@ function fail(message: string): never {
 }
 const pop = (u: Unit) => u.population["2024"].total;
 
+/** The commune with the most jobs for the people in it, among those with 20,000 or more. */
+const densestInJobs = communes
+  .filter((c) => pop(c) > 20_000 && establishmentsOf.has(c.code))
+  .map((c) => ({ ...c, per: jobsIn(establishmentsOf.get(c.code)!) / pop(c) }))
+  .sort((a, b) => b.per - a.per)[0]!;
+
 /** What an answer must hold. A name matches with or without its accents. */
 export interface Expect {
   /** Names or phrases that must all appear, each a list of acceptable spellings. */
@@ -403,6 +409,17 @@ export const CASES: Case[] = [
     expect: {
       names: [[mostJobs.name.fr]],
       numbers: [mostJobs.topics.establishments!.jobs!],
+      tools: ["list_communes"],
+      maxCalls: 3,
+    },
+  },
+  {
+    id: "jobs-for-its-size",
+    category: "economy",
+    question: "Among communes of more than 20,000 people, which has the most permanent jobs for its size?",
+    expect: {
+      // A count alone would answer Casablanca. The ranking is jobs against population.
+      names: [[densestInJobs.name.fr]],
       tools: ["list_communes"],
       maxCalls: 3,
     },

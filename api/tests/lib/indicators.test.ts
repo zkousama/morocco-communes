@@ -152,6 +152,34 @@ describe("sorting communes by an establishment count", () => {
     expect(table.summedEconomy).toHaveLength(6);
   });
 
+  it("ranks by a figure worked out from 2 counts, and says which division", async () => {
+    const listed = await listCommunes(
+      { page: 1, province: "01.511", sort: "-economy.per1000.establishments" },
+      communes as never[],
+      async () => null,
+      table,
+    );
+    const rows = listed!.rows as { code: string; population: { "2024": { total: number } }; indicator: { value: number; derived?: string } }[];
+    expect(rows[0]!.indicator.derived).toBe("establishments mapped ÷ 2024 population × 1,000");
+    const values = rows.map((r) => r.indicator.value);
+    expect(values).toEqual([...values].sort((a, b) => b - a));
+    // The figure is the division, to the decimal the site shows.
+    const first = rows[0]!;
+    const i = table.pathsEconomy.indexOf("economy.establishments.total");
+    const expected = (table.valuesEconomy[first.code]![i]! / first.population["2024"].total) * 1000;
+    expect(first.indicator.value).toBe(Math.round(expected * 10) / 10);
+  });
+
+  it("explains a division it doesn't do", () => {
+    expect(parseFilter({ sort: "-economy.per1000.souks" }, lookup)).toEqual({
+      error: {
+        kind: "invalid-query",
+        detail:
+          "sort: economy.per1000.souks isn't one of the figures worked out from the counts; they are economy.per1000.establishments, economy.per1000.jobs, economy.perBusiness.jobs",
+      },
+    });
+  });
+
   it("says on the row when the count it sorted by was summed", async () => {
     const listed = await listCommunes({ page: 1, region: "01", sort: "-economy.establishments.jobs" }, communes as never[], async () => null, table);
     const rows = listed!.rows as { code: string; indicator: { path: string; value: number; basis?: string } }[];

@@ -155,10 +155,10 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               name: "sort",
               in: "query",
               description:
-                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. An establishment count goes under `economy.`, as in `economy.establishments.jobs`. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by a figure, each commune carries `indicator`, its value, and `basis` where that value was summed from a city's arrondissements.",
+                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. An establishment count goes under `economy.`, as in `economy.establishments.jobs`, and 3 more are worked out from those counts rather than published: `economy.per1000.establishments`, `economy.per1000.jobs` and `economy.perBusiness.jobs`, which rank by how much of something a place has for its size. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by a figure, each commune carries `indicator`, its value, `derived` where the value came from a division, and `basis` where it was summed from a city's arrondissements.",
               // A string rather than an enum: with every indicator path both ways it would be
               // 214 values, which the server checks anyway, naming a topic's keys when one is wrong.
-              schema: { type: "string", default: "code", examples: ["-population", "-labour.unemploymentRate"] },
+              schema: { type: "string", default: "code", examples: ["-population", "-labour.unemploymentRate", "-economy.per1000.jobs"] },
               example: "-population",
             },
             {

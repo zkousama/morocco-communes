@@ -1,4 +1,4 @@
-import { ECONOMY_PATHS, economyProblem, economyValues, type EconomyRecord } from "./economy.ts";
+import { ECONOMY_PATHS, ECONOMY_RATIOS, economyProblem, economyValues, type EconomyRecord } from "./economy.ts";
 import {
   HOUSEHOLD_FIELDS_2014_ALL as HOUSEHOLD_FIELDS_2014,
   HOUSEHOLD_FIELDS_ALL as HOUSEHOLD_FIELDS,
@@ -56,6 +56,7 @@ export const INDICATOR_SORTS: string[] = [
   ...INDICATOR_PATHS,
   ...[...COMPARABLE_2014.keys()].flatMap((path) => [`2014.${path}`, `change.${path}`]),
   ...ECONOMY_PATHS,
+  ...ECONOMY_RATIOS.map((r) => r.path),
 ];
 
 /** Each topic's keys, in HCP's order. */

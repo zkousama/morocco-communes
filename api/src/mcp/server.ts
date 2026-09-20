@@ -361,6 +361,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
               "Put 2014. before the path for the 2014 figure, or change. for how far it moved since, " +
               "as in change.illiteracy.rate10Plus. " +
               "An establishment count goes under economy., as in economy.establishments.jobs or economy.sector.commerce, as get_economy names them. " +
+              "A count on its own ranks the biggest places first, so 3 figures worked out from 2 counts rank by size of place rather than size: " +
+              "economy.per1000.establishments, economy.per1000.jobs and economy.perBusiness.jobs. " +
               "A leading minus puts the largest first. Code order when left out.",
           ),
         min_population: z.number().int().min(0).max(POPULATION.max).optional().describe("Only communes with at least this many people in 2024."),
@@ -374,6 +376,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
               .object({
                 path: z.string(),
                 value: z.number().nullable(),
+                derived: z.string().optional().describe("The division this figure came from, when it isn't a published one."),
                 basis: z
                   .literal("arrondissement_sum")
                   .optional()
@@ -630,7 +633,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "founded (before 1956 through 2020 and later). The weekly souks in use are counted beside them and are not part of the total. " +
         "Every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out: the workbook counts every " +
         "sector but agriculture, and the jobs are the permanent ones. " +
-        "To rank communes by one of these, call list_communes with sort set to its path, such as economy.establishments.jobs; to compare the " +
+        "To rank communes by one of these, call list_communes with sort set to its path, such as economy.establishments.jobs, or by one of the 3 " +
+        "it works out from them — economy.per1000.establishments, economy.per1000.jobs, economy.perBusiness.jobs; to compare the " +
         "régions, the provinces or the arrondissements, give level without a unit and get them all in one call. " +
         "Casablanca and the 5 other cities divided into arrondissements are counted by arrondissement, so their figures are the sum of those, " +
         "marked basis: arrondissement_sum. Say so when you report one.",
