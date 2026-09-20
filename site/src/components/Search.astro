@@ -26,12 +26,12 @@ const cities = Object.fromEntries(
 ---
 
 <div class="find">
-  <button type="button" class="open" aria-haspopup="dialog" hidden>
+  <button type="button" class="open" aria-haspopup="dialog" aria-label={copy.findOpen} hidden>
     <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <circle cx="7" cy="7" r="4.5" />
       <line x1="10.4" y1="10.4" x2="14" y2="14" />
     </svg>
-    {copy.findOpen}
+    <span class="what">{copy.findOpen}</span>
   </button>
 
   <dialog
@@ -286,12 +286,15 @@ const cities = Object.fromEntries(
     color: var(--ink);
     background: transparent;
     border: 0;
+    border-bottom: 1px solid var(--rule);
     padding: 0.2rem 0;
   }
 
+  /* The field is the only one here and opens with the caret in it, so it marks focus by
+     its own line rather than a box around it. */
   .row input:focus-visible {
-    outline: 2px solid var(--brass);
-    outline-offset: 3px;
+    outline: 0;
+    border-bottom-color: var(--brass);
   }
 
   .close {
@@ -358,6 +361,23 @@ const cities = Object.fromEntries(
     font-size: var(--t-xs);
     color: var(--quiet);
     white-space: nowrap;
+  }
+
+  /* On a narrow window the button is the magnifier alone, so the languages and the theme
+     still fit beside it. */
+  @media (max-width: 48rem) {
+    .open {
+      padding: 0.3rem 0.45rem;
+    }
+
+    .open .what {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   @media (max-width: 30rem) {

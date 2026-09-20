@@ -8,7 +8,6 @@ export const places = {
     browseLede: "All {n}, by région and province.",
     filterLabel: "Find a commune",
     jumpLabel: "Régions",
-    backToTop: "Top",
     filterPlaceholder: "Tanger, Tafraout, طنجة, 01.511.01.0…",
     noMatch: "No commune by that name.",
     unitTypes: {
@@ -149,7 +148,6 @@ export const places = {
     browseLede: "Les {n}, par région et par province.",
     filterLabel: "Trouver une commune",
     jumpLabel: "Régions",
-    backToTop: "Haut",
     filterPlaceholder: "Tanger, Tafraout, طنجة, 01.511.01.0…",
     noMatch: "Aucune commune de ce nom.",
     unitTypes: {

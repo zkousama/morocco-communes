@@ -132,6 +132,13 @@ const themes = [
       <slot />
     </main>
 
+    <button type="button" class="totop" aria-label={copy.backToTop} hidden>
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <line x1="8" y1="13" x2="8" y2="3.5" />
+        <polyline points="3.6,8 8,3.4 12.4,8" />
+      </svg>
+    </button>
+
     <footer>
       <div class="credits">
         <p>{copy.footerData}</p>
@@ -174,12 +181,23 @@ const themes = [
         if (window.ResizeObserver) new ResizeObserver(publish).observe(bar);
         var last = window.scrollY;
         var narrow = window.matchMedia("(max-width: 48rem)");
+        // The way back up appears once a screenful and a half is behind you.
+        var top = document.querySelector(".totop");
+        if (top) {
+          top.hidden = false;
+          top.addEventListener("click", function () {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            var main = document.getElementById("content");
+            if (main) main.focus({ preventScroll: true });
+          });
+        }
         window.addEventListener(
           "scroll",
           function () {
             var y = window.scrollY;
             bar.classList.toggle("scrolled", y > 4);
             bar.classList.toggle("away", narrow.matches && y > last && y > bar.offsetHeight);
+            if (top) top.classList.toggle("shown", y > window.innerHeight * 1.5);
             last = y;
           },
           { passive: true },
@@ -459,11 +477,12 @@ const themes = [
         transform: translateY(-100%);
       }
 
+      /* The header runs the width of the window rather than the measure the pages hold
+         to, so the wordmark sits at one end and the theme at the other, and what is
+         between them has room. */
       .masthead {
         width: 100%;
-        max-width: 74rem;
-        margin: 0 auto;
-        padding: 1rem clamp(1rem, 4vw, 2.5rem);
+        padding: 1rem clamp(1rem, 3vw, 2.5rem);
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem 1.75rem;
@@ -486,12 +505,22 @@ const themes = [
         font-size: var(--t-sm);
       }
 
+      /* The wordmark holds its end; the controls still wrap on a narrow window. */
+      .wordmark {
+        flex: none;
+      }
+
       .sections a {
         color: var(--quiet);
         text-decoration: none;
       }
 
       .sections a:hover,
+      .sections a[aria-current] {
+        color: var(--ink);
+      }
+
+      /* Off the top until a keyboard reaches it. */
       .skip {
         position: absolute;
         inset-inline-start: 0.5rem;
@@ -509,12 +538,58 @@ const themes = [
         top: 0.5rem;
       }
 
-      main:focus {
-        outline: 0;
+      /* Back to the top of a long page, once there is a long page behind you. */
+      .totop {
+        position: fixed;
+        inset-block-end: clamp(1rem, 3vw, 2rem);
+        inset-inline-end: clamp(1rem, 3vw, 2rem);
+        z-index: 15;
+        width: 2.4rem;
+        height: 2.4rem;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        background: var(--paper);
+        color: var(--quiet);
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(0.4rem);
+        transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease, border-color 0.18s ease;
       }
 
-      .sections a[aria-current] {
+      .totop[hidden] {
+        display: none;
+      }
+
+      .totop.shown {
+        opacity: 1;
+        transform: none;
+      }
+
+      .totop:hover {
         color: var(--ink);
+        border-color: var(--ink);
+      }
+
+      .totop svg {
+        width: 1rem;
+        height: 1rem;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .totop {
+          transition: none;
+        }
+      }
+
+      main:focus {
+        outline: 0;
       }
 
       .sections a[aria-current] {
@@ -527,7 +602,7 @@ const themes = [
       .controls {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.6rem 1.5rem;
+        gap: 0.6rem clamp(0.75rem, 2vw, 1.5rem);
         align-items: baseline;
       }
 

@@ -43,10 +43,7 @@ const bones = (s: string) => skeleton(normalise(s));
 
   {[...regions].sort((a, b) => a.code.localeCompare(b.code)).map((r) => (
     <section class="region" data-region id={`region-${r.slug}`}>
-      <h2>
-        <a href={path(locale, `regions/${r.slug}/`)}>{r.name.fr}</a>
-        <a class="up" href="#content">{p.backToTop}</a>
-      </h2>
+      <h2><a href={path(locale, `regions/${r.slug}/`)}>{r.name.fr}</a></h2>
       {provincesIn(r.code).sort(byName).filter((pr) => communesIn(pr.code).length > 0).map((pr) => (
         <div class="province" data-province>
           <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{pr.name.fr}</a></h3>
@@ -111,24 +108,6 @@ const bones = (s: string) => skeleton(normalise(s));
   }
 
   .jump a:hover {
-    color: var(--ink);
-  }
-
-  .region h2 {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .up {
-    font-family: var(--sans);
-    font-size: var(--t-xs);
-    font-weight: 400;
-    color: var(--quiet);
-  }
-
-  .up:hover {
     color: var(--ink);
   }
 
