@@ -5,6 +5,7 @@ import Params from "./Params.astro";
 import { typeOf, type Schema } from "../../lib/schema";
 import { mcp } from "../../generated/mcp";
 import { docs } from "../../i18n/docs";
+import { fill } from "../../i18n/places";
 import { inline } from "../../lib/inline";
 import type { Locale } from "../../i18n/ui";
 
@@ -17,6 +18,10 @@ const d = docs[locale].mcp;
 const url = `${Astro.site?.origin ?? "https://your-deployment"}/mcp`;
 const NAME = "morocco-communes";
 const json = (value: unknown) => JSON.stringify(value, null, 2);
+
+// For a reader who doesn't know which client they're in: the assistant knows its own
+// configuration, so it is told what to add rather than the reader being told where.
+const byPrompt = fill(d.byPromptText.join("\n"), { url, name: NAME });
 
 // Each client's own format, checked against its documentation in September 2026.
 const clients = [
@@ -102,6 +107,13 @@ const toc = [
   <section id="connect">
     <h2>{d.connect}</h2>
     <p>{d.connectBody}</p>
+
+    <div class="client" id="prompt">
+      <h3>{d.byPrompt}</h3>
+      <p class="quiet">{d.byPromptBody}</p>
+      <Code locale={locale} label={d.byPromptLabel} code={byPrompt} />
+    </div>
+
     {clients.map((c) => (
       <div class="client" id={c.id}>
         <h3>{c.name}</h3>
