@@ -85,7 +85,8 @@ const right = blocks.slice(2).filter((b) => b.rows.length > 0);
     {record.basis === "arrondissement_sum"
       ? fill(p.workSummed, { name: record.name.fr, n: n.format(arrondissementCount.get(record.code!) ?? 0) })
       : p.workBody}{" "}
-    <a href={path(locale, "docs/indicators/#establishments")}>{p.workMore}</a>
+    <a href={path(locale, "docs/indicators/#establishments")}>{p.workMore}</a>{" · "}
+    <a href={path(locale, "docs/glossary/#work")}>{p.glossary}</a>
   </p>
 
   {figures.length > 0 && (

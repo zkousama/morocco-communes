@@ -2,7 +2,7 @@
  * The dataset's own version, independent of the API's. Major for a breaking schema
  * change, minor for an added field, patch for a correction. Bumped deliberately.
  */
-export const DATASET_VERSION = "1.7.0";
+export const DATASET_VERSION = "1.7.1";
 
 export interface SourceSpec {
   id: string;

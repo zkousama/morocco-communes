@@ -130,9 +130,10 @@ Full reference: [`api/README.md`](api/README.md).
 ## The docs site
 
 `site/` is an Astro site in English and French, with a light and dark theme and a control
-to pick either or follow the system. It builds to static HTML: the home page, 6 docs pages
-(the API reference, the MCP setup, the components, the npm package, the Python package and
-the census figures), and a page for every région, province and commune, 3,214 pages in all.
+to pick either or follow the system. It builds to static HTML: the home page, 7 docs pages
+(the API reference, the MCP setup, the components, the npm package, the Python package,
+the census figures and a glossary), and a page for every région, province and commune,
+3,216 pages in all.
 
 The home page opens on a map of every commune, shaded by density, change since 2014, or
 urban and rural. Hovering one shows its figures and clicking opens its page. A commune's

@@ -507,6 +507,6 @@
     "urbanOnly": "Urban only. A unit with no urban area has no record here, and a unit's figures cover its urban part rather than all of it.",
     "shares": "Every figure but the count of dwellings is a percentage of that unit's urban dwellings, to one decimal.",
     "gaps": "Null is a figure the workbook leaves out, which it writes as `_`. The age of the dwellings by type is left that way for most units.",
-    "deficit": "dwellings.deficitRate is HCP's quantitative housing shortfall, the share of households that would need a dwelling built for them."
+    "deficit": "dwellings.deficitRate is HCP's quantitative housing shortfall: the households living in unsound dwellings, plus the households beyond the sound shared dwellings they occupy, over the sound dwellings that are occupied or vacant. Households on top, dwellings underneath, so it passes 100% where the shortfall is larger than the sound stock."
   }
 }

@@ -63,7 +63,8 @@ const ages = bars("age", ["under20", "20-49", "50+"], ageNames);
 <section class="dwellings">
   <h2>{p.dwellingsTitle}</h2>
   <p>
-    {fill(p.dwellingsBody, { name })} <a href={path(locale, "docs/indicators/#dwellings")}>{p.dwellingsMore}</a>
+    {fill(p.dwellingsBody, { name })} <a href={path(locale, "docs/indicators/#dwellings")}>{p.dwellingsMore}</a>{" · "}
+    <a href={path(locale, "docs/glossary/#dwellings")}>{p.glossary}</a>
   </p>
 
   {figures.length > 0 && (

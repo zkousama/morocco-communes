@@ -277,7 +277,7 @@ export const docs = {
         "This is the one set here whose base is neither people nor households. An empty flat is in it and in nobody's census record, and the figures cover a unit's urban part rather than all of it.",
         "Every figure but the count of dwellings is a percentage of that unit's urban dwellings, to one decimal.",
         "784 units have an urban stock. A unit with no urban area has no record, and null inside a record is a figure the workbook leaves out, which it writes as `_`.",
-        "`dwellings.deficitRate` is the housing shortfall: the share of households that would need a dwelling built for them, which passes 100% where households outnumber the dwellings.",
+        "`dwellings.deficitRate` is HCP's quantitative housing shortfall: the households living in unsound dwellings, plus the households beyond the sound shared dwellings they occupy, over the sound dwellings that are occupied or vacant. Households on top and dwellings underneath, so it passes 100% where the shortfall is larger than the sound stock.",
         "`/api/communes/tiznit/housing` gives one unit's and `/api/housing.json` Morocco's. The MCP server's `get_housing` tool gives them to an assistant.",
       ],
       dwellingTopics: {
@@ -603,7 +603,7 @@ export const docs = {
         "C'est le seul ensemble ici dont la base n'est ni les habitants ni les ménages. Un appartement vide y figure et dans la fiche de personne, et les chiffres portent sur la partie urbaine de l'unité.",
         "Tous les chiffres sauf le nombre de logements sont des pourcentages des logements urbains de l'unité, à une décimale.",
         "784 unités ont un parc urbain. Une unité sans partie urbaine n'a pas de fiche, et null dans une fiche est un chiffre que le classeur laisse de côté, écrit `_`.",
-        "`dwellings.deficitRate` est le déficit en logement : la part des ménages à qui il faudrait en construire un, qui dépasse 100 % là où les ménages sont plus nombreux que les logements.",
+        "`dwellings.deficitRate` est le taux de déficit quantitatif du HCP : les ménages vivant dans des logements insalubres, plus les ménages en excédent sur les logements salubres de cohabitation qu'ils occupent, rapportés aux logements salubres occupés et vacants. Des ménages au numérateur et des logements au dénominateur : le taux dépasse donc 100 % là où le déficit est plus grand que le parc salubre.",
         "`/api/communes/tiznit/housing` donne celui d'une unité et `/api/housing.json` celui du Maroc. L'outil `get_housing` du serveur MCP les donne à un assistant.",
       ],
       dwellingTopics: {

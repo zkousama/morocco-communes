@@ -14,8 +14,7 @@ For each unit: how many urban dwellings it has, and then, as a share of them, ho
 occupied, vacant or second homes; what kind they are, from a villa or an apartment to a
 slum or a rural-type dwelling; how old they are, in 3 bands, and how old each kind is;
 what their walls and roofs are made of; how many are on the public electricity, water and
-sewerage networks; and HCP's housing shortfall, the share of households that would need a
-dwelling built for them.
+sewerage networks; and HCP's quantitative housing shortfall.
 
 Nationally that is 8,336,782 urban dwellings: 71.1% occupied, 13.4% vacant and 15.5%
 second or seasonal homes; 96.6% sound and 2.2% a slum or basic house.
@@ -45,8 +44,10 @@ of the dwellings by kind is left that way for most units.
 
 - Shares are percentages of that unit's urban dwellings, to one decimal, so a group of
   them lands near 100 rather than exactly on it.
-- The shortfall can pass 100%: it counts households against dwellings, and in Tainaste
-  there are more than twice as many households as urban dwellings.
+- The shortfall is the households living in unsound dwellings, plus the households beyond
+  the sound shared dwellings they occupy, over the sound dwellings that are occupied or
+  vacant. Households on top and dwellings underneath, so it passes 100% where the
+  shortfall is larger than the sound stock: Tainaste's is 232.6%.
 - A unit's figures cover its urban part. A commune that is half town and half country has
   the town's dwellings here and all of its households in `../indicators/`.
 

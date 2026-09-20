@@ -4,6 +4,13 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.7.1
+
+- Corrected what `dwellings.deficitRate` measures. The field notes and the site called it
+  a share of households; it is the households short over the sound dwellings that are
+  occupied or vacant. HCP's own definition, from the workbook, is now in the glossary
+  beside it.
+
 ## 1.7.0
 
 - The 2024 urban housing stock, in `housing/`: how many urban dwellings each unit has, how

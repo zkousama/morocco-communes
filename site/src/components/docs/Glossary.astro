@@ -1,0 +1,93 @@
+---
+/**
+ * What the words mean, grouped the way the site uses them. An entry that HCP defines
+ * itself carries HCP's own wording under the English rendering, marked as French, the way
+ * the census figures page carries HCP's headings.
+ */
+import Docs from "../../layouts/Docs.astro";
+import { glossary } from "../../i18n/glossary";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const g = glossary[locale];
+const english = locale === "en";
+const toc = g.groups.map((group) => ({ id: group.id, label: group.label }));
+---
+
+<Docs locale={locale} route="docs/glossary/" title={g.title} description={g.description} lede={g.lede} toc={toc}>
+  {g.groups.map((group) => (
+    <section id={group.id}>
+      <h2>{group.label}</h2>
+      <dl class="terms">
+        {group.entries.map((entry) => (
+          <div id={entry.id}>
+            <dt>{entry.term}</dt>
+            <dd>
+              <p set:html={inline(entry.body)} />
+              {english && entry.hcp && (
+                <p class="source" lang="fr">
+                  <span class="who">{g.source}</span>
+                  {entry.hcp}
+                </p>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  ))}
+</Docs>
+
+<style>
+  .terms {
+    margin: 0.75rem 0 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .terms > div {
+    display: grid;
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: 0.25rem 2rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 1rem;
+  }
+
+  dt {
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  dd p {
+    margin: 0;
+  }
+
+  /* HCP's own words, set apart from the English rendering above them. */
+  .source {
+    margin-top: 0.4rem;
+    padding-inline-start: 0.7rem;
+    border-inline-start: 2px solid var(--rule);
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .who {
+    display: block;
+    font-size: var(--t-xs);
+  }
+
+  @media (max-width: 46rem) {
+    .terms > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.35rem;
+    }
+  }
+</style>

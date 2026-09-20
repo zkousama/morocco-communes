@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/"] as const;
+export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -45,6 +45,7 @@ export const ui = {
     findLevels: { commune: "commune", arrondissement: "arrondissement", province: "province", region: "région" } as Record<string, string>,
     navCommunes: "Communes",
     navFigures: "Census",
+    navGlossary: "Glossary",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Components",
@@ -223,6 +224,7 @@ export const ui = {
     findLevels: { commune: "commune", arrondissement: "arrondissement", province: "province", region: "région" } as Record<string, string>,
     navCommunes: "Communes",
     navFigures: "Recensement",
+    navGlossary: "Glossaire",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Composants",

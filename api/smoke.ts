@@ -312,7 +312,7 @@ for (const [path, marker] of [
 
 console.log("\npages");
 for (const path of [
-  "/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/docs/python/", "/fr/docs/api/", "/fr/docs/mcp/", "/fr/docs/python/",
+  "/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/docs/python/", "/docs/glossary/", "/fr/docs/api/", "/fr/docs/mcp/", "/fr/docs/python/", "/fr/docs/glossary/",
   "/communes/", "/communes/tanger/", "/fr/communes/tafraout/", "/provinces/chefchaouen/", "/regions/oriental/",
 ]) {
   const response = await fetch(base + path);
