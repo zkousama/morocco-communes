@@ -146,6 +146,20 @@ const holds = (v: ReturnType<typeof view>) =>
 const views = [view(record, before, "2024"), ...(before ? [view(before, record, "2014")] : [])].filter(holds);
 const both = views.length > 1;
 
+/**
+ * A census's topics, in the order HCP asks them, with the empty ones dropped. 2024 has 3
+ * and 2014 has 6, so the layout places them by count rather than by name.
+ */
+const topicsOf = (v: ReturnType<typeof view>) =>
+  [
+    { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used },
+    { heading: p.languagesRead, body: v.readBody, rows: v.read },
+    { heading: p.commute, body: p.commuteBody, rows: v.commute },
+    { heading: p.workplace, body: p.workplaceBody, rows: v.workplace },
+    { heading: p.profession, body: p.professionBody, rows: v.profession },
+    { heading: p.diploma, body: p.diplomaBody, rows: v.diploma },
+  ].filter((block) => block.rows.length > 0);
+
 // One scale for the pyramid, so a band's bar means the same width in either census.
 const widest = Math.max(
   0,
@@ -197,9 +211,9 @@ const empty = views.length === 0;
             </dl>
           )}
 
-          <div class="pair">
+          <div class="top">
             {hasAges && (
-              <div>
+              <div class="block">
                 <h3>{p.age}</h3>
                 <p class="note">{p.ageBody}</p>
                 <table class="pyramid">
@@ -229,33 +243,41 @@ const empty = views.length === 0;
                 </table>
               </div>
             )}
-            {(v.used.length > 0 || v.read.length > 0 || v.commute.length > 0 || v.profession.length > 0) && (
-              <div class="languages">
-                {[
-                  { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used },
-                  { heading: p.languagesRead, body: v.readBody, rows: v.read },
-                  { heading: p.commute, body: p.commuteBody, rows: v.commute },
-                  { heading: p.workplace, body: p.workplaceBody, rows: v.workplace },
-                  { heading: p.profession, body: p.professionBody, rows: v.profession },
-                  { heading: p.diploma, body: p.diplomaBody, rows: v.diploma },
-                ].filter((block) => block.rows.length > 0).map((block) => (
-                  <>
-                    <h3>{block.heading}</h3>
-                    <p class="note">{block.body}</p>
-                    <ul class="bars">
-                      {block.rows.map((b) => (
-                        <li>
-                          <span class="label">{b.label}</span>
-                          <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
-                          <span class="value">{pct(b.value)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ))}
+            {topicsOf(v).slice(0, hasAges ? 1 : 2).map((block) => (
+              <div class="block">
+                <h3>{block.heading}</h3>
+                <p class="note">{block.body}</p>
+                <ul class="bars">
+                  {block.rows.map((b) => (
+                    <li>
+                      <span class="label">{b.label}</span>
+                      <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                      <span class="value">{pct(b.value)}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            )}
+            ))}
           </div>
+          {topicsOf(v).length > (hasAges ? 1 : 2) && (
+            <div class="spread">
+              {topicsOf(v).slice(hasAges ? 1 : 2).map((block) => (
+                <div class="block">
+                <h3>{block.heading}</h3>
+                <p class="note">{block.body}</p>
+                <ul class="bars">
+                  {block.rows.map((b) => (
+                    <li>
+                      <span class="label">{b.label}</span>
+                      <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                      <span class="value">{pct(b.value)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </>
@@ -287,7 +309,41 @@ const empty = views.length === 0;
   h3 {
     font-size: var(--t-sm);
     font-weight: 500;
-    margin: 1.75rem 0 0.2rem;
+    margin: 0 0 0.2rem;
+  }
+
+  /* The blocks fill both columns and the browser levels them, so the section ends on a
+     straight edge however many topics a census has: 4 in 2024, 7 in 2014. A 2-column grid
+     would leave whichever column is shorter as a hole down the page. */
+  /* The pyramid with the first topic beside it, then the rest filling both columns. The
+     browser levels a column flow, so the section ends on a straight edge however many
+     topics a census has: 3 in 2024, 6 in 2014. */
+  .top {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: start;
+    margin-top: 1.75rem;
+  }
+
+  .spread {
+    columns: 2;
+    column-gap: clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .block {
+    break-inside: avoid;
+    padding-bottom: 1.75rem;
+  }
+
+  @media (max-width: 48rem) {
+    .top {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .spread {
+      columns: 1;
+    }
   }
 
   .note {

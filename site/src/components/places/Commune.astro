@@ -154,9 +154,9 @@ getCommune("${c.slug}");`;
       <dd>
         {n.format(rank)}
         <small>
-          {rank === 1 ? fill(p.rankFirst, { total: n.format(communes.length) }) : fill(p.rankText, { nth: ordinal(locale, rank), total: n.format(communes.length) })}.
-          {" "}{fill(p.rankProvince, { nth: ordinal(locale, rankInProvince), total: siblings.length, ptype })}.
+          {rank === 1 ? fill(p.rankFirst, { total: n.format(communes.length) }) : fill(p.rankText, { nth: ordinal(locale, rank), total: n.format(communes.length) })}
         </small>
+        <small>{fill(p.rankProvince, { nth: ordinal(locale, rankInProvince), total: siblings.length, ptype })}</small>
       </dd>
     </div>
   </dl>
@@ -176,6 +176,7 @@ getCommune("${c.slug}");`;
             return x && x.code !== c.code ? { href: href(x.slug), name: x.name.fr } : null;
           }}
           highlight={c.code}
+          borders={new Set(bordering.map((b) => b.code))}
         />
       )}
     </div>
@@ -183,7 +184,7 @@ getCommune("${c.slug}");`;
       <Inset {...where} label={fill(p.insetLabel, { name: province.name.fr })} />
       {bordering.length > 0 && (
         <>
-          <h2>{p.bordering}</h2>
+          <h3>{p.bordering}</h3>
           <ul class="links">
             {bordering.map((b) => <li><a href={href(b.slug)}>{b.name.fr}</a></li>)}
           </ul>
@@ -287,6 +288,9 @@ getCommune("${c.slug}");`;
       {housing && (
         <div><dt>{p.dwellingsTitle}</dt><dd><a href={`/api/communes/${c.code}/housing.json`}><code>/api/communes/{c.code}/housing.json</code></a></dd></div>
       )}
+      {bordering.length > 0 && (
+        <div><dt>{p.bordering}</dt><dd><a href={`/api/communes/${c.code}/neighbours.json`}><code>/api/communes/{c.code}/neighbours.json</code></a></dd></div>
+      )}
       {c.osm && (
         <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
       )}
@@ -303,8 +307,12 @@ getCommune("${c.slug}");`;
     align-content: start;
   }
 
-  .side h2 {
-    margin-top: 0.5rem;
+  /* Under the map rather than beside it in weight: the neighbours are part of where the
+     commune is, not a section of their own. */
+  .side h3 {
+    margin: 0.5rem 0 0;
+    font-size: var(--t-sm);
+    font-weight: 500;
   }
 
   .ar {

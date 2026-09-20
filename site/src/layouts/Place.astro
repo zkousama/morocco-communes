@@ -154,6 +154,12 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede } 
     align-items: start;
   }
 
+  /* Two of the same thing side by side, so a bar is the same length in both halves. The
+     uneven split is for a map, which wants the room, beside something that doesn't. */
+  .place :global(.pair.even) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   @media (max-width: 48rem) {
     .place :global(.pair) {
       grid-template-columns: minmax(0, 1fr);

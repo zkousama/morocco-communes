@@ -104,7 +104,7 @@ const right = blocks.slice(2).filter((b) => b.rows.length > 0);
   )}
 
   {(left.length > 0 || right.length > 0) && (
-    <div class="pair">
+    <div class="pair even">
       {[left, right].map((column) => (
         <div>
           {column.map((block) => (

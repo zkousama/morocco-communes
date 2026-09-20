@@ -10,11 +10,14 @@ interface Props {
   linkOf: (code: string) => { href?: string; name: string } | null;
   /** The shape the page is about, drawn over the rest. */
   highlight?: string;
+  /** The shapes that border it, outlined so the map says which ones the list names. */
+  borders?: Set<string>;
   /** What to call land no commune's boundary covers. */
   gapLabel?: string;
 }
-const { drawing, label, classOf, linkOf, highlight, gapLabel = "" } = Astro.props;
+const { drawing, label, classOf, linkOf, highlight, borders, gapLabel = "" } = Astro.props;
 const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : undefined;
+const touching = borders ? drawing.shapes.filter((s) => borders.has(s.code)) : [];
 ---
 
 <svg class="place-map" viewBox={drawing.viewBox} role="group" aria-label={label}>
@@ -34,6 +37,7 @@ const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : und
   {drawing.gaps.map((d) => <path class="gap" d={d}><title>{gapLabel}</title></path>)}
   {drawing.provinces && <path class="provinces" d={drawing.provinces.map((p) => p.d).join("")} />}
   <path class="edge" d={drawing.outline} />
+  {touching.length > 0 && <path class="touching" d={touching.map((s) => s.d).join("")} />}
   {focus && <path class="focus" d={focus.d} />}
 </svg>
 
@@ -87,6 +91,16 @@ const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : und
   .edge {
     fill: none;
     stroke: none;
+    pointer-events: none;
+  }
+
+  /* The communes the page says it borders, in the colour of the commune itself so the
+     two read as one family. Outlined rather than filled, since the fill is the density. */
+  .touching {
+    fill: none;
+    stroke: var(--brass);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
     pointer-events: none;
   }
 
