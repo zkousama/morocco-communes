@@ -73,6 +73,17 @@ describe("sorting communes by an indicator", () => {
     }
   });
 
+  it("reads a value a model quoted twice", () => {
+    // Haiku sent sort as `"-labour.unemploymentRate"`, quotes included, and gave up on
+    // sorting when it was refused: 81 tool calls for an answer that takes 1.
+    expect(parseFilter({ sort: '"-labour.unemploymentRate"' }, lookup)).toEqual({
+      query: { page: 1, sort: "-labour.unemploymentRate" },
+    });
+    expect(parseFilter({ province: "'01.511'", type: '"urban"' }, lookup)).toEqual({
+      query: { page: 1, province: "01.511", type: "urban" },
+    });
+  });
+
   it("is refused with the topic's keys when a key is wrong", () => {
     expect(parseFilter({ sort: "-amenities.water" }, lookup)).toEqual({
       error: { kind: "invalid-query", detail: "sort: amenities has no water; its keys are kitchen, toilet, bathroom, electricity, runningWater" },

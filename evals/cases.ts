@@ -43,12 +43,15 @@ const figuresOf = new Map(
   [...indicators("communes"), ...indicators("provinces"), ...indicators("regions"), ...indicators("arrondissements")].map((f) => [f.code, f]),
 );
 const national = JSON.parse(readFileSync("data/v1/indicators/national.json", "utf8")) as Figures;
-const establishmentsOf = new Map(economy("communes").map((r) => [r.code, r]));
+const establishmentsOf = new Map(
+  [...economy("communes"), ...economy("provinces"), ...economy("regions"), ...economy("arrondissements")].map((r) => [r.code, r]),
+);
 const nationalEconomy = JSON.parse(readFileSync("data/v1/economy/national.json", "utf8")) as Establishments;
 const counts = (code: string) => establishmentsOf.get(code)?.topics ?? fail(`no establishments for ${code}`);
-const mostJobs = [...establishmentsOf.values()].sort(
-  (a, b) => (b.topics.establishments!.jobs ?? 0) - (a.topics.establishments!.jobs ?? 0),
-)[0]!;
+const jobsIn = (r: Establishments) => r.topics.establishments!.jobs ?? 0;
+const byJobs = (rows: Establishments[]) => [...rows].sort((a, b) => jobsIn(b) - jobsIn(a));
+const mostJobs = byJobs(economy("communes"))[0]!;
+const busiestArrondissement = byJobs(economy("arrondissements"))[0]!;
 const figures2014 = new Map(
   [...indicators2014("communes"), ...indicators2014("provinces"), ...indicators2014("regions")].map((f) => [f.code, f]),
 );
@@ -415,6 +418,62 @@ export const CASES: Case[] = [
     category: "economy",
     question: "How many establishments were mapped in the commune of Casablanca?",
     expect: { pattern: /arrondissement/i, maxCalls: 4 },
+  },
+  {
+    id: "tiznit-province-businesses",
+    category: "economy",
+    question: "How many businesses are there in Tiznit province?",
+    expect: {
+      // Tiznit is a commune and a province, and the commune's 4,731 is the wrong answer.
+      numbers: [counts(tiznitProvince.code).establishments!.business!],
+      tools: ["get_economy"],
+      maxCalls: 3,
+    },
+  },
+  {
+    id: "busiest-arrondissement",
+    category: "economy",
+    question: "Which arrondissement in Morocco has the most permanent jobs in its businesses?",
+    expect: {
+      names: [[busiestArrondissement.name.fr, busiestArrondissement.name.fr.replace("ï", "i")]],
+      numbers: [jobsIn(busiestArrondissement)],
+      tools: ["get_economy"],
+      maxCalls: 3,
+    },
+  },
+  {
+    id: "point-then-jobs",
+    category: "geo",
+    question: "I'm at 30.42, -9.60. Which commune is this, and how many permanent jobs do its businesses hold?",
+    expect: async (api) => {
+      const hit = (await get(api, "/api/communes/at?lat=30.42&lng=-9.60")).data as { code: string; name: { fr: string } };
+      return {
+        names: [[hit.name.fr]],
+        numbers: [counts(hit.code).establishments!.jobs!],
+        tools: ["commune_at", "get_economy"],
+        maxCalls: 4,
+      };
+    },
+  },
+  {
+    id: "ketama-then-and-now",
+    category: "economy",
+    question: "Has illiteracy in the commune of Ketama fallen since 2014, and how many businesses are there now?",
+    expect: {
+      numbers: [
+        illiteracy(ketama.code),
+        illiteracy2014(ketama.code),
+        counts(ketama.code).establishments!.business!,
+      ],
+      tools: ["get_indicators", "get_economy"],
+      maxCalls: 5,
+    },
+  },
+  {
+    id: "tafraout-income",
+    category: "refusal",
+    question: "What's the average household income in the commune of Tafraout?",
+    expect: { pattern: /\b(no|not|n't|isn't|doesn't|unavailable|unable)\b/i, maxCalls: 4 },
   },
   {
     id: "atlantis",

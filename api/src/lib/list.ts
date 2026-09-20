@@ -53,11 +53,32 @@ function sortProblem(sort: string): string | null {
 const whole = (n: number | undefined) => n === undefined || (Number.isInteger(n) && n >= 0 && n <= POPULATION.max);
 
 /**
+ * A value as it was meant, whatever it arrived wrapped in. A model writing JSON for a tool
+ * call sometimes quotes a string twice, so `sort` comes through as `"-labour.unemploymentRate"`
+ * with the quotes in it. There is one thing that can mean, and refusing it sends the caller
+ * looking for a fault in the path instead of the quoting.
+ */
+const bare = (value: string | undefined) => {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  const quoted = /^(["'])(.*)\1$/s.exec(trimmed);
+  return (quoted ? quoted[2]!.trim() : trimmed);
+};
+
+/**
  * Turns filter input — from a query string or from an MCP tool call — into a query with
  * every unit resolved to its canonical code. Shared, so the HTTP route and the tool reject
  * the same things with the same words.
  */
-export function parseFilter(input: FilterInput, lookup: Lookup): { query: FilterQuery } | { error: FilterError } {
+export function parseFilter(raw: FilterInput, lookup: Lookup): { query: FilterQuery } | { error: FilterError } {
+  const input: FilterInput = {
+    ...raw,
+    region: bare(raw.region),
+    province: bare(raw.province),
+    cercle: bare(raw.cercle),
+    type: bare(raw.type),
+    sort: bare(raw.sort),
+  };
   const page = input.page ?? PAGE.default;
   if (!Number.isInteger(page) || page < 1 || page > PAGE.max) {
     return { error: { kind: "invalid-query", detail: "page must be a whole number from 1" } };

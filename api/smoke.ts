@@ -263,8 +263,8 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
   const list = await rpc("tools/list", {});
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
-  check("/mcp lists the 7 tools",
-    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_indicators,list_communes,search", names.join(","));
+  check("/mcp lists the 8 tools",
+    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_indicators,get_unit,list_communes,search", names.join(","));
   const call = await rpc("tools/call", { name: "get_commune", arguments: { id: "tanger" } });
   const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
   check("/mcp get_commune answers with the parent named",

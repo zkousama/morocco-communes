@@ -102,7 +102,7 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 7 read-only tools (`search`, `get_commune`,
+- **`/mcp`**: an MCP server with 8 read-only tools (`search`, `get_commune`, `get_unit`,
   `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`), so
   Claude, Claude Code and other MCP clients can query the data directly, census figures
   included. The site's `/docs/mcp/` page has the setup for each client.
@@ -180,7 +180,7 @@ pnpm build             # the docs site, then the API tree, into dist/
 pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
-pnpm eval              # asks a model 37 questions through the MCP server; see evals/
+pnpm eval              # asks a model 46 questions through the MCP server; see evals/
 ```
 
 A deploy build takes the origin it will be served from, which the canonical URLs, the

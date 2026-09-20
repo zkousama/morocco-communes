@@ -16,10 +16,11 @@ Each question goes through `claude -p`, so it runs on a Claude Code login and sp
 plan's usage, not an API bill. User settings are skipped and the model starts in an empty
 directory, with no built-in tools, so nothing but the question and the server reaches it.
 
-`cases.ts` holds 37 questions: lookups, misspellings and exonyms, French and Arabic,
+`cases.ts` holds 46 questions: lookups, misspellings and exonyms, French and Arabic,
 coordinates, rankings, the census indicators, what changed between the 2014 and 2024
-censuses, 2 things the tools once couldn't answer directly, and a place that doesn't
-exist. Every expected figure is read from `data/v1`,
+censuses, the 2024 establishments, 2 things the tools once couldn't answer directly, and
+2 figures that don't exist. Some need 2 tools in a row, and some name a place that is a
+commune and a province at once. Every expected figure is read from `data/v1`,
 or from the running API where it depends on a boundary, so the cases stay right when the
 data is rebuilt. A figure matches however it's written: `6,124`, `6 124`, `٦١٢٤`, or
 rounded to the precision the data gives it.
@@ -30,23 +31,40 @@ were called, and counts as slow when it took more calls than its budget. Results
 
 ## What it has found
 
-The first run, on Sonnet, answered all 34 correctly, in 110 tool calls:
+Every one of these was a right answer that cost too much, or a tool a model couldn't use
+from its description. The count in brackets is the tool calls that one question took
+before the change.
 
-- Casablanca's most populous arrondissement took 31 calls, because no tool listed a city's
-  arrondissements. `get_commune` now returns them with their population.
-- Comparing the 12 régions took one `get_indicators` call per région. It now takes a
-  `level`, and returns every région or province in one call.
-- `list_communes` refused `province: "taroudannt"`, since the slug resolved to the commune
-  of the same name. A filter now reads a shared name at the level it asks for, in the HTTP
-  API too.
+- **A city's arrondissements (31).** Casablanca's most populous arrondissement, because no
+  tool listed a city's arrondissements. `get_commune` now returns them with their
+  population.
+- **Comparing the régions (12).** One `get_indicators` call per région. It now takes a
+  `level` and returns every unit of it at once.
+- **A name two levels share.** `list_communes` refused `province: "taroudannt"`, since the
+  slug resolved to the commune of the same name. A filter now reads a shared name at the
+  level it asks for, in the HTTP API too.
+- **A city's establishments (56).** Asked which commune holds the most jobs, Sonnet read
+  the 41 arrondissements one at a time: the 6 cities divided into them carry no figures of
+  their own, and nothing gave the arrondissements together. They now come in one file, and
+  both figure tools take `arrondissement` as a level. The same question takes 2 calls.
+- **How many cercles a province has (2, wrong).** Haiku answered 4 for Taroudannt's 6,
+  counting the cercles it could see on one page of communes. Nothing returned a unit above
+  the commune, though its own record carries the count. `get_unit` does, with the units
+  under it named.
+- **A sort that arrived quoted twice (81).** Haiku sent `sort` as `"-labour.unemploymentRate"`
+  with the quotes inside the string, was refused, gave up on sorting and read 75 communes
+  one by one. A value is now taken as it was meant, and that question takes 1 call.
+- **Two topics that sound alike.** Haiku asked `employmentStatus` for an unemployment rate
+  and reported that the census doesn't publish one. It does, under `labour`; the parameter
+  now says which is which.
 
-After those changes, on the same 34 questions:
+After those changes, on all 46 questions:
 
 | Model | Passed | Tool calls | Over budget |
 |---|---|---|---|
-| Sonnet | 34 | 60 | 0 |
-| Haiku | 34 | 54 | 0 |
+| Sonnet | 46 | 84 | 0 |
+| Haiku | 46 | 73 | 0 |
 
-The 3 questions about the two censuses were added when the 2014 figures landed, and
-Sonnet answered all 37 in 72 calls. One of them asks for a figure that doesn't exist:
-Casablanca has no 2014 row, and the answer says so and points at the arrondissements.
+Sonnet spends more calls than Haiku, and on the questions where it does, it is checking
+something: asked how many establishments Casablanca has, it adds up the city's 16
+arrondissements and says the sum is its own, because HCP publishes no figure for the city.

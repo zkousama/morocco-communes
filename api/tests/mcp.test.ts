@@ -68,10 +68,10 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 7 read-only tools", async () => {
+  it("offers 8 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_economy", "get_indicators", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_economy", "get_indicators", "get_unit", "list_communes", "search",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
@@ -399,6 +399,37 @@ describe("list_communes by an indicator", () => {
     const r = await call("list_communes", { sort: "-labour.unemployment" });
     expect(r.isError).toBe(true);
     expect(text(r)).toContain("labour has no unemployment; its keys are population15Plus, active, inactive, activityRate, unemploymentRate, employed");
+  });
+});
+
+describe("get_unit", () => {
+  const unit = (r: Result) => r.structuredContent!.unit as Record<string, unknown>;
+
+  it("answers how many cercles a province has, which its own record carries", async () => {
+    const r = await call("get_unit", { unit: "taroudannt", level: "province" });
+    expect(unit(r)).toMatchObject({ code: "09.541", level: "province", name_fr: "Taroudannt" });
+    expect(r.structuredContent!.counts).toEqual({ cercles: 6, communes: 89 });
+    const children = r.structuredContent!.children as { name_fr: string; level: string }[];
+    expect(children).toHaveLength(6);
+    expect(children.every((c) => c.level === "cercle")).toBe(true);
+  });
+
+  it("names a région's provinces", async () => {
+    const r = await call("get_unit", { unit: "09" });
+    expect(unit(r)).toMatchObject({ level: "region", name_fr: "Souss-Massa" });
+    expect((r.structuredContent!.children as unknown[])).toHaveLength(6);
+  });
+
+  it("gives a cercle its counts, and leaves its communes to list_communes", async () => {
+    const r = await call("get_unit", { unit: "09.541.03" });
+    expect(r.structuredContent!.counts).toEqual({ communes: 16 });
+    expect(r.structuredContent!.children).toEqual([]);
+  });
+
+  it("sends a commune to get_commune", async () => {
+    const r = await call("get_unit", { unit: "tafraout" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("get_commune");
   });
 });
 

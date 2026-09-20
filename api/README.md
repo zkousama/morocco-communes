@@ -249,13 +249,14 @@ session: each request gets a fresh server that answers in plain JSON.
 |---|---|
 | `search` | finds any unit by French or Arabic name, slug, or another name it goes by |
 | `get_commune` | one commune's names, type, parents, 2024 and 2014 population, a point inside it, and a city's arrondissements |
+| `get_unit` | one région, province or cercle: its population, how many units it holds, and the ones under it, named |
 | `communes_near` | communes within a radius of a point, nearest first |
 | `commune_at` | the commune whose boundary contains a point |
 | `list_communes` | communes by région, province, cercle or type, 50 to a page, sorted by any figure or indicator |
 | `get_indicators` | HCP's 2024 census figures for Morocco, any unit, or every région or province at once, by topic, area and sex |
 | `get_economy` | the 2024 count of economic establishments for Morocco, any unit, or every région or province at once |
 
-All seven are read-only and say so in their annotations, so a client can call them without
+All eight are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just
 coded, and a tool that cannot answer says why and what to call instead: asking
 `get_commune` for a province's code gets pointed to `list_communes`.

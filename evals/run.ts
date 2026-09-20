@@ -195,13 +195,18 @@ console.log(`${cases.length} cases on ${MODEL}, against ${API}\n`);
 
 const results = await pool(cases, CONCURRENCY, async (c: Case) => {
   const expect = typeof c.expect === "function" ? await c.expect(API) : c.expect;
-  const run = await ask(c.question, config, cwd);
+  let run = await ask(c.question, config, cwd);
+  // Every question here needs the data, so an answer that called nothing came out of the
+  // model's own memory: the server never reached it. That measures nothing, so it is
+  // asked once more, and a second empty run is reported as the failure it is.
+  const empty = run.calls.length === 0 && !run.failed;
+  if (empty) run = await ask(c.question, config, cwd);
   const g = grade(run, expect);
   const mark = g.pass ? (g.slow ? "slow" : "pass") : "FAIL";
-  console.log(`${mark.padEnd(5)} ${c.id.padEnd(26)} ${String(run.calls.length).padStart(2)} calls ${(run.ms / 1000).toFixed(0).padStart(4)} s  ${run.calls.map((x) => x.tool + (x.error ? "!" : "")).join(" → ")}`);
+  console.log(`${mark.padEnd(5)} ${c.id.padEnd(26)} ${String(run.calls.length).padStart(2)} calls ${(run.ms / 1000).toFixed(0).padStart(4)} s  ${run.calls.map((x) => x.tool + (x.error ? "!" : "")).join(" → ")}${empty ? "  (asked twice: the first run reached no tools)" : ""}`);
   if (!g.pass) console.log(`      missing ${g.missing.join("; ")}`);
   for (const call of run.calls.filter((x) => x.error)) console.log(`      ${call.tool} failed: ${call.message}`);
-  return { id: c.id, category: c.category, question: c.question, expect: { ...expect, pattern: expect.pattern?.source }, ...run, ...g };
+  return { id: c.id, category: c.category, question: c.question, expect: { ...expect, pattern: expect.pattern?.source }, ...run, ...g, ...(empty ? { asked: 2 } : {}) };
 });
 
 const passed = results.filter((r) => r.pass).length;

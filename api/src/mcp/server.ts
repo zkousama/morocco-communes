@@ -32,6 +32,7 @@ const INSTRUCTIONS =
   "with HCP census population for 2024 and 2014 and OpenStreetMap boundaries. " +
   "Units are identified by HCP geographic codes such as 01.511.01.0, and a slug such as tanger works wherever a code does. " +
   "To answer a question about a named place, call search first to get its code. " +
+  "get_commune answers about a commune or an arrondissement, and get_unit about a région, a province or a cercle. " +
   "For coordinates, commune_at gives the commune that contains them. " +
   "get_indicators gives the census figures on age, education, languages, work and housing for any unit or the whole country, " +
   "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014. " +
@@ -51,6 +52,18 @@ const AREAS = ["total", "urban", "rural"] as const;
 const SEXES = ["all", "male", "female"] as const;
 const TOPIC_NAMES = [...TOPICS.keys()] as [string, ...string[]];
 const ECONOMY_TOPIC_NAMES = [...ECONOMY_TOPICS.keys()] as [string, ...string[]];
+
+/** A région, province or cercle as its own file holds it. */
+interface UnitRecord {
+  code: string;
+  name: { fr: string; ar: string };
+  population: { "2024": { total: number | null; households?: number | null } };
+  regionCode?: string;
+  provinceCode?: string;
+  provinceCount?: number;
+  cercleCount?: number;
+  communeCount?: number;
+}
 
 interface CommuneRecord {
   code: string;
@@ -387,6 +400,83 @@ export function createMcpServer(deps: McpDeps): McpServer {
   );
 
   server.registerTool(
+    "get_unit",
+    {
+      title: "A région, province or cercle",
+      description:
+        "One région, province, préfecture or cercle: its name in French and Arabic, its 2024 population and households, the units above it, " +
+        "how many units it holds, and the ones directly under it, named — a région's provinces, a province's cercles. " +
+        "This is the tool for a question about a unit above the commune, such as how many cercles a province has. " +
+        "For a commune or an arrondissement, call get_commune; to list a unit's communes, call list_communes with that unit.",
+      inputSchema: {
+        unit: z.string().min(1).describe("A région, province, préfecture or cercle, by code or slug."),
+        level: z
+          .enum(["region", "province", "cercle"])
+          .optional()
+          .describe("The level, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune."),
+      },
+      outputSchema: {
+        unit: z.object({
+          code: z.string(),
+          level: z.string(),
+          name_fr: z.string(),
+          name_ar: z.string(),
+          population_2024: z.number().nullable(),
+          households_2024: z.number().nullable(),
+          region: unitRef.nullable(),
+          province: unitRef.nullable(),
+        }),
+        counts: z.record(z.string(), z.number()).describe("How many units of each level this one holds."),
+        children: z
+          .array(z.object({ code: z.string(), name_fr: z.string(), level: z.string(), population_2024: z.number().nullable() }))
+          .describe("The units directly under it. Empty for a cercle, whose communes come from list_communes."),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ unit, level }) => {
+      const found = resolve(lookup, unit, level);
+      if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
+      if (found.kind === "absent") return fail(`No unit has the identifier ${unit}. Call search to find its code.`);
+      if (found.level === "commune" || found.level === "arrondissement") {
+        return fail(`${found.code} is ${withArticle(found.level)}. Call get_commune with ${found.code} instead.`);
+      }
+      const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}.json`);
+      if (!body) return fail(`The record for ${found.code} could not be read.`);
+      const record = body.data as unknown as UnitRecord;
+      const below: Record<string, string | undefined> = {
+        region: `/api/regions/${found.code}/provinces.json`,
+        province: `/api/provinces/${found.code}/cercles.json`,
+      };
+      const path = below[found.level];
+      const rows = path ? ((await fetchJson(path))?.data ?? []) as unknown as UnitRecord[] : [];
+      const childLevel = found.level === "region" ? "province" : "cercle";
+      return ok({
+        unit: {
+          code: record.code,
+          level: found.level,
+          name_fr: record.name.fr,
+          name_ar: record.name.ar,
+          population_2024: record.population["2024"].total,
+          households_2024: record.population["2024"].households ?? null,
+          region: record.regionCode ? ref(record.regionCode) : null,
+          province: record.provinceCode ? ref(record.provinceCode) : null,
+        },
+        counts: {
+          ...(record.provinceCount !== undefined ? { provinces: record.provinceCount } : {}),
+          ...(record.cercleCount !== undefined ? { cercles: record.cercleCount } : {}),
+          ...(record.communeCount !== undefined ? { communes: record.communeCount } : {}),
+        },
+        children: rows.map((r) => ({
+          code: r.code,
+          name_fr: r.name.fr,
+          level: childLevel,
+          population_2024: r.population["2024"].total,
+        })),
+      });
+    },
+  );
+
+  server.registerTool(
     "get_indicators",
     {
       title: "Census indicators",
@@ -418,7 +508,13 @@ export function createMcpServer(deps: McpDeps): McpServer {
             "With a unit, the level it's at, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune. " +
               "Without a unit, region, province or arrondissement gives every one of that level in one call.",
           ),
-        topics: z.array(z.enum(TOPIC_NAMES)).optional().describe("Only these topics. Every topic when left out."),
+        topics: z
+          .array(z.enum(TOPIC_NAMES))
+          .optional()
+          .describe(
+            "Only these topics. Every topic when left out. Two are easy to confuse: labour holds the labour force, the activity rate and the " +
+              "unemployment rate, while employmentStatus is how the people in work are employed, as employees, self-employed or apprentices.",
+          ),
         area: z
           .enum([...AREAS, "each"])
           .optional()
