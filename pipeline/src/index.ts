@@ -23,6 +23,7 @@ import { PROFESSION_FIELDS_2014 } from "./sources/professionFields.ts";
 import { DIPLOMA_FIELDS_2014 } from "./sources/diplomaFields.ts";
 import { parseHcpEstablishments } from "./sources/hcpEstablishments.ts";
 import { parseHcpHousing } from "./sources/hcpHousing.ts";
+import { parseCensusDefinitions, parseHousingDefinitions } from "./sources/hcpDefinitions.ts";
 import { joinCensus2014, joinCensus2024 } from "./sources/censusFields.ts";
 import { buildIndicators } from "./build/indicators.ts";
 import { buildIndicators2014 } from "./build/indicators2014.ts";
@@ -145,8 +146,11 @@ if (indicatorProblems.length > 0) {
   throw new Error(`the indicators don't hold together:\n  ${indicatorProblems.slice(0, 40).join("\n  ")}${indicatorProblems.length > 40 ? `\n  and ${indicatorProblems.length - 40} more` : ""}`);
 }
 const indicatorSource = SOURCES.find((s) => s.id === "hcp-2024-indicators")!;
-await writeIndicators(indicators, INDICATORS_OUT, { id: indicatorSource.id, url: indicatorSource.url });
-console.log(`indicators: ${indicators.length} rows, ${indicators.filter((r) => r.level === "urbanCentre").length} of them urban centres`);
+// HCP defines its own concepts on a sheet of the same workbook, so the fields go out with
+// the term each column is defined under rather than a label written here.
+const censusDefinitions = parseCensusDefinitions(sources.get("hcp-2024-indicators")!);
+await writeIndicators(indicators, INDICATORS_OUT, { id: indicatorSource.id, url: indicatorSource.url }, censusDefinitions);
+console.log(`indicators: ${indicators.length} rows, ${indicators.filter((r) => r.level === "urbanCentre").length} of them urban centres, ${censusDefinitions.length} concepts defined`);
 
 // The same indicators from the 2014 census, on the units the dataset publishes today.
 // A unit HCP counted then and doesn't count now keeps no figures here; it is listed,
@@ -211,7 +215,8 @@ if (housingProblems.length > 0) {
   throw new Error(`the housing stock doesn't hold together:\n  ${housingProblems.slice(0, 40).join("\n  ")}${housingProblems.length > 40 ? `\n  and ${housingProblems.length - 40} more` : ""}`);
 }
 const housingSource = SOURCES.find((s) => s.id === "hcp-2024-housing")!;
-await writeHousing(housing, HOUSING_OUT, { id: housingSource.id, url: housingSource.url });
+const housingDefinitions = parseHousingDefinitions(sources.get("hcp-2024-housing")!);
+await writeHousing(housing, HOUSING_OUT, { id: housingSource.id, url: housingSource.url }, housingDefinitions);
 console.log(`housing: ${housing.records.length} units have an urban stock, ${housing.withoutStock} have none, ${housing.unplaced.length} rows have no unit to land on`);
 
 // Which communes border which, measured on the boundaries above. The 6 cities divided

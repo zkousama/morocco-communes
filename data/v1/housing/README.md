@@ -29,6 +29,11 @@ second or seasonal homes; 96.6% sound and 2.2% a slum or basic house.
   byte-order mark, for Excel.
 - `fields.json` lists every field with its path, its CSV column, an English label, the
   workbook's own wording for it, and what it measures.
+- `fields.json` also carries `definitions`, the 15 concepts the workbook defines on its
+  second sheet, in HCP's French: what a dwelling is, what each type of one is, what counts
+  as vacant, and how the shortfall is worked out. A field one of them defines names it
+  under `definedAs`, 33 of the 55 in all. The rest are the totals HCP adds up itself and
+  the walls, roofs and networks, which it leaves undefined.
 - `unplaced.json` holds the rows with no unit to land on, and how many units have no urban
   dwellings.
 

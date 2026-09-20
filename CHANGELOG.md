@@ -4,6 +4,16 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.8.0
+
+- HCP's own definitions, in `indicators/fields.json` and `housing/fields.json`. The 2024
+  workbooks each carry a sheet of them: 52 census concepts, from the legal population to
+  the distance to a tarred road, and 15 for the urban housing stock, from what makes a
+  dwelling to what makes one modern. Both go out under `definitions`, in HCP's French.
+- A column that one of them defines names it under `definedAs`: 56 of the 114 census
+  columns and 33 of the 55 housing ones. The rest are totals HCP adds up itself and
+  columns it leaves undefined.
+
 ## 1.7.1
 
 - Corrected what `dwellings.deficitRate` measures. The field notes and the site called it

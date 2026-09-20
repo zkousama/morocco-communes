@@ -12,9 +12,11 @@ import type { Locale } from "./ui";
 export interface Entry {
   id: string;
   term: string;
-  body: string;
-  /** HCP's own words, from the workbook that defines the term. */
-  hcp?: string;
+  /** What it is. In French, the entry of a term HCP defines leaves this out. */
+  body?: string;
+  /** The concept HCP defines in its workbook, where it defines one. Its wording is read
+   * from the dataset rather than written here. */
+  hcpTerm?: string;
 }
 
 export interface Group {
@@ -22,9 +24,6 @@ export interface Group {
   label: string;
   entries: Entry[];
 }
-
-const HCP_DWELLING =
-  "Un logement est constitué d’une ou plusieurs pièces destinées à l’habitation et disposant d’une ou plusieurs entrées directes. Un logement peut ne pas avoir été construit à l’origine pour l’habitation.";
 
 export const glossary: Record<Locale, { title: string; description: string; lede: string; source: string; groups: Group[] }> = {
   en: {
@@ -87,61 +86,61 @@ export const glossary: Record<Locale, { title: string; description: string; lede
             id: "reference-date",
             term: "Census date",
             body: "1 September 2024. Every 2024 figure describes the country as it stood that day. The census before it was in 2014.",
-            hcp: "Date de référence du Recensement : Le 1er septembre 2024.",
+            hcpTerm: "Date de référence du Recensement",
           },
           {
             id: "legal-population",
             term: "Legal population",
             body: "Everyone living in the country on census day, or intending to live there for 6 months or more. It is the municipal population plus the population counted apart, and it is the figure this dataset carries as `population`: 36,828,330 in 2024.",
-            hcp: "Ensemble des personnes résidant sur le territoire national à la date de référence du Recensement, ou ayant l’intention d’y résider, pour une durée d’au moins 6 mois. La population légale est constituée de : la population municipale ; et la population comptée à part.",
+            hcpTerm: "Population légale",
           },
           {
             id: "municipal-population",
             term: "Municipal population",
             body: "The settled, the nomadic and the homeless. The census's own shares are taken from it: men and women, and the age bands, add up to this rather than to the legal population. 36,490,591 in 2024, about 338,000 fewer.",
-            hcp: "Ensemble des personnes sédentaires (ayant leur résidence habituelle dans un logement), des personnes nomades et des personnes sans-abri.",
+            hcpTerm: "Population municipale",
           },
           {
             id: "counted-apart",
             term: "Counted apart",
             body: "People living in an institution rather than a household: soldiers and auxiliaries in barracks, workers housed on public works sites, prisoners, people in care homes, children's homes and zaouïas, and anyone in hospital for 6 months or more. They are in the legal population and not in the municipal one, which is the difference between the two.",
-            hcp: "Ensemble des personnes contraintes de vivre en communauté dans des établissements spécifiques pour raisons professionnelles, sociales ou sanitaires.",
+            hcpTerm: "Population comptée à part",
           },
           {
             id: "household",
             term: "Household",
             body: "People living under one roof with their daily expenses in common, related or not. A household is settled, nomadic or homeless. Every household figure is per household, so a dwelling nobody lives in is in none of them.",
-            hcp: "Ensemble de personnes vivant sous le même toit et ayant des dépenses quotidiennes communes, sans qu’ils soient nécessairement unis par des liens de parenté.",
+            hcpTerm: "Ménage",
           },
           {
             id: "settled",
             term: "Settled household",
             body: "A household that usually lives in a dwelling, as against a nomadic or a homeless one. The amenities, the rooms and the distance to a road are all given for settled households.",
-            hcp: "Ménage résidant habituellement dans un logement.",
+            hcpTerm: "Ménage sédentaire",
           },
           {
             id: "room",
             term: "Habitable room",
             body: "A room of a dwelling meant for living or sleeping in. A kitchen, a bathroom, a toilet, a hallway, a laundry, a boxroom, an empty garage or a room used only for work is not one, so people per room counts only the rooms people live in.",
-            hcp: "Pièce d’un logement destinée au séjour ou au sommeil. Une cuisine, une salle de bains, des W.-C., un vestibule, un couloir, une buanderie, un débarras, un garage inoccupé ou une pièce à usage exclusivement professionnel ne sont pas considérés comme des pièces d’habitation.",
+            hcpTerm: "Pièce d’habitation",
           },
           {
             id: "labour-force",
             term: "Labour force",
             body: "People aged 15 and over who are on the job market, working or looking for work: those in work, plus the unemployed. The activity rate is their share of that age group, and the unemployment rate the share of them looking for work.",
-            hcp: "Ensemble des personnes de 15 ans et plus disponibles sur le marché du travail, qu’elles exercent ou qu’elles recherchent une activité professionnelle.",
+            hcpTerm: "Population active de 15 ans et plus",
           },
           {
             id: "in-work",
             term: "In work",
             body: "Anyone aged 15 and over who worked at least an hour in the week before the interview, and anyone with a job they were away from for illness, leave, a dispute, training or weather. HCP follows the International Labour Organization here.",
-            hcp: "Ensemble des personnes de 15 ans et plus ayant travaillé –ne serait-ce qu’une heure– au cours de la semaine précédant leur interview, et des personnes pourvues d’un emploi mais qui en sont temporairement absentes. Cette définition est en conformité avec les recommandations de l’Organisation Internationale du Travail (OIT).",
+            hcpTerm: "Population active occupée de 15 ans et plus",
           },
           {
             id: "electricity",
             term: "Electricity, running water",
             body: "Electricity counts a dwelling on the public network, and one lit by solar power or a generator. Running water counts the public network only.",
-            hcp: "Part des ménages sédentaires disposant de l’électricité : proportion des ménages sédentaires dont le logement est raccordé à un réseau public de distribution d’électricité, ou dont le mode d’éclairage repose sur l’énergie solaire ou sur un groupe électrogène.",
+            hcpTerm: "Part des ménages sédentaires disposant de l’électricité",
           },
           {
             id: "long-questionnaire",
@@ -152,19 +151,19 @@ export const glossary: Record<Locale, { title: string; description: string; lede
             id: "illiteracy",
             term: "Illiteracy",
             body: "Not being able to read or write a short, simple statement about your own daily life, and understand it. The rate is the share of people aged 10 and over.",
-            hcp: "Personne ne pouvant ni lire ni écrire, en le comprenant, un énoncé simple et bref se rapportant à sa vie quotidienne.",
+            hcpTerm: "Analphabète",
           },
           {
             id: "disability",
             term: "Disability",
             body: "Complete incapacity, or a lot of difficulty, in at least one of 6 areas: sight, hearing, moving about, communicating, memory and concentration, and looking after yourself.",
-            hcp: "Personne ayant soit une incapacité totale, soit beaucoup de difficulté dans au moins un des six domaines fonctionnels suivants : la vision, l’audition, la mobilité, la communication, la mémoire et la concentration, l’entretien personnel.",
+            hcpTerm: "Personne en situation de handicap",
           },
           {
             id: "schooling",
             term: "Schooling",
             body: "The share of children who attended a school or a training college during the year, whether or not they finished it. The 2024 rate counts ages 6 to 11 during the 2023/24 school year, which HCP says are ages 7 to 12 at the census date. The 2014 census published a rate for ages 7 to 12 and its workbook gives no basis for the band, so the dataset leaves the two apart.",
-            hcp: "Taux de scolarisation des 6-11 ans en 2023/2024 : proportion de personnes scolarisées durant l’année scolaire 2023/2024 et âgées de 6 à 11 ans durant cette même année scolaire. Cette tranche d’âge correspond aux 7-12 ans à la date de référence du recensement.",
+            hcpTerm: "Taux de scolarisation des 6-11 ans en 2023/2024",
           },
         ],
       },
@@ -202,67 +201,67 @@ export const glossary: Record<Locale, { title: string; description: string; lede
             id: "dwelling",
             term: "Dwelling",
             body: "One or more rooms meant to be lived in, with one or more doors of their own onto a corridor, a stairway, a courtyard, a workplace or the street. A dwelling need not have been built to be lived in: a garage turned into a home is one. The census indicators use a narrower one, a dwelling a household lives in as its main home. The dwellings a town has and the homes its households live in are counted apart here.",
-            hcp: HCP_DWELLING,
+            hcpTerm: "Le logement",
           },
           {
             id: "villa",
             term: "Villa",
             body: "A detached building of one or two storeys, usually with a garden. It counts as a villa even if it was in other use on census day.",
-            hcp: "Construction isolée de plain-pied ou à deux étages, généralement dotée d’un jardin. Une villa peut avoir un usage autre que l’habitation au moment du recensement.",
+            hcpTerm: "Villa",
           },
           {
             id: "apartment",
             term: "Apartment",
             body: "A self-contained flat in a block, whatever it was used for on census day.",
-            hcp: "Appartement dans un immeuble : appartement doit être individualisé pouvant servir différents usages (habitation, professionnel, etc.) au moment du recensement.",
+            hcpTerm: "Appartement dans un immeuble",
           },
           {
             id: "traditional-house",
             term: "Traditional Moroccan house",
             body: "Mostly in the old medinas: rooms around a central courtyard.",
-            hcp: "Majoritairement située dans les anciennes médinas, elle se caractérise par une cour centrale entourée de chambres d’habitation.",
+            hcpTerm: "Maison marocaine traditionnelle",
           },
           {
             id: "modern-house",
             term: "Modern Moroccan house",
             body: "A house of one or more storeys, built to be lived in, that is neither a block of flats, nor a villa, nor a traditional house. It is the commonest kind in Morocco's towns.",
-            hcp: "Construction individuelle à un ou plusieurs étages, destinée principalement à l’habitation. Sa structure ne correspond ni à celle d’un immeuble à appartements, ni d’une villa, ni d’une maison traditionnelle.",
+            hcpTerm: "Maison marocaine moderne",
           },
           {
             id: "slum",
             term: "Basic house or slum",
             body: "Very rough building: a gourbi, a precarious house on the edge of a town, a shack in a bidonville.",
-            hcp: "Constructions très rudimentaires telles que gourbis, petites maisons précaires en périphérie urbaine, baraques dans les bidonvilles, etc.",
+            hcpTerm: "Construction sommaire ou bidonville",
           },
           {
             id: "rural-dwelling",
             term: "Rural-type dwelling",
             body: "A building that puts living space and space for livestock together, and fits none of the other kinds.",
-            hcp: "Comprend des constructions combinant habitation et espace pour l’élevage, ne correspondant pas aux catégories précédentes.",
+            hcpTerm: "Logement rural",
           },
           {
             id: "other-dwelling",
             term: "Other",
             body: "Everything else, which includes a room lived in inside an institution such as a hotel, a school or a mosque, and premises built for something else and lived in anyway: a shop, a garage, a workshop.",
-            hcp: "Tous les autres logements ne pouvant être classés dans les catégories ci-dessus.",
+            hcpTerm: "Autres types à préciser",
           },
           {
             id: "occupied",
             term: "Occupied",
             body: "Lived in by a household that usually resides there, whether or not they were home on census day.",
-            hcp: "Logement habité par un ménage résident habituel au moment du recensement. Le ménage peut être présent ou temporairement absent à la date de référence.",
+            hcpTerm: "Logement occupé",
           },
           {
             id: "vacant",
             term: "Vacant",
             body: "Empty on census day and up for rent or for sale. Only villas, apartments and Moroccan houses can count as vacant, so an empty shack is not in this figure.",
-            hcp: "Logement non occupé par un ménage au moment du recensement et destiné soit à la location, soit à la vente. Seuls les logements de type villa, appartement ou maison marocaine moderne ou traditionnelle sont considérés comme logements vacants.",
+            hcpTerm: "Logement vacant",
           },
           {
             id: "seasonal",
             term: "Second or seasonal home",
             body: "Used as a second home by a household whose main home is elsewhere. As with vacant dwellings, only villas, apartments and Moroccan houses count.",
-            hcp: "Logement utilisé comme résidence secondaire par un ménage dont la résidence principale se situe ailleurs. Seuls les logements de type villa, appartement ou maison marocaine moderne ou traditionnelle sont pris en compte dans cette catégorie.",
+            hcpTerm: "Logement secondaire ou saisonnier",
           },
           {
             id: "precarious",
@@ -273,7 +272,7 @@ export const glossary: Record<Locale, { title: string; description: string; lede
             id: "shortfall",
             term: "Housing shortfall",
             body: "The households living in unsound dwellings, plus the households beyond the sound shared dwellings they occupy, over the sound dwellings that are occupied or vacant. Households on top and dwellings underneath, so it passes 100% where the shortfall is larger than the sound stock.",
-            hcp: "Le taux de déficit quantitatif en logements est le rapport du déficit quantitatif total à la somme des logements salubres occupés et vacants. Le déficit quantitatif total est la somme de ménages vivant dans des logements insalubres et l’excédent du nombre de ménages par rapport aux logements salubres de cohabitation qu’ils occupent.",
+            hcpTerm: "Taux de déficit quantitatif en logements",
           },
         ],
       },
@@ -346,51 +345,56 @@ export const glossary: Record<Locale, { title: string; description: string; lede
         id: "people",
         label: "Compter les habitants",
         entries: [
-          { id: "reference-date", term: "Date du recensement", body: "Le 1er septembre 2024. Chaque chiffre de 2024 décrit le pays tel qu’il était ce jour-là. Le recensement précédent est celui de 2014." },
+          { id: "reference-date", term: "Date du recensement", hcpTerm: "Date de référence du Recensement", body: "Chaque chiffre de 2024 décrit le pays tel qu’il était ce jour-là. Le recensement précédent est celui de 2014." },
           {
             id: "legal-population",
             term: "Population légale",
-            body: "Ensemble des personnes résidant sur le territoire national à la date de référence du recensement, ou ayant l’intention d’y résider, pour une durée d’au moins 6 mois. Elle est constituée de la population municipale et de la population comptée à part, et c’est le chiffre que ce jeu de données porte sous `population` : 36 828 330 en 2024.",
+            hcpTerm: "Population légale",
+            body: "C’est le chiffre que ce jeu de données porte sous `population` : 36 828 330 en 2024.",
           },
           {
             id: "municipal-population",
             term: "Population municipale",
-            body: "Ensemble des personnes sédentaires, nomades et sans-abri. C’est sur elle que se calculent les parts du recensement : les hommes et les femmes, et les tranches d’âge, s’y additionnent plutôt qu’à la population légale. 36 490 591 en 2024, environ 338 000 de moins.",
+            hcpTerm: "Population municipale",
+            body: "C’est sur elle que se calculent les parts du recensement : les hommes et les femmes, et les tranches d’âge, s’y additionnent plutôt qu’à la population légale. 36 490 591 en 2024, environ 338 000 de moins.",
           },
           {
             id: "counted-apart",
             term: "Population comptée à part",
-            body: "Les personnes contraintes de vivre en communauté dans des établissements spécifiques : militaires et forces auxiliaires en caserne, travailleurs logés sur les chantiers, détenus, personnes en maison de bienfaisance, de retraite, d’éducation surveillée, en centre de protection de l’enfance ou en zaouïa, et les personnes hospitalisées au moins 6 mois. Elles sont dans la population légale et pas dans la municipale : c’est l’écart entre les deux.",
+            hcpTerm: "Population comptée à part",
           },
           {
             id: "household",
             term: "Ménage",
-            body: "Ensemble de personnes vivant sous le même toit et ayant des dépenses quotidiennes communes, sans qu’elles soient nécessairement unies par des liens de parenté. Un ménage est sédentaire, nomade ou sans-abri. Tous les chiffres de ménage sont par ménage : un logement où personne n’habite n’y figure pas.",
+            hcpTerm: "Ménage",
+            body: "Tous les chiffres de ménage sont par ménage : un logement où personne n’habite n’y figure pas.",
           },
           {
             id: "settled",
             term: "Ménage sédentaire",
-            body: "Ménage résidant habituellement dans un logement, par opposition au nomade et au sans-abri. Les équipements, les pièces et la distance à la route sont donnés pour les ménages sédentaires.",
+            hcpTerm: "Ménage sédentaire",
+            body: "Les équipements, les pièces et la distance à la route sont donnés pour les ménages sédentaires.",
           },
           {
             id: "room",
             term: "Pièce d’habitation",
-            body: "Pièce d’un logement destinée au séjour ou au sommeil. Une cuisine, une salle de bains, des W.-C., un vestibule, un couloir, une buanderie, un débarras, un garage inoccupé ou une pièce à usage exclusivement professionnel n’en sont pas : le nombre de personnes par pièce ne compte que les pièces où l’on vit.",
+            hcpTerm: "Pièce d’habitation",
           },
           {
             id: "labour-force",
             term: "Population active",
-            body: "Ensemble des personnes de 15 ans et plus disponibles sur le marché du travail, qu’elles exercent ou qu’elles recherchent une activité : les actifs occupés et les chômeurs. Le taux d’activité est leur part dans cette tranche d’âge, le taux de chômage la part d’entre eux qui cherchent un travail.",
+            hcpTerm: "Population active de 15 ans et plus",
+            body: "Le taux d’activité est leur part dans cette tranche d’âge, le taux de chômage la part d’entre eux qui cherchent un travail.",
           },
           {
             id: "in-work",
             term: "Actif occupé",
-            body: "Personne de 15 ans et plus ayant travaillé, ne serait-ce qu’une heure, au cours de la semaine précédant l’interview, ou pourvue d’un emploi dont elle est temporairement absente pour maladie, congé, conflit du travail, formation ou intempérie. Le HCP suit ici les recommandations de l’Organisation Internationale du Travail.",
+            hcpTerm: "Population active occupée de 15 ans et plus",
           },
           {
             id: "electricity",
             term: "Électricité, eau courante",
-            body: "L’électricité compte un logement raccordé au réseau public, et un logement éclairé à l’énergie solaire ou par un groupe électrogène. L’eau courante ne compte que le réseau public.",
+            hcpTerm: "Part des ménages sédentaires disposant de l’électricité",
           },
           {
             id: "long-questionnaire",
@@ -400,17 +404,19 @@ export const glossary: Record<Locale, { title: string; description: string; lede
           {
             id: "illiteracy",
             term: "Analphabétisme",
-            body: "Ne pouvoir ni lire ni écrire, en le comprenant, un énoncé simple et bref se rapportant à sa vie quotidienne. Le taux est la part des 10 ans et plus.",
+            hcpTerm: "Analphabète",
+            body: "Le taux est la part des 10 ans et plus.",
           },
           {
             id: "disability",
             term: "Handicap",
-            body: "Incapacité totale, ou beaucoup de difficulté, dans au moins un des six domaines fonctionnels : la vision, l’audition, la mobilité, la communication, la mémoire et la concentration, l’entretien personnel.",
+            hcpTerm: "Personne en situation de handicap",
           },
           {
             id: "schooling",
             term: "Scolarisation",
-            body: "La part des enfants ayant fréquenté un établissement d’enseignement ou de formation pendant l’année, sans avoir nécessairement terminé. Le taux de 2024 porte sur les 6-11 ans de l’année scolaire 2023/2024, dont le HCP dit qu’ils sont les 7-12 ans à la date du recensement. Celui de 2014 porte sur les 7-12 ans et son classeur ne dit pas sur quoi repose la tranche : le jeu de données laisse donc les deux séparés.",
+            hcpTerm: "Taux de scolarisation des 6-11 ans en 2023/2024",
+            body: "Celui de 2014 porte sur les 7-12 ans et son classeur ne dit pas sur quoi repose la tranche : le jeu de données laisse donc les deux séparés.",
           },
         ],
       },
@@ -435,39 +441,42 @@ export const glossary: Record<Locale, { title: string; description: string; lede
           {
             id: "dwelling",
             term: "Logement",
-            body: HCP_DWELLING + " Les indicateurs du recensement en retiennent un plus étroit, le local occupé par un ménage à titre de résidence principale : c’est pourquoi les logements d’une ville et les logements où vivent ses ménages sont comptés à part ici.",
+            hcpTerm: "Le logement",
+            body: "Les indicateurs du recensement en retiennent un plus étroit, le local occupé par un ménage à titre de résidence principale. Les logements d’une ville et les logements où vivent ses ménages sont donc comptés à part ici.",
           },
-          { id: "villa", term: "Villa", body: "Construction isolée de plain-pied ou à deux étages, généralement dotée d’un jardin. Une villa peut avoir un usage autre que l’habitation au moment du recensement." },
-          { id: "apartment", term: "Appartement", body: "Appartement individualisé dans un immeuble, pouvant servir différents usages au moment du recensement." },
-          { id: "traditional-house", term: "Maison marocaine traditionnelle", body: "Majoritairement située dans les anciennes médinas, elle se caractérise par une cour centrale entourée de chambres d’habitation." },
+          { id: "villa", term: "Villa", hcpTerm: "Villa" },
+          { id: "apartment", term: "Appartement", hcpTerm: "Appartement dans un immeuble" },
+          { id: "traditional-house", term: "Maison marocaine traditionnelle", hcpTerm: "Maison marocaine traditionnelle" },
           {
             id: "modern-house",
             term: "Maison marocaine moderne",
-            body: "Construction individuelle à un ou plusieurs étages, destinée principalement à l’habitation. Sa structure ne correspond ni à celle d’un immeuble à appartements, ni d’une villa, ni d’une maison traditionnelle. C’est le type le plus répandu dans les villes du pays.",
+            hcpTerm: "Maison marocaine moderne",
+            body: "C’est le type le plus répandu dans les villes du pays.",
           },
-          { id: "slum", term: "Maison sommaire ou bidonville", body: "Constructions très rudimentaires telles que gourbis, petites maisons précaires en périphérie urbaine, baraques dans les bidonvilles." },
-          { id: "rural-dwelling", term: "Logement de type rural", body: "Constructions combinant habitation et espace pour l’élevage, ne correspondant pas aux catégories précédentes." },
+          { id: "slum", term: "Maison sommaire ou bidonville", hcpTerm: "Construction sommaire ou bidonville" },
+          { id: "rural-dwelling", term: "Logement de type rural", hcpTerm: "Logement rural" },
           {
             id: "other-dwelling",
             term: "Autre type",
-            body: "Tout le reste, dont une chambre habitée dans un établissement comme un hôtel, une école ou une mosquée, et un local prévu pour autre chose et habité quand même : boutique, garage, atelier.",
+            hcpTerm: "Autres types à préciser",
           },
-          { id: "occupied", term: "Logement occupé", body: "Habité par un ménage résident habituel au moment du recensement, présent ou temporairement absent à la date de référence." },
+          { id: "occupied", term: "Logement occupé", hcpTerm: "Logement occupé" },
           {
             id: "vacant",
             term: "Logement vacant",
-            body: "Non occupé au moment du recensement et destiné à la location ou à la vente. Seuls les logements de type villa, appartement ou maison marocaine moderne ou traditionnelle sont considérés comme vacants : une baraque vide n’est pas dans ce chiffre.",
+            hcpTerm: "Logement vacant",
           },
           {
             id: "seasonal",
             term: "Logement secondaire ou saisonnier",
-            body: "Utilisé comme résidence secondaire par un ménage dont la résidence principale se situe ailleurs. Comme pour les vacants, seuls les villas, appartements et maisons marocaines comptent.",
+            hcpTerm: "Logement secondaire ou saisonnier",
           },
           { id: "precarious", term: "Logement salubre et précaire", body: "Les villas, appartements et maisons marocaines sont les logements salubres. Les maisons sommaires et bidonvilles, les logements de type rural et le reste sont les précaires. Les deux font tout le parc." },
           {
             id: "shortfall",
             term: "Déficit en logement",
-            body: "Le rapport du déficit quantitatif total à la somme des logements salubres occupés et vacants. Le déficit quantitatif total est la somme des ménages vivant dans des logements insalubres et de l’excédent des ménages sur les logements salubres de cohabitation qu’ils occupent. Des ménages au numérateur et des logements au dénominateur : le taux dépasse 100 % là où le déficit est plus grand que le parc salubre.",
+            hcpTerm: "Taux de déficit quantitatif en logements",
+            body: "Des ménages au numérateur et des logements au dénominateur : le taux dépasse 100 % là où le déficit est plus grand que le parc salubre.",
           },
         ],
       },

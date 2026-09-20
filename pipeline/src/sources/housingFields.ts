@@ -105,3 +105,36 @@ export const SOUND = ["villa", "apartment", "traditional", "modern"] as const;
 export const PRECARIOUS = ["slum", "ruralType", "other"] as const;
 /** Every type the age cross-tab covers, in the order the workbook gives them. */
 export const TYPES = [...SOUND, "sound", ...PRECARIOUS, "precarious"] as const;
+
+/** What HCP calls each type of dwelling in its definitions sheet. */
+const TYPE_CONCEPT: Record<string, string> = {
+  villa: "Villa",
+  apartment: "Appartement dans un immeuble",
+  traditional: "Maison marocaine traditionnelle",
+  modern: "Maison marocaine moderne",
+  slum: "Construction sommaire ou bidonville",
+  ruralType: "Logement rural",
+  other: "Autres types à préciser",
+};
+
+/**
+ * The concept HCP defines a column under.
+ *
+ * This workbook's second sheet defines 15 of them. None of the columns is headed with the
+ * term HCP defines it under — the villa column is headed "Villa ou niveau de villa" — so
+ * every column that has a definition is named here. The totals HCP adds up itself, sound
+ * and precarious housing, are defined by the types under them rather than on their own.
+ */
+export const HCP_CONCEPT: Record<string, string> = {
+  "dwellings.total": "Le logement",
+  "dwellings.deficitRate": "Taux de déficit quantitatif en logements",
+  "occupancy.occupied": "Logement occupé",
+  "occupancy.vacant": "Logement vacant",
+  "occupancy.seasonal": "Logement secondaire ou saisonnier",
+  ...Object.fromEntries(Object.entries(TYPE_CONCEPT).map(([key, term]) => [`type.${key}`, term])),
+  ...Object.fromEntries(
+    Object.entries(TYPE_CONCEPT).flatMap(([key, term]) =>
+      ["Under20", "20to49", "50Plus"].map((band) => [`ageByType.${key}${band}`, term] as const),
+    ),
+  ),
+};

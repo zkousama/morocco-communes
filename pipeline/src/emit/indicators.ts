@@ -3,6 +3,8 @@ import { regionOfCode } from "../lib/levels.ts";
 import { join } from "node:path";
 import { AREAS, SEXES, type Field } from "../sources/hcpIndicators.ts";
 import { HOUSEHOLD_FIELDS_ALL as HOUSEHOLD_FIELDS, PEOPLE_FIELDS_ALL as PEOPLE_FIELDS } from "../sources/censusFields.ts";
+import { HCP_CONCEPT } from "../sources/indicatorFields.ts";
+import { definitionsByTerm, termFor, type Definition } from "../sources/hcpDefinitions.ts";
 import type { IndicatorRecord, Level } from "../build/indicators.ts";
 import { toCsv } from "./csv.ts";
 
@@ -59,7 +61,7 @@ export const NOTES = {
     "The long questionnaire, which carries most of these topics, went to every household in communes of fewer than 2,000 households and to a random 20% of households elsewhere, so in larger communes these figures are estimates from that sample.",
 };
 
-const describe = (f: Field) => ({
+const describe = (f: Field, term: string | null) => ({
   path: pathOf(f),
   column: columnOf(f),
   topic: f.topic,
@@ -69,9 +71,17 @@ const describe = (f: Field) => ({
   ...(f.category ? { category: f.category } : {}),
   unit: f.unit,
   ...(f.sexes.length > 0 ? { sexes: f.sexes } : {}),
+  ...(term ? { definedAs: term } : {}),
 });
 
-export async function writeIndicators(records: IndicatorRecord[], dir: string, source: { id: string; url: string }): Promise<void> {
+export async function writeIndicators(
+  records: IndicatorRecord[],
+  dir: string,
+  source: { id: string; url: string },
+  definitions: Definition[],
+): Promise<void> {
+  const index = definitionsByTerm(definitions);
+  const described = (f: Field) => describe(f, termFor(index, HCP_CONCEPT, f));
   await mkdir(dir, { recursive: true });
 
   for (const [level, file] of Object.entries(FILES) as [Level, string][]) {
@@ -97,7 +107,17 @@ export async function writeIndicators(records: IndicatorRecord[], dir: string, s
 
   await writeFile(
     join(dir, "fields.json"),
-    `${JSON.stringify({ source, people: PEOPLE_FIELDS.map(describe), households: HOUSEHOLD_FIELDS.map(describe), notes: NOTES }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        source,
+        people: PEOPLE_FIELDS.map(described),
+        households: HOUSEHOLD_FIELDS.map(described),
+        notes: NOTES,
+        definitions,
+      },
+      null,
+      2,
+    )}\n`,
   );
 
   const head = ["code", "code_digits", "level", "name_fr", "area"];

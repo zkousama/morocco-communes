@@ -12,7 +12,8 @@
       "key": "total",
       "label": "Urban dwellings",
       "heading": "Total des logements urbains",
-      "unit": "dwellings"
+      "unit": "dwellings",
+      "definedAs": "Le logement"
     },
     {
       "path": "occupancy.occupied",
@@ -21,7 +22,8 @@
       "key": "occupied",
       "label": "Occupied",
       "heading": "Nature d'occupation % · Logement occupé",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement occupé"
     },
     {
       "path": "occupancy.vacant",
@@ -30,7 +32,8 @@
       "key": "vacant",
       "label": "Vacant",
       "heading": "Logement non occupé · Logement vacants",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement vacant"
     },
     {
       "path": "occupancy.seasonal",
@@ -39,7 +42,8 @@
       "key": "seasonal",
       "label": "Second or seasonal home",
       "heading": "Logement secondaire/saisonnier",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement secondaire ou saisonnier"
     },
     {
       "path": "occupancy.unoccupied",
@@ -57,7 +61,8 @@
       "key": "villa",
       "label": "Villa, or a floor of one",
       "heading": "Type de logement % · Logement non précaire ou salubre · Villa ou niveau de villa",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Villa"
     },
     {
       "path": "type.apartment",
@@ -66,7 +71,8 @@
       "key": "apartment",
       "label": "Apartment",
       "heading": "Appartement",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Appartement dans un immeuble"
     },
     {
       "path": "type.traditional",
@@ -75,7 +81,8 @@
       "key": "traditional",
       "label": "Traditional Moroccan house",
       "heading": "Maison marocaine traditionnelle",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine traditionnelle"
     },
     {
       "path": "type.modern",
@@ -84,7 +91,8 @@
       "key": "modern",
       "label": "Modern Moroccan house",
       "heading": "Maison marocaine moderne",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine moderne"
     },
     {
       "path": "type.sound",
@@ -102,7 +110,8 @@
       "key": "slum",
       "label": "Basic house or slum",
       "heading": "Logement précaire · Maison sommaire ou bidonville",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Construction sommaire ou bidonville"
     },
     {
       "path": "type.ruralType",
@@ -111,7 +120,8 @@
       "key": "ruralType",
       "label": "Rural-type dwelling",
       "heading": "Logement en type rural",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement rural"
     },
     {
       "path": "type.other",
@@ -120,7 +130,8 @@
       "key": "other",
       "label": "Other",
       "heading": "Autres type",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Autres types à préciser"
     },
     {
       "path": "type.precarious",
@@ -165,7 +176,8 @@
       "key": "villaUnder20",
       "label": "Villa, under 20 years old",
       "heading": "Age du logement selon le type Type · Logement non précaire ou salubre · Villa ou niveau de villa · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Villa"
     },
     {
       "path": "ageByType.villa20to49",
@@ -174,7 +186,8 @@
       "key": "villa20to49",
       "label": "Villa, 20 to 49 years old",
       "heading": "De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Villa"
     },
     {
       "path": "ageByType.villa50Plus",
@@ -183,7 +196,8 @@
       "key": "villa50Plus",
       "label": "Villa, 50 years or older",
       "heading": "50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Villa"
     },
     {
       "path": "ageByType.apartmentUnder20",
@@ -192,7 +206,8 @@
       "key": "apartmentUnder20",
       "label": "Apartment, under 20 years old",
       "heading": "Appartement · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Appartement dans un immeuble"
     },
     {
       "path": "ageByType.apartment20to49",
@@ -201,7 +216,8 @@
       "key": "apartment20to49",
       "label": "Apartment, 20 to 49 years old",
       "heading": "2 · De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Appartement dans un immeuble"
     },
     {
       "path": "ageByType.apartment50Plus",
@@ -210,7 +226,8 @@
       "key": "apartment50Plus",
       "label": "Apartment, 50 years or older",
       "heading": "3 · 50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Appartement dans un immeuble"
     },
     {
       "path": "ageByType.traditionalUnder20",
@@ -219,7 +236,8 @@
       "key": "traditionalUnder20",
       "label": "Traditional Moroccan house, under 20 years old",
       "heading": "Maison marocaine traditionnelle · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine traditionnelle"
     },
     {
       "path": "ageByType.traditional20to49",
@@ -228,7 +246,8 @@
       "key": "traditional20to49",
       "label": "Traditional Moroccan house, 20 to 49 years old",
       "heading": "2 · De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine traditionnelle"
     },
     {
       "path": "ageByType.traditional50Plus",
@@ -237,7 +256,8 @@
       "key": "traditional50Plus",
       "label": "Traditional Moroccan house, 50 years or older",
       "heading": "3 · 50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine traditionnelle"
     },
     {
       "path": "ageByType.modernUnder20",
@@ -246,7 +266,8 @@
       "key": "modernUnder20",
       "label": "Modern Moroccan house, under 20 years old",
       "heading": "Maison marocaine moderne · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine moderne"
     },
     {
       "path": "ageByType.modern20to49",
@@ -255,7 +276,8 @@
       "key": "modern20to49",
       "label": "Modern Moroccan house, 20 to 49 years old",
       "heading": "2 · De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine moderne"
     },
     {
       "path": "ageByType.modern50Plus",
@@ -264,7 +286,8 @@
       "key": "modern50Plus",
       "label": "Modern Moroccan house, 50 years or older",
       "heading": "3 · 50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Maison marocaine moderne"
     },
     {
       "path": "ageByType.soundUnder20",
@@ -300,7 +323,8 @@
       "key": "slumUnder20",
       "label": "Basic house or slum, under 20 years old",
       "heading": "Type de logement précaire % · Logement précaire · Maison sommaire ou bidonville · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Construction sommaire ou bidonville"
     },
     {
       "path": "ageByType.slum20to49",
@@ -309,7 +333,8 @@
       "key": "slum20to49",
       "label": "Basic house or slum, 20 to 49 years old",
       "heading": "2 · De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Construction sommaire ou bidonville"
     },
     {
       "path": "ageByType.slum50Plus",
@@ -318,7 +343,8 @@
       "key": "slum50Plus",
       "label": "Basic house or slum, 50 years or older",
       "heading": "3 · 50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Construction sommaire ou bidonville"
     },
     {
       "path": "ageByType.ruralTypeUnder20",
@@ -327,7 +353,8 @@
       "key": "ruralTypeUnder20",
       "label": "Rural-type dwelling, under 20 years old",
       "heading": "Logement en type rural · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement rural"
     },
     {
       "path": "ageByType.ruralType20to49",
@@ -336,7 +363,8 @@
       "key": "ruralType20to49",
       "label": "Rural-type dwelling, 20 to 49 years old",
       "heading": "2 · De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement rural"
     },
     {
       "path": "ageByType.ruralType50Plus",
@@ -345,7 +373,8 @@
       "key": "ruralType50Plus",
       "label": "Rural-type dwelling, 50 years or older",
       "heading": "3 · 50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Logement rural"
     },
     {
       "path": "ageByType.otherUnder20",
@@ -354,7 +383,8 @@
       "key": "otherUnder20",
       "label": "Other, under 20 years old",
       "heading": "Autres type · Moins de 20 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Autres types à préciser"
     },
     {
       "path": "ageByType.other20to49",
@@ -363,7 +393,8 @@
       "key": "other20to49",
       "label": "Other, 20 to 49 years old",
       "heading": "2 · De 20 à moins de 50 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Autres types à préciser"
     },
     {
       "path": "ageByType.other50Plus",
@@ -372,7 +403,8 @@
       "key": "other50Plus",
       "label": "Other, 50 years or older",
       "heading": "3 · 50 ans et plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Autres types à préciser"
     },
     {
       "path": "ageByType.precariousUnder20",
@@ -498,7 +530,8 @@
       "key": "deficitRate",
       "label": "Housing shortfall",
       "heading": "Taux de déficit quantitatif en logement (%)",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Taux de déficit quantitatif en logements"
     }
   ],
   "notes": {
@@ -508,5 +541,67 @@
     "shares": "Every figure but the count of dwellings is a percentage of that unit's urban dwellings, to one decimal.",
     "gaps": "Null is a figure the workbook leaves out, which it writes as `_`. The age of the dwellings by type is left that way for most units.",
     "deficit": "dwellings.deficitRate is HCP's quantitative housing shortfall: the households living in unsound dwellings, plus the households beyond the sound shared dwellings they occupy, over the sound dwellings that are occupied or vacant. Households on top, dwellings underneath, so it passes 100% where the shortfall is larger than the sound stock."
-  }
+  },
+  "definitions": [
+    {
+      "term": "Le logement",
+      "body": "Selon la définition retenue par le recensement 2024, un logement est constitué d’une ou plusieurs pièces destinées à l’habitation et disposant d’une ou plusieurs entrées directes. On entend par entrée directe toute ouverture donnant sur un couloir, un escalier, une cour, un local à usage professionnel, une voie publique, une rue, un terrain vague, etc. Un logement peut ne pas avoir été construit à l’origine pour l’habitation. Par exemple, la partie habitée d’une construction située à l’intérieur d’un établissement industriel ou commercial (comme une arrière-boutique) est considérée comme un logement, même si elle n’était pas initialement destinée à cet usage. De même, un garage transformé en habitation est également considéré comme un logement."
+    },
+    {
+      "term": "Villa",
+      "body": "Construction isolée de plain-pied ou à deux étages, généralement dotée d’un jardin. Une villa peut avoir un usage autre que l’habitation au moment du recensement (professionnel, commercial, etc.)."
+    },
+    {
+      "term": "Appartement dans un immeuble",
+      "body": "appartement doit être individualisé pouvant servir différents usages (habitation, professionnel, etc.) au moment du recensement."
+    },
+    {
+      "term": "Maison marocaine traditionnelle",
+      "body": "Majoritairement située dans les anciennes médinas, elle se caractérise par une cour centrale entourée de chambres d’habitation."
+    },
+    {
+      "term": "Maison marocaine moderne",
+      "body": "Construction individuelle à un ou plusieurs étages, destinée principalement à l’habitation. Sa structure ne correspond ni à celle d’un immeuble à appartements, ni d’une villa, ni d’une maison traditionnelle."
+    },
+    {
+      "term": "Construction sommaire ou bidonville",
+      "body": "Constructions très rudimentaires telles que gourbis, petites maisons précaires en périphérie urbaine, baraques dans les bidonvilles, etc."
+    },
+    {
+      "term": "Chambre dans un établissement",
+      "body": "Une ou plusieurs pièces situées dans une institution (hôtel, maison d’éducation surveillée, école, usine, mosquée, etc.) et utilisées comme logement au moment du recensement."
+    },
+    {
+      "term": "Local non destiné à l’habitation",
+      "body": "Local initialement prévu pour d’autres usages mais servant de logement au moment du recensement (boutiques, garages, ateliers, etc.)."
+    },
+    {
+      "term": "Logement rural",
+      "body": "Comprend des constructions combinant habitation et espace pour l’élevage, ne correspondant pas aux catégories précédentes."
+    },
+    {
+      "term": "Autres types à préciser",
+      "body": "Tous les autres logements ne pouvant être classés dans les catégories ci-dessus, par exemple des locaux utilisés comme entrepôts industriels, espaces commerciaux, lieux de culte ou installations de loisirs."
+    },
+    {
+      "term": "Logement occupé",
+      "body": "Logement habité par un ménage résident habituel au moment du recensement. Le ménage peut être présent ou temporairement absent à la date de référence."
+    },
+    {
+      "term": "Logement vacant",
+      "body": "Logement non occupé par un ménage au moment du recensement et destiné soit à la location, soit à la vente. Selon le RGPH 2024, seuls les logements de type villa, appartement ou maison marocaine moderne ou traditionnelle sont considérés comme logements vacants."
+    },
+    {
+      "term": "Logement secondaire ou saisonnier",
+      "body": "Logement utilisé comme résidence secondaire par un ménage dont la résidence principale se situe ailleurs. Selon le RGPH 2024, seuls les logements de type villa, appartement ou maison marocaine moderne ou traditionnelle sont pris en compte dans cette catégorie."
+    },
+    {
+      "term": "Taux de déficit quantitatif en logements",
+      "body": "Le taux de déficit quantitatif en logements est le rapport du déficit quantitatif total à la somme des logements salubres occupés et vacants."
+    },
+    {
+      "term": "Déficit quantitatif total en logements",
+      "body": "Le déficit quantitatif total en logements est la somme de ménages vivant dans des logements insalubres et l’excédent du nombre de ménages par rapport aux logements salubres de cohabitation qu’ils occupent."
+    }
+  ]
 }

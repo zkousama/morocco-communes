@@ -14,7 +14,8 @@
       "unit": "people",
       "sexes": [
         "all"
-      ]
+      ],
+      "definedAs": "Population légale"
     },
     {
       "path": "population.municipal",
@@ -28,7 +29,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Population municipale"
     },
     {
       "path": "sex.male",
@@ -69,7 +71,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.5-9",
@@ -84,7 +87,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.10-14",
@@ -99,7 +103,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.15-19",
@@ -114,7 +119,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.20-24",
@@ -129,7 +135,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.25-29",
@@ -144,7 +151,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.30-34",
@@ -159,7 +167,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.35-39",
@@ -174,7 +183,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.40-44",
@@ -189,7 +199,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.45-49",
@@ -204,7 +215,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.50-54",
@@ -219,7 +231,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.55-59",
@@ -234,7 +247,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.60-64",
@@ -249,7 +263,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.65-69",
@@ -264,7 +279,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.70-74",
@@ -279,7 +295,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "age.75+",
@@ -294,7 +311,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge"
     },
     {
       "path": "maritalStatus.population15Plus",
@@ -323,7 +341,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Célibataire"
     },
     {
       "path": "maritalStatus.married",
@@ -338,7 +357,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Marié.e"
     },
     {
       "path": "maritalStatus.divorced",
@@ -353,7 +373,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Divorcé.e"
     },
     {
       "path": "maritalStatus.widowed",
@@ -368,7 +389,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Veuf.ve"
     },
     {
       "path": "maritalStatus.singulateMeanAgeAtMarriage",
@@ -382,7 +404,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Âge moyen singulier au mariage"
     },
     {
       "path": "fertility.totalFertilityRate",
@@ -395,7 +418,8 @@
       "sexes": [
         "all",
         "female"
-      ]
+      ],
+      "definedAs": "Indicateur conjoncturel de fécondité"
     },
     {
       "path": "fertility.completedFertility",
@@ -408,7 +432,8 @@
       "sexes": [
         "all",
         "female"
-      ]
+      ],
+      "definedAs": "Descendance finale des femmes"
     },
     {
       "path": "disability.prevalence",
@@ -422,7 +447,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Taux de prévalence du handicap"
     },
     {
       "path": "schooling.population7to12",
@@ -450,7 +476,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Taux de scolarisation des 6-11 ans en 2023/2024"
     },
     {
       "path": "illiteracy.population10Plus",
@@ -478,7 +505,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Taux d'analphabétisme des 10 ans et plus"
     },
     {
       "path": "illiteracy.population15Plus",
@@ -506,7 +534,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Taux d'analphabétisme des 15 ans et plus"
     },
     {
       "path": "languagesReadAndWritten.literatePopulation10Plus",
@@ -773,7 +802,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Population active de 15 ans et plus"
     },
     {
       "path": "labour.inactive",
@@ -787,7 +817,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Population inactive de 15 ans et plus"
     },
     {
       "path": "labour.activityRate",
@@ -801,7 +832,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Taux d'activité des 15 ans et plus"
     },
     {
       "path": "labour.unemploymentRate",
@@ -815,7 +847,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Taux de chômage"
     },
     {
       "path": "labour.employed",
@@ -829,7 +862,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Population active occupée de 15 ans et plus"
     },
     {
       "path": "employmentStatus.employer",
@@ -844,7 +878,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Employeur"
     },
     {
       "path": "employmentStatus.selfEmployed",
@@ -859,7 +894,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Indépendant"
     },
     {
       "path": "employmentStatus.publicSector",
@@ -874,7 +910,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Salarié"
     },
     {
       "path": "employmentStatus.privateSector",
@@ -889,7 +926,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Salarié"
     },
     {
       "path": "employmentStatus.familyWorker",
@@ -904,7 +942,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Aide familial"
     },
     {
       "path": "employmentStatus.apprentice",
@@ -919,7 +958,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Apprenti"
     },
     {
       "path": "employmentStatus.cooperativeMember",
@@ -934,7 +974,8 @@
         "all",
         "male",
         "female"
-      ]
+      ],
+      "definedAs": "Coopérateur/Associé"
     },
     {
       "path": "employmentStatus.other",
@@ -1154,7 +1195,8 @@
       "key": "municipalPopulation",
       "label": "Municipal population",
       "heading": "Population municipale",
-      "unit": "people"
+      "unit": "people",
+      "definedAs": "Population municipale"
     },
     {
       "path": "households.count",
@@ -1163,7 +1205,8 @@
       "key": "count",
       "label": "Households",
       "heading": "Ménages",
-      "unit": "households"
+      "unit": "households",
+      "definedAs": "Ménage"
     },
     {
       "path": "households.averageSize",
@@ -1172,7 +1215,8 @@
       "key": "averageSize",
       "label": "Average household size",
       "heading": "Taille moyenne des ménages",
-      "unit": "people per household"
+      "unit": "people per household",
+      "definedAs": "Taille moyenne des ménages"
     },
     {
       "path": "households.sedentary",
@@ -1181,7 +1225,8 @@
       "key": "sedentary",
       "label": "Sedentary households",
       "heading": "Ménages sédentaires",
-      "unit": "households"
+      "unit": "households",
+      "definedAs": "Ménage sédentaire"
     },
     {
       "path": "dwellingType.villa",
@@ -1250,7 +1295,8 @@
       "key": "peoplePerRoom",
       "label": "People per room",
       "heading": "Nombre moyen de personnes par pièce d'habitation",
-      "unit": "people per room"
+      "unit": "people per room",
+      "definedAs": "Nombre moyen de personnes par pièce d'habitation"
     },
     {
       "path": "occupancy.owner",
@@ -1260,7 +1306,8 @@
       "label": "Owner",
       "heading": "Statut d'occupation du logement (%)",
       "category": "Propriétaire",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Propriétaire"
     },
     {
       "path": "occupancy.tenant",
@@ -1270,7 +1317,8 @@
       "label": "Tenant",
       "heading": "Statut d'occupation du logement (%)",
       "category": "Locataire",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Locataire"
     },
     {
       "path": "occupancy.other",
@@ -1280,7 +1328,8 @@
       "label": "Other",
       "heading": "Statut d'occupation du logement (%)",
       "category": "Autre",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Statut d'occupation du logement"
     },
     {
       "path": "dwellingAge.under10",
@@ -1290,7 +1339,8 @@
       "label": "Under 10 years old",
       "heading": "Âge du logement (%)",
       "category": "Moins de 10 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Âge du logement"
     },
     {
       "path": "dwellingAge.10-19",
@@ -1300,7 +1350,8 @@
       "label": "10 to 19 years old",
       "heading": "Âge du logement (%)",
       "category": "10-19 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Âge du logement"
     },
     {
       "path": "dwellingAge.20-49",
@@ -1310,7 +1361,8 @@
       "label": "20 to 49 years old",
       "heading": "Âge du logement (%)",
       "category": "20-49 ans",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Âge du logement"
     },
     {
       "path": "dwellingAge.50+",
@@ -1320,7 +1372,8 @@
       "label": "50 years or older",
       "heading": "Âge du logement (%)",
       "category": "50 ans ou plus",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Âge du logement"
     },
     {
       "path": "amenities.kitchen",
@@ -1360,7 +1413,8 @@
       "label": "Electricity",
       "heading": "Disponibilité des éléments essentiels de confort (%)",
       "category": "Électricité",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Part des ménages sédentaires disposant de l'électricité"
     },
     {
       "path": "amenities.runningWater",
@@ -1370,7 +1424,8 @@
       "label": "Running water",
       "heading": "Disponibilité des éléments essentiels de confort (%)",
       "category": "Eau courante",
-      "unit": "percent"
+      "unit": "percent",
+      "definedAs": "Part des ménages sédentaires disposant de l'eau courante"
     },
     {
       "path": "wastewater.publicSewer",
@@ -1499,7 +1554,8 @@
       "key": "distanceToPavedRoadKm",
       "label": "Average distance to a paved road",
       "heading": "Distance moyenne des logements à la route goudronnée (Km)",
-      "unit": "km"
+      "unit": "km",
+      "definedAs": "Distance à la route goudronnée"
     }
   ],
   "notes": {
@@ -1538,5 +1594,215 @@
       "employmentStatus"
     ],
     "sample": "The long questionnaire, which carries most of these topics, went to every household in communes of fewer than 2,000 households and to a random 20% of households elsewhere, so in larger communes these figures are estimates from that sample."
-  }
+  },
+  "definitions": [
+    {
+      "term": "Recensement Général de la Population et de l'Habitat (RGPH)",
+      "body": "Ensemble des opérations qui consistent à collecter, à exploiter, à analyser et à publier les données démographiques et socioéconomiques et les conditions d'habitat, se rapportant à la date de référence du Recensement, à l'ensemble de la population résidente du Royaume du Maroc."
+    },
+    {
+      "term": "Date de référence du Recensement",
+      "body": "Le 1er septembre 2024."
+    },
+    {
+      "term": "Population légale",
+      "body": "Ensemble des personnes résidant sur le territoire national à la date de référence du Recensement, ou ayant l'intention d'y résider, pour une durée d'au moins 6 mois. La population légale est constituée de : • la population municipale ; et • la population comptée à part."
+    },
+    {
+      "term": "Population municipale",
+      "body": "Ensemble des personnes sédentaires (ayant leur résidence habituelle dans un logement), des personnes nomades et des personnes sans-abri."
+    },
+    {
+      "term": "Population comptée à part",
+      "body": "Ensemble des personnes contraintes de vivre en communauté dans des établissements spécifiques pour raisons professionnelles, sociales ou sanitaires, à savoir : • les soldats, les gendarmes et les agents des forces auxiliaires vivant dans les casernes, les quartiers, les camps militaires et assimilés ; • les travailleurs logés dans les baraques de chantiers des travaux publics et n'ayant pas de résidence habituelle ; • les détenus dans les prisons ; • les personnes vivant dans les maisons de bienfaisance, dans les maisons de retraite, dans les maisons d'éducation surveillée, dans les centres de protection de l'enfance et dans les zaouïas ; et • les personnes hospitalisées pendant au moins 6 mois."
+    },
+    {
+      "term": "Âge",
+      "body": "Âge révolu (ou âge au dernier anniversaire), soit le nombre entier d’années écoulées depuis la naissance."
+    },
+    {
+      "term": "État matrimonial",
+      "body": "Situation conjugale d'une personne compte tenu des lois et des coutumes du mariage. Les personnes sont classées selon les catégories suivantes : • Célibataire. • Marié.e. • Divorcé.e. • Veuf.ve."
+    },
+    {
+      "term": "Célibataire",
+      "body": "État matrimonial d'une personne qui n'a jamais contracté un mariage civil ou coutumier."
+    },
+    {
+      "term": "Marié.e",
+      "body": "État matrimonial d'une personne unie par les liens du mariage, civil ou coutumier, avec une autre personne, abstraction faite de la tenue de la cérémonie de mariage et de la cohabitation des époux."
+    },
+    {
+      "term": "Divorcé.e",
+      "body": "État matrimonial d'une personne dont le dernier mariage a été dissous et qui ne s'est pas remariée depuis. S'il s'agissait d'un mariage civil, il est impératif que la dissolution ait été prononcée par un tribunal."
+    },
+    {
+      "term": "Veuf.ve",
+      "body": "État matrimonial d'une personne dont le dernier époux ou la dernière épouse est décédé et qui ne s'est pas remariée depuis."
+    },
+    {
+      "term": "Âge moyen singulier au mariage",
+      "body": "Durée moyenne de célibat, exprimée en années, des personnes qui se sont mariées avant l'âge de 55 ans."
+    },
+    {
+      "term": "Naissance vivante",
+      "body": "Nouveau-né ayant manifesté des signes de vie, tels que le premier cri, la respiration et les battements cardiaques, par opposition au mort-né."
+    },
+    {
+      "term": "Indicateur conjoncturel de fécondité",
+      "body": "Nombre moyen de naissances vivantes qu'aurait une femme si elle connaissait, durant toute sa vie féconde, les conditions de fécondité observées durant les 12 mois précédant la date de référence du recensement."
+    },
+    {
+      "term": "Descendance finale des femmes",
+      "body": "Nombre moyen de naissances vivantes qu'ont eu les femmes parvenues en fin de vie féconde à la date de référence du recensement. En pratique, la descendance finale est calculée pour les femmes de 45 à 49 ans."
+    },
+    {
+      "term": "Personne en situation de handicap",
+      "body": "Personne ayant soit une incapacité totale, soit beaucoup de difficulté dans au moins un des six domaines fonctionnels suivants : • La vision. • L'audition. • La mobilité. • La communication. • La mémoire et la concentration. • L'entretien personnel."
+    },
+    {
+      "term": "Taux de prévalence du handicap",
+      "body": "Rapport entre le nombre de personnes en situation de handicap et l'ensemble de la population."
+    },
+    {
+      "term": "Population scolarisée en 2023/2024",
+      "body": "Ensemble des personnes qui ont fréquenté un établissement d'enseignement général ou de formation professionnelle –public ou privé– durant l'année scolaire 2023/2024, sans avoir nécessairement terminé leur année."
+    },
+    {
+      "term": "Taux de scolarisation des 6-11 ans en 2023/2024",
+      "body": "Proportion de personnes scolarisées durant l'année scolaire 2023/2024 et âgées de 6 à 11 ans durant cette même année scolaire. Cette tranche d'âge correspond aux 7-12 ans à la date de référence du recensement."
+    },
+    {
+      "term": "Moyenne d'années de scolarisation dans l'enseignement général",
+      "body": "Nombre moyen d'années de scolarisation dans l'enseignement général d'une population donnée, abstraction faite des redoublements."
+    },
+    {
+      "term": "Espérance de scolarisation dans l'enseignement général",
+      "body": "Nombre d'années de scolarisation dans l'enseignement général qu'aurait un enfant en âge d'entrée à l'école s'il connaissait, tout au long de son parcours scolaire, les conditions de scolarisation observées durant l'année scolaire 2023/2024."
+    },
+    {
+      "term": "Analphabète",
+      "body": "Personne ne pouvant ni lire ni écrire, en le comprenant, un énoncé simple et bref se rapportant à sa vie quotidienne."
+    },
+    {
+      "term": "Taux d'analphabétisme des 10 ans et plus",
+      "body": "Rapport entre le nombre d'analphabètes âgés de 10 ans et plus à l'ensemble de la population du même âge."
+    },
+    {
+      "term": "Taux d'analphabétisme des 15 ans et plus",
+      "body": "Rapport entre le nombre d'analphabètes âgés de 15 ans et plus à l'ensemble de la population du même âge."
+    },
+    {
+      "term": "Population active de 15 ans et plus",
+      "body": "Ensemble des personnes de 15 ans et plus disponibles sur le marché du travail, qu'elles exercent ou qu'elles recherchent une activité professionnelle. La population active est constituée : • de la population active occupée ; et • des chômeurs."
+    },
+    {
+      "term": "Population active occupée de 15 ans et plus",
+      "body": "Ensemble des personnes de 15 ans et plus ayant travaillé –ne serait-ce qu'une heure– au cours de la semaine précédant leur interview, et des personnes pourvues d'un emploi mais qui en sont temporairement absentes pour un motif tel qu'une maladie, un congé payé, un congé de maternité, un conflit du travail, une formation, une intempérie, etc. Cette définition est en conformité avec les recommandations de l'Organisation Internationale du Travail (OIT)."
+    },
+    {
+      "term": "Chômeurs",
+      "body": "Personnes de 15 ans et plus qui n'ont pas d'emploi, qui sont prêtes à travailler et qui recherchent activement ou passivement un travail. Deux catégories de chômeurs sont à distinguer : • Les chômeurs n'ayant jamais travaillé. • Les chômeurs ayant déjà travaillé."
+    },
+    {
+      "term": "Population inactive de 15 ans et plus",
+      "body": "Ensemble des personnes de 15 ans et plus qui n'exercent pas d'activité professionnelle et qui n'en recherchent pas. Les inactifs sont classés selon la raison de leur inactivité, et sont : • les femmes au foyer ; • les élèves et les étudiants ; • les rentiers ; • les retraités ; • les infirmes et les malades ; • les personnes âgées ; et • les autres inactifs non classés ailleurs."
+    },
+    {
+      "term": "Taux d'activité des 15 ans et plus",
+      "body": "Rapport de la population active de 15 ans et plus à l'ensemble de la population du même âge."
+    },
+    {
+      "term": "Taux de chômage",
+      "body": "Proportion de chômeurs dans la population active de 15 ans et plus."
+    },
+    {
+      "term": "Statut professionnel",
+      "body": "Type de relation de travail qu'a une personne avec des personnes physiques ou morales dans le cadre de son activité professionnelle. Les catégories de statut professionnel utilisées sont les suivantes : • Employeur. • Indépendant. • Salarié du secteur public. • Salarié du secteur privé. • Aide familial. • Apprenti. • Coopérateur/Associé. • Autre."
+    },
+    {
+      "term": "Employeur",
+      "body": "Statut professionnel d'une personne qui travaille pour compte propre, avec éventuellement un ou plusieurs partenaires, et qui emploie au moins un salarié permanent."
+    },
+    {
+      "term": "Indépendant",
+      "body": "Statut professionnel d'une personne qui travaille pour compte propre et qui n'emploie aucun salarié permanent."
+    },
+    {
+      "term": "Salarié",
+      "body": "Statut professionnel d'une personne qui travaille, aux termes d'un contrat explicite ou implicite, pour le compte d'autrui en échange d'un salaire, d'une rétribution ou d'avantages en nature. Le statut de salarié se divise en deux catégories, selon le secteur employeur : • Salarié du secteur public (services de l’État, établissements et entreprises publics et semi-publics, collectivités territoriales, etc.). • Salarié du secteur privé (établissements et entreprises privés, associations, coopératives, ordres professionnels, ménages, etc.)."
+    },
+    {
+      "term": "Aide familial",
+      "body": "Statut professionnel d'une personne qui travaille pour le compte d'un membre de sa famille vivant au sein du même ménage, et qui ne perçoit aucune rémunération."
+    },
+    {
+      "term": "Apprenti",
+      "body": "Statut professionnel d'une personne qui travaille, généralement contre une rémunération symbolique, en vue de se former à un métier en dehors de son cursus d'enseignement général et de formation professionnelle."
+    },
+    {
+      "term": "Coopérateur/Associé",
+      "body": "Statut professionnel d'une personne qui travaille dans une unité de production de biens et services (par exemple une coopérative, une association ou une entreprise), dans laquelle tous les membres sont sur un pied d'égalité quant à la prise de décision et à la répartition des bénéfices."
+    },
+    {
+      "term": "Ménage",
+      "body": "Ensemble de personnes vivant sous le même toit et ayant des dépenses quotidiennes communes, sans qu'ils soient nécessairement unis par des liens de parenté. Le ménage peut être : • soit un ménage sédentaire ; • soit un ménage nomade ; • soit un ménage sans-abri."
+    },
+    {
+      "term": "Ménage sédentaire",
+      "body": "Ménage résidant habituellement dans un logement."
+    },
+    {
+      "term": "Ménage nomade",
+      "body": "Ménage ayant principalement une activité pastorale et se déplaçant périodiquement à la recherche de pâturages et de points d'eau."
+    },
+    {
+      "term": "Ménage sans-abri",
+      "body": "Ménage n'ayant pas de toit et contraint de résider et de dormir dans la rue ou l'espace public."
+    },
+    {
+      "term": "Taille moyenne des ménages",
+      "body": "Nombre moyen de personnes par ménage."
+    },
+    {
+      "term": "Logement",
+      "body": "Local occupé par un ménage à titre de résidence principale. Les logements sont catégorisés selon plusieurs types : • Villa / Étage de villa. • Appartement. • Maison marocaine. • Maison sommaire / Bidonville. • Logement rural (diffère des types cités ci-dessus et comporte généralement des locaux à usage agricole). • Autre."
+    },
+    {
+      "term": "Pièce d'habitation",
+      "body": "Pièce d'un logement destinée au séjour ou au sommeil (chambre à coucher, chambre de service, séjour, bureau, salle de jeux, etc.). Une cuisine, une salle de bains, des W.-C., un vestibule, un couloir, une buanderie, un débarras, un garage inoccupé ou une pièce à usage exclusivement professionnel ne sont pas considérés comme des pièces d'habitation."
+    },
+    {
+      "term": "Nombre moyen de personnes par pièce d'habitation",
+      "body": "Rapport de la population sédentaire au nombre total de pièces d'habitation des ménages sédentaires."
+    },
+    {
+      "term": "Âge du logement",
+      "body": "Nombre d'années révolues écoulées depuis la construction du logement occupé par le ménage sédentaire, ou de sa plus ancienne partie s'il a été construit en plusieurs étapes."
+    },
+    {
+      "term": "Statut d'occupation du logement",
+      "body": "Situation d'un ménage sédentaire concernant l'occupation de sa résidence principale. Les statuts d'occupation utilisés sont les suivants : • Propriétaire. • Locataire. • Autre."
+    },
+    {
+      "term": "Propriétaire",
+      "body": "Statut d'occupation d'un ménage propriétaire non accédant (qui n'a pas de prêts en cours), copropriétaire (qui partage la propriété avec d'autres personnes) ou propriétaire accédant (qui a encore des emprunts à rembourser) de son logement."
+    },
+    {
+      "term": "Locataire",
+      "body": "Statut d'occupation d'un ménage acquittant un loyer pour le logement qu'il occupe, qu'il soit sous hypothèque ou non."
+    },
+    {
+      "term": "Part des ménages sédentaires disposant de l'électricité",
+      "body": "Proportion des ménages sédentaires dont le logement est raccordé à un réseau public de distribution d'électricité, ou dont le mode d'éclairage repose sur l'énergie solaire ou sur un groupe électrogène."
+    },
+    {
+      "term": "Part des ménages sédentaires disposant de l'eau courante",
+      "body": "Proportion des ménages sédentaires dont le logement est raccordé à un réseau public de distribution d'eau courante."
+    },
+    {
+      "term": "Distance à la route goudronnée",
+      "body": "Distance réelle que doivent parcourir les membres du ménage sédentaire pour aller de leur logement à la plus proche route goudronnée, par opposition à la distance à vol d'oiseau."
+    }
+  ]
 }

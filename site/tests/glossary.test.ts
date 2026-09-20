@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { glossary } from "../src/i18n/glossary.ts";
+import { hcpDefinition } from "../src/lib/definitions.ts";
 import { PAGES } from "../src/i18n/ui.ts";
 
 const locales = ["en", "fr"] as const;
@@ -35,20 +36,29 @@ describe("the glossary", () => {
       for (const group of glossary[locale].groups) {
         for (const entry of group.entries) {
           expect(entry.term.length, `${locale} ${entry.id}`).toBeGreaterThan(2);
-          expect(entry.body.length, `${locale} ${entry.id}`).toBeGreaterThan(40);
+          const said = (entry.body ?? "") + (entry.hcpTerm ? hcpDefinition(entry.hcpTerm).body : "");
+          expect(said.length, `${locale} ${entry.id}`).toBeGreaterThan(40);
         }
       }
     }
   });
 
-  it("quotes HCP in French only, since the French entry is already its words", () => {
-    expect(glossary.fr.groups.flatMap((g) => g.entries).filter((e) => e.hcp)).toEqual([]);
-    // The dwelling terms are the ones HCP defines in the workbook.
-    const quoted = glossary.en.groups.flatMap((g) => g.entries).filter((e) => e.hcp).map((e) => e.id);
-    expect(quoted).toContain("modern-house");
-    expect(quoted).toContain("traditional-house");
-    expect(quoted).toContain("shortfall");
-    expect(quoted.length).toBeGreaterThan(15);
+  it("writes its own English for a term HCP defines, and none of its own French", () => {
+    for (const locale of locales) {
+      for (const entry of glossary[locale].groups.flatMap((g) => g.entries)) {
+        if (locale === "en") expect(entry.body, entry.id).toBeTruthy();
+        else if (entry.hcpTerm === undefined) expect(entry.body, entry.id).toBeTruthy();
+      }
+    }
+  });
+
+  it("takes HCP's wording from the dataset, so the page can't drift from it", () => {
+    const named = locales.flatMap((l) => glossary[l].groups.flatMap((g) => g.entries)).filter((e) => e.hcpTerm);
+    expect(named.length).toBeGreaterThan(30);
+    for (const entry of named) expect(() => hcpDefinition(entry.hcpTerm!), entry.id).not.toThrow();
+    // The dwelling types are the ones the housing workbook defines.
+    const ids = new Set(glossary.en.groups.flatMap((g) => g.entries).filter((e) => e.hcpTerm).map((e) => e.id));
+    expect([...ids]).toEqual(expect.arrayContaining(["modern-house", "traditional-house", "shortfall"]));
   });
 
   it("anchors every link the site points at it", () => {

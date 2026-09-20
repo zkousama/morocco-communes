@@ -42,6 +42,10 @@ Both come for the whole unit, its urban part and its rural part.
 - `fields.json` lists every field with its path, its CSV column, an English label, HCP's
   heading and category for it, its unit and the sexes it's given for, and HCP's notes. It
   covers both workbooks, the indicators and commuting, in that order.
+- `fields.json` also carries `definitions`, the 52 concepts HCP defines on a sheet of the
+  indicators workbook, in its French. A field that one of them defines names it under
+  `definedAs`, 56 of the 114 in all. The rest are totals HCP adds up itself, the base
+  populations a share is taken of, and the columns it leaves undefined.
 
 A record, cut short:
 

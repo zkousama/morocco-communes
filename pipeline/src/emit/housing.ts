@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { HOUSING_FIELDS, type HousingField } from "../sources/housingFields.ts";
+import { HCP_CONCEPT, HOUSING_FIELDS, type HousingField } from "../sources/housingFields.ts";
+import { definitionsByTerm, termFor, type Definition } from "../sources/hcpDefinitions.ts";
 import type { Housing, HousingRecord } from "../build/housing.ts";
 import type { Level } from "../build/indicators.ts";
 import { snake } from "./indicators.ts";
@@ -31,7 +32,7 @@ export const NOTES = {
   deficit: "dwellings.deficitRate is HCP's quantitative housing shortfall: the households living in unsound dwellings, plus the households beyond the sound shared dwellings they occupy, over the sound dwellings that are occupied or vacant. Households on top, dwellings underneath, so it passes 100% where the shortfall is larger than the sound stock.",
 };
 
-const describe = (f: HousingField) => ({
+const describe = (f: HousingField, term: string | null) => ({
   path: pathOf(f),
   column: columnOf(f),
   topic: f.topic,
@@ -39,10 +40,17 @@ const describe = (f: HousingField) => ({
   label: f.label,
   heading: f.heading,
   unit: f.unit,
+  ...(term ? { definedAs: term } : {}),
 });
 
-export async function writeHousing(housing: Housing, dir: string, source: { id: string; url: string }): Promise<void> {
+export async function writeHousing(
+  housing: Housing,
+  dir: string,
+  source: { id: string; url: string },
+  definitions: Definition[],
+): Promise<void> {
   await mkdir(dir, { recursive: true });
+  const index = definitionsByTerm(definitions);
   const { records, unplaced, withoutStock } = housing;
 
   for (const [level, file] of Object.entries(FILES) as [Level, string][]) {
@@ -53,7 +61,17 @@ export async function writeHousing(housing: Housing, dir: string, source: { id: 
 
   await writeFile(
     join(dir, "fields.json"),
-    `${JSON.stringify({ census: "2024", source, fields: HOUSING_FIELDS.map(describe), notes: NOTES }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        census: "2024",
+        source,
+        fields: HOUSING_FIELDS.map((f) => describe(f, termFor(index, HCP_CONCEPT, f))),
+        notes: NOTES,
+        definitions,
+      },
+      null,
+      2,
+    )}\n`,
   );
   await writeFile(
     join(dir, "unplaced.json"),

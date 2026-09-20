@@ -162,3 +162,24 @@ export const HOUSEHOLD_FIELDS: Field[] = [
   ], NONE),
   field("households", "distanceToPavedRoadKm", "Average distance to a paved road", "Distance moyenne des logements à la route goudronnée (Km)", "km", NONE),
 ];
+
+/**
+ * The concept HCP defines a column under, where the column's own heading isn't it.
+ *
+ * The workbook's definitions sheet names 52 concepts, and most columns carry one of those
+ * names as their heading or their category, so they find their definition by it. These
+ * don't: the age bands are all the one concept, a salaried worker is defined once for the
+ * public sector and the private, and the households' amenities are each defined as a share
+ * of settled households. Keyed by `topic.key`, or by topic where every column of it shares
+ * the concept. A term here that HCP doesn't define stops the build.
+ */
+export const HCP_CONCEPT: Record<string, string> = {
+  age: "Âge",
+  "households.count": "Ménage",
+  "households.sedentary": "Ménage sédentaire",
+  "households.distanceToPavedRoadKm": "Distance à la route goudronnée",
+  "employmentStatus.publicSector": "Salarié",
+  "employmentStatus.privateSector": "Salarié",
+  "amenities.electricity": "Part des ménages sédentaires disposant de l'électricité",
+  "amenities.runningWater": "Part des ménages sédentaires disposant de l'eau courante",
+};
