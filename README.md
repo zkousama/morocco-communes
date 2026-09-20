@@ -210,11 +210,8 @@ Node 22 or newer. Deploying needs a Cloudflare account; see `api/README.md`.
 
 ## How the data was assembled
 
-`docs/design/` holds the design record: the spec, and a plan per stage with the evidence
-behind each decision.
-
-The short version. HCP publishes the census as Excel, where the code column is stored
-numerically and has lost its leading zeros, so codes arrive 7, 8 or 9 digits wide. The
+HCP publishes the census as Excel, where the code column is stored numerically and has
+lost its leading zeros, so codes arrive 7, 8 or 9 digits wide. The
 hierarchy is recovered from document row order rather than from code arithmetic, which is
 then used only to check parentage. Urban and rural come from the same row order: a commune
 listed before a `Cercle` heading is a municipality.
