@@ -508,18 +508,18 @@ export function createMcpServer(deps: McpDeps): McpServer {
       description:
         "HCP's census figures for Morocco or any région, province or préfecture, cercle, commune or arrondissement: " +
         "age, marital status, fertility, disability, schooling, illiteracy, the languages people read and write and the local languages they use, " +
-        "education, work, employment status and how people get to work, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel. " +
-        "Shares and rates are percentages from 0 to 100. Most of these come from the long questionnaire, which went to a random 20% of households " +
-        "in communes of 2,000 households or more, so there they're estimates. Null means HCP publishes no figure there. " +
-        "To rank communes by one figure, call list_communes with sort set to its path; to compare the régions, the provinces or the " +
-        "arrondissements, give level without a unit and get them all at once. " +
-        "The 2014 census is here too, under census. Its figures for age, education, local languages, illiteracy, fertility, disability, " +
-        "work, the ways of getting to work, dwellings, amenities, wastewater and waste ask what 2024 asks and can be read against it. " +
-        "It also asked where people work and how children get to school, which 2024 doesn't. Five don't: marital status covered " +
-        "everyone rather than people aged 15 and over, schooling covered ages 7 to 12 rather than 6 to 11, reading and writing was asked as " +
-        "combinations of languages rather than one language at a time, a household counted under every cooking fuel it used, and the employment " +
-        "shares took in unemployed people who had worked before. A unit the 2014 census didn't count — Casablanca and the 5 other cities with " +
-        "arrondissements among them, since 2014 published those by arrondissement — has null there.",
+        "education, work, employment status and how people get to work, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel.\n\n" +
+        "Reading them: shares and rates are percentages from 0 to 100. Null means HCP publishes no figure there. Most come from the long " +
+        "questionnaire, which went to a random 20% of households in communes of 2,000 households or more, so there they're estimates.\n\n" +
+        "Ranking and comparing: to order communes by one figure, call list_communes with sort set to its path. To compare the régions, the " +
+        "provinces or the arrondissements, give level without a unit and get them all in one call.\n\n" +
+        "The 2014 census is here too, under census. Age, education, local languages, illiteracy, fertility, disability, work, the ways of " +
+        "getting to work, dwellings, amenities, wastewater and waste ask what 2024 asks and can be read against it. Where people work and how " +
+        "children get to school are 2014 only. Five topics changed and can't be subtracted: marital status covered everyone rather than people " +
+        "aged 15 and over, schooling ages 7 to 12 rather than 6 to 11, reading and writing was asked as combinations of languages rather than one " +
+        "at a time, a household counted under every cooking fuel it used, and the employment shares took in unemployed people who had worked " +
+        "before. A unit the 2014 census didn't count has null there, Casablanca and the 5 other cities with arrondissements among them, since " +
+        "2014 published those by arrondissement.",
       inputSchema: {
         unit: z
           .string()
@@ -645,12 +645,13 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "how many establishments were mapped, how many are public services, how many are associations in premises of their own, how many are " +
         "businesses, and how many permanent jobs those businesses hold. The businesses are split three ways, each covering all of them: by sector " +
         "(industry, construction, commerce, services), by how many people work there (1, 2-3, 4-9, 10-49, 50 and over), and by when they were " +
-        "founded (before 1956 through 2020 and later). The weekly souks in use are counted beside them and are not part of the total. " +
-        "Every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out: the workbook counts every " +
-        "sector but agriculture, and the jobs are the permanent ones. " +
-        "To rank communes by one of these, call list_communes with sort set to its path, such as economy.establishments.jobs, or by one of the 3 " +
-        "it works out from them — economy.per1000.establishments, economy.per1000.jobs, economy.perBusiness.jobs; to compare the " +
-        "régions, the provinces or the arrondissements, give level without a unit and get them all in one call. " +
+        "founded (before 1956 through 2020 and later). The weekly souks in use are counted beside them and are not part of the total.\n\n" +
+        "Reading them: every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out, the " +
+        "workbook counts every sector but agriculture, and the jobs are the permanent ones.\n\n" +
+        "Ranking and comparing: to order communes by one of these, call list_communes with sort set to its path, such as " +
+        "economy.establishments.jobs, or by one of the 3 it works out from them — economy.per1000.establishments, economy.per1000.jobs, " +
+        "economy.perBusiness.jobs. To compare the régions, the provinces or the arrondissements, give level without a unit and get them all in " +
+        "one call.\n\n" +
         "Casablanca and the 5 other cities divided into arrondissements are counted by arrondissement, so their figures are the sum of those, " +
         "marked basis: arrondissement_sum. Say so when you report one.",
       inputSchema: {
