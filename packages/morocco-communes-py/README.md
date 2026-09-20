@@ -17,6 +17,7 @@ communes[communes["region_code"] == "01"]   # the 146 in Tanger-Tétouan-Al Hoce
 
 people = mc.indicators("people")            # the 2024 census, by unit, area and sex
 economy = mc.economy()                      # the establishments, by unit
+housing = mc.housing()                      # the urban dwellings, by unit
 ```
 
 Every table is a pandas DataFrame. With `as_frame=False` it's a list of dicts instead, and
@@ -29,13 +30,15 @@ then the package needs nothing but the standard library.
 | `regions()`, `provinces()`, `cercles()`, `communes()`, `arrondissements()` | one per unit |
 | `indicators(subject, census)` | one per unit and area, and per sex for people |
 | `economy()` | one per unit, from the country down to the commune |
+| `housing()` | one per unit with an urban area, 784 of them |
 | `crosswalk()` | one per commune renumbered in 2015 |
 
 `indicators` takes `"people"` or `"households"`, and `census` `"2024"` or `"2014"`. The
 2024 census asks 65 of the 2014 questions the same way, so those columns subtract.
 
-`fields("indicators")`, `fields("indicators2014")` and `fields("economy")` say what each
-column measures, with HCP's own heading for it and its unit. `sources()` gives each
+`fields()` says what each column measures, with HCP's own heading for it and its unit, and
+for 2024 the concept HCP defines it under and its wording. It takes `"indicators"`,
+`"indicators2014"`, `"economy"` or `"housing"`. `sources()` gives each
 workbook's URL, its SHA-256 and the date it was read, and `version` is the dataset's.
 
 ## Codes

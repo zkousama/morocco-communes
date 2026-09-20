@@ -22,6 +22,7 @@ __all__ = [
     "arrondissements",
     "indicators",
     "economy",
+    "housing",
     "crosswalk",
     "fields",
     "sources",
@@ -43,7 +44,7 @@ CODES = frozenset(
 
 CENSUSES = ("2024", "2014")
 SUBJECTS = ("people", "households")
-DICTIONARIES = ("indicators", "indicators2014", "economy")
+DICTIONARIES = ("indicators", "indicators2014", "economy", "housing")
 
 
 def _path(*parts: str):
@@ -139,6 +140,15 @@ def economy(as_frame: bool = True):
     return _table("economy/establishments.csv.gz", as_frame)
 
 
+def housing(as_frame: bool = True):
+    """
+    The urban housing stock the 2024 census counted, a row per unit that has one. It counts
+    dwellings rather than households, and only in towns, so a unit with no urban area has
+    no row.
+    """
+    return _table("housing/dwellings.csv.gz", as_frame)
+
+
 def crosswalk(as_frame: bool = True):
     """The 207 communes renumbered in 2015, each 2024 code beside its 2014 one."""
     return _table("crosswalk/2014-2024.csv.gz", as_frame)
@@ -163,6 +173,6 @@ def sources() -> dict[str, Any]:
 
 def _tables() -> Iterator[str]:
     """Every table the package ships, for the tests."""
-    for folder in ("attributes", "indicators", "indicators2014", "economy", "crosswalk"):
+    for folder in ("attributes", "indicators", "indicators2014", "economy", "housing", "crosswalk"):
         for path in sorted(p.name for p in _path(folder).iterdir()):
             yield f"{folder}/{path}"

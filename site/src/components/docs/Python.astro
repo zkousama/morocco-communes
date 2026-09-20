@@ -21,7 +21,8 @@ communes = mc.communes()                    # ${d.useCommunes}
 communes[communes["region_code"] == "01"]   # ${d.useFilter}
 
 people = mc.indicators("people")            # ${d.usePeople}
-economy = mc.economy()                      # ${d.useEconomy}`;
+economy = mc.economy()                      # ${d.useEconomy}
+housing = mc.housing()                      # ${d.useHousing}`;
 
 const toc = [
   { id: "install", label: d.install },

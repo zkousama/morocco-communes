@@ -31,12 +31,14 @@ TABLES = {
     "indicators/2014/people.csv": "indicators2014/people.csv.gz",
     "indicators/2014/households.csv": "indicators2014/households.csv.gz",
     "economy/establishments.csv": "economy/establishments.csv.gz",
+    "housing/dwellings.csv": "housing/dwellings.csv.gz",
     "crosswalk/2014-2024.csv": "crosswalk/2014-2024.csv.gz",
 }
 DOCUMENTS = {
     "indicators/fields.json": "fields/indicators.json",
     "indicators/2014/fields.json": "fields/indicators2014.json",
     "economy/fields.json": "fields/economy.json",
+    "housing/fields.json": "fields/housing.json",
     "sources.json": "sources.json",
 }
 # Derived from OpenStreetMap, so out, along with the boundaries themselves.

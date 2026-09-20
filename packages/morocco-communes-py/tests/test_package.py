@@ -102,6 +102,31 @@ class TestEconomy(unittest.TestCase):
         self.assertEqual(len(fields), 22)
 
 
+class TestHousing(unittest.TestCase):
+    def test_every_unit_with_an_urban_stock_is_here(self) -> None:
+        rows = sum(
+            len(published("housing", f"{name}.json")) if name != "national" else 1
+            for name in ["national", "regions", "provinces", "cercles", "communes", "arrondissements", "urban-centres"]
+        )
+        self.assertEqual(len(mc.housing()), rows)
+
+    def test_the_types_make_the_dwellings(self) -> None:
+        frame = mc.housing()
+        parts = frame["type_sound"] + frame["type_precarious"]
+        # Shares of the same dwellings, to a decimal each, so the pair lands on 100.
+        self.assertTrue(((parts - 100).abs() <= 0.2).all())
+
+    def test_the_fields_describe_the_columns(self) -> None:
+        fields = mc.fields("housing")
+        self.assertEqual(set(fields["column"]) - set(mc.housing().columns), set())
+        self.assertEqual(len(fields), 55)
+
+    def test_hcp_defines_what_a_modern_house_is(self) -> None:
+        fields = mc.fields("housing")
+        modern = fields[fields["path"] == "type.modern"].iloc[0]
+        self.assertEqual(modern["definedAs"], "Maison marocaine moderne")
+
+
 class TestWithoutPandas(unittest.TestCase):
     def test_a_table_reads_as_dicts(self) -> None:
         rows = mc.communes(as_frame=False)

@@ -13,6 +13,8 @@ change a shape something already reads.
 - A column that one of them defines names it under `definedAs`: 56 of the 114 census
   columns and 33 of the 55 housing ones. The rest are totals HCP adds up itself and
   columns it leaves undefined.
+- The Python package carries the urban housing stock, which `data/v1/` has had since
+  1.7.0: `housing()` for the dwellings, `fields("housing")` for what its columns measure.
 
 ## 1.7.1
 

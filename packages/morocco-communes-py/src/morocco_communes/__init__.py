@@ -6,6 +6,7 @@ Morocco's administrative divisions and census figures, offline.
     mc.communes()                       # 1,503 rows, with 2024 and 2014 population
     mc.indicators("people")             # the 2024 census, by unit, area and sex
     mc.economy()                        # the establishments the 2024 census mapped
+    mc.housing()                        # the urban dwellings it counted
 
 Every table comes back as a pandas DataFrame, or as a list of dicts with as_frame=False,
 which needs nothing but the standard library. `fields()` says what each column measures.
@@ -22,6 +23,7 @@ from ._data import (
     crosswalk,
     economy,
     fields,
+    housing,
     indicators,
     provinces,
     regions,
@@ -39,6 +41,7 @@ __all__ = [
     "crosswalk",
     "economy",
     "fields",
+    "housing",
     "indicators",
     "provinces",
     "regions",
