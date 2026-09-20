@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/indicators/"] as const;
+export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -49,6 +49,7 @@ export const ui = {
     navMcp: "MCP",
     navComponents: "Components",
     navNpm: "npm",
+    navPython: "Python",
     copy: "Copy",
     copied: "Copied",
     onThisPage: "On this page",
@@ -95,6 +96,7 @@ export const ui = {
     useMcp: "Connect Claude, ChatGPT, Cursor or VS Code",
     useComponents: "A commune picker for forms",
     useNpm: "The data as a typed package, offline",
+    usePython: "Every table as a DataFrame, offline",
 
     tiersHeading: "Where a request is answered",
     tiersBody:
@@ -223,6 +225,7 @@ export const ui = {
     navMcp: "MCP",
     navComponents: "Composants",
     navNpm: "npm",
+    navPython: "Python",
     copy: "Copier",
     copied: "Copié",
     onThisPage: "Sur cette page",
@@ -269,6 +272,7 @@ export const ui = {
     useMcp: "Connecter Claude, ChatGPT, Cursor ou VS Code",
     useComponents: "Un sélecteur de commune pour les formulaires",
     useNpm: "Les données en paquet typé, hors ligne",
+    usePython: "Chaque table en DataFrame, hors ligne",
 
     tiersHeading: "Où une requête est traitée",
     tiersBody:

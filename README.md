@@ -116,13 +116,18 @@ Full reference: [`api/README.md`](api/README.md).
   Codes, names, parents and population as ES modules with types, one per level, and
   without the OpenStreetMap fields, so it carries no ODbL terms. `pnpm npm:build` builds
   it from `data/v1`, and the package takes the dataset's version number.
+- **`morocco-communes` on PyPI**: the same dataset for analysts, in
+  `packages/morocco-communes-py/`. The units, both censuses, the establishments and the
+  crosswalk, each table a pandas DataFrame, or a list of dicts with `as_frame=False`,
+  which needs nothing but the standard library. `pnpm py:build` builds its data from
+  `data/v1`, gzipped, and it takes the dataset's version too.
 
 ## The docs site
 
 `site/` is an Astro site in English and French, with a light and dark theme and a control
-to pick either or follow the system. It builds to static HTML: the home page, 5 docs pages
-(the API reference, the MCP setup, the components, the npm package and the census
-figures), and a page for every région, province and commune, 3,212 pages in all.
+to pick either or follow the system. It builds to static HTML: the home page, 6 docs pages
+(the API reference, the MCP setup, the components, the npm package, the Python package and
+the census figures), and a page for every région, province and commune, 3,214 pages in all.
 
 The home page opens on a map of every commune, shaded by density, change since 2014, or
 urban and rural. Hovering one shows its figures and clicking opens its page. A commune's

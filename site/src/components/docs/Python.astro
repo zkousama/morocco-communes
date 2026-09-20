@@ -1,0 +1,109 @@
+---
+/**
+ * The Python package: what it holds, how a table is read, and what stays in the API.
+ * The example's comments follow the page's language, as the npm page's do.
+ */
+import Docs from "../../layouts/Docs.astro";
+import Code from "../Code.astro";
+import { docs } from "../../i18n/docs";
+import { inline } from "../../lib/inline";
+import type { Locale } from "../../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const d = docs[locale].python;
+
+const use = `import morocco_communes as mc
+
+communes = mc.communes()                    # ${d.useCommunes}
+communes[communes["region_code"] == "01"]   # ${d.useFilter}
+
+people = mc.indicators("people")            # ${d.usePeople}
+economy = mc.economy()                      # ${d.useEconomy}`;
+
+const toc = [
+  { id: "install", label: d.install },
+  { id: "use", label: d.use },
+  { id: "tables", label: d.tables },
+  { id: "dictionary", label: d.dictionary },
+  { id: "codes", label: d.codes },
+  { id: "left-out", label: d.left },
+  { id: "licence", label: d.licence },
+];
+---
+
+<Docs locale={locale} route="docs/python/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
+  <section id="install">
+    <h2>{d.install}</h2>
+    <Code locale={locale} label="shell" code={'pip install "morocco-communes[pandas]"'} lang="shell" />
+    <p><a href="https://pypi.org/project/morocco-communes/">{d.onPypi}</a></p>
+  </section>
+
+  <section id="use">
+    <h2>{d.use}</h2>
+    <Code locale={locale} label="Python" code={use} lang="python" />
+    <p set:html={inline(d.useBody)} />
+  </section>
+
+  <section id="tables">
+    <h2>{d.tables}</h2>
+    <div class="scroll" tabindex="0">
+      <table class="stack">
+        <thead>
+          <tr>
+            <th scope="col">{d.call}</th>
+            <th scope="col">{d.rows}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {d.tableRows.map(([call, rows]) => (
+            <tr>
+              <td class="mono calls">{call}</td>
+              <td class="quiet">{rows}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p set:html={inline(d.tablesBody)} />
+  </section>
+
+  <section id="dictionary">
+    <h2>{d.dictionary}</h2>
+    <ul class="list">
+      {d.dictionaryBody.map((line) => <li set:html={inline(line)} />)}
+    </ul>
+  </section>
+
+  <section id="codes">
+    <h2>{d.codes}</h2>
+    <p set:html={inline(d.codesBody)} />
+  </section>
+
+  <section id="left-out">
+    <h2>{d.left}</h2>
+    <p>{d.leftBody}</p>
+  </section>
+
+  <section id="licence">
+    <h2>{d.licence}</h2>
+    <p>{d.licenceBody}</p>
+  </section>
+</Docs>
+
+<style>
+  .calls {
+    font-family: var(--mono);
+    font-size: 0.88em;
+  }
+
+  .list {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.1rem;
+    max-width: var(--measure);
+    display: grid;
+    gap: 0.4rem;
+  }
+</style>

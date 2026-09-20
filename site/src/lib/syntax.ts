@@ -6,10 +6,10 @@
 import { createCssVariablesTheme, createHighlighter } from "shiki";
 import { escapeHtml } from "./highlight";
 
-export type Lang = "shell" | "js" | "jsx" | "html" | "json";
+export type Lang = "shell" | "js" | "jsx" | "html" | "json" | "python";
 
 const theme = createCssVariablesTheme({ name: "page", variablePrefix: "--code-", fontStyle: true });
-const highlighter = await createHighlighter({ themes: [theme], langs: ["shell", "js", "jsx", "html", "json"] });
+const highlighter = await createHighlighter({ themes: [theme], langs: ["shell", "js", "jsx", "html", "json", "python"] });
 
 export function highlight(code: string, lang: Lang): string {
   const { tokens } = highlighter.codeToTokens(code, { lang, theme: "page" });

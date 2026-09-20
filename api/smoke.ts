@@ -299,7 +299,7 @@ for (const [path, marker] of [
 
 console.log("\npages");
 for (const path of [
-  "/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/fr/docs/api/", "/fr/docs/mcp/",
+  "/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/docs/python/", "/fr/docs/api/", "/fr/docs/mcp/", "/fr/docs/python/",
   "/communes/", "/communes/tanger/", "/fr/communes/tafraout/", "/provinces/chefchaouen/", "/regions/oriental/",
 ]) {
   const response = await fetch(base + path);

@@ -40,6 +40,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [MCP setup](${at("/docs/mcp/")}): how to connect Claude, ChatGPT, Cursor, VS Code and the Claude and OpenAI APIs
 - [Components](${at("/docs/components/")}): a région, province and commune picker for forms, in HTML or React
 - [npm package](${at("/docs/npm/")}): \`morocco-communes\`, the data as typed ES modules, offline
+- [Python package](${at("/docs/python/")}): \`morocco-communes\` on PyPI, every table as a pandas DataFrame, offline
 - [Census figures](${at("/docs/indicators/")}): every census indicator from 2024 and 2014, with HCP's heading for it, its unit, its path and CSV column, and how to read it
 
 ## Data

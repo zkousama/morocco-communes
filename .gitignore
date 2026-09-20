@@ -5,4 +5,9 @@ dist/
 .superpowers/
 .wrangler/
 packages/morocco-communes/dist/
+packages/morocco-communes-py/src/morocco_communes/data/
+packages/morocco-communes-py/src/morocco_communes/_version.py
+packages/morocco-communes-py/dist/
+__pycache__/
+*.egg-info/
 evals/results/

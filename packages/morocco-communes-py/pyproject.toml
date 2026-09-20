@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "morocco-communes"
+version = "1.4.0"
+description = "Morocco's régions, provinces, cercles, communes and arrondissements, with the 2024 and 2014 census figures, offline"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Ousama Ajebbar" }]
+keywords = ["morocco", "maroc", "communes", "census", "recensement", "rgph", "hcp", "administrative divisions"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Sociology",
+  "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+pandas = ["pandas>=1.5"]
+
+[project.urls]
+Homepage = "https://github.com/zkousama/morocco-communes"
+Source = "https://github.com/zkousama/morocco-communes"
+Issues = "https://github.com/zkousama/morocco-communes/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/morocco_communes"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "LICENSE", "build_data.py", "pyproject.toml"]
