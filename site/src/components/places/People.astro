@@ -3,9 +3,9 @@
  * HCP's census figures for a unit, one census at a time: headline figures, the age
  * pyramid, the languages its people use and read, and how they get to work.
  *
- * A unit the 2014 census counted gets both, and a button switches between them. Whichever
- * census is showing, the other one is marked on the same chart — as the outline behind the
- * pyramid, and as a tick on each bar — so the change is there without reading twice.
+ * A unit the 2014 census counted gets both, and a button switches between them. Each chart
+ * draws one census and nothing else; what the other one found is under each headline
+ * figure, in words.
  */
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
@@ -46,7 +46,6 @@ interface Bar {
   key: string;
   label: string;
   value: number;
-  other: number | null;
 }
 
 /** One census's figures for this unit, and the same figures at the other census. */
@@ -103,17 +102,11 @@ function view(census: Census, other: Census | null, year: "2024" | "2014") {
     womenOther: figure(other?.people.total?.female, `age.${key}`),
   }));
 
-  const bars = (topic: string, keys: string[], labels: Record<string, string>, source: Topics | null | undefined = all, sort = true) => {
-    const otherSource = topic === "households" ? otherHomes : otherAll;
+  const bars = (topic: string, keys: string[], labels: Record<string, string>) => {
     const rows = keys
-      .map((key) => ({
-        key,
-        label: labels[key] ?? key,
-        value: figure(source, `${topic}.${key}`),
-        other: figure(otherSource, `${topic}.${key}`),
-      }))
+      .map((key) => ({ key, label: labels[key] ?? key, value: figure(all, `${topic}.${key}`) }))
       .filter((b): b is Bar => b.value !== null);
-    return sort ? rows.sort((a, b) => b.value - a.value) : rows;
+    return rows.sort((a, b) => b.value - a.value);
   };
 
   return {
@@ -189,7 +182,7 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
             {hasAges && (
               <div>
                 <h3>{p.age}</h3>
-                <p class="note">{both ? fill(p.ageBodyThen, { year: other(v.year) }) : p.ageBody}</p>
+                <p class="note">{p.ageBody}</p>
                 <table class="pyramid">
                   <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
                   <thead>
@@ -204,13 +197,11 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
                       <tr>
                         <td class="men">
                           <span class="bar" style={`--w: ${width(r.men)}`} />
-                          {r.menOther !== null && <span class="ghost" style={`--w: ${width(r.menOther)}`} />}
                           <span class="value">{pct(r.men)}</span>
                         </td>
                         <th scope="row">{band(r.key)}</th>
                         <td class="women">
                           <span class="bar" style={`--w: ${width(r.women)}`} />
-                          {r.womenOther !== null && <span class="ghost" style={`--w: ${width(r.womenOther)}`} />}
                           <span class="value">{pct(r.women)}</span>
                         </td>
                       </tr>
@@ -229,18 +220,12 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
                 ].filter((block) => block.rows.length > 0).map((block) => (
                   <>
                     <h3>{block.heading}</h3>
-                    <p class="note">
-                      {block.body}
-                      {both && block.rows.some((b) => b.other !== null) ? ` ${fill(p.tickIs, { year: other(v.year) })}` : ""}
-                    </p>
+                    <p class="note">{block.body}</p>
                     <ul class="bars">
                       {block.rows.map((b) => (
                         <li>
                           <span class="label">{b.label}</span>
-                          <span class="track">
-                            <span class="bar" style={`--w: ${b.value}%`} />
-                            {b.other !== null && <span class="tick" style={`--w: ${b.other}%`} />}
-                          </span>
+                          <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
                           <span class="value">{pct(b.value)}</span>
                         </li>
                       ))}
@@ -406,32 +391,11 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
     width: calc(50% - 3.25rem);
   }
 
-  .pyramid td .bar,
-  .pyramid td .ghost {
+  .pyramid td .bar {
     position: absolute;
     top: 2px;
     bottom: 2px;
     width: var(--w);
-  }
-
-  /* The same age at the other census, drawn as the outline the bar sits inside or runs
-     past, so a band that thinned or filled out shows without a second chart. */
-  .pyramid td .ghost {
-    border: 1px solid var(--quiet);
-    opacity: 0.55;
-    pointer-events: none;
-  }
-
-  .pyramid td.men .ghost {
-    right: 0;
-    border-radius: 3px 0 0 3px;
-    border-inline-end: 0;
-  }
-
-  .pyramid td.women .ghost {
-    left: 0;
-    border-radius: 0 3px 3px 0;
-    border-inline-start: 0;
   }
 
   .pyramid td.men .bar {
@@ -500,19 +464,6 @@ const empty = views[0]!.figures.length === 0 && !hasAges;
     width: var(--w);
     border-radius: 3px;
     background: var(--seq-3);
-  }
-
-  /* The same share at the other census, as a tick rather than a second bar: on a track
-     this thin, an outline reads as a broken bar. */
-  .bars .tick {
-    position: absolute;
-    inset-block: -2px;
-    inset-inline-start: var(--w);
-    width: 2px;
-    margin-inline-start: -1px;
-    border-radius: 1px;
-    background: var(--ink);
-    opacity: 0.55;
   }
 
   .bars .value {

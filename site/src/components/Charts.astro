@@ -412,10 +412,11 @@ const spoken = (row: (typeof spread)[number]) =>
     transform: translateY(-50%);
   }
 
+  /* The older figure in grey, the newer in the chart's green: two filled dots, so neither
+     reads as an outline of the other. */
   .dot.then,
   .key.then {
-    background: var(--paper);
-    border: 2px solid var(--quiet);
+    background: var(--quiet);
   }
 
   /* The legend's marks are the chart's marks: round here, square where the chart's are. */
