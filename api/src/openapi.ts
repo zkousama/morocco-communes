@@ -1,5 +1,6 @@
 import { LIMIT, PAGE, PER_PAGE, POPULATION, QUERY, RADIUS_KM } from "./lib/params.ts";
 import { HOUSEHOLD_TOPICS, PEOPLE_TOPICS } from "./lib/indicators.ts";
+import { ECONOMY_TOPICS } from "./lib/economy.ts";
 
 /**
  * The OpenAPI 3.1 description of the API, built from the same limits the Worker enforces,
@@ -41,10 +42,10 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       version: opts.version,
       summary: "Morocco's administrative divisions as open data.",
       description:
-        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's census indicators for both years, and boundaries from OpenStreetMap.\n\n" +
+        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's census indicators for both years, the 2024 count of economic establishments, and boundaries from OpenStreetMap.\n\n" +
         "An identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\n" +
         "Every response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
-      license: { name: "MIT (code). Attributes and indicators: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
+      license: { name: "MIT (code). Attributes, indicators and establishments: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
     },
     servers: [{ url: opts.serverUrl ?? "/" }],
     // Public and unauthenticated: an empty list says so explicitly.
@@ -154,7 +155,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               name: "sort",
               in: "query",
               description:
-                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by an indicator, each commune carries `indicator`, its figure.",
+                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. An establishment count goes under `economy.`, as in `economy.establishments.jobs`. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by a figure, each commune carries `indicator`, its value.",
               // A string rather than an enum: with every indicator path both ways it would be
               // 214 values, which the server checks anyway, naming a topic's keys when one is wrong.
               schema: { type: "string", default: "code", examples: ["-population", "-labour.unemploymentRate"] },
@@ -240,6 +241,41 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           summary: "Morocco's figures from the 2024 and 2014 censuses",
           description: "The same indicators for the country as a whole.",
           responses: { "200": ok("Morocco's indicators.", ref("Indicators")) },
+        },
+      },
+      "/api/{collection}/{code}/economy": {
+        get: {
+          operationId: "getEconomy",
+          summary: "A unit's economic establishments, counted during the 2024 census",
+          description:
+            "How many establishments HCP's field teams mapped in a région, province, cercle, commune or arrondissement, how many are public services, associations or businesses, and how many permanent jobs those businesses hold. " +
+            "The businesses are split by sector, by how many people work there and by when they were founded, each split covering all of them. The weekly souks in use are counted beside them. " +
+            "Farming is out: every sector but agriculture is counted. The 6 cities with arrondissements are counted by arrondissement and have no file of their own. " +
+            "`/data/v1/economy/fields.json` names every field with HCP's heading.",
+          parameters: [
+            {
+              name: "collection",
+              in: "path",
+              required: true,
+              description: "The unit's level.",
+              schema: { type: "string", enum: ["regions", "provinces", "cercles", "communes", "arrondissements"] },
+              example: "communes",
+            },
+            code("A dotted code, padded or unpadded digits, or a slug.", "tanger"),
+          ],
+          responses: {
+            "200": ok("The unit's establishments.", ref("Economy")),
+            "400": problem("Not an identifier."),
+            "404": problem("No unit has that identifier, it's in another collection, or it is counted by arrondissement."),
+          },
+        },
+      },
+      "/api/economy.json": {
+        get: {
+          operationId: "getNationalEconomy",
+          summary: "Morocco's economic establishments, counted during the 2024 census",
+          description: "The same counts for the country as a whole.",
+          responses: { "200": ok("Morocco's establishments.", ref("Economy")) },
         },
       },
       "/api/regions.json": {
@@ -364,6 +400,20 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
                 "The same figures from the 2014 census, as `people` and `households`, for a unit it counted. Null for one it didn't: the 6 cities with arrondissements, which 2014 published by arrondissement, and units drawn since.",
             },
             urbanCentres: { type: "array", description: "A commune's urban centres, each with the same fields.", items: { type: "object" } },
+          },
+        },
+        Economy: {
+          type: "object",
+          required: ["code", "level", "name", "topics"],
+          properties: {
+            code: { type: ["string", "null"], description: "Null for Morocco." },
+            codeDigits: { type: ["string", "null"] },
+            level: { type: "string", enum: ["country", "region", "province", "cercle", "commune", "arrondissement"] },
+            name: { type: "object", properties: { fr: { type: "string" }, ar: { type: ["string", "null"] } } },
+            topics: {
+              type: "object",
+              description: `By topic, then by key: ${[...ECONOMY_TOPICS.keys()].join(", ")}. Every figure is a count of establishments, of permanent jobs, or of weekly souks.`,
+            },
           },
         },
         Commune: {

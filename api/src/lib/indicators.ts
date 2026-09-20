@@ -1,3 +1,4 @@
+import { ECONOMY_PATHS, economyProblem, economyValues, type EconomyRecord } from "./economy.ts";
 import {
   HOUSEHOLD_FIELDS_2014_ALL as HOUSEHOLD_FIELDS_2014,
   HOUSEHOLD_FIELDS_ALL as HOUSEHOLD_FIELDS,
@@ -47,10 +48,14 @@ export const COMPARABLE_2014: Map<string, string> = new Map(
     .map((f) => [f.comparableTo!, `${f.topic}.${f.key}`]),
 );
 
-/** Each way a list can be ordered by a figure: the 2024 one, the 2014 one, or the change. */
+/**
+ * Each way a list can be ordered by a figure: the 2024 census figure, the 2014 one, the
+ * change between them, or one of the establishment counts.
+ */
 export const INDICATOR_SORTS: string[] = [
   ...INDICATOR_PATHS,
   ...[...COMPARABLE_2014.keys()].flatMap((path) => [`2014.${path}`, `change.${path}`]),
+  ...ECONOMY_PATHS,
 ];
 
 /** Each topic's keys, in HCP's order. */
@@ -74,6 +79,9 @@ export interface IndicatorTable {
   values: Record<string, (number | null)[]>;
   paths2014: string[];
   values2014: Record<string, (number | null)[]>;
+  /** The establishment counts, which the census's own workbooks don't hold. */
+  pathsEconomy: string[];
+  valuesEconomy: Record<string, (number | null)[]>;
 }
 
 const readPaths = (census: Census | null, paths: string[]) => {
@@ -85,16 +93,19 @@ const readPaths = (census: Census | null, paths: string[]) => {
   });
 };
 
-export function buildIndicatorTable(records: IndicatorRecord[]): IndicatorTable {
+export function buildIndicatorTable(records: IndicatorRecord[], economy: EconomyRecord[] = []): IndicatorTable {
   const paths2014 = [...COMPARABLE_2014.keys()];
   const columns2014 = [...COMPARABLE_2014.values()];
+  const establishments = new Map(economy.map((r) => [r.code ?? "", r]));
   const values: IndicatorTable["values"] = {};
   const values2014: IndicatorTable["values2014"] = {};
+  const valuesEconomy: IndicatorTable["valuesEconomy"] = {};
   for (const r of records) {
     values[r.code!] = readPaths(r, INDICATOR_PATHS);
     values2014[r.code!] = readPaths(r["2014"], columns2014);
+    valuesEconomy[r.code!] = economyValues(establishments.get(r.code!));
   }
-  return { paths: INDICATOR_PATHS, values, paths2014, values2014 };
+  return { paths: INDICATOR_PATHS, values, paths2014, values2014, pathsEconomy: ECONOMY_PATHS, valuesEconomy };
 }
 
 /** The change in a figure between the censuses, to the decimal HCP publishes it at. */
@@ -107,6 +118,7 @@ export const changeBetween = (now: number | null, before: number | null): number
  */
 export function indicatorProblem(raw: string): string | null {
   if (INDICATOR_SORTS.includes(raw)) return null;
+  if (raw.startsWith("economy.")) return economyProblem(raw);
   const census = /^(2014|change)\./.exec(raw);
   const path = census ? raw.slice(census[0].length) : raw;
   if (census && INDICATOR_PATHS.includes(path)) {

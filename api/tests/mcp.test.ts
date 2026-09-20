@@ -4,8 +4,9 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
-import { emitIndicators, emitTree } from "../src/emit/static.ts";
+import { emitEconomy, emitIndicators, emitTree } from "../src/emit/static.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
+import { readEconomy } from "../src/emit/economy.ts";
 import { buildIndicatorTable } from "../src/lib/indicators.ts";
 import { buildLookup } from "../src/lib/resolve.ts";
 import { buildGeometry } from "../src/emit/geometry.ts";
@@ -34,6 +35,8 @@ const index = buildIndex("1.0.0", [
 const tree: Map<string, unknown> = emitTree(dataset);
 const indicatorRecords = await readIndicators("data/v1");
 emitIndicators(tree as never, indicatorRecords);
+const economyRecords = await readEconomy("data/v1");
+emitEconomy(tree as never, economyRecords);
 const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 for (const [code, group] of geometry.arrondissementsByCommune) tree.set(`/api/communes/${code}/arrondissements.geojson`, group);
@@ -48,7 +51,10 @@ beforeAll(async () => {
     fetchJson,
     tiles: prepareIndex(geometry.tileIndex),
     communes: dataset.communes as never[],
-    indicators: buildIndicatorTable(indicatorRecords.filter((r) => r.level === "commune")),
+    indicators: buildIndicatorTable(
+      indicatorRecords.filter((r) => r.level === "commune"),
+      economyRecords.filter((r) => r.level === "commune"),
+    ),
   });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await server.connect(serverSide);
@@ -62,10 +68,10 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 6 read-only tools", async () => {
+  it("offers 7 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_indicators", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_economy", "get_indicators", "list_communes", "search",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
@@ -370,10 +376,65 @@ describe("list_communes by an indicator", () => {
     expect(values).toEqual([...values].sort((a, b) => b - a));
   });
 
+  it("ranks communes by an establishment count", async () => {
+    const r = await call("list_communes", { region: "01", sort: "-economy.establishments.jobs" });
+    const communes = r.structuredContent!.communes as { code: string; indicator: { path: string; value: number } }[];
+    expect(communes[0]).toMatchObject({ code: "01.511.01.09", indicator: { path: "economy.establishments.jobs", value: 84942 } });
+    const values = communes.map((c) => c.indicator.value).filter((v) => v !== null);
+    expect(values).toEqual([...values].sort((a, b) => b - a));
+  });
+
+  it("names the keys of an establishment topic when the key is wrong", async () => {
+    const r = await call("list_communes", { sort: "-economy.sector.farming" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("economy.sector has no farming; its keys are industry, construction, commerce, services");
+  });
+
   it("names the keys of a topic when the key is wrong", async () => {
     const r = await call("list_communes", { sort: "-labour.unemployment" });
     expect(r.isError).toBe(true);
     expect(text(r)).toContain("labour has no unemployment; its keys are population15Plus, active, inactive, activityRate, unemploymentRate, employed");
+  });
+});
+
+describe("get_economy", () => {
+  type Found = { unit: Record<string, unknown>; figures: Record<string, Record<string, number | null>> }[];
+  const results = (r: Result) => r.structuredContent!.results as Found;
+  const figures = (r: Result) => results(r)[0]!.figures;
+
+  it("gives a unit's establishments", async () => {
+    const r = await call("get_economy", { unit: "01.511.01.07" });
+    expect(results(r)[0]!.unit).toMatchObject({ code: "01.511.01.07", level: "arrondissement", name_fr: "Médina" });
+    expect(figures(r).establishments!.total).toBe(16970);
+    expect(figures(r).establishments!.jobs).toBe(68388);
+    expect(Object.keys(figures(r))).toEqual(["establishments", "sector", "size", "founded"]);
+  });
+
+  it("gives Morocco's when no unit is named", async () => {
+    const r = await call("get_economy", { topics: ["sector"] });
+    expect(results(r)[0]!.unit).toMatchObject({ code: null, level: "country" });
+    expect(figures(r).sector).toEqual({ industry: 154979, construction: 39522, commerce: 587177, services: 348343 });
+    expect(figures(r).establishments).toBeUndefined();
+  });
+
+  it("gives every région at once, to compare them", async () => {
+    const r = await call("get_economy", { level: "region", topics: ["establishments"] });
+    expect(results(r)).toHaveLength(12);
+    expect(results(r).every((x) => typeof x.figures.establishments!.jobs === "number")).toBe(true);
+  });
+
+  it("takes the level to tell a province from the commune of the same name", async () => {
+    const commune = await call("get_economy", { unit: "tiznit", topics: ["establishments"] });
+    const province = await call("get_economy", { unit: "tiznit", level: "province", topics: ["establishments"] });
+    expect(results(commune)[0]!.unit).toMatchObject({ level: "commune" });
+    expect(results(commune)[0]!.figures.establishments!.total).toBe(5079);
+    expect(results(province)[0]!.unit).toMatchObject({ level: "province", code: "09.581" });
+  });
+
+  it("says where a city's establishments are, since it is counted by arrondissement", async () => {
+    const r = await call("get_economy", { unit: "tanger" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("counted by arrondissement");
   });
 });
 

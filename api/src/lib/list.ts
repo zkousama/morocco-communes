@@ -36,8 +36,9 @@ export const SORT_KEYS = ["code", "name", "population", "change", "density", "ar
 export const SORTS: string[] = SORT_KEYS.flatMap((k) => [k, `-${k}`]);
 
 /**
- * Whether a sort names a census figure, such as -labour.unemploymentRate, the same figure
- * in 2014 as 2014.labour.unemploymentRate, or the change since as change.illiteracy.rate10Plus.
+ * Whether a sort names a figure: a census one, such as -labour.unemploymentRate, the same
+ * figure in 2014 as 2014.labour.unemploymentRate, the change since as
+ * change.illiteracy.rate10Plus, or an establishment count as economy.establishments.jobs.
  */
 export const byIndicator = (sort: string | undefined) => sort !== undefined && INDICATOR_SORTS.includes(sort.replace(/^-/, ""));
 
@@ -46,7 +47,7 @@ function sortProblem(sort: string): string | null {
   if (SORTS.includes(sort) || byIndicator(sort)) return null;
   const path = sort.replace(/^-/, "");
   if (path.includes(".")) return `sort: ${indicatorProblem(path)}`;
-  return `sort must be one of ${SORT_KEYS.join(", ")}, or an indicator such as labour.unemploymentRate, 2014.labour.unemploymentRate or change.labour.unemploymentRate, with a leading minus for largest first`;
+  return `sort must be one of ${SORT_KEYS.join(", ")}, or a figure such as labour.unemploymentRate, 2014.labour.unemploymentRate, change.labour.unemploymentRate or economy.establishments.jobs, with a leading minus for largest first`;
 }
 
 const whole = (n: number | undefined) => n === undefined || (Number.isInteger(n) && n >= 0 && n <= POPULATION.max);
@@ -107,6 +108,10 @@ function valueOf(sort: string, indicators: IndicatorTable | undefined): (c: List
   const key = sort.replace(/^-/, "");
   if (key in VALUE) return VALUE[key as SortKey];
   if (!indicators) throw new Error(`sorting by ${key} needs the indicator table`);
+  if (key.startsWith("economy.")) {
+    const column = indicators.pathsEconomy.indexOf(key);
+    return (c) => indicators.valuesEconomy[c.code]?.[column] ?? null;
+  }
   const census = /^(2014|change)\./.exec(key);
   const path = census ? key.slice(census[0].length) : key;
   const now = indicators.paths.indexOf(path);

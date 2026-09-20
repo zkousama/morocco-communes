@@ -3,6 +3,7 @@ import { CfWorkerJsonSchemaValidator } from "@modelcontextprotocol/sdk/validatio
 import { z } from "zod";
 import { listCommunes, parseFilter, SORT_KEYS, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import { TOPICS, type Census, type IndicatorRecord, type IndicatorTable, type Topics } from "../lib/indicators.ts";
+import { ECONOMY_TOPICS, type EconomyRecord } from "../lib/economy.ts";
 import { LIMIT, PAGE, POPULATION, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
@@ -33,7 +34,9 @@ const INSTRUCTIONS =
   "To answer a question about a named place, call search first to get its code. " +
   "For coordinates, commune_at gives the commune that contains them. " +
   "get_indicators gives the census figures on age, education, languages, work and housing for any unit or the whole country, " +
-  "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014.";
+  "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014. " +
+  "get_economy gives the 2024 count of economic establishments for the same units: businesses by sector, by size and by when they were founded, " +
+  "and the permanent jobs they hold.";
 
 /** Where each level's files live. */
 const COLLECTION: Record<Level, string> = {
@@ -47,6 +50,7 @@ const COLLECTION: Record<Level, string> = {
 const AREAS = ["total", "urban", "rural"] as const;
 const SEXES = ["all", "male", "female"] as const;
 const TOPIC_NAMES = [...TOPICS.keys()] as [string, ...string[]];
+const ECONOMY_TOPIC_NAMES = [...ECONOMY_TOPICS.keys()] as [string, ...string[]];
 
 interface CommuneRecord {
   code: string;
@@ -327,7 +331,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       title: "List communes",
       description:
         "Communes filtered by région, province or préfecture, cercle, type or population, 50 to a page, " +
-        "in code order or sorted by name, population, change since 2014, density, area or any census indicator. " +
+        "in code order or sorted by name, population, change since 2014, density, area, any census indicator or any establishment count. " +
         "Filters combine; each unit can be given by code or slug. With no filter it lists every commune, " +
         "so sort: \"-population\" alone gives the largest in the country.",
       inputSchema: {
@@ -343,6 +347,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
               "labour.unemploymentRate or amenities.runningWater, as get_indicators names them. " +
               "Put 2014. before the path for the 2014 figure, or change. for how far it moved since, " +
               "as in change.illiteracy.rate10Plus. " +
+              "An establishment count goes under economy., as in economy.establishments.jobs or economy.sector.commerce, as get_economy names them. " +
               "A leading minus puts the largest first. Code order when left out.",
           ),
         min_population: z.number().int().min(0).max(POPULATION.max).optional().describe("Only communes with at least this many people in 2024."),
@@ -355,7 +360,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             indicator: z
               .object({ path: z.string(), value: z.number().nullable() })
               .optional()
-              .describe("When sorted by an indicator, the commune's figure for it."),
+              .describe("When sorted by a figure, the commune's value for it."),
           }),
         ),
         page: z.number(),
@@ -505,6 +510,91 @@ export function createMcpServer(deps: McpDeps): McpServer {
           unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
           from_local_administration: record.fromLocalAdministration,
           figures: figuresOf(record),
+        })),
+      });
+    },
+  );
+
+  server.registerTool(
+    "get_economy",
+    {
+      title: "Economic establishments",
+      description:
+        "HCP's 2024 count of economic establishments for Morocco or any région, province or préfecture, cercle, commune or arrondissement: " +
+        "how many establishments were mapped, how many are public services, how many are associations in premises of their own, how many are " +
+        "businesses, and how many permanent jobs those businesses hold. The businesses are split three ways, each covering all of them: by sector " +
+        "(industry, construction, commerce, services), by how many people work there (1, 2-3, 4-9, 10-49, 50 and over), and by when they were " +
+        "founded (before 1956 through 2020 and later). The weekly souks in use are counted beside them and are not part of the total. " +
+        "Every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out: the workbook counts every " +
+        "sector but agriculture, and the jobs are the permanent ones. " +
+        "To rank communes by one of these, call list_communes with sort set to its path, such as economy.establishments.jobs; to compare the " +
+        "régions or the provinces, give level without a unit. Casablanca and the 5 other cities with arrondissements are counted by arrondissement " +
+        "and carry no figures of their own.",
+      inputSchema: {
+        unit: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("A région, province or préfecture, cercle, commune or arrondissement, by code or slug. Morocco as a whole when left out."),
+        level: z
+          .enum(LEVELS)
+          .optional()
+          .describe(
+            "With a unit, the level it's at, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune. " +
+              "Without a unit, region or province gives every one of that level.",
+          ),
+        topics: z.array(z.enum(ECONOMY_TOPIC_NAMES)).optional().describe("Only these topics. Every topic when left out."),
+      },
+      outputSchema: {
+        results: z.array(
+          z.object({
+            unit: z.object({
+              code: z.string().nullable(),
+              level: z.string(),
+              name_fr: z.string(),
+              name_ar: z.string().nullable(),
+            }),
+            figures: z
+              .record(z.string(), z.record(z.string(), z.number().nullable()))
+              .describe("By topic, then by key. Counts of establishments, of permanent jobs, or of weekly souks."),
+          }),
+        ),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ unit, level, topics }) => {
+      let records: EconomyRecord[];
+      if (unit !== undefined) {
+        const found = resolve(lookup, unit, level);
+        if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
+        if (found.kind === "absent") return fail(`No unit has the identifier ${unit}. Call search to find its code.`);
+        const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/economy.json`);
+        if (!body) {
+          return fail(
+            `No establishments are published for ${found.code}. ` +
+              `Casablanca and the 5 other cities with arrondissements are counted by arrondissement; call get_commune for the list.`,
+          );
+        }
+        records = [body.data as unknown as EconomyRecord];
+      } else if (level !== undefined) {
+        if (level !== "region" && level !== "province") {
+          return fail(`Without a unit, level can be region or province. To rank communes by a figure, call list_communes with sort.`);
+        }
+        const body = await fetchJson(`/api/${COLLECTION[level]}/economy.json`);
+        if (!body) return fail(`The establishments for every ${level} could not be read.`);
+        records = body.data as unknown as EconomyRecord[];
+      } else {
+        const body = await fetchJson("/api/economy.json");
+        if (!body) return fail("The establishments for Morocco could not be read.");
+        records = [body.data as unknown as EconomyRecord];
+      }
+
+      // In HCP's order, whatever order the topics were asked in.
+      const pick = (t: Topics) => (topics ? Object.fromEntries(Object.entries(t).filter(([k]) => topics.includes(k))) : t);
+      return ok({
+        results: records.map((record) => ({
+          unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
+          figures: pick(record.topics),
         })),
       });
     },

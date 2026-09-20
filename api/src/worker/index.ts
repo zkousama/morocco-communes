@@ -307,19 +307,29 @@ app.get("/api/:collection/:id", async (c) => {
   });
 });
 
-/** A unit's census indicators by any spelling of its identifier, as /api/communes/tanger/indicators. */
-app.get("/api/:collection/:id/indicators", async (c) => {
+/**
+ * A unit's figures by any spelling of its identifier, as /api/communes/tanger/indicators
+ * for the census and /api/communes/tanger/economy for the establishments.
+ */
+app.get("/api/:collection/:id/:figures{indicators|economy}", async (c) => {
   const url = new URL(c.req.url);
-  const { collection, id } = c.req.param();
+  const { collection, id, figures } = c.req.param();
   const found = resolve(lookup, id, LEVEL_OF[collection]);
   if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
   if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
 
-  const canonical = `/api/${collection}/${found.code}/indicators.json`;
+  const canonical = `/api/${collection}/${found.code}/${figures}.json`;
   const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
   if (!asset.ok) {
-    const home = `/api/${COLLECTIONS[found.level]}/${found.code}/indicators.json`;
-    return fail(url, "not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
+    const home = `/api/${COLLECTIONS[found.level]}/${found.code}/${figures}.json`;
+    if (home !== canonical) return fail(url, "not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
+    // The 6 cities with arrondissements are counted through them in the establishments
+    // workbook, so they have census figures and no establishments of their own.
+    const detail =
+      figures === "economy" && cities.has(found.code)
+        ? `${found.code} is counted by arrondissement here; they are listed at /api/communes/${found.code}/arrondissements.json`
+        : `${found.code} has no ${figures}`;
+    return fail(url, "not-found", detail, url.pathname);
   }
   return new Response(asset.body, {
     headers: {

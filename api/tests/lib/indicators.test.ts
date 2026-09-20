@@ -2,8 +2,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildIndex } from "../../src/emit/searchIndex.ts";
 import { readIndicators } from "../../src/emit/indicators.ts";
-import { emitIndicators, type Tree } from "../../src/emit/static.ts";
+import { readEconomy } from "../../src/emit/economy.ts";
+import { emitEconomy, emitIndicators, type Tree } from "../../src/emit/static.ts";
 import { buildIndicatorTable, changeBetween, COMPARABLE_2014, indicatorProblem, INDICATOR_PATHS } from "../../src/lib/indicators.ts";
+import { ECONOMY_PATHS, economyProblem } from "../../src/lib/economy.ts";
 import { collectCommunes, listCommunes, parseFilter } from "../../src/lib/list.ts";
 import { buildLookup } from "../../src/lib/resolve.ts";
 
@@ -19,7 +21,8 @@ const lookup = buildLookup(
   ]),
 );
 const records = await readIndicators("data/v1");
-const table = buildIndicatorTable(records.filter((r) => r.level === "commune"));
+const economy = await readEconomy("data/v1");
+const table = buildIndicatorTable(records.filter((r) => r.level === "commune"), economy.filter((r) => r.level === "commune"));
 
 describe("the indicator paths", () => {
   it("cover every people figure for everyone and every household figure", () => {
@@ -106,6 +109,63 @@ describe("sorting communes by an indicator", () => {
     const listed = await listCommunes({ page: 1, region: "01", sort: "-labour.unemploymentRate" }, communes as never[], async () => null, table);
     const first = listed!.rows[0] as { code: string; indicator: { path: string; value: number } };
     expect(first.indicator).toEqual({ path: "labour.unemploymentRate", value: 80.2 });
+  });
+});
+
+describe("sorting communes by an establishment count", () => {
+  it("covers every figure the workbook publishes", () => {
+    expect(ECONOMY_PATHS).toHaveLength(22);
+    expect(ECONOMY_PATHS).toContain("economy.establishments.jobs");
+    expect(ECONOMY_PATHS).toContain("economy.size.50+");
+    expect(ECONOMY_PATHS).toContain("economy.founded.before1956");
+  });
+
+  it("explains a wrong one in terms a model can act on", () => {
+    expect(economyProblem("economy.establishments.jobs")).toBeNull();
+    expect(economyProblem("economy.establishments.staff")).toMatch(/^economy.establishments has no staff; its keys are total, publicServices/);
+    expect(economyProblem("economy.payroll.total")).toMatch(/^economy.payroll.total isn't an establishment figure; the topics are economy.establishments/);
+    expect(parseFilter({ sort: "-economy.sector.farming" }, lookup)).toEqual({
+      error: { kind: "invalid-query", detail: "sort: economy.sector has no farming; its keys are industry, construction, commerce, services" },
+    });
+  });
+
+  it("orders by the commune's count, with a city counted by arrondissement last", () => {
+    const path = "economy.establishments.jobs";
+    const i = table.pathsEconomy.indexOf(path);
+    const sorted = collectCommunes({ page: 1, sort: `-${path}` }, communes as never[], table) as { code: string }[];
+    const values = sorted.map((c) => table.valuesEconomy[c.code]![i]);
+    const known = values.filter((v) => v !== null) as number[];
+    expect(known).toEqual([...known].sort((a, b) => b - a));
+    expect(values.slice(known.length).every((v) => v === null)).toBe(true);
+    // The 6 cities with arrondissements carry no count of their own.
+    expect(values.length - known.length).toBe(6);
+  });
+
+  it("puts the count on each row it lists", async () => {
+    const listed = await listCommunes({ page: 1, region: "01", sort: "-economy.establishments.jobs" }, communes as never[], async () => null, table);
+    const first = listed!.rows[0] as { code: string; indicator: { path: string; value: number } };
+    expect(first).toMatchObject({ code: "01.511.01.09", indicator: { path: "economy.establishments.jobs", value: 84942 } });
+  });
+});
+
+describe("emitEconomy", () => {
+  const tree: Tree = new Map();
+  emitEconomy(tree, economy);
+
+  it("writes a file per unit, and the country's at the top", () => {
+    // A file per unit, and the 2 that hold every région and every province at once.
+    expect(tree.size).toBe(economy.length + 2);
+    expect(tree.has("/api/economy.json")).toBe(true);
+    expect(tree.has("/api/communes/09.581.01.07/economy.json")).toBe(true);
+    expect(tree.has("/api/arrondissements/01.511.01.07/economy.json")).toBe(true);
+    // Counted through its arrondissements, so it has none of its own.
+    expect(tree.has("/api/communes/01.511.01.0/economy.json")).toBe(false);
+  });
+
+  it("gives the régions and the provinces in one file each, to compare them", () => {
+    const regions = tree.get("/api/regions/economy.json")!.data as unknown[];
+    expect(regions).toHaveLength(12);
+    expect((tree.get("/api/provinces/economy.json")!.data as unknown[])).toHaveLength(83);
   });
 });
 

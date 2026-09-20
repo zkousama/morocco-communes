@@ -60,6 +60,11 @@ for (const path of [
   "/api/provinces/indicators.json",
   "/api/indicators.json",
   "/data/v1/indicators/fields.json",
+  "/api/communes/01.511.01.01/economy.json",
+  "/api/regions/01/economy.json",
+  "/api/provinces/economy.json",
+  "/api/economy.json",
+  "/data/v1/economy/fields.json",
 ]) {
   const r = await get(path);
   check(path, r.status === 200 && r.tier === null && r.contentType.includes("json") && r.cors === "*",
@@ -100,6 +105,8 @@ for (const [path, expected] of [
   ["/api/communes?province=tiznit", "/api/provinces/09.581/communes/page/1.json"],
   ["/api/provinces/01.511/indicators", "/api/provinces/01.511/indicators.json"],
   ["/api/indicators", "/api/indicators.json"],
+  ["/api/arrondissements/medina/economy", "/api/arrondissements/01.511.01.07/economy.json"],
+  ["/api/regions/01/economy", "/api/regions/01/economy.json"],
   ["/api/regions", "/api/regions.json"],
 ] as const) {
   const r = await get(path);
@@ -211,6 +218,7 @@ for (const [path, status] of [
   ["/api/communes?sort=banana", 400],
   ["/api/communes?sort=-labour.unemployment", 400],
   ["/api/regions/tanger/indicators", 404],
+  ["/api/communes/tanger/economy", 404],
   ["/api/communes?min_population=5&max_population=1", 400],
   ["/api/nonsense", 404],
 ] as const) {
@@ -253,8 +261,8 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
   const list = await rpc("tools/list", {});
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
-  check("/mcp lists the 6 tools",
-    names.join(",") === "commune_at,communes_near,get_commune,get_indicators,list_communes,search", names.join(","));
+  check("/mcp lists the 7 tools",
+    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_indicators,list_communes,search", names.join(","));
   const call = await rpc("tools/call", { name: "get_commune", arguments: { id: "tanger" } });
   const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
   check("/mcp get_commune answers with the parent named",
@@ -270,6 +278,11 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     censuses?.["2024"]?.total?.people?.all?.illiteracy?.rate10Plus === 16 &&
       censuses?.["2014"]?.total?.people?.all?.illiteracy?.rate10Plus === 21.7,
     JSON.stringify(censuses)?.slice(0, 120));
+  type Counts = { results?: { figures: Record<string, Record<string, number | null>> }[] };
+  const economy = await rpc("tools/call", { name: "get_economy", arguments: { unit: "01.511.01.07", topics: ["establishments"] } });
+  const counts = (economy.body.result?.structuredContent as Counts | undefined)?.results?.[0]?.figures;
+  check("/mcp get_economy reads a unit's establishments",
+    counts?.establishments?.total === 16970, JSON.stringify(counts)?.slice(0, 80));
 }
 
 console.log("\nnot found, for a person rather than a client");

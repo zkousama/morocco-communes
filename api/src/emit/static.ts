@@ -1,6 +1,7 @@
 import { envelope, pageMeta, paginate, PER_PAGE, type Envelope } from "../lib/envelope.ts";
 import { groupBy, type Dataset } from "../lib/dataset.ts";
 import type { IndicatorRecord } from "../lib/indicators.ts";
+import type { EconomyRecord } from "../lib/economy.ts";
 
 export type Tree = Map<string, Envelope<unknown>>;
 
@@ -159,6 +160,33 @@ export function emitIndicators(tree: Tree, records: IndicatorRecord[]): void {
   for (const [level, collection] of [["region", "regions"], ["province", "provinces"]] as const) {
     const rows = records.filter((r) => r.level === level);
     const path = api(`${collection}/indicators.json`);
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(rows, { self: path }, { total: rows.length }));
+  }
+}
+
+/**
+ * The 2024 count of economic establishments, a file per unit beside its record, and the
+ * country's at /api/economy.json. The 12 régions and the 83 provinces also come as one
+ * file each, to compare them without spending a subrequest per unit.
+ */
+export function emitEconomy(tree: Tree, records: EconomyRecord[]): void {
+  const put = (path: string, data: unknown) => {
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(data, { self: path }));
+  };
+  for (const r of records) {
+    if (r.level === "country") {
+      put(api("economy.json"), r);
+      continue;
+    }
+    const collection = COLLECTION[r.level];
+    if (!collection) throw new Error(`no collection for ${r.level}`);
+    put(api(`${collection}/${r.code}/economy.json`), r);
+  }
+  for (const [level, collection] of [["region", "regions"], ["province", "provinces"]] as const) {
+    const rows = records.filter((r) => r.level === level);
+    const path = api(`${collection}/economy.json`);
     if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
     tree.set(path, envelope(rows, { self: path }, { total: rows.length }));
   }
