@@ -9,7 +9,7 @@ const { locale } = Astro.props;
 const copy = t(locale);
 ---
 
-<Base locale={locale} title={copy.notFoundTitle} description={copy.notFoundBody}>
+<Base locale={locale} title={copy.notFoundTitle} description={copy.notFoundBody} current={false}>
   <section class="lost">
     <p class="mono code">404</p>
     <h1>{copy.notFoundTitle}</h1>

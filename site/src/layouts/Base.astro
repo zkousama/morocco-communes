@@ -5,11 +5,13 @@ interface Props {
   locale: Locale;
   /** The page's path after the locale prefix, so switching language keeps the page. */
   route?: string;
+  /** False on a page that is no route of its own, such as the one for an address with no page. */
+  current?: boolean;
   /** A page's own title and summary. The home page has neither, and uses the site's. */
   title?: string;
   description?: string;
 }
-const { locale, route = "", title, description } = Astro.props;
+const { locale, route = "", title, description, current = true } = Astro.props;
 // Cloudflare Web Analytics, when a token is given at build time. It sets no cookies.
 const analytics = process.env.CF_ANALYTICS_TOKEN;
 const copy = t(locale);
@@ -84,6 +86,7 @@ const themes = [
     </script>
   </head>
   <body>
+    <a class="skip" href="#content">{copy.skip}</a>
     <header class="site-header">
       <div class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
@@ -92,11 +95,13 @@ const themes = [
           <a
             href={path(locale, s.route)}
             aria-current={
-              s.route === route
-                ? "page"
-                : s.route === "communes/" && /^(communes|provinces|regions)\//.test(route)
-                  ? "true"
-                  : undefined
+              !current
+                ? undefined
+                : s.route === route
+                  ? "page"
+                  : s.route === "communes/" && /^(communes|provinces|regions)\//.test(route)
+                    ? "true"
+                    : undefined
             }
           >
             {s.label}
@@ -106,7 +111,7 @@ const themes = [
       <div class="controls">
         <nav class="tongues" aria-label={copy.language}>
           {LOCALES.map((l) => (
-            <a href={path(l, route)} hreflang={l} lang={l} aria-current={l === locale ? "page" : undefined}>
+            <a href={path(l, route)} hreflang={l} lang={l} aria-current={current && l === locale ? "page" : undefined}>
               {LOCALE_NAMES[l]}
             </a>
           ))}
@@ -121,7 +126,7 @@ const themes = [
       </div>
     </header>
 
-    <main>
+    <main id="content" tabindex="-1">
       <slot />
     </main>
 
@@ -485,6 +490,27 @@ const themes = [
       }
 
       .sections a:hover,
+      .skip {
+        position: absolute;
+        inset-inline-start: 0.5rem;
+        top: -3rem;
+        z-index: 30;
+        padding: 0.5rem 0.9rem;
+        border-radius: 2px;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: var(--t-sm);
+        transition: top 0.12s;
+      }
+
+      .skip:focus {
+        top: 0.5rem;
+      }
+
+      main:focus {
+        outline: 0;
+      }
+
       .sections a[aria-current] {
         color: var(--ink);
       }

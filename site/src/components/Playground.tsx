@@ -270,8 +270,8 @@ export default function Playground(props: Props) {
           min-width: 0;
           border-radius: 0;
         }
-        .pg-controls input:focus { outline: 0; border-bottom-color: var(--brass); border-bottom-width: 2px; }
-        .pg-controls input:focus-visible { outline: 0; }
+        .pg-controls input:focus { border-bottom-color: var(--brass); border-bottom-width: 2px; }
+        .pg-controls input:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
 
         .pg-run {
           font: inherit;

@@ -1,6 +1,13 @@
 import { defineConfig } from "astro/config";
 import solid from "@astrojs/solid-js";
 
+// A deploy without it ships no canonical, no link previews and an empty sitemap, which
+// is the kind of thing nobody notices for a month.
+if (!process.env.SITE_URL) {
+  console.warn("\n  SITE_URL is not set: this build has no canonical URLs, no link preview image and an empty sitemap.");
+  console.warn("  For a deploy: SITE_URL=https://your-deployment pnpm build\n");
+}
+
 // Static output on purpose. The playground runs in the browser against the real
 // endpoints, so nothing here needs a server, and the hand-written Hono Worker stays the
 // only Worker in the project. The API emitter writes into the same dist/ afterwards.

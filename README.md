@@ -171,8 +171,19 @@ pnpm build             # the docs site, then the API tree, into dist/
 pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
-pnpm eval              # asks a model 34 questions through the MCP server; see evals/
+pnpm eval              # asks a model 37 questions through the MCP server; see evals/
 ```
+
+A deploy build takes the origin it will be served from, which the canonical URLs, the
+link preview image, the sitemap and the MCP page's configuration snippets are all built
+from:
+
+```sh
+SITE_URL=https://your-deployment pnpm build
+```
+
+Without it the site still builds and the build says so, and those four things are left
+out.
 
 The order inside `pnpm build` matters: Astro clears its output directory, so the site
 builds first and the API tree is emitted into the same `dist/` afterwards.

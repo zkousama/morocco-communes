@@ -90,8 +90,10 @@ const toc = [
   {sections.map((section) => (
     <section id={section.id}>
       <h2>{section.label}</h2>
-      {section.topics.map(({ topic, groups }) => (
-        <div class="topic" id={`topic-${topic}`}>
+      {section.topics.map(({ topic, groups }, i) => (
+        // A topic whose columns are split by another topic comes back more than once, and
+        // only the first run answers to the id.
+        <div class="topic" id={section.topics.findIndex((t) => t.topic === topic) === i ? `topic-${topic}` : undefined}>
           <h3>{d.topics[topic as keyof typeof d.topics] ?? topic}</h3>
           {groups.map((g) => (
             <>
