@@ -5,12 +5,13 @@ title: "Morocco communes"
 abstract: >-
   Morocco's régions, provinces and préfectures, cercles, communes and arrondissements,
   with official HCP geographic codes, names in French and Arabic, population from the
-  2014 and 2024 censuses, HCP's 2024 census indicators, and boundaries from OpenStreetMap.
+  2014 and 2024 censuses, HCP's census indicators from both, and boundaries from
+  OpenStreetMap.
 authors:
   - family-names: Ajebbar
     given-names: Ousama
     alias: zkousama
-version: 1.1.0
+version: 1.3.0
 repository-code: "https://github.com/zkousama/morocco-communes"
 license:
   - MIT

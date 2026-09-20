@@ -131,3 +131,10 @@ describe("readRegionCache", () => {
     await expect(readRegionCache(path)).rejects.toThrow(/holds no elements array/);
   });
 });
+
+describe("the version the dataset publishes", () => {
+  it("is the one the citation file gives", async () => {
+    const citation = await readFile("CITATION.cff", "utf8");
+    expect(citation).toContain(`version: ${DATASET_VERSION}`);
+  });
+});
