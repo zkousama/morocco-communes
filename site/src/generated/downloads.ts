@@ -337,6 +337,22 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlAdjacency",
+    "licence": "odbl",
+    "files": [
+      {
+        "label": "JSON",
+        "href": "/data/v1/geometry/adjacency.json",
+        "bytes": 343133
+      },
+      {
+        "label": "CSV",
+        "href": "/data/v1/geometry/adjacency.csv",
+        "bytes": 222385
+      }
+    ]
+  },
+  {
     "key": "dlOutlines",
     "licence": "odbl",
     "files": [

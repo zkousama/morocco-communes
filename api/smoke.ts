@@ -55,6 +55,7 @@ for (const path of [
   "/api/provinces/01.511/communes/page/1.json",
   "/api/communes/type/urban/page/1.json",
   "/api/communes/01.511.01.0/arrondissements.json",
+  "/api/communes/09.581.01.07/neighbours.json",
   "/api/communes/01.511.01.0/indicators.json",
   "/api/regions/01/indicators.json",
   "/api/provinces/indicators.json",
@@ -265,6 +266,10 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
   check("/mcp lists the 8 tools",
     names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_indicators,get_unit,list_communes,search", names.join(","));
+  const borders = await rpc("tools/call", { name: "get_commune", arguments: { id: "tiznit" } });
+  const neighbours = (borders.body.result?.structuredContent as { neighbours?: { code: string; km: number }[] } | undefined)?.neighbours;
+  check("/mcp get_commune names the communes it borders",
+    neighbours?.length === 4 && neighbours[0]!.km === 20.76, JSON.stringify(neighbours)?.slice(0, 80));
   const call = await rpc("tools/call", { name: "get_commune", arguments: { id: "tanger" } });
   const commune = (call.body.result?.structuredContent as { commune?: { code: string; province: { name: string } } } | undefined)?.commune;
   check("/mcp get_commune answers with the parent named",

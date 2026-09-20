@@ -15,6 +15,7 @@ const tree = emitTree({
   cercles: read("cercles"),
   communes: read("communes"),
   arrondissements: read("arrondissements"),
+  adjacency: JSON.parse(readFileSync("data/v1/geometry/adjacency.json", "utf8")),
   sources: JSON.parse(readFileSync("data/v1/sources.json", "utf8")),
 } as Dataset);
 emitIndicators(tree, await readIndicators("data/v1"));

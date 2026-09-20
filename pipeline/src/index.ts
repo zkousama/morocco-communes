@@ -8,6 +8,9 @@ import { writeJson } from "./emit/json.ts";
 import { writeCsv } from "./emit/csv.ts";
 import { fetchArrondissements, fetchRegion } from "./sources/overpass.ts";
 import { joinOsm, type OsmFeature } from "./build/osmJoin.ts";
+import { buildAdjacency } from "./build/adjacency.ts";
+import { checkAdjacency } from "./validate/adjacency.ts";
+import { writeAdjacency } from "./emit/adjacency.ts";
 import { writeArrondissementGeometry, writeGeometry } from "./emit/topojson.ts";
 import { buildCrosswalk } from "./build/crosswalk.ts";
 import { writeCrosswalk } from "./emit/crosswalk.ts";
@@ -188,6 +191,17 @@ if (economyProblems.length > 0) {
 const economySource = SOURCES.find((s) => s.id === "hcp-2024-establishments")!;
 await writeEconomy(economy.records, economy.unplaced, ECONOMY_OUT, { id: economySource.id, url: economySource.url });
 console.log(`establishments: ${economy.records.length} units carry figures, ${economy.unplaced.length} rows have no unit to land on`);
+
+// Which communes border which, measured on the boundaries above. The 6 cities divided
+// into arrondissements border as one commune, since that is the unit the boundary is.
+const codeOfDigits = new Map(records.communes.map((c) => [c.codeDigits, c.code]));
+const borders = buildAdjacency(osm, codeOfDigits);
+const borderProblems = checkAdjacency(borders, new Set([...osm.keys()].map((d) => codeOfDigits.get(d)!)));
+if (borderProblems.length > 0) {
+  throw new Error(`the borders don't hold together:\n  ${borderProblems.slice(0, 20).join("\n  ")}`);
+}
+await writeAdjacency(borders, new Map(records.communes.map((c) => [c.code, c.name.fr])), GEOMETRY_OUT);
+console.log(`borders: ${borders.length} pairs of communes share one, ${borders.reduce((n, b) => n + b.km, 0).toFixed(0)} km in all`);
 
 const nameByCode = new Map(records.communes.map((c) => [c.codeDigits, c.name.fr]));
 await writeGeometry(byRegion, nameByCode, GEOMETRY_OUT);

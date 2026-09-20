@@ -56,6 +56,11 @@ const figures2014 = new Map(
   [...indicators2014("communes"), ...indicators2014("provinces"), ...indicators2014("regions")].map((f) => [f.code, f]),
 );
 
+const adjacency = new Map(
+  (JSON.parse(readFileSync("data/v1/geometry/adjacency.json", "utf8")) as { code: string; neighbours: { code: string; km: number }[] }[]).map(
+    (row) => [row.code, row.neighbours],
+  ),
+);
 const commune = (slug: string) => communes.find((c) => c.slug === slug) ?? fail(`no commune ${slug}`);
 const province = (name: string) => provinces.find((p) => p.name.fr === name) ?? fail(`no province ${name}`);
 const region = (name: string) => regions.find((r) => r.name.fr === name) ?? fail(`no région ${name}`);
@@ -196,7 +201,9 @@ export const CASES: Case[] = [
     id: "titwan",
     category: "spelling",
     question: "How many people live in Titwan?",
-    expect: { numbers: [pop(tetouan)], maxCalls: 3 },
+    // Tétouan is a commune and a province, so a 4th call that gives both figures rather
+    // than picking one is the better answer, not a detour.
+    expect: { numbers: [pop(tetouan)], maxCalls: 4 },
   },
   {
     id: "mogador",
@@ -463,6 +470,16 @@ export const CASES: Case[] = [
       numbers: [jobsIn(busiestArrondissement)],
       tools: ["get_economy"],
       maxCalls: 3,
+    },
+  },
+  {
+    id: "longest-border",
+    category: "geo",
+    question: "Which commune does the commune of Tiznit share its longest border with, and how long is it?",
+    expect: () => {
+      const longest = [...(adjacency.get(tiznit.code) ?? [])].sort((a, b) => b.km - a.km)[0]!;
+      const name = communes.find((c) => c.code === longest.code)!.name.fr;
+      return Promise.resolve({ names: [[name]], numbers: [longest.km], tools: ["get_commune"], maxCalls: 3 });
     },
   },
   {

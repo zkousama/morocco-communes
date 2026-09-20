@@ -26,6 +26,7 @@ async function readDataset(): Promise<Dataset> {
     cercles: await level("cercles"),
     communes: await level("communes"),
     arrondissements: await level("arrondissements"),
+    adjacency: JSON.parse(await readFile(join(DATA, "geometry", "adjacency.json"), "utf8")),
     sources: JSON.parse(await readFile(join(DATA, "sources.json"), "utf8")),
   };
 }

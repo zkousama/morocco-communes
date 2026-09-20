@@ -32,12 +32,19 @@ export interface ArrondissementRow {
   communeCode: string;
 }
 
+/** A commune's neighbours, from the borders measured on the OpenStreetMap boundaries. */
+export interface AdjacencyRow {
+  code: string;
+  neighbours: { code: string; km: number }[];
+}
+
 export interface Dataset {
   regions: RegionRow[];
   provinces: ProvinceRow[];
   cercles: CercleRow[];
   communes: CommuneRow[];
   arrondissements: ArrondissementRow[];
+  adjacency: AdjacencyRow[];
   sources: unknown;
 }
 

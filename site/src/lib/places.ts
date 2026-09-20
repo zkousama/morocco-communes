@@ -154,47 +154,15 @@ const decoded = new Map<string, Decoded>(
 );
 
 /**
- * The communes each commune borders. Two communes border each other when their boundaries
- * share points: within a région they share whole arcs, and across a région line they're
- * the same OpenStreetMap nodes, quantised by two files, so points are matched at about
- * 10 m. Three shared points make a border; one is only a corner.
+ * The communes each commune borders, read from the dataset rather than worked out here.
+ * The pipeline measures them on the full-resolution boundaries, where two communes share
+ * the same OpenStreetMap nodes, so the page and the API name the same neighbours.
  */
-export const neighbours = (() => {
-  const at = new Map<string, Set<string>>();
-  for (const { region, boundaries } of files) {
-    void region;
-    for (const b of boundaries) {
-      const code = digitsToCode.get(b.codeDigits)!;
-      for (const ring of b.polygons.flat()) {
-        for (const [lng, lat] of ring) {
-          const key = `${lng.toFixed(4)},${lat.toFixed(4)}`;
-          const set = at.get(key) ?? new Set<string>();
-          set.add(code);
-          at.set(key, set);
-        }
-      }
-    }
-  }
-  const shared = new Map<string, number>();
-  for (const set of at.values()) {
-    if (set.size < 2) continue;
-    const list = [...set];
-    for (let i = 0; i < list.length; i++) {
-      for (let j = i + 1; j < list.length; j++) {
-        const key = list[i]! < list[j]! ? `${list[i]}|${list[j]}` : `${list[j]}|${list[i]}`;
-        shared.set(key, (shared.get(key) ?? 0) + 1);
-      }
-    }
-  }
-  const out = new Map<string, string[]>();
-  for (const [pair, count] of shared) {
-    if (count < 3) continue;
-    const [a, b] = pair.split("|") as [string, string];
-    out.set(a, [...(out.get(a) ?? []), b]);
-    out.set(b, [...(out.get(b) ?? []), a]);
-  }
-  return out;
-})();
+export const neighbours = new Map(
+  (JSON.parse(readFileSync("data/v1/geometry/adjacency.json", "utf8")) as { code: string; neighbours: { code: string; km: number }[] }[]).map(
+    (row) => [row.code, row.neighbours],
+  ),
+);
 
 export interface Drawing {
   viewBox: string;

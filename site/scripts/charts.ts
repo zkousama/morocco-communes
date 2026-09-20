@@ -9,6 +9,7 @@ const ATTR = "data/v1/attributes";
 
 interface Commune {
   areaKm2: number | null;
+  density: number | null;
   parents: { region: string };
   type: "urban" | "rural";
   population: {

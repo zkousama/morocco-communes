@@ -21,7 +21,8 @@
     "api/src",
     "api/tests",
     "packages/morocco-communes/build.ts",
-    "packages/morocco-communes/tests"
+    "packages/morocco-communes/tests",
+    "packages/morocco-communes-py/tests"
   ],
   "exclude": [
     "site",

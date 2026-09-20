@@ -136,6 +136,14 @@ const GROUPS: Group[] = [
     }),
   },
   {
+    key: "dlAdjacency",
+    licence: "odbl",
+    files: [
+      { label: "JSON", path: "data/v1/geometry/adjacency.json" },
+      { label: "CSV", path: "data/v1/geometry/adjacency.csv" },
+    ],
+  },
+  {
     key: "dlOutlines",
     licence: "odbl",
     files: [

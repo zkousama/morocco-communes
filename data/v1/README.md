@@ -64,6 +64,15 @@ and `density` is the 2024 population over it, in people per km². Together the b
 cover 685,281 km². The smallest communes are under half a km²: Moulay Yacoub, and
 Méchouar de Casablanca around the royal palace.
 
-The boundaries themselves are in `../geometry/`, which carries its own LICENSE. HCP's
+Which communes border which is in `../geometry/adjacency.json` and `adjacency.csv`: 4,134
+pairs, each with the length of the boundary they share. Two communes border when their
+boundaries share a segment rather than a single corner, and in OpenStreetMap that segment
+is the same nodes in both relations, so the match is exact. Following the borders from any
+commune reaches all 1,502 that have a boundary, which the build checks. The lengths are a
+floor: where a stretch is drawn as two ways with different nodes, the shared points stop
+and so does the measurement.
+
+The boundaries themselves are in `../geometry/`, which carries its own LICENSE, and the
+adjacency derives from them, so it is ODbL too. HCP's
 census indicators for every unit are in `../indicators/`, with the 2014 census in
 `../indicators/2014/`, and the 2024 count of economic establishments in `../economy/`.

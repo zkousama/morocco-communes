@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "morocco-communes"
-version = "1.4.0"
+version = "1.5.0"
 description = "Morocco's régions, provinces, cercles, communes and arrondissements, with the 2024 and 2014 census figures, offline"
 readme = "README.md"
 requires-python = ">=3.9"

@@ -4,6 +4,16 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.5.0
+
+- Which communes border which, in `geometry/adjacency.json` and `adjacency.csv`: 4,134
+  pairs, with the length of the boundary each pair shares. Two communes border when their
+  boundaries share a segment, which in OpenStreetMap means the same nodes, so the match is
+  exact rather than within a tolerance. It derives from the boundaries, so it carries their
+  ODbL terms and not the census licence.
+- The API serves a commune's at `/api/communes/{code}/neighbours.json`, and `get_commune`
+  returns them, longest shared boundary first.
+
 ## 1.4.0
 
 - The 2024 census's count of economic establishments, in `economy/`: how many were mapped

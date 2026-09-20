@@ -14,6 +14,7 @@ const d: Dataset = {
   cercles: read("cercles"),
   communes: read("communes"),
   arrondissements: read("arrondissements"),
+  adjacency: JSON.parse(readFileSync("data/v1/geometry/adjacency.json", "utf8")),
   sources: JSON.parse(readFileSync("data/v1/sources.json", "utf8")),
 };
 const tree = emitTree(d);
@@ -40,13 +41,13 @@ describe("emitTree", () => {
       Math.ceil(d.communes.length / PER_PAGE) +
       pagesOver([d.communes.filter((c) => c.type === "urban").length]) +
       pagesOver([d.communes.filter((c) => c.type === "rural").length]) +
-      d.communes.length + d.communes.length + // commune detail, nested arrondissements
+      d.communes.length + d.communes.length + d.communes.length + // commune detail, nested arrondissements, neighbours
       1 + d.arrondissements.length; // arrondissements list, detail
 
     expect(tree.size).toBe(expected);
     // Named outright: adding an endpoint has to be a deliberate edit here, and the tree
     // has to stay well inside Cloudflare's 20,000-file ceiling.
-    expect(tree.size).toBe(3852);
+    expect(tree.size).toBe(5355);
     expect(tree.size).toBeLessThan(20_000);
   });
 

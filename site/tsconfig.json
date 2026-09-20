@@ -4,5 +4,5 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },
-  "include": ["src", "astro.config.mjs"]
+  "include": ["src", "scripts", "astro.config.mjs"]
 }

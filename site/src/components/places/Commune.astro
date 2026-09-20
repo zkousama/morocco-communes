@@ -77,7 +77,7 @@ const densityClass = (code: string) => {
 const drawing = drawProvince(province.code);
 const where = inset({ region: region.code, province: province.code });
 const bordering = (neighbours.get(c.code) ?? [])
-  .map((code) => communeOf.get(code)!)
+  .map((n) => communeOf.get(n.code)!)
   .sort((a, b) => a.name.fr.localeCompare(b.name.fr, "fr"));
 const census = indicatorsOf.get(c.code);
 const economy = economyOf.get(c.code);

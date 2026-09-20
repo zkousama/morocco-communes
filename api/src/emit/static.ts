@@ -109,9 +109,17 @@ export function emitTree(d: Dataset): Tree {
   for (const type of ["urban", "rural"] as const) {
     paged(api(`communes/type/${type}/page`), d.communes.filter((c) => c.type === type));
   }
+  // The communes each one borders, named, so the answer needs no second call. Derived
+  // from the boundaries, so it carries their ODbL terms rather than the census licence.
+  const nameOf = new Map(d.communes.map((c) => [c.code, (c as unknown as { name: { fr: string; ar: string } }).name]));
+  const neighboursOf = new Map(d.adjacency.map((row) => [row.code, row.neighbours]));
   for (const c of d.communes) {
     put(api(`communes/${c.code}.json`), envelope(c, { self: api(`communes/${c.code}.json`) }));
     whole(api(`communes/${c.code}/arrondissements.json`), arrondissementsByCommune.get(c.code) ?? []);
+    whole(
+      api(`communes/${c.code}/neighbours.json`),
+      (neighboursOf.get(c.code) ?? []).map((n) => ({ code: n.code, name: nameOf.get(n.code) ?? null, km: n.km })),
+    );
   }
 
   whole(api("arrondissements.json"), d.arrondissements);

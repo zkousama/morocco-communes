@@ -19,7 +19,7 @@ with no entry in it.
 | Directory | Holds | Licence |
 |---|---|---|
 | `attributes/` | every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
-| `geometry/` | one TopoJSON per région | **ODbL**, share-alike |
+| `geometry/` | one TopoJSON per région, and which communes border which | **ODbL**, share-alike |
 | `indicators/` | the census indicators for every unit, 2024 and 2014, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `economy/` | the 2024 count of economic establishments for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
@@ -40,7 +40,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 9,495 files written at build time and served straight from
+**Pre-rendered.** 11,006 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -50,6 +50,7 @@ GET /api/provinces/01.511.json               GET /api/provinces/01.511/cercles.j
 GET /api/cercles/01.511.05.json              GET /api/communes/01.511.01.0.json
 GET /api/communes/page/1.json                GET /api/communes/type/urban/page/1.json
 GET /api/communes/01.511.01.0/arrondissements.json
+GET /api/communes/09.581.01.07/neighbours.json
 GET /api/communes/01.511.01.0/indicators.json
 GET /api/communes/09.581.01.07/economy.json
 GET /api/arrondissements/01.511.01.05.json   GET /api/indicators.json
@@ -182,7 +183,7 @@ pnpm build             # the docs site, then the API tree, into dist/
 pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
-pnpm eval              # asks a model 46 questions through the MCP server; see evals/
+pnpm eval              # asks a model 48 questions through the MCP server; see evals/
 ```
 
 A deploy build takes the origin it will be served from, which the canonical URLs, the
@@ -244,6 +245,13 @@ land on the units of today: 1,965 of the 1,979 rows, by code, through the crossw
 name inside a commune. 65 fields ask what 2024 asks and can be subtracted from it; the
 rest changed base or categories, and each says how. `indicators/2014/README.md` has the
 details, and `indicators/2014/unplaced.json` names the 14 rows with nowhere to land.
+
+The boundaries also say which communes border which. Two share a border when their
+boundaries share a segment, and in OpenStreetMap that segment is the same nodes in both
+relations, so the match is exact rather than within a tolerance: 4,134 pairs, each with
+the length they share. Following those borders from any one commune reaches all 1,502 that
+have a boundary, which is the check that the country comes out as one graph rather than
+several.
 
 207 communes were renumbered by the 2015 reform and have no 2014 figure under their
 current code. `crosswalk/` reconciles them in two deterministic passes and records the

@@ -30,6 +30,7 @@ const dataset: Dataset = {
   cercles: await level("cercles"),
   communes: await level("communes"),
   arrondissements: await level("arrondissements"),
+  adjacency: JSON.parse(await readFile("data/v1/geometry/adjacency.json", "utf8")),
   sources: JSON.parse(await readFile("data/v1/sources.json", "utf8")),
 };
 const version = (dataset.sources as { datasetVersion: string }).datasetVersion;
@@ -194,6 +195,7 @@ const files = [
   { key: "arrondissements", pattern: "/api/arrondissements.json", example: "/api/arrondissements.json" },
   { key: "arrondissement", pattern: "/api/arrondissements/{code}.json", example: "/api/arrondissements/01.511.01.05.json" },
   { key: "boundary", pattern: "/api/communes/{code}/boundary.geojson", example: "/api/communes/01.511.01.0/boundary.geojson" },
+  { key: "neighbours", pattern: "/api/communes/{code}/neighbours.json", example: "/api/communes/09.581.01.07/neighbours.json" },
   { key: "cityArrondissements", pattern: "/api/communes/{code}/arrondissements.geojson", example: "/api/communes/01.511.01.0/arrondissements.geojson" },
   { key: "arrondissementBoundary", pattern: "/api/arrondissements/{code}/boundary.geojson", example: "/api/arrondissements/01.511.01.05/boundary.geojson" },
   { key: "provinceBoundary", pattern: "/api/provinces/{code}/boundary.geojson", example: "/api/provinces/01.511/boundary.geojson" },

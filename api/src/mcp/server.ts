@@ -32,7 +32,7 @@ const INSTRUCTIONS =
   "with HCP census population for 2024 and 2014 and OpenStreetMap boundaries. " +
   "Units are identified by HCP geographic codes such as 01.511.01.0, and a slug such as tanger works wherever a code does. " +
   "To answer a question about a named place, call search first to get its code. " +
-  "get_commune answers about a commune or an arrondissement, and get_unit about a région, a province or a cercle. " +
+  "get_commune answers about a commune or an arrondissement, including the communes it borders, and get_unit about a région, a province or a cercle. " +
   "For coordinates, commune_at gives the commune that contains them. " +
   "get_indicators gives the census figures on age, education, languages, work and housing for any unit or the whole country, " +
   "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014. " +
@@ -192,7 +192,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
       title: "Get one commune",
       description:
         "One commune's names, type, région, province and cercle, 2024 and 2014 population, the change between them, " +
-        "and a point inside it, and in the 6 cities divided into them, its arrondissements with their population. " +
+        "a point inside it, the communes it borders and how much boundary it shares with each, and in the 6 cities " +
+        "divided into them, its arrondissements with their population. " +
         "Identify it by HCP code (01.511.01.0), the code as digits, or a slug (tanger).",
       inputSchema: {
         id: z.string().min(1).describe("An HCP code, the code as digits, or a slug."),
@@ -202,6 +203,9 @@ export function createMcpServer(deps: McpDeps): McpServer {
         arrondissements: z
           .array(z.object({ code: z.string(), name_fr: z.string(), name_ar: z.string(), population_2024: z.number().nullable() }))
           .describe("Casablanca, Rabat, Fès, Marrakech, Salé and Tanger's arrondissements, most populous first; empty elsewhere."),
+        neighbours: z
+          .array(z.object({ code: z.string(), name_fr: z.string(), km: z.number() }))
+          .describe("The communes this one borders, longest shared boundary first. Measured on the OpenStreetMap boundaries, so it is under ODbL."),
       },
       annotations: READ_ONLY,
     },
@@ -236,11 +240,19 @@ export function createMcpServer(deps: McpDeps): McpServer {
         name: { fr: string; ar: string };
         population: { "2024": { total: number | null } };
       }[];
+      const borders = ((await fetchJson(`/api/communes/${found.code}/neighbours.json`))?.data ?? []) as unknown as {
+        code: string;
+        name: { fr: string } | null;
+        km: number;
+      }[];
       return ok({
         commune: trim(body.data as unknown as CommuneRecord),
         arrondissements: parts
           .map((a) => ({ code: a.code, name_fr: a.name.fr, name_ar: a.name.ar, population_2024: a.population["2024"].total }))
           .sort((a, b) => (b.population_2024 ?? 0) - (a.population_2024 ?? 0)),
+        neighbours: [...borders]
+          .sort((a, b) => b.km - a.km)
+          .map((n) => ({ code: n.code, name_fr: n.name?.fr ?? nameOf.get(n.code) ?? n.code, km: n.km })),
       });
     },
   );

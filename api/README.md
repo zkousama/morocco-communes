@@ -55,6 +55,7 @@ GET /api/communes/page/:n.json
 GET /api/communes/type/:urban|rural/page/:n.json
 GET /api/communes/:code.json
 GET /api/communes/:code/arrondissements.json
+GET /api/communes/:code/neighbours.json
 GET /api/communes/:code/arrondissements.geojson
 GET /api/communes/:code/boundary.geojson
 GET /api/communes/:code/indicators.json
@@ -108,6 +109,10 @@ they were founded. `/api/regions/economy.json`, `/api/provinces/economy.json` an
 cities with arrondissements by arrondissement rather than as one place, so each of those
 carries the exact sum of its own, marked `basis: "arrondissement_sum"`; every other record
 is a row of HCP's. `/data/v1/economy/README.md` says how to read the counts.
+
+`neighbours.json` names the communes a commune borders and the length of the boundary each
+pair shares, measured on the OpenStreetMap boundaries, so it carries their ODbL terms.
+`get_commune` returns the same list, longest shared boundary first.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of
@@ -250,7 +255,7 @@ session: each request gets a fresh server that answers in plain JSON.
 | Tool | Does |
 |---|---|
 | `search` | finds any unit by French or Arabic name, slug, or another name it goes by |
-| `get_commune` | one commune's names, type, parents, 2024 and 2014 population, a point inside it, and a city's arrondissements |
+| `get_commune` | one commune's names, type, parents, 2024 and 2014 population, a point inside it, the communes it borders, and a city's arrondissements |
 | `get_unit` | one région, province or cercle: its population, how many units it holds, and the ones under it, named |
 | `communes_near` | communes within a radius of a point, nearest first |
 | `commune_at` | the commune whose boundary contains a point |

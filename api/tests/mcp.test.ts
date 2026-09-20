@@ -22,6 +22,7 @@ const dataset = {
   cercles: read("cercles"),
   communes: read("communes"),
   arrondissements: read("arrondissements"),
+  adjacency: JSON.parse(readFileSync("data/v1/geometry/adjacency.json", "utf8")),
   sources: JSON.parse(readFileSync("data/v1/sources.json", "utf8")),
 } as Dataset;
 const index = buildIndex("1.0.0", [
@@ -134,6 +135,15 @@ describe("the MCP server, through a real client", () => {
       "01.511.01.05 is the arrondissement Mghogha of Tanger, with 252656 people in 2024. " +
         "get_indicators with unit 01.511.01.05 has its census figures, and get_commune with 01.511.01.0 gives Tanger.",
     );
+  });
+
+  it("names the communes one borders, longest shared boundary first", async () => {
+    const r = await call("get_commune", { id: "tiznit" });
+    const borders = r.structuredContent!.neighbours as { code: string; name_fr: string; km: number }[];
+    expect(borders).toHaveLength(4);
+    expect(borders.map((n) => n.km)).toEqual([...borders.map((n) => n.km)].sort((a, b) => b - a));
+    expect(borders[0]).toMatchObject({ code: "09.581.11.15", km: 20.76 });
+    expect(borders.every((n) => n.name_fr.length > 0)).toBe(true);
   });
 
   it("points to search when an identifier names nothing", async () => {

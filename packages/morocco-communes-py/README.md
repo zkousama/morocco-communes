@@ -46,10 +46,11 @@ the leading zeros that make it 9 digits wide.
 
 ## What's elsewhere
 
-Boundaries, search, the urban centres and a commune lookup by point are in the
-[repository](https://github.com/zkousama/morocco-communes) and its API. The boundaries
-come from OpenStreetMap under ODbL, so they aren't in this package, and neither are the
-area and density fields derived from them.
+Boundaries, which communes border which, search, the urban centres and a commune lookup by
+point are in the [repository](https://github.com/zkousama/morocco-communes) and its API.
+Those all come from OpenStreetMap under ODbL, so they aren't in this package, and neither
+are the area and density fields derived from them. `data/v1/geometry/adjacency.csv` is the
+contiguity graph if you want one: `pandas.read_csv` takes it straight.
 
 ## Licence
 

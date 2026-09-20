@@ -25,6 +25,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Nearby](${at("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15")}): communes within a radius of a point, nearest first
 - [Commune at a point](${at("/api/communes/at?lat=35.786&lng=-5.8125")}): the commune whose boundary contains the point, and in the 6 cities divided into them, the arrondissement
 - [One commune](${at("/api/communes/tanger")}): by any spelling of its identifier
+- [Neighbours](${at("/api/communes/tiznit/neighbours.json")}): the communes one borders, with the length of the boundary each pair shares
 - [Filtered list](${at("/api/communes?province=01.511")}): communes by région, province, cercle or type, 50 to a page, sorted by any figure or census indicator, such as ?sort=-labour.unemploymentRate
 - [Census indicators](${at("/api/communes/tanger/indicators")}): HCP's 2024 figures for one unit, for the whole of it and its urban and rural parts, for men and women; /api/{level}/{code}/indicators for any unit, /api/indicators.json for Morocco
 - [Economic establishments](${at("/api/communes/tiznit/economy")}): the 2024 count of establishments, businesses, permanent jobs and weekly souks for one unit; /api/{level}/{code}/economy for any unit, /api/economy.json for Morocco
@@ -53,6 +54,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Arrondissements](${at("/data/v1/geometry/arrondissements.geojson")}): all 41, in Casablanca, Rabat, Fès, Marrakech, Salé and Tanger; a city's are at /api/communes/{code}/arrondissements.geojson
 - [Census indicators as CSV](${at("/data/v1/indicators/people.csv")}): every unit's figures about people, and [households](${at("/data/v1/indicators/households.csv")}); [fields.json](${at("/data/v1/indicators/fields.json")}) names each field with HCP's heading, unit and notes
 - [Establishments as CSV](${at("/data/v1/economy/establishments.csv")}): every unit's count of establishments, businesses, jobs and souks, with the businesses split by sector, size and when they were founded; [fields.json](${at("/data/v1/economy/fields.json")}) names each field with HCP's heading
+- [Adjacency](${at("/data/v1/geometry/adjacency.csv")}): 4,134 pairs of communes that border, with the km they share; a contiguity graph for spatial work, under ODbL
 - [2014 to 2024 crosswalk](${at("/data/v1/crosswalk/2014-2024.json")}): how the communes renumbered in 2015 were matched to their 2014 figures
 
 ## Optional
