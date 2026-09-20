@@ -154,7 +154,7 @@ export const downloads = [
       {
         "label": "fields.json",
         "href": "/data/v1/indicators/2014/fields.json",
-        "bytes": 77261
+        "bytes": 77383
       },
       {
         "label": "unplaced.json",

@@ -1,9 +1,18 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { glossary } from "../src/i18n/glossary.ts";
 import { PAGES } from "../src/i18n/ui.ts";
 
 const locales = ["en", "fr"] as const;
 const ids = (locale: (typeof locales)[number]) => glossary[locale].groups.flatMap((g) => g.entries.map((e) => e.id));
+
+const sources = (dir: string): string[] =>
+  readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) return sources(path);
+    return /\.(ts|astro)$/.test(path) ? [path] : [];
+  });
 
 describe("the glossary", () => {
   it("is a page of the site", () => {
@@ -42,9 +51,12 @@ describe("the glossary", () => {
     expect(quoted.length).toBeGreaterThan(15);
   });
 
-  it("anchors the links the place pages point at", () => {
-    const groups = glossary.en.groups.map((g) => g.id);
-    expect(groups).toContain("dwellings");
-    expect(groups).toContain("work");
+  it("anchors every link the site points at it", () => {
+    const anchors = new Set([...glossary.en.groups.map((g) => g.id), ...ids("en")]);
+    const links = sources("site/src").flatMap((file) =>
+      [...readFileSync(file, "utf8").matchAll(/docs\/glossary\/#([a-z0-9-]+)/g)].map((m) => ({ file, id: m[1]! })),
+    );
+    expect(links.length).toBeGreaterThan(2);
+    expect(links.filter((l) => !anchors.has(l.id)).map((l) => `${l.file} points at #${l.id}`)).toEqual([]);
   });
 });

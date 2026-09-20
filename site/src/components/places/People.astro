@@ -166,7 +166,8 @@ const empty = views.length === 0;
       <div class="intro">
         <p>
           {record.fromLocalAdministration ? fill(p.peopleLocal, { name }) : p.peopleBody}{" "}
-          <a href={path(locale, "docs/indicators/")}>{p.peopleMore}</a>
+          <a href={path(locale, "docs/indicators/")}>{p.peopleMore}</a>{" · "}
+          <a href={path(locale, "docs/glossary/#people")}>{p.glossary}</a>
         </p>
         {/* Hidden until the script that makes them work has run. */}
         {both && (
