@@ -171,13 +171,16 @@ console.log(`indicators 2014: ${records2014.length} units carry figures, ${place
 
 // The census's other count, of workplaces rather than people. It stops at the commune,
 // and the six cities with arrondissements are counted through those instead.
-const economy = buildEconomy(parseHcpEstablishments(sources.get("hcp-2024-establishments")!), indicators);
+const cityOfArrondissement = new Map(
+  (records.arrondissements as { code: string; communeCode: string }[]).map((a) => [a.code, a.communeCode]),
+);
+const economy = buildEconomy(parseHcpEstablishments(sources.get("hcp-2024-establishments")!), indicators, cityOfArrondissement);
 for (const u of economy.unplaced) console.warn(`  establishments row ${u.code} ${u.label}: ${u.reason}`);
 const economyProblems = checkEconomy(
   economy.records,
   new Map(records.communes.map((c) => [c.code, c.parents.cercle])),
   indicators.filter((r) => r.code !== null).map((r) => ({ code: r.code!, level: r.level, name: r.name.fr })),
-  new Set((records.arrondissements as { communeCode: string }[]).map((a) => a.communeCode)),
+  cityOfArrondissement,
 );
 if (economyProblems.length > 0) {
   throw new Error(`the establishments don't hold together:\n  ${economyProblems.slice(0, 40).join("\n  ")}${economyProblems.length > 40 ? `\n  and ${economyProblems.length - 40} more` : ""}`);

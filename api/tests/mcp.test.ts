@@ -383,8 +383,11 @@ describe("list_communes by an indicator", () => {
 
   it("ranks communes by an establishment count", async () => {
     const r = await call("list_communes", { region: "01", sort: "-economy.establishments.jobs" });
-    const communes = r.structuredContent!.communes as { code: string; indicator: { path: string; value: number } }[];
-    expect(communes[0]).toMatchObject({ code: "01.511.01.09", indicator: { path: "economy.establishments.jobs", value: 84942 } });
+    const communes = r.structuredContent!.communes as { code: string; indicator: { path: string; value: number; basis?: string } }[];
+    expect(communes[0]).toMatchObject({
+      code: "01.511.01.0",
+      indicator: { path: "economy.establishments.jobs", value: 208445, basis: "arrondissement_sum" },
+    });
     const values = communes.map((c) => c.indicator.value).filter((v) => v !== null);
     expect(values).toEqual([...values].sort((a, b) => b - a));
   });
@@ -467,11 +470,14 @@ describe("get_economy", () => {
     expect(results(province)[0]!.unit).toMatchObject({ level: "province", code: "09.581" });
   });
 
-  it("says where a city's establishments are, since it is counted by arrondissement", async () => {
-    const r = await call("get_economy", { unit: "tanger" });
-    expect(r.isError).toBe(true);
-    expect(text(r)).toContain("counted by arrondissement");
-    expect(text(r)).toContain('level "arrondissement"');
+  it("adds a city up from its arrondissements, and says so", async () => {
+    const r = await call("get_economy", { unit: "tanger", topics: ["establishments"] });
+    expect(results(r)[0]!.unit).toMatchObject({ code: "01.511.01.0", name_fr: "Tanger" });
+    expect(figures(r).establishments!.total).toBe(54810);
+    expect((results(r)[0] as { basis?: string }).basis).toBe("arrondissement_sum");
+    // A commune HCP counts itself claims nothing about where its figures came from.
+    const one = await call("get_economy", { unit: "tiznit", topics: ["establishments"] });
+    expect((results(one)[0] as { basis?: string }).basis).toBeUndefined();
   });
 
   it("gives every arrondissement at once, which is how the 6 cities are counted", async () => {

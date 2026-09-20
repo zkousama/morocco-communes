@@ -108,6 +108,7 @@ for (const [path, expected] of [
   ["/api/provinces/01.511/indicators", "/api/provinces/01.511/indicators.json"],
   ["/api/indicators", "/api/indicators.json"],
   ["/api/arrondissements/medina/economy", "/api/arrondissements/01.511.01.07/economy.json"],
+  ["/api/communes/tanger/economy", "/api/communes/01.511.01.0/economy.json"],
   ["/api/regions/01/economy", "/api/regions/01/economy.json"],
   ["/api/regions", "/api/regions.json"],
 ] as const) {
@@ -220,7 +221,6 @@ for (const [path, status] of [
   ["/api/communes?sort=banana", 400],
   ["/api/communes?sort=-labour.unemployment", 400],
   ["/api/regions/tanger/indicators", 404],
-  ["/api/communes/tanger/economy", 404],
   ["/api/communes?min_population=5&max_population=1", 400],
   ["/api/nonsense", 404],
 ] as const) {
@@ -285,6 +285,10 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
   const counts = (economy.body.result?.structuredContent as Counts | undefined)?.results?.[0]?.figures;
   check("/mcp get_economy reads a unit's establishments",
     counts?.establishments?.total === 16970, JSON.stringify(counts)?.slice(0, 80));
+  const city = await rpc("tools/call", { name: "get_economy", arguments: { unit: "tanger", topics: ["establishments"] } });
+  const summed = (city.body.result?.structuredContent as { results?: { basis?: string; figures: Record<string, Record<string, number>> }[] } | undefined)?.results?.[0];
+  check("/mcp get_economy adds a city up from its arrondissements and says so",
+    summed?.figures.establishments?.total === 54810 && summed.basis === "arrondissement_sum", JSON.stringify(summed)?.slice(0, 100));
 }
 
 console.log("\nnot found, for a person rather than a client");

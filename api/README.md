@@ -104,9 +104,10 @@ record, with Morocco's at `/api/economy.json`: the establishments mapped, how ma
 public services, associations or businesses, the permanent jobs those businesses hold, the
 weekly souks in use, and the businesses by sector, by the people they employ and by when
 they were founded. `/api/regions/economy.json`, `/api/provinces/economy.json` and
-`/api/arrondissements/economy.json` hold a whole level at once. The 6 cities with
-arrondissements are counted through them and have no file of their own, so a question
-about one of those cities is answered from the arrondissement file. `/data/v1/economy/README.md` says how to read the counts.
+`/api/arrondissements/economy.json` hold a whole level at once. The census counts the 6
+cities with arrondissements by arrondissement rather than as one place, so each of those
+carries the exact sum of its own, marked `basis: "arrondissement_sum"`; every other record
+is a row of HCP's. `/data/v1/economy/README.md` says how to read the counts.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of
@@ -219,7 +220,8 @@ of `name`, `population`, `change`, `density` and `area`, the path of any census
 indicator for the whole commune, such as `labour.unemploymentRate` or
 `amenities.runningWater`, or an establishment count under `economy.`, such as
 `economy.establishments.jobs`, with a leading minus for largest first. Sorted by a figure,
-each commune carries `indicator`, the path and its value. A commune with no value sorts
+each commune carries `indicator`, the path and its value, and `basis` on the 6 cities whose
+establishment counts are summed from their arrondissements. A commune with no value sorts
 last either way: Sidi Mohamed Benmansour has no area, 4 communes have no 2014 figure to
 change from, and HCP publishes no figure for some indicators in some communes. A wrong
 path is a 400 that lists the keys of the topic it named.

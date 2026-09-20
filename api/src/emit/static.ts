@@ -178,8 +178,10 @@ export function emitIndicators(tree: Tree, records: IndicatorRecord[]): void {
 
 /**
  * The 2024 count of economic establishments, a file per unit beside its record, and the
- * country's at /api/economy.json. The 12 régions and the 83 provinces also come as one
- * file each, to compare them without spending a subrequest per unit.
+ * country's at /api/economy.json. The 12 régions, the 83 provinces and the 41
+ * arrondissements also come as one file each, to compare them without spending a
+ * subrequest per unit. A city the census counts by arrondissement carries the sum of its
+ * own, marked in the record.
  */
 export function emitEconomy(tree: Tree, records: EconomyRecord[]): void {
   const put = (path: string, data: unknown) => {

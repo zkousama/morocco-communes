@@ -10,7 +10,7 @@
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
-import { count, nationalEconomy, type EconomyRecord } from "../../lib/economy";
+import { arrondissementCount, count, nationalEconomy, type EconomyRecord } from "../../lib/economy";
 import { figure as censusFigure, national as nationalCensus } from "../../lib/indicators";
 
 interface Props {
@@ -82,7 +82,10 @@ const right = blocks.slice(2).filter((b) => b.rows.length > 0);
 <section class="work">
   <h2>{p.work}</h2>
   <p>
-    {p.workBody} <a href={path(locale, "docs/indicators/#establishments")}>{p.workMore}</a>
+    {record.basis === "arrondissement_sum"
+      ? fill(p.workSummed, { name: record.name.fr, n: n.format(arrondissementCount.get(record.code!) ?? 0) })
+      : p.workBody}{" "}
+    <a href={path(locale, "docs/indicators/#establishments")}>{p.workMore}</a>
   </p>
 
   {figures.length > 0 && (

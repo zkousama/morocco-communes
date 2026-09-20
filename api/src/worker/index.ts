@@ -323,13 +323,7 @@ app.get("/api/:collection/:id/:figures{indicators|economy}", async (c) => {
   if (!asset.ok) {
     const home = `/api/${COLLECTIONS[found.level]}/${found.code}/${figures}.json`;
     if (home !== canonical) return fail(url, "not-found", `${found.code} is ${withArticle(found.level)}, at ${home}`, url.pathname);
-    // The 6 cities with arrondissements are counted through them in the establishments
-    // workbook, so they have census figures and no establishments of their own.
-    const detail =
-      figures === "economy" && cities.has(found.code)
-        ? `${found.code} is counted by arrondissement here; they are listed at /api/communes/${found.code}/arrondissements.json`
-        : `${found.code} has no ${figures}`;
-    return fail(url, "not-found", detail, url.pathname);
+    return fail(url, "not-found", `${found.code} has no ${figures}`, url.pathname);
   }
   return new Response(asset.body, {
     headers: {

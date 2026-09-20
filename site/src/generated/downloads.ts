@@ -180,12 +180,12 @@ export const downloads = [
       {
         "label": "establishments.csv",
         "href": "/data/v1/economy/establishments.csv",
-        "bytes": 196921
+        "bytes": 205338
       },
       {
         "label": "communes.json",
         "href": "/data/v1/economy/communes.json",
-        "bytes": 703429
+        "bytes": 706679
       },
       {
         "label": "provinces.json",
@@ -200,7 +200,7 @@ export const downloads = [
       {
         "label": "fields.json",
         "href": "/data/v1/economy/fields.json",
-        "bytes": 7916
+        "bytes": 8039
       }
     ]
   },

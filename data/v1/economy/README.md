@@ -20,21 +20,27 @@ Farms are out. The workbook counts every sector but agriculture.
 
 - `national.json`, `regions.json`, `provinces.json`, `cercles.json`, `communes.json` and
   `arrondissements.json` hold one record per unit: 12 régions, 83 provinces and
-  préfectures, 213 cercles, 1,497 communes and 41 arrondissements.
-- `establishments.csv` has a row per unit and a column per figure. It starts with a UTF-8
-  byte-order mark, for Excel.
+  préfectures, 213 cercles, 1,503 communes and 41 arrondissements.
+- `establishments.csv` has a row per unit, a `basis` column and a column per figure. It
+  starts with a UTF-8 byte-order mark, for Excel.
 - `fields.json` lists every field with its path, its CSV column, an English label, HCP's
   heading and category for it, and what it counts.
 - `unplaced.json` lists the rows that have no unit to land on. It is empty.
 
 ## Which units have figures
 
-Every unit the dataset publishes carries figures, except two kinds:
+Every unit the dataset publishes carries figures except the urban centres, which this
+workbook doesn't reach: it stops at the commune.
 
-- The 6 cities with arrondissements. The workbook counts those cities by arrondissement,
-  and each of the 41 arrondissements is here, as are Casablanca's 8 préfectures
-  d'arrondissements.
-- Urban centres, which this workbook doesn't reach. It stops at the commune.
+Each record says where its figures come from, in `basis`:
+
+- `hcp`, a row of the workbook, for 1,847 of the 1,853 units.
+- `arrondissement_sum`, for the 6 cities divided into arrondissements. The workbook counts
+  those cities by arrondissement rather than as one place, so each city's figures are the
+  sum of its own arrondissements. Every figure here is a count, so the sum is exact, and
+  it is the same route the 2024 dataset takes for their 2014 population. Casablanca's is
+  checked twice over: its 16 arrondissements and the 8 préfectures d'arrondissements HCP
+  publishes group the same city, and they agree.
 
 A row joins by its code, except Casablanca's préfectures d'arrondissements: this workbook
 writes their codes a digit shorter than the population file, and the code it gives the
@@ -56,7 +62,8 @@ each unit, the public services, associations and businesses must make the total,
 of the three splits must make the business count. Across the country every one of the 22
 figures must add up the tree: a région is its provinces, a province its communes and
 arrondissements, a cercle its rural communes, and a préfecture d'arrondissements the
-arrondissements under it.
+arrondissements under it. The 6 summed cities sit outside that tree, where counting them
+would count their arrondissements twice.
 
 ## Licence
 

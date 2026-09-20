@@ -227,6 +227,6 @@
     "agriculture": "Farms are out. The workbook counts the establishments of every sector but agriculture.",
     "souks": "A weekly souk is a market that stands on one day of the week. It is counted on its own and is not part of the establishment total.",
     "jobs": "The jobs are the permanent ones the businesses hold, so seasonal and casual work is not in the figure.",
-    "units": "The six cities that hold arrondissements carry no figures: the workbook counts those cities by arrondissement, and each arrondissement is here."
+    "units": "The workbook counts the 6 cities with arrondissements by arrondissement rather than as one place. Each of those cities carries the sum of its own arrondissements, marked basis: arrondissement_sum, the way its 2014 population is. Every other figure is a row of HCP's."
   }
 }

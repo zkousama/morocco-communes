@@ -82,6 +82,8 @@ export interface IndicatorTable {
   /** The establishment counts, which the census's own workbooks don't hold. */
   pathsEconomy: string[];
   valuesEconomy: Record<string, (number | null)[]>;
+  /** The communes whose establishment counts are a sum of their arrondissements. */
+  summedEconomy: string[];
 }
 
 const readPaths = (census: Census | null, paths: string[]) => {
@@ -100,12 +102,15 @@ export function buildIndicatorTable(records: IndicatorRecord[], economy: Economy
   const values: IndicatorTable["values"] = {};
   const values2014: IndicatorTable["values2014"] = {};
   const valuesEconomy: IndicatorTable["valuesEconomy"] = {};
+  const summedEconomy: string[] = [];
   for (const r of records) {
     values[r.code!] = readPaths(r, INDICATOR_PATHS);
     values2014[r.code!] = readPaths(r["2014"], columns2014);
-    valuesEconomy[r.code!] = economyValues(establishments.get(r.code!));
+    const counts = establishments.get(r.code!);
+    valuesEconomy[r.code!] = economyValues(counts);
+    if (counts?.basis === "arrondissement_sum") summedEconomy.push(r.code!);
   }
-  return { paths: INDICATOR_PATHS, values, paths2014, values2014, pathsEconomy: ECONOMY_PATHS, valuesEconomy };
+  return { paths: INDICATOR_PATHS, values, paths2014, values2014, pathsEconomy: ECONOMY_PATHS, valuesEconomy, summedEconomy };
 }
 
 /** The change in a figure between the censuses, to the decimal HCP publishes it at. */

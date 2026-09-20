@@ -199,5 +199,14 @@ export async function listCommunes<T extends ListedCommune>(
   if (!byIndicator(query.sort)) return { rows: slice, meta };
   const path = query.sort!.replace(/^-/, "");
   const value = valueOf(path, indicators);
-  return { rows: slice.map((c) => ({ ...c, indicator: { path, value: value(c) } })), meta };
+  // The 6 cities counted by arrondissement carry a sum of theirs, so a row ordered by one
+  // of those counts says where the figure came from rather than reading as HCP's own.
+  const summed = new Set(path.startsWith("economy.") ? indicators?.summedEconomy ?? [] : []);
+  return {
+    rows: slice.map((c) => ({
+      ...c,
+      indicator: { path, value: value(c), ...(summed.has(c.code) ? { basis: "arrondissement_sum" } : {}) },
+    })),
+    meta,
+  };
 }

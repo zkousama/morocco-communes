@@ -155,7 +155,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               name: "sort",
               in: "query",
               description:
-                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. An establishment count goes under `economy.`, as in `economy.establishments.jobs`. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by a figure, each commune carries `indicator`, its value.",
+                "Order by `name`, `population` in 2024, `change` since 2014, `density` or `area`, or by a census indicator's path, such as `labour.unemploymentRate`. Put `2014.` before the path for the 2014 figure, or `change.` for how far it moved between the censuses, as in `change.illiteracy.rate10Plus`; both are offered for the figures the two censuses ask the same way. An establishment count goes under `economy.`, as in `economy.establishments.jobs`. A leading minus puts the largest first, and a commune with no value comes last either way. Sorted by a figure, each commune carries `indicator`, its value, and `basis` where that value was summed from a city's arrondissements.",
               // A string rather than an enum: with every indicator path both ways it would be
               // 214 values, which the server checks anyway, naming a topic's keys when one is wrong.
               schema: { type: "string", default: "code", examples: ["-population", "-labour.unemploymentRate"] },
@@ -250,7 +250,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           description:
             "How many establishments HCP's field teams mapped in a région, province, cercle, commune or arrondissement, how many are public services, associations or businesses, and how many permanent jobs those businesses hold. " +
             "The businesses are split by sector, by how many people work there and by when they were founded, each split covering all of them. The weekly souks in use are counted beside them. " +
-            "Farming is out: every sector but agriculture is counted. The 6 cities with arrondissements are counted by arrondissement and have no file of their own. " +
+            "Farming is out: every sector but agriculture is counted. The 6 cities with arrondissements are counted by arrondissement, so their figures are the sum of those, marked `basis`. " +
             "`/data/v1/economy/fields.json` names every field with HCP's heading.",
           parameters: [
             {
@@ -266,7 +266,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           responses: {
             "200": ok("The unit's establishments.", ref("Economy")),
             "400": problem("Not an identifier."),
-            "404": problem("No unit has that identifier, it's in another collection, or it is counted by arrondissement."),
+            "404": problem("No unit has that identifier, or it's in another collection."),
           },
         },
       },
@@ -410,6 +410,12 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             codeDigits: { type: ["string", "null"] },
             level: { type: "string", enum: ["country", "region", "province", "cercle", "commune", "arrondissement"] },
             name: { type: "object", properties: { fr: { type: "string" }, ar: { type: ["string", "null"] } } },
+            basis: {
+              type: "string",
+              enum: ["arrondissement_sum"],
+              description:
+                "Present on the 6 cities the census counts by arrondissement: these figures are the exact sum of their arrondissements rather than a count HCP publishes for the city. Absent everywhere else.",
+            },
             topics: {
               type: "object",
               description: `By topic, then by key: ${[...ECONOMY_TOPICS.keys()].join(", ")}. Every figure is a count of establishments, of permanent jobs, or of weekly souks.`,

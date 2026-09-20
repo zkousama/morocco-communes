@@ -140,22 +140,28 @@ describe("sorting communes by an establishment count", () => {
     });
   });
 
-  it("orders by the commune's count, with a city counted by arrondissement last", () => {
+  it("orders every commune by its count, the 6 summed cities among them", () => {
     const path = "economy.establishments.jobs";
     const i = table.pathsEconomy.indexOf(path);
     const sorted = collectCommunes({ page: 1, sort: `-${path}` }, communes as never[], table) as { code: string }[];
     const values = sorted.map((c) => table.valuesEconomy[c.code]![i]);
-    const known = values.filter((v) => v !== null) as number[];
-    expect(known).toEqual([...known].sort((a, b) => b - a));
-    expect(values.slice(known.length).every((v) => v === null)).toBe(true);
-    // The 6 cities with arrondissements carry no count of their own.
-    expect(values.length - known.length).toBe(6);
+    expect(values.every((v) => v !== null)).toBe(true);
+    expect(values).toEqual([...(values as number[])].sort((a, b) => b - a));
+    // Casablanca tops it on the sum of its 16 arrondissements.
+    expect(sorted[0]!.code).toBe("06.141.01.0");
+    expect(table.summedEconomy).toHaveLength(6);
   });
 
-  it("puts the count on each row it lists", async () => {
+  it("says on the row when the count it sorted by was summed", async () => {
     const listed = await listCommunes({ page: 1, region: "01", sort: "-economy.establishments.jobs" }, communes as never[], async () => null, table);
-    const first = listed!.rows[0] as { code: string; indicator: { path: string; value: number } };
-    expect(first).toMatchObject({ code: "01.511.01.09", indicator: { path: "economy.establishments.jobs", value: 84942 } });
+    const rows = listed!.rows as { code: string; indicator: { path: string; value: number; basis?: string } }[];
+    expect(rows[0]).toMatchObject({
+      code: "01.511.01.0",
+      indicator: { path: "economy.establishments.jobs", value: 208445, basis: "arrondissement_sum" },
+    });
+    // Gueznaia is a commune of HCP's own, so nothing is claimed about where its figure came from.
+    expect(rows[1]).toMatchObject({ code: "01.511.01.09", indicator: { value: 84942 } });
+    expect(rows[1]!.indicator.basis).toBeUndefined();
   });
 });
 
@@ -169,8 +175,8 @@ describe("emitEconomy", () => {
     expect(tree.has("/api/economy.json")).toBe(true);
     expect(tree.has("/api/communes/09.581.01.07/economy.json")).toBe(true);
     expect(tree.has("/api/arrondissements/01.511.01.07/economy.json")).toBe(true);
-    // Counted through its arrondissements, so it has none of its own.
-    expect(tree.has("/api/communes/01.511.01.0/economy.json")).toBe(false);
+    // Summed from its arrondissements rather than left out.
+    expect(tree.has("/api/communes/01.511.01.0/economy.json")).toBe(true);
   });
 
   it("gives a level in one file, to compare its units without a call each", () => {

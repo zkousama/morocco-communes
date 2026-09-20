@@ -8,6 +8,8 @@ export interface EconomyRecord {
   level: string;
   name: { fr: string; ar: string | null };
   communeCode?: string;
+  /** Set on the 6 cities the workbook counts by arrondissement: their figures are summed. */
+  basis?: "arrondissement_sum";
   topics: Topics;
 }
 

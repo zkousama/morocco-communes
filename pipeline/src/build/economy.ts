@@ -22,6 +22,11 @@ export interface EconomyRecord {
   name: { fr: string; ar: string | null };
   /** The commune an arrondissement belongs to. */
   communeCode?: string;
+  /**
+   * Set on the 6 cities the workbook has no row for: their figures are the exact sum of
+   * their own arrondissements, the way the 2014 population is on the same 6.
+   */
+  basis?: "arrondissement_sum";
   topics: Topics;
 }
 
@@ -51,7 +56,22 @@ const nest = (counts: (number | null)[]): Topics => {
   return out;
 };
 
-export function buildEconomy(rows: EstablishmentRow[], records: IndicatorRecord[]): Economy {
+/** Two units' figures added field by field. Every figure the workbook holds is a count. */
+const add = (into: Topics, from: Topics): Topics => {
+  for (const f of ECONOMY_FIELDS) {
+    const value = from[f.topic]?.[f.key];
+    if (value === null || value === undefined) continue;
+    (into[f.topic] ??= {})[f.key] = (into[f.topic]![f.key] ?? 0) + value;
+  }
+  return into;
+};
+
+export function buildEconomy(
+  rows: EstablishmentRow[],
+  records: IndicatorRecord[],
+  /** Which city each arrondissement belongs to, as the dataset's own records give it. */
+  cityOf: Map<string, string>,
+): Economy {
   const byHcpCode = new Map<string, IndicatorRecord>();
   for (const r of records) {
     // An urban centre is part of its commune rather than a unit of its own, and this
@@ -96,6 +116,36 @@ export function buildEconomy(rows: EstablishmentRow[], records: IndicatorRecord[
       name: unit.name,
       ...(unit.communeCode ? { communeCode: unit.communeCode } : {}),
       topics: nest(row.counts),
+    });
+  }
+
+  // The 6 cities divided into arrondissements have no row of their own, and every figure
+  // here is a count, so each city's is the sum of its arrondissements exactly. Published
+  // that way rather than left out, so a question about Casablanca has an answer that
+  // doesn't depend on whoever asks adding 16 numbers up.
+  const parts = new Map<string, EconomyRecord[]>();
+  for (const r of out) {
+    const city = r.level === "arrondissement" ? cityOf.get(r.code!) : undefined;
+    if (!city) continue;
+    parts.set(city, [...(parts.get(city) ?? []), r]);
+  }
+  for (const [code, arrondissements] of [...parts].sort(([a], [b]) => a.localeCompare(b))) {
+    const city = records.find((r) => r.code === code);
+    if (!city) {
+      problems.push(`${code} has arrondissements but is not a unit of the dataset`);
+      continue;
+    }
+    if (claimed.has(code)) {
+      problems.push(`${code} ${city.name.fr} has a row of its own and arrondissements too`);
+      continue;
+    }
+    out.push({
+      code: city.code,
+      codeDigits: city.codeDigits,
+      level: city.level,
+      name: city.name,
+      basis: "arrondissement_sum",
+      topics: arrondissements.reduce((into, a) => add(into, a.topics), {} as Topics),
     });
   }
 

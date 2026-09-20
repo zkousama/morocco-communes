@@ -371,7 +371,14 @@ export function createMcpServer(deps: McpDeps): McpServer {
         communes: z.array(
           communeShape.extend({
             indicator: z
-              .object({ path: z.string(), value: z.number().nullable() })
+              .object({
+                path: z.string(),
+                value: z.number().nullable(),
+                basis: z
+                  .literal("arrondissement_sum")
+                  .optional()
+                  .describe("The value is the sum of this city's arrondissements, which is how the census counts it."),
+              })
               .optional()
               .describe("When sorted by a figure, the commune's value for it."),
           }),
@@ -624,8 +631,9 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "Every figure is a count, taken during the census by field teams who mapped each establishment. Farming is out: the workbook counts every " +
         "sector but agriculture, and the jobs are the permanent ones. " +
         "To rank communes by one of these, call list_communes with sort set to its path, such as economy.establishments.jobs; to compare the " +
-        "régions, the provinces or the arrondissements, give level without a unit and get them all in one call. Casablanca and the 5 other cities " +
-        "with arrondissements are counted by arrondissement and carry no figures of their own.",
+        "régions, the provinces or the arrondissements, give level without a unit and get them all in one call. " +
+        "Casablanca and the 5 other cities divided into arrondissements are counted by arrondissement, so their figures are the sum of those, " +
+        "marked basis: arrondissement_sum. Say so when you report one.",
       inputSchema: {
         unit: z
           .string()
@@ -653,6 +661,10 @@ export function createMcpServer(deps: McpDeps): McpServer {
             figures: z
               .record(z.string(), z.record(z.string(), z.number().nullable()))
               .describe("By topic, then by key. Counts of establishments, of permanent jobs, or of weekly souks."),
+            basis: z
+              .literal("arrondissement_sum")
+              .optional()
+              .describe("Present on the 6 cities the census counts by arrondissement: these figures are the sum of their arrondissements, not a count HCP publishes for the city."),
           }),
         ),
       },
@@ -665,13 +677,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
         if (found.kind === "absent") return fail(`No unit has the identifier ${unit}. Call search to find its code.`);
         const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/economy.json`);
-        if (!body) {
-          return fail(
-            `No establishments are published for ${found.code}. ` +
-              `Casablanca and the 5 other cities with arrondissements are counted by arrondissement: call get_economy with level "arrondissement" ` +
-              `and no unit for all 41 at once, and get_commune to see which of them are in this city.`,
-          );
-        }
+        if (!body) return fail(`The establishments for ${unit} could not be read.`);
         records = [body.data as unknown as EconomyRecord];
       } else if (level !== undefined) {
         if (level !== "region" && level !== "province" && level !== "arrondissement") {
@@ -692,6 +698,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         results: records.map((record) => ({
           unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
           figures: pick(record.topics),
+          ...(record.basis ? { basis: record.basis } : {}),
         })),
       });
     },

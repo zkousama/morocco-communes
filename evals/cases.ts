@@ -417,7 +417,14 @@ export const CASES: Case[] = [
     id: "casablanca-establishments",
     category: "economy",
     question: "How many establishments were mapped in the commune of Casablanca?",
-    expect: { pattern: /arrondissement/i, maxCalls: 4 },
+    // The census counts the city by arrondissement, so the figure is a sum of its 16 and
+    // the answer has to say so rather than pass it off as a count HCP published.
+    expect: {
+      numbers: [counts(casablanca.code).establishments!.total!],
+      pattern: /arrondissement/i,
+      tools: ["get_economy"],
+      maxCalls: 3,
+    },
   },
   {
     id: "tiznit-province-businesses",

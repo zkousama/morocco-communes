@@ -11,22 +11,37 @@ import type { Level } from "../build/indicators.ts";
  * its rural communes, and one of Casablanca's préfectures d'arrondissements is the
  * arrondissements under it. A column read under the wrong heading, or a row placed on the
  * wrong unit, breaks one of these.
+ *
+ * The 6 cities carry a sum of their own arrondissements rather than a row of HCP's, so
+ * they sit outside the tree, where counting them would count their arrondissements twice.
+ * Casablanca's sum is checked against a second grouping of the same 16 arrondissements:
+ * the 8 préfectures d'arrondissements HCP does publish.
  */
 export function checkEconomy(
   records: EconomyRecord[],
   /** The cercle each commune belongs to, as the dataset publishes it. Null for a municipality. */
   cercleOf: Map<string, string | null>,
-  /** Every unit the dataset publishes, and the cities whose arrondissements carry their figures. */
+  /** Every unit the dataset publishes. */
   units: { code: string; level: Level; name: string }[],
-  citiesWithArrondissements: Set<string>,
+  /** Which city each arrondissement belongs to, as the dataset's own records give it. */
+  cityOf: Map<string, string>,
 ): string[] {
   const problems: string[] = [];
   const byCode = new Map(records.map((r) => [r.code ?? "", r]));
+  /** The units HCP gives a row of its own, which are the ones the tree is made of. */
+  const published = records.filter((r) => r.basis === undefined);
+  const citiesWithArrondissements = new Set(cityOf.values());
   const figure = (r: EconomyRecord, topic: string, key: string) => r.topics[topic]?.[key] ?? null;
 
   for (const unit of units) {
-    if (unit.level === "urbanCentre" || citiesWithArrondissements.has(unit.code)) continue;
+    if (unit.level === "urbanCentre") continue;
     if (!byCode.has(unit.code)) problems.push(`${unit.code} ${unit.name}: no row of establishments`);
+  }
+  for (const code of citiesWithArrondissements) {
+    const city = byCode.get(code);
+    if (city && city.basis !== "arrondissement_sum") {
+      problems.push(`${code} ${city.name.fr}: counted by arrondissement, so its figures have to say they were summed`);
+    }
   }
 
   for (const r of records) {
@@ -60,7 +75,7 @@ export function checkEconomy(
     }
   };
 
-  const at = (level: Level) => records.filter((r) => r.level === level);
+  const at = (level: Level) => published.filter((r) => r.level === level);
   // A préfecture d'arrondissements is published at the province level with a longer code,
   // and sits inside the préfecture of Casablanca rather than beside it.
   const provinces = at("province").filter((r) => r.code!.split(".").length === 2);
@@ -84,6 +99,17 @@ export function checkEconomy(
   }
   for (const cercle of at("cercle")) {
     covers(cercle, communes.filter((c) => cercleOf.get(c.code!) === cercle.code), "communes");
+  }
+
+  // Each city against its own arrondissements, and Casablanca's against the 8 préfectures
+  // d'arrondissements too, which group the same 16 units and are HCP's own figures.
+  for (const code of citiesWithArrondissements) {
+    const city = byCode.get(code);
+    if (!city) continue;
+    const inside = arrondissements.filter((a) => cityOf.get(a.code!) === code);
+    covers(city, inside, "arrondissements");
+    const prefectures = prefecturesOfArrondissements.filter((p) => inside.some((a) => a.codeDigits!.slice(0, 8) === p.codeDigits!.slice(0, 8)));
+    if (prefectures.length > 0) covers(city, prefectures, "préfectures d'arrondissements");
   }
 
   return problems;

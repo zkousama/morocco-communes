@@ -27,7 +27,7 @@ export const NOTES = {
   souks: "A weekly souk is a market that stands on one day of the week. It is counted on its own and is not part of the establishment total.",
   jobs: "The jobs are the permanent ones the businesses hold, so seasonal and casual work is not in the figure.",
   units:
-    "The six cities that hold arrondissements carry no figures: the workbook counts those cities by arrondissement, and each arrondissement is here.",
+    "The workbook counts the 6 cities with arrondissements by arrondissement rather than as one place. Each of those cities carries the sum of its own arrondissements, marked basis: arrondissement_sum, the way its 2014 population is. Every other figure is a row of HCP's.",
 };
 
 const describe = (f: EconomyField) => ({
@@ -61,12 +61,13 @@ export async function writeEconomy(
   );
   await writeFile(join(dir, "unplaced.json"), `${JSON.stringify(unplaced, null, 2)}\n`);
 
-  const head = ["code", "code_digits", "level", "name_fr", ...ECONOMY_FIELDS.map(columnOf)];
+  const head = ["code", "code_digits", "level", "name_fr", "basis", ...ECONOMY_FIELDS.map(columnOf)];
   const rows = records.map((r) => [
     r.code,
     r.codeDigits,
     r.level,
     r.name.fr,
+    r.basis ?? "hcp",
     ...ECONOMY_FIELDS.map((f) => r.topics[f.topic]?.[f.key] ?? null),
   ]);
   await writeFile(join(dir, "establishments.csv"), toCsv(head, rows));

@@ -57,14 +57,24 @@ before the change.
 - **Two topics that sound alike.** Haiku asked `employmentStatus` for an unemployment rate
   and reported that the census doesn't publish one. It does, under `labour`; the parameter
   now says which is which.
+- **A sum done in the answer (19, then 4).** Every question about one of the 6 cities the
+  census counts by arrondissement ended with a model reading 16 or 41 rows into its
+  context and adding them up: slow, ~6,000 tokens of JSON, and arithmetic nobody checked.
+  Every figure in this workbook is a count, so a city's is the exact sum of its own
+  arrondissements, and the dataset publishes it that way, marked
+  `basis: arrondissement_sum` as the 2014 population on the same 6 cities already was.
+  Casablanca's is checked against a second grouping of the same 16 units, the 8
+  préfectures d'arrondissements HCP publishes. Asked how many establishments Casablanca
+  has, a model now makes 2 calls and reports 150,953 with where it came from; asked which
+  commune holds the most jobs, 1.
 
 After those changes, on all 46 questions:
 
 | Model | Passed | Tool calls | Over budget |
 |---|---|---|---|
-| Sonnet | 46 | 84 | 0 |
-| Haiku | 46 | 73 | 0 |
+| Sonnet | 46 | 80 | 0 |
+| Haiku | 46 | 77 | 0 |
 
-Sonnet spends more calls than Haiku, and on the questions where it does, it is checking
-something: asked how many establishments Casablanca has, it adds up the city's 16
-arrondissements and says the sum is its own, because HCP publishes no figure for the city.
+The two models land within a few calls of each other, and the gap moves run to run. What
+doesn't move is the shape of an answer: a figure that was summed comes back saying so, and
+both models pass that on rather than reporting it as a count HCP published.

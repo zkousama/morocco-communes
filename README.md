@@ -233,7 +233,9 @@ The census also counted workplaces. HCP's field teams mapped every economic esta
 and published the count by commune, and it lands on 1,847 units: 22 figures each, from the
 establishments mapped down to the businesses by sector, by the people they employ and by
 the decade they were founded. Inside a unit the parts have to make the total, and across
-the country every figure has to add up the tree. `economy/README.md` has the details.
+the country every figure has to add up the tree. The 6 cities the workbook counts by
+arrondissement carry the exact sum of their own, marked `basis`, the same route their 2014
+population takes. `economy/README.md` has the details.
 
 The 2014 census published the same kind of figures, in workbooks of its own, and they
 land on the units of today: 1,965 of the 1,979 rows, by code, through the crosswalk, or by
