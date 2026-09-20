@@ -332,7 +332,9 @@ const cities = Object.fromEntries(
     display: none;
   }
 
-  .hits a {
+  /* The results are written by the script, so they carry none of this component's scope:
+     every rule for them is global, inside .hits. */
+  .hits :global(a) {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -343,12 +345,12 @@ const cities = Object.fromEntries(
     border-top: 1px solid var(--rule);
   }
 
-  .hits li:first-child a {
+  .hits :global(li:first-child a) {
     border-top: 0;
   }
 
-  .hits a:hover,
-  .hits a:focus-visible {
+  .hits :global(a:hover),
+  .hits :global(a:focus-visible) {
     background: var(--rule);
   }
 
