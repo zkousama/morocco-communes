@@ -1,0 +1,512 @@
+{
+  "census": "2024",
+  "source": {
+    "id": "hcp-2024-housing",
+    "url": "https://www.hcp.ma/file/246208/"
+  },
+  "fields": [
+    {
+      "path": "dwellings.total",
+      "column": "dwellings_total",
+      "topic": "dwellings",
+      "key": "total",
+      "label": "Urban dwellings",
+      "heading": "Total des logements urbains",
+      "unit": "dwellings"
+    },
+    {
+      "path": "occupancy.occupied",
+      "column": "occupancy_occupied",
+      "topic": "occupancy",
+      "key": "occupied",
+      "label": "Occupied",
+      "heading": "Nature d'occupation % · Logement occupé",
+      "unit": "percent"
+    },
+    {
+      "path": "occupancy.vacant",
+      "column": "occupancy_vacant",
+      "topic": "occupancy",
+      "key": "vacant",
+      "label": "Vacant",
+      "heading": "Logement non occupé · Logement vacants",
+      "unit": "percent"
+    },
+    {
+      "path": "occupancy.seasonal",
+      "column": "occupancy_seasonal",
+      "topic": "occupancy",
+      "key": "seasonal",
+      "label": "Second or seasonal home",
+      "heading": "Logement secondaire/saisonnier",
+      "unit": "percent"
+    },
+    {
+      "path": "occupancy.unoccupied",
+      "column": "occupancy_unoccupied",
+      "topic": "occupancy",
+      "key": "unoccupied",
+      "label": "Unoccupied, of either kind",
+      "heading": "Total logement non occupé",
+      "unit": "percent"
+    },
+    {
+      "path": "type.villa",
+      "column": "type_villa",
+      "topic": "type",
+      "key": "villa",
+      "label": "Villa, or a floor of one",
+      "heading": "Type de logement % · Logement non précaire ou salubre · Villa ou niveau de villa",
+      "unit": "percent"
+    },
+    {
+      "path": "type.apartment",
+      "column": "type_apartment",
+      "topic": "type",
+      "key": "apartment",
+      "label": "Apartment",
+      "heading": "Appartement",
+      "unit": "percent"
+    },
+    {
+      "path": "type.traditional",
+      "column": "type_traditional",
+      "topic": "type",
+      "key": "traditional",
+      "label": "Traditional Moroccan house",
+      "heading": "Maison marocaine traditionnelle",
+      "unit": "percent"
+    },
+    {
+      "path": "type.modern",
+      "column": "type_modern",
+      "topic": "type",
+      "key": "modern",
+      "label": "Modern Moroccan house",
+      "heading": "Maison marocaine moderne",
+      "unit": "percent"
+    },
+    {
+      "path": "type.sound",
+      "column": "type_sound",
+      "topic": "type",
+      "key": "sound",
+      "label": "Sound housing, all told",
+      "heading": "Total non précaire",
+      "unit": "percent"
+    },
+    {
+      "path": "type.slum",
+      "column": "type_slum",
+      "topic": "type",
+      "key": "slum",
+      "label": "Basic house or slum",
+      "heading": "Logement précaire · Maison sommaire ou bidonville",
+      "unit": "percent"
+    },
+    {
+      "path": "type.ruralType",
+      "column": "type_rural_type",
+      "topic": "type",
+      "key": "ruralType",
+      "label": "Rural-type dwelling",
+      "heading": "Logement en type rural",
+      "unit": "percent"
+    },
+    {
+      "path": "type.other",
+      "column": "type_other",
+      "topic": "type",
+      "key": "other",
+      "label": "Other",
+      "heading": "Autres type",
+      "unit": "percent"
+    },
+    {
+      "path": "type.precarious",
+      "column": "type_precarious",
+      "topic": "type",
+      "key": "precarious",
+      "label": "Precarious housing, all told",
+      "heading": "Total précaire",
+      "unit": "percent"
+    },
+    {
+      "path": "age.under20",
+      "column": "age_under_20",
+      "topic": "age",
+      "key": "under20",
+      "label": "Under 20 years old",
+      "heading": "Age de logement % · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "age.20-49",
+      "column": "age_20_49",
+      "topic": "age",
+      "key": "20-49",
+      "label": "20 to 49 years old",
+      "heading": "De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "age.50+",
+      "column": "age_50_plus",
+      "topic": "age",
+      "key": "50+",
+      "label": "50 years or older",
+      "heading": "50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.villaUnder20",
+      "column": "age_by_type_villa_under_20",
+      "topic": "ageByType",
+      "key": "villaUnder20",
+      "label": "Villa, under 20 years old",
+      "heading": "Age du logement selon le type Type · Logement non précaire ou salubre · Villa ou niveau de villa · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.villa20to49",
+      "column": "age_by_type_villa_20_to_49",
+      "topic": "ageByType",
+      "key": "villa20to49",
+      "label": "Villa, 20 to 49 years old",
+      "heading": "De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.villa50Plus",
+      "column": "age_by_type_villa_50_plus",
+      "topic": "ageByType",
+      "key": "villa50Plus",
+      "label": "Villa, 50 years or older",
+      "heading": "50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.apartmentUnder20",
+      "column": "age_by_type_apartment_under_20",
+      "topic": "ageByType",
+      "key": "apartmentUnder20",
+      "label": "Apartment, under 20 years old",
+      "heading": "Appartement · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.apartment20to49",
+      "column": "age_by_type_apartment_20_to_49",
+      "topic": "ageByType",
+      "key": "apartment20to49",
+      "label": "Apartment, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.apartment50Plus",
+      "column": "age_by_type_apartment_50_plus",
+      "topic": "ageByType",
+      "key": "apartment50Plus",
+      "label": "Apartment, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.traditionalUnder20",
+      "column": "age_by_type_traditional_under_20",
+      "topic": "ageByType",
+      "key": "traditionalUnder20",
+      "label": "Traditional Moroccan house, under 20 years old",
+      "heading": "Maison marocaine traditionnelle · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.traditional20to49",
+      "column": "age_by_type_traditional_20_to_49",
+      "topic": "ageByType",
+      "key": "traditional20to49",
+      "label": "Traditional Moroccan house, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.traditional50Plus",
+      "column": "age_by_type_traditional_50_plus",
+      "topic": "ageByType",
+      "key": "traditional50Plus",
+      "label": "Traditional Moroccan house, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.modernUnder20",
+      "column": "age_by_type_modern_under_20",
+      "topic": "ageByType",
+      "key": "modernUnder20",
+      "label": "Modern Moroccan house, under 20 years old",
+      "heading": "Maison marocaine moderne · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.modern20to49",
+      "column": "age_by_type_modern_20_to_49",
+      "topic": "ageByType",
+      "key": "modern20to49",
+      "label": "Modern Moroccan house, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.modern50Plus",
+      "column": "age_by_type_modern_50_plus",
+      "topic": "ageByType",
+      "key": "modern50Plus",
+      "label": "Modern Moroccan house, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.soundUnder20",
+      "column": "age_by_type_sound_under_20",
+      "topic": "ageByType",
+      "key": "soundUnder20",
+      "label": "Sound housing, under 20 years old",
+      "heading": "Total non précaire · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.sound20to49",
+      "column": "age_by_type_sound_20_to_49",
+      "topic": "ageByType",
+      "key": "sound20to49",
+      "label": "Sound housing, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.sound50Plus",
+      "column": "age_by_type_sound_50_plus",
+      "topic": "ageByType",
+      "key": "sound50Plus",
+      "label": "Sound housing, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.slumUnder20",
+      "column": "age_by_type_slum_under_20",
+      "topic": "ageByType",
+      "key": "slumUnder20",
+      "label": "Basic house or slum, under 20 years old",
+      "heading": "Type de logement précaire % · Logement précaire · Maison sommaire ou bidonville · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.slum20to49",
+      "column": "age_by_type_slum_20_to_49",
+      "topic": "ageByType",
+      "key": "slum20to49",
+      "label": "Basic house or slum, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.slum50Plus",
+      "column": "age_by_type_slum_50_plus",
+      "topic": "ageByType",
+      "key": "slum50Plus",
+      "label": "Basic house or slum, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.ruralTypeUnder20",
+      "column": "age_by_type_rural_type_under_20",
+      "topic": "ageByType",
+      "key": "ruralTypeUnder20",
+      "label": "Rural-type dwelling, under 20 years old",
+      "heading": "Logement en type rural · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.ruralType20to49",
+      "column": "age_by_type_rural_type_20_to_49",
+      "topic": "ageByType",
+      "key": "ruralType20to49",
+      "label": "Rural-type dwelling, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.ruralType50Plus",
+      "column": "age_by_type_rural_type_50_plus",
+      "topic": "ageByType",
+      "key": "ruralType50Plus",
+      "label": "Rural-type dwelling, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.otherUnder20",
+      "column": "age_by_type_other_under_20",
+      "topic": "ageByType",
+      "key": "otherUnder20",
+      "label": "Other, under 20 years old",
+      "heading": "Autres type · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.other20to49",
+      "column": "age_by_type_other_20_to_49",
+      "topic": "ageByType",
+      "key": "other20to49",
+      "label": "Other, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.other50Plus",
+      "column": "age_by_type_other_50_plus",
+      "topic": "ageByType",
+      "key": "other50Plus",
+      "label": "Other, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.precariousUnder20",
+      "column": "age_by_type_precarious_under_20",
+      "topic": "ageByType",
+      "key": "precariousUnder20",
+      "label": "Precarious housing, under 20 years old",
+      "heading": "Total précaire · Moins de 20 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.precarious20to49",
+      "column": "age_by_type_precarious_20_to_49",
+      "topic": "ageByType",
+      "key": "precarious20to49",
+      "label": "Precarious housing, 20 to 49 years old",
+      "heading": "2 · De 20 à moins de 50 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "ageByType.precarious50Plus",
+      "column": "age_by_type_precarious_50_plus",
+      "topic": "ageByType",
+      "key": "precarious50Plus",
+      "label": "Precarious housing, 50 years or older",
+      "heading": "3 · 50 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "walls.concreteOrBrick",
+      "column": "walls_concrete_or_brick",
+      "topic": "walls",
+      "key": "concreteOrBrick",
+      "label": "Reinforced concrete, or brick laid in mortar",
+      "heading": "Matériaux de construction des murs % · Béton armé, briques avec mortier",
+      "unit": "percent"
+    },
+    {
+      "path": "walls.stone",
+      "column": "walls_stone",
+      "topic": "walls",
+      "key": "stone",
+      "label": "Stone laid in mortar",
+      "heading": "Pierre agglomérée avec mortier",
+      "unit": "percent"
+    },
+    {
+      "path": "walls.other",
+      "column": "walls_other",
+      "topic": "walls",
+      "key": "other",
+      "label": "Other",
+      "heading": "Autres",
+      "unit": "percent"
+    },
+    {
+      "path": "roofs.slab",
+      "column": "roofs_slab",
+      "topic": "roofs",
+      "key": "slab",
+      "label": "Concrete slab",
+      "heading": "Matériaux de construction des toits % · Dalle",
+      "unit": "percent"
+    },
+    {
+      "path": "roofs.woodOrTiles",
+      "column": "roofs_wood_or_tiles",
+      "topic": "roofs",
+      "key": "woodOrTiles",
+      "label": "Boards, wood or tiles",
+      "heading": "Planches, bois ou tuiles",
+      "unit": "percent"
+    },
+    {
+      "path": "roofs.sheetMetal",
+      "column": "roofs_sheet_metal",
+      "topic": "roofs",
+      "key": "sheetMetal",
+      "label": "Cement or zinc sheeting",
+      "heading": "Tôle en ciment ou en zinc",
+      "unit": "percent"
+    },
+    {
+      "path": "roofs.other",
+      "column": "roofs_other",
+      "topic": "roofs",
+      "key": "other",
+      "label": "Other",
+      "heading": "Autres",
+      "unit": "percent"
+    },
+    {
+      "path": "networks.electricity",
+      "column": "networks_electricity",
+      "topic": "networks",
+      "key": "electricity",
+      "label": "On the public electricity network",
+      "heading": "Raccordement aux services de base · Réseau public d'électricité",
+      "unit": "percent"
+    },
+    {
+      "path": "networks.water",
+      "column": "networks_water",
+      "topic": "networks",
+      "key": "water",
+      "label": "On the public water network",
+      "heading": "Réseau public d'eau",
+      "unit": "percent"
+    },
+    {
+      "path": "networks.sewerage",
+      "column": "networks_sewerage",
+      "topic": "networks",
+      "key": "sewerage",
+      "label": "On the public sewerage network",
+      "heading": "Réseau public d'assainissement",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellings.deficitRate",
+      "column": "dwellings_deficit_rate",
+      "topic": "dwellings",
+      "key": "deficitRate",
+      "label": "Housing shortfall",
+      "heading": "Taux de déficit quantitatif en logement (%)",
+      "unit": "percent"
+    }
+  ],
+  "notes": {
+    "counted": "The urban dwellings of each unit, counted at the 2024 census: a place built or converted to be lived in, whether or not anyone lives in it.",
+    "dwellingsNotHouseholds": "A dwelling, not a household. The census indicators in ../indicators/ describe the dwelling each household lives in; a vacant flat is here and in no household's record.",
+    "urbanOnly": "Urban only. A unit with no urban area has no record here, and a unit's figures cover its urban part rather than all of it.",
+    "shares": "Every figure but the count of dwellings is a percentage of that unit's urban dwellings, to one decimal.",
+    "gaps": "Null is a figure the workbook leaves out, which it writes as `_`. The age of the dwellings by type is left that way for most units.",
+    "deficit": "dwellings.deficitRate is HCP's quantitative housing shortfall, the share of households that would need a dwelling built for them."
+  }
+}

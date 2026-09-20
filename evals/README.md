@@ -16,10 +16,11 @@ Each question goes through `claude -p`, so it runs on a Claude Code login and sp
 plan's usage, not an API bill. User settings are skipped and the model starts in an empty
 directory, with no built-in tools, so nothing but the question and the server reaches it.
 
-`cases.ts` holds 48 questions: lookups, misspellings and exonyms, French and Arabic,
+`cases.ts` holds 49 questions: lookups, misspellings and exonyms, French and Arabic,
 coordinates, rankings, the census indicators, what changed between the 2014 and 2024
 censuses, the 2024 establishments, 2 things the tools once couldn't answer directly, and
-2 figures that don't exist, and which commune borders which. Some need 2 tools in a row,
+2 figures that don't exist, which commune borders which, and the urban dwellings that
+stand empty. Some need 2 tools in a row,
 and some name a place that is a commune and a province at once. Every expected figure is read from `data/v1`,
 or from the running API where it depends on a boundary, so the cases stay right when the
 data is rebuilt. A figure matches however it's written: `6,124`, `6 124`, `٦١٢٤`, or
@@ -68,12 +69,12 @@ before the change.
   has, a model now makes 2 calls and reports 150,953 with where it came from; asked which
   commune holds the most jobs, 1.
 
-After those changes, on all 48 questions:
+After those changes, on all 49 questions:
 
 | Model | Passed | Tool calls | Over budget |
 |---|---|---|---|
-| Sonnet | 48 | 85 | 0 |
-| Haiku | 48 | 78 | 0 |
+| Sonnet | 49 | 88 | 0 |
+| Haiku | 49 | 83 | 0 |
 
 The two models land within a few calls of each other, and the gap moves run to run. What
 doesn't move is the shape of an answer: a figure that was summed comes back saying so, and

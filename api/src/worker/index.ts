@@ -308,10 +308,10 @@ app.get("/api/:collection/:id", async (c) => {
 });
 
 /**
- * A unit's figures by any spelling of its identifier, as /api/communes/tanger/indicators
- * for the census and /api/communes/tanger/economy for the establishments.
+ * A unit's figures by any spelling of its identifier: /api/communes/tanger/indicators for
+ * the census, /economy for the establishments, /housing for the urban dwellings.
  */
-app.get("/api/:collection/:id/:figures{indicators|economy}", async (c) => {
+app.get("/api/:collection/:id/:figures{indicators|economy|housing}", async (c) => {
   const url = new URL(c.req.url);
   const { collection, id, figures } = c.req.param();
   const found = resolve(lookup, id, LEVEL_OF[collection]);

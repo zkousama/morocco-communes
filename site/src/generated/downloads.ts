@@ -327,6 +327,37 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlHousing",
+    "licence": "hcp",
+    "files": [
+      {
+        "label": "dwellings.csv",
+        "href": "/data/v1/housing/dwellings.csv",
+        "bytes": 214185
+      },
+      {
+        "label": "communes.json",
+        "href": "/data/v1/housing/communes.json",
+        "bytes": 449831
+      },
+      {
+        "label": "provinces.json",
+        "href": "/data/v1/housing/provinces.json",
+        "bytes": 98698
+      },
+      {
+        "label": "regions.json",
+        "href": "/data/v1/housing/regions.json",
+        "bytes": 14439
+      },
+      {
+        "label": "fields.json",
+        "href": "/data/v1/housing/fields.json",
+        "bytes": 15811
+      }
+    ]
+  },
+  {
     "key": "dlAdjacency",
     "licence": "odbl",
     "files": [
@@ -370,7 +401,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 5231
+        "bytes": 5709
       }
     ]
   }

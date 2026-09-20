@@ -1,6 +1,7 @@
 import { LIMIT, PAGE, PER_PAGE, POPULATION, QUERY, RADIUS_KM } from "./lib/params.ts";
 import { HOUSEHOLD_TOPICS, PEOPLE_TOPICS } from "./lib/indicators.ts";
 import { ECONOMY_TOPICS } from "./lib/economy.ts";
+import { HOUSING_TOPICS } from "./lib/housing.ts";
 
 /**
  * The OpenAPI 3.1 description of the API, built from the same limits the Worker enforces,
@@ -42,7 +43,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       version: opts.version,
       summary: "Morocco's administrative divisions as open data.",
       description:
-        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's census indicators for both years, the 2024 count of economic establishments, and boundaries from OpenStreetMap.\n\n" +
+        "Every région, province, préfecture, cercle, commune and arrondissement in Morocco, with official HCP geographic codes, names in French and Arabic, 2024 and 2014 census population, area and density, HCP's census indicators for both years, the 2024 count of economic establishments, the 2024 urban housing stock, and boundaries from OpenStreetMap.\n\n" +
         "An identifier can be written 4 ways and all resolve to one unit: the dotted HCP code (`01.511.01.0`), the code zero-padded to 9 digits (`001511010`), the digits with leading zeros dropped (`1511010`), or a slug (`tanger`).\n\n" +
         "Every response is an envelope of `data`, `meta` and `links`. Errors are RFC 9457 problem documents. Routes ending in `.json` are static files and cost nothing to call; the rest run in a Worker.",
       license: { name: "MIT (code). Attributes, indicators and establishments: HCP. Boundaries: ODbL-1.0.", identifier: "MIT" },
@@ -278,6 +279,40 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           responses: { "200": ok("Morocco's establishments.", ref("Economy")) },
         },
       },
+      "/api/{collection}/{code}/housing": {
+        get: {
+          operationId: "getHousing",
+          summary: "A unit's urban housing stock, counted at the 2024 census",
+          description:
+            "How many urban dwellings a unit has, how many are occupied, vacant or second homes, what kind they are, how old, what their walls and roofs are made of, how many are on the public electricity, water and sewerage networks, and HCP's housing shortfall. " +
+            "Every figure but the count is a percentage of that unit's urban dwellings. This counts dwellings rather than households: a vacant flat is here and in nobody's census record. " +
+            "A unit with no urban area has no file. `/data/v1/housing/fields.json` names every field with the workbook's own wording.",
+          parameters: [
+            {
+              name: "collection",
+              in: "path",
+              required: true,
+              description: "The unit's level.",
+              schema: { type: "string", enum: ["regions", "provinces", "cercles", "communes", "arrondissements"] },
+              example: "communes",
+            },
+            code("A dotted code, padded or unpadded digits, or a slug.", "tiznit"),
+          ],
+          responses: {
+            "200": ok("The unit's urban housing stock.", ref("Housing")),
+            "400": problem("Not an identifier."),
+            "404": problem("No unit has that identifier, it's in another collection, or it has no urban dwellings."),
+          },
+        },
+      },
+      "/api/housing.json": {
+        get: {
+          operationId: "getNationalHousing",
+          summary: "Morocco's urban housing stock, counted at the 2024 census",
+          description: "The same figures for every town in the country together.",
+          responses: { "200": ok("Morocco's urban housing stock.", ref("Housing")) },
+        },
+      },
       "/api/regions.json": {
         get: {
           operationId: "listRegions",
@@ -420,6 +455,21 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               type: "object",
               description: `By topic, then by key: ${[...ECONOMY_TOPICS.keys()].join(", ")}. Every figure is a count of establishments, of permanent jobs, or of weekly souks.`,
             },
+          },
+        },
+        Housing: {
+          type: "object",
+          required: ["code", "level", "name", "topics"],
+          properties: {
+            code: { type: ["string", "null"], description: "Null for Morocco." },
+            codeDigits: { type: ["string", "null"] },
+            level: { type: "string", enum: ["country", "region", "province", "cercle", "commune", "arrondissement", "urbanCentre"] },
+            name: { type: "object", properties: { fr: { type: "string" }, ar: { type: ["string", "null"] } } },
+            topics: {
+              type: "object",
+              description: `By topic, then by key: ${[...HOUSING_TOPICS.keys()].join(", ")}. Every figure but dwellings.total is a percentage of that unit's urban dwellings.`,
+            },
+            urbanCentres: { type: "array", description: "A commune's urban centres, each with the same fields.", items: { type: "object" } },
           },
         },
         Commune: {

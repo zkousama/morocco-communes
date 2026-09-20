@@ -22,6 +22,7 @@ with no entry in it.
 | `geometry/` | one TopoJSON per région, and which communes border which | **ODbL**, share-alike |
 | `indicators/` | the census indicators for every unit, 2024 and 2014, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `economy/` | the 2024 count of economic establishments for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
+| `housing/` | the 2024 urban housing stock, by dwelling, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
@@ -40,7 +41,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 11,006 files written at build time and served straight from
+**Pre-rendered.** 11,629 files written at build time and served straight from
 Cloudflare's asset store, without invoking Worker code. Free and unmetered.
 
 ```
@@ -105,8 +106,9 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 8 read-only tools (`search`, `get_commune`, `get_unit`,
-  `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`), so
+- **`/mcp`**: an MCP server with 9 read-only tools (`search`, `get_commune`, `get_unit`,
+  `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`,
+  `get_housing`), so
   Claude, Claude Code and other MCP clients can query the data directly, census figures
   included. The site's `/docs/mcp/` page has the setup for each client.
 
@@ -183,7 +185,7 @@ pnpm build             # the docs site, then the API tree, into dist/
 pnpm api:dev           # wrangler dev on :8788 — serves the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
-pnpm eval              # asks a model 48 questions through the MCP server; see evals/
+pnpm eval              # asks a model 49 questions through the MCP server; see evals/
 ```
 
 A deploy build takes the origin it will be served from, which the canonical URLs, the
@@ -231,6 +233,11 @@ before anything is placed. Each column is named after the
 heading HCP gives it, and the build refuses the workbook if a heading has moved. It then
 checks that each unit's population and household count equal the population file's and
 that the figures add up. `indicators/README.md` has the details.
+
+The census counted the urban housing stock too, in a workbook of its own: how many
+dwellings each town has, how many stand empty, what kind they are, how old, what they are
+made of and what they are connected to. It counts dwellings rather than households, so it
+sits in `housing/` rather than among the census indicators, and 784 units have one.
 
 The census also counted workplaces. HCP's field teams mapped every economic establishment
 and published the count by commune, and it lands on 1,847 units: 22 figures each, from the

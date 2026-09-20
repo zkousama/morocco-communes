@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.6.0",
+  "datasetVersion": "1.7.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -69,6 +69,13 @@
       "url": "https://www.hcp.ma/file/230031/",
       "licence": "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les diplômes de la population. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "5b6e4785caa3ef42265d4af4b4e1390195d7c114bbf58a1d9867866826329ad6",
+      "retrievedAt": "2026-09-20"
+    },
+    {
+      "id": "hcp-2024-housing",
+      "url": "https://www.hcp.ma/file/246208/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2024, Indicateurs communaux du parc logement urbain. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "c5ca0d86eef04cac4692cc0fff691e81f77e73726515b12eb17a0d7f3a8ff421",
       "retrievedAt": "2026-09-20"
     },
     {

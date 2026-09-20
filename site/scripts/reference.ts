@@ -8,9 +8,10 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildIndex } from "../../api/src/emit/searchIndex.ts";
-import { emitEconomy, emitIndicators, emitTree } from "../../api/src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitTree } from "../../api/src/emit/static.ts";
 import { readIndicators } from "../../api/src/emit/indicators.ts";
 import { readEconomy } from "../../api/src/emit/economy.ts";
+import { readHousing } from "../../api/src/emit/housing.ts";
 import { buildIndicatorTable, type IndicatorRecord, type Topics } from "../../api/src/lib/indicators.ts";
 import { envelope, PROBLEMS, problem, type Envelope } from "../../api/src/lib/envelope.ts";
 import { listCommunes, parseFilter } from "../../api/src/lib/list.ts";
@@ -47,6 +48,7 @@ const indicatorRecords = await readIndicators("data/v1");
 emitIndicators(tree, indicatorRecords);
 const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree, economyRecords);
+emitHousing(tree, await readHousing("data/v1"));
 const indicators = buildIndicatorTable(
   indicatorRecords.filter((r) => r.level === "commune"),
   economyRecords.filter((r) => r.level === "commune"),
@@ -165,6 +167,8 @@ const examples: Record<string, Example> = {
   getNationalIndicators: trim("/api/indicators.json", file("/api/indicators.json"), ["fertility", "localLanguages"], ["households"]),
   getEconomy: { request: "/api/communes/tiznit/economy", body: file("/api/communes/09.581.01.07/economy.json") },
   getNationalEconomy: { request: "/api/economy.json", body: file("/api/economy.json") },
+  getHousing: { request: "/api/communes/tiznit/housing", body: file("/api/communes/09.581.01.07/housing.json") },
+  getNationalHousing: { request: "/api/housing.json", body: file("/api/housing.json") },
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },
 };
 
@@ -206,6 +210,8 @@ const files = [
   { key: "provincesEconomy", pattern: "/api/provinces/economy.json", example: "/api/provinces/economy.json" },
   { key: "arrondissementsIndicators", pattern: "/api/arrondissements/indicators.json", example: "/api/arrondissements/indicators.json" },
   { key: "arrondissementsEconomy", pattern: "/api/arrondissements/economy.json", example: "/api/arrondissements/economy.json" },
+  { key: "regionsHousing", pattern: "/api/regions/housing.json", example: "/api/regions/housing.json" },
+  { key: "provincesHousing", pattern: "/api/provinces/housing.json", example: "/api/provinces/housing.json" },
   { key: "tiles", pattern: "/api/tiles/{z}/{x}/{y}.json", example: tilePath(geometry.tileIndex.leaf[0]!) },
 ] as const;
 const written = new Set([

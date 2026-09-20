@@ -10,6 +10,7 @@ const attributes = (name: string) => JSON.parse(readFileSync(`data/v1/attributes
 const indicators = (name: string) => readLevel<Figures>("data/v1/indicators", name);
 const indicators2014 = (name: string) => readLevel<Figures>("data/v1/indicators/2014", name);
 const economy = (name: string) => JSON.parse(readFileSync(`data/v1/economy/${name}.json`, "utf8")) as Establishments[];
+const housing = (name: string) => JSON.parse(readFileSync(`data/v1/housing/${name}.json`, "utf8")) as Establishments[];
 
 interface Unit {
   code: string;
@@ -509,6 +510,16 @@ export const CASES: Case[] = [
       ],
       tools: ["get_indicators", "get_economy"],
       maxCalls: 5,
+    },
+  },
+  {
+    id: "empty-homes",
+    category: "economy",
+    question: "What share of the urban dwellings in the commune of Tiznit stand empty, counting both vacant ones and second homes?",
+    expect: {
+      numbers: [housing("communes").find((r) => r.code === tiznit.code)!.topics.occupancy!.unoccupied!],
+      tools: ["get_housing"],
+      maxCalls: 3,
     },
   },
   {

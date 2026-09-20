@@ -75,4 +75,4 @@ and so does the measurement.
 The boundaries themselves are in `../geometry/`, which carries its own LICENSE, and the
 adjacency derives from them, so it is ODbL too. HCP's
 census indicators for every unit are in `../indicators/`, with the 2014 census in
-`../indicators/2014/`, and the 2024 count of economic establishments in `../economy/`.
+`../indicators/2014/`, the 2024 count of economic establishments in `../economy/`, and the urban housing stock in `../housing/`.

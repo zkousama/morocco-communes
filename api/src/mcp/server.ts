@@ -4,6 +4,7 @@ import { z } from "zod";
 import { listCommunes, parseFilter, SORT_KEYS, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import { TOPICS, type Census, type IndicatorRecord, type IndicatorTable, type Topics } from "../lib/indicators.ts";
 import { ECONOMY_TOPICS, type EconomyRecord } from "../lib/economy.ts";
+import { HOUSING_TOPICS, type HousingRecord } from "../lib/housing.ts";
 import { LIMIT, PAGE, POPULATION, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
@@ -37,7 +38,8 @@ const INSTRUCTIONS =
   "get_indicators gives the census figures on age, education, languages, work and housing for any unit or the whole country, " +
   "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014. " +
   "get_economy gives the 2024 count of economic establishments for the same units: businesses by sector, by size and by when they were founded, " +
-  "and the permanent jobs they hold.";
+  "and the permanent jobs they hold. " +
+  "get_housing gives the 2024 urban housing stock: how many dwellings a town has, how many stand empty, what kind they are and what they are made of.";
 
 /** Where each level's files live. */
 const COLLECTION: Record<Level, string> = {
@@ -52,6 +54,7 @@ const AREAS = ["total", "urban", "rural"] as const;
 const SEXES = ["all", "male", "female"] as const;
 const TOPIC_NAMES = [...TOPICS.keys()] as [string, ...string[]];
 const ECONOMY_TOPIC_NAMES = [...ECONOMY_TOPICS.keys()] as [string, ...string[]];
+const HOUSING_TOPIC_NAMES = [...HOUSING_TOPICS.keys()] as [string, ...string[]];
 
 /** A région, province or cercle as its own file holds it. */
 interface UnitRecord {
@@ -715,6 +718,76 @@ export function createMcpServer(deps: McpDeps): McpServer {
           unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
           figures: pick(record.topics),
           ...(record.basis ? { basis: record.basis } : {}),
+        })),
+      });
+    },
+  );
+
+  server.registerTool(
+    "get_housing",
+    {
+      title: "Urban housing stock",
+      description:
+        "HCP's 2024 count of urban dwellings for Morocco or any unit that has an urban area: how many there are, how many are occupied, " +
+        "vacant or second homes, what kind they are (villa, apartment, traditional or modern Moroccan house, slum, rural-type), how old they " +
+        "are, what their walls and roofs are made of, how many are on the public electricity, water and sewerage networks, and HCP's housing " +
+        "shortfall. Every figure but the count is a percentage of that unit's urban dwellings. " +
+        "This counts dwellings, not households: a vacant flat is here and in nobody's census record, and get_indicators describes the dwelling " +
+        "each household lives in, for the whole country rather than the towns. A unit with no urban area has nothing here.",
+      inputSchema: {
+        unit: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("A unit by code or slug. Morocco as a whole when left out."),
+        level: z
+          .enum(LEVELS)
+          .optional()
+          .describe("With a unit, the level it's at. Without one, region, province or arrondissement gives every one of that level."),
+        topics: z.array(z.enum(HOUSING_TOPIC_NAMES)).optional().describe("Only these topics. Every topic when left out."),
+      },
+      outputSchema: {
+        results: z.array(
+          z.object({
+            unit: z.object({
+              code: z.string().nullable(),
+              level: z.string(),
+              name_fr: z.string(),
+              name_ar: z.string().nullable(),
+            }),
+            figures: z.record(z.string(), z.record(z.string(), z.number().nullable())).describe("By topic, then by key."),
+          }),
+        ),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ unit, level, topics }) => {
+      let records: HousingRecord[];
+      if (unit !== undefined) {
+        const found = resolve(lookup, unit, level);
+        if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
+        if (found.kind === "absent") return fail(`No unit has the identifier ${unit}. Call search to find its code.`);
+        const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/housing.json`);
+        if (!body) return fail(`${found.code} has no urban dwellings, so HCP publishes no housing stock for it.`);
+        records = [body.data as unknown as HousingRecord];
+      } else if (level !== undefined) {
+        if (level !== "region" && level !== "province" && level !== "arrondissement") {
+          return fail(`Without a unit, level can be region, province or arrondissement.`);
+        }
+        const body = await fetchJson(`/api/${COLLECTION[level]}/housing.json`);
+        if (!body) return fail(`The housing stock of every ${level} could not be read.`);
+        records = body.data as unknown as HousingRecord[];
+      } else {
+        const body = await fetchJson("/api/housing.json");
+        if (!body) return fail("Morocco's housing stock could not be read.");
+        records = [body.data as unknown as HousingRecord];
+      }
+
+      const pick = (t: Topics) => (topics ? Object.fromEntries(Object.entries(t).filter(([k]) => topics.includes(k))) : t);
+      return ok({
+        results: records.map((record) => ({
+          unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
+          figures: pick(record.topics),
         })),
       });
     },

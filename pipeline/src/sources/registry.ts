@@ -2,7 +2,7 @@
  * The dataset's own version, independent of the API's. Major for a breaking schema
  * change, minor for an added field, patch for a correction. Bumped deliberately.
  */
-export const DATASET_VERSION = "1.6.0";
+export const DATASET_VERSION = "1.7.0";
 
 export interface SourceSpec {
   id: string;
@@ -71,5 +71,11 @@ export const SOURCES: SourceSpec[] = [
     url: "https://www.hcp.ma/file/230031/",
     filename: "hcp-diplomes-2014.xlsx",
     licence: "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur les diplômes de la population. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+  },
+  {
+    id: "hcp-2024-housing",
+    url: "https://www.hcp.ma/file/246208/",
+    filename: "hcp-logement-urbain-2024.xlsx",
+    licence: "Haut-Commissariat au Plan, RGPH 2024, Indicateurs communaux du parc logement urbain. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
   },
 ];

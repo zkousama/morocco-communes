@@ -134,6 +134,17 @@ const GROUPS: Group[] = [
     }),
   },
   {
+    key: "dlHousing",
+    licence: "hcp",
+    files: [
+      { label: "dwellings.csv", path: "data/v1/housing/dwellings.csv" },
+      { label: "communes.json", path: "data/v1/housing/communes.json" },
+      { label: "provinces.json", path: "data/v1/housing/provinces.json" },
+      { label: "regions.json", path: "data/v1/housing/regions.json" },
+      { label: "fields.json", path: "data/v1/housing/fields.json" },
+    ],
+  },
+  {
     key: "dlAdjacency",
     licence: "odbl",
     files: [

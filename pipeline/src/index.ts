@@ -22,16 +22,20 @@ import { parse2014Blocks } from "./sources/hcp2014Blocks.ts";
 import { PROFESSION_FIELDS_2014 } from "./sources/professionFields.ts";
 import { DIPLOMA_FIELDS_2014 } from "./sources/diplomaFields.ts";
 import { parseHcpEstablishments } from "./sources/hcpEstablishments.ts";
+import { parseHcpHousing } from "./sources/hcpHousing.ts";
 import { joinCensus2014, joinCensus2024 } from "./sources/censusFields.ts";
 import { buildIndicators } from "./build/indicators.ts";
 import { buildIndicators2014 } from "./build/indicators2014.ts";
 import { buildEconomy } from "./build/economy.ts";
+import { buildHousing } from "./build/housing.ts";
 import { checkIndicators } from "./validate/indicators.ts";
 import { checkIndicators2014 } from "./validate/indicators2014.ts";
 import { checkEconomy } from "./validate/economy.ts";
+import { checkHousing } from "./validate/housing.ts";
 import { writeIndicators } from "./emit/indicators.ts";
 import { toRecords2014, writeIndicators2014 } from "./emit/indicators2014.ts";
 import { writeEconomy } from "./emit/economy.ts";
+import { writeHousing } from "./emit/housing.ts";
 import { SOURCES } from "./sources/registry.ts";
 
 const OUT = "data/v1/attributes";
@@ -41,6 +45,7 @@ const CROSSWALK_OUT = "data/v1/crosswalk";
 const INDICATORS_OUT = "data/v1/indicators";
 const INDICATORS_2014_OUT = "data/v1/indicators/2014";
 const ECONOMY_OUT = "data/v1/economy";
+const HOUSING_OUT = "data/v1/housing";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
@@ -196,6 +201,18 @@ if (economyProblems.length > 0) {
 const economySource = SOURCES.find((s) => s.id === "hcp-2024-establishments")!;
 await writeEconomy(economy.records, economy.unplaced, ECONOMY_OUT, { id: economySource.id, url: economySource.url });
 console.log(`establishments: ${economy.records.length} units carry figures, ${economy.unplaced.length} rows have no unit to land on`);
+
+// The urban housing stock, which counts dwellings rather than households and only in
+// towns, so it lands in a directory of its own rather than among the census indicators.
+const housing = buildHousing(parseHcpHousing(sources.get("hcp-2024-housing")!), indicators);
+for (const u of housing.unplaced) console.warn(`  housing row ${u.code} ${u.label}: ${u.reason}`);
+const housingProblems = checkHousing(housing.records);
+if (housingProblems.length > 0) {
+  throw new Error(`the housing stock doesn't hold together:\n  ${housingProblems.slice(0, 40).join("\n  ")}${housingProblems.length > 40 ? `\n  and ${housingProblems.length - 40} more` : ""}`);
+}
+const housingSource = SOURCES.find((s) => s.id === "hcp-2024-housing")!;
+await writeHousing(housing, HOUSING_OUT, { id: housingSource.id, url: housingSource.url });
+console.log(`housing: ${housing.records.length} units have an urban stock, ${housing.withoutStock} have none, ${housing.unplaced.length} rows have no unit to land on`);
 
 // Which communes border which, measured on the boundaries above. The 6 cities divided
 // into arrondissements border as one commune, since that is the unit the boundary is.

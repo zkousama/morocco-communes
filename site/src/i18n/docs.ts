@@ -95,6 +95,20 @@ export const SPEC_FR: Record<string, string> = {
   "getNationalEconomy.description": "Le même comptage pour l’ensemble du pays.",
   "getNationalEconomy.200": "Les établissements du Maroc.",
 
+  "getHousing.summary": "Le parc logement urbain d'une unité, recensé en 2024",
+  "getHousing.description":
+    "Combien de logements urbains compte une unité, combien sont occupés, vacants ou secondaires, de quel type ils sont, de quel âge, en quoi sont faits leurs murs et leurs toits, combien sont raccordés aux réseaux publics d'électricité, d'eau et d'assainissement, et le déficit en logement du HCP. " +
+    "Tous les chiffres sauf le nombre de logements sont des pourcentages des logements urbains de l'unité. On compte ici des logements et non des ménages : un appartement vacant est ici et dans la fiche de recensement de personne. " +
+    "Une unité sans partie urbaine n'a pas de fichier. `/data/v1/housing/fields.json` nomme chaque champ avec l'intitulé du classeur.",
+  "getHousing.param.collection": "Le niveau de l'unité.",
+  "getHousing.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
+  "getHousing.200": "Le parc logement urbain de l'unité.",
+  "getHousing.400": "Ce n'est pas un identifiant.",
+  "getHousing.404": "Aucune unité ne porte cet identifiant, elle est dans une autre collection, ou elle n'a pas de logements urbains.",
+  "getNationalHousing.summary": "Le parc logement urbain du Maroc, recensé en 2024",
+  "getNationalHousing.description": "Les mêmes chiffres pour toutes les villes du pays réunies.",
+  "getNationalHousing.200": "Le parc logement urbain du Maroc.",
+
   "listRegions.summary": "Les 12 régions",
   "listRegions.200": "Toutes les régions.",
   "listProvinces.summary": "Toutes les provinces et préfectures",
@@ -161,6 +175,8 @@ export const docs = {
         provincesEconomy: "Every province’s establishments, to compare them",
         arrondissementsIndicators: "Every arrondissement’s census figures, which is how the 6 cities are counted",
         arrondissementsEconomy: "Every arrondissement’s establishments, the same way",
+        regionsHousing: "Every région’s urban housing stock, to compare them",
+        provincesHousing: "Every province’s urban housing stock, to compare them",
         provinceBoundary: "A province’s outline, merged from its communes",
         regionBoundary: "A région’s outline, merged from its communes",
         tiles: "The boundaries cut into tiles, which /api/communes/at reads",
@@ -464,6 +480,8 @@ export const docs = {
         provincesEconomy: "Les établissements de chaque province, pour les comparer",
         arrondissementsIndicators: "Les chiffres du recensement de chaque arrondissement, la façon dont les 6 villes sont comptées",
         arrondissementsEconomy: "Les établissements de chaque arrondissement, de la même façon",
+        regionsHousing: "Le parc logement urbain de chaque région, pour les comparer",
+        provincesHousing: "Le parc logement urbain de chaque province, pour les comparer",
         provincesIndicators: "Les chiffres du recensement de chaque province, pour les comparer",
         provinceBoundary: "Le contour d’une province, obtenu par fusion de ses communes",
         regionBoundary: "Le contour d’une région, obtenu par fusion de ses communes",

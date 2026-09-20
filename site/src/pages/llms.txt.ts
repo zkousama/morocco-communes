@@ -20,7 +20,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 ## API
 
 - [OpenAPI spec](${at("/api/openapi.json")}): every route, parameter, limit and response shape
-- [MCP server](${at("/mcp")}): Streamable HTTP, no key, with the tools search, get_commune, get_unit, communes_near, commune_at, list_communes, get_indicators and get_economy
+- [MCP server](${at("/mcp")}): Streamable HTTP, no key, with the tools search, get_commune, get_unit, communes_near, commune_at, list_communes, get_indicators, get_economy and get_housing
 - [Search](${at("/api/search?q=tanger")}): any unit by French or Arabic name, by slug, or by another name it goes by
 - [Nearby](${at("/api/communes/near?lat=33.5731&lng=-7.5898&radius=15")}): communes within a radius of a point, nearest first
 - [Commune at a point](${at("/api/communes/at?lat=35.786&lng=-5.8125")}): the commune whose boundary contains the point, and in the 6 cities divided into them, the arrondissement
@@ -29,6 +29,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Filtered list](${at("/api/communes?province=01.511")}): communes by région, province, cercle or type, 50 to a page, sorted by any figure or census indicator, such as ?sort=-labour.unemploymentRate
 - [Census indicators](${at("/api/communes/tanger/indicators")}): HCP's 2024 figures for one unit, for the whole of it and its urban and rural parts, for men and women; /api/{level}/{code}/indicators for any unit, /api/indicators.json for Morocco
 - [Economic establishments](${at("/api/communes/tiznit/economy")}): the 2024 count of establishments, businesses, permanent jobs and weekly souks for one unit; /api/{level}/{code}/economy for any unit, /api/economy.json for Morocco
+- [Urban housing](${at("/api/communes/tiznit/housing")}): the 2024 urban dwellings of one unit, by occupancy, kind, age, materials and networks; /api/housing.json for Morocco
 - [Version](${at("/api/version.json")}): dataset version, record counts and when each source was read
 
 ## Pages

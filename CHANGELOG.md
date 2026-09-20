@@ -4,6 +4,17 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.7.0
+
+- The 2024 urban housing stock, in `housing/`: how many urban dwellings each unit has, how
+  many are occupied, vacant or second homes, what kind they are, how old, what their walls
+  and roofs are made of, how many are on the public networks, and HCP's housing shortfall.
+- It counts dwellings rather than households, and only in towns, so it sits apart from the
+  census indicators rather than among them. 784 units have an urban stock; the 1,233 with
+  no urban area have no record.
+- `/api/{level}/{code}/housing.json` serves a unit's, `/api/housing.json` the country's,
+  and `get_housing` is the ninth MCP tool.
+
 ## 1.6.0
 
 - What people did for a living in 2014, from HCP's professions workbook: the employed

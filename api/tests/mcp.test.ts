@@ -4,9 +4,10 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
-import { emitEconomy, emitIndicators, emitTree } from "../src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitTree } from "../src/emit/static.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
 import { readEconomy } from "../src/emit/economy.ts";
+import { readHousing } from "../src/emit/housing.ts";
 import { buildIndicatorTable } from "../src/lib/indicators.ts";
 import { buildLookup } from "../src/lib/resolve.ts";
 import { buildGeometry } from "../src/emit/geometry.ts";
@@ -38,6 +39,7 @@ const indicatorRecords = await readIndicators("data/v1");
 emitIndicators(tree as never, indicatorRecords);
 const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree as never, economyRecords);
+emitHousing(tree as never, await readHousing("data/v1"));
 const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 for (const [code, group] of geometry.arrondissementsByCommune) tree.set(`/api/communes/${code}/arrondissements.geojson`, group);
@@ -69,10 +71,10 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 8 read-only tools", async () => {
+  it("offers 9 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_economy", "get_indicators", "get_unit", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_economy", "get_housing", "get_indicators", "get_unit", "list_communes", "search",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
@@ -495,6 +497,30 @@ describe("get_economy", () => {
     expect(results(r)).toHaveLength(41);
     const most = [...results(r)].sort((a, b) => (b.figures.establishments!.jobs ?? 0) - (a.figures.establishments!.jobs ?? 0))[0]!;
     expect(most.unit).toMatchObject({ name_fr: "Aïn-Chock" });
+  });
+});
+
+describe("get_housing", () => {
+  type Found = { unit: Record<string, unknown>; figures: Record<string, Record<string, number | null>> }[];
+  const results = (r: Result) => r.structuredContent!.results as Found;
+
+  it("gives a town's urban dwellings", async () => {
+    const r = await call("get_housing", { unit: "tiznit", topics: ["dwellings", "occupancy"] });
+    expect(results(r)[0]!.unit).toMatchObject({ code: "09.581.01.07", level: "commune" });
+    expect(results(r)[0]!.figures.dwellings!.total).toBeGreaterThan(0);
+    const { occupied, unoccupied } = results(r)[0]!.figures.occupancy!;
+    expect(occupied! + unoccupied!).toBeCloseTo(100, 1);
+  });
+
+  it("gives Morocco's when no unit is named", async () => {
+    const r = await call("get_housing", { topics: ["dwellings"] });
+    expect(results(r)[0]!.figures.dwellings!.total).toBe(8336782);
+  });
+
+  it("says when a unit has no urban dwellings at all", async () => {
+    const r = await call("get_housing", { unit: "12.066.03.07" });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toContain("no urban dwellings");
   });
 });
 

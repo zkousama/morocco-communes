@@ -2,6 +2,7 @@ import { envelope, pageMeta, paginate, PER_PAGE, type Envelope } from "../lib/en
 import { groupBy, type Dataset } from "../lib/dataset.ts";
 import type { IndicatorRecord } from "../lib/indicators.ts";
 import type { EconomyRecord } from "../lib/economy.ts";
+import type { HousingRecord } from "../lib/housing.ts";
 
 export type Tree = Map<string, Envelope<unknown>>;
 
@@ -208,6 +209,34 @@ export function emitEconomy(tree: Tree, records: EconomyRecord[]): void {
   for (const [level, collection] of LEVEL_FILES) {
     const rows = records.filter((r) => r.level === level);
     const path = api(`${collection}/economy.json`);
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(rows, { self: path }, { total: rows.length }));
+  }
+}
+
+/**
+ * The urban housing stock, a file per unit that has one, and the country's at
+ * /api/housing.json. A unit with no urban area has no file: it has no urban dwellings.
+ */
+export function emitHousing(tree: Tree, records: HousingRecord[]): void {
+  const put = (path: string, data: unknown) => {
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(data, { self: path }));
+  };
+  const centres = groupBy(records.filter((r) => r.level === "urbanCentre"), (r) => r.communeCode ?? null);
+  for (const r of records) {
+    if (r.level === "urbanCentre") continue;
+    if (r.level === "country") {
+      put(api("housing.json"), r);
+      continue;
+    }
+    const collection = COLLECTION[r.level];
+    if (!collection) throw new Error(`no collection for ${r.level}`);
+    put(api(`${collection}/${r.code}/housing.json`), r.level === "commune" ? { ...r, urbanCentres: centres.get(r.code!) ?? [] } : r);
+  }
+  for (const [level, collection] of LEVEL_FILES) {
+    const rows = records.filter((r) => r.level === level);
+    const path = api(`${collection}/housing.json`);
     if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
     tree.set(path, envelope(rows, { self: path }, { total: rows.length }));
   }

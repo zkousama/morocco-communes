@@ -68,6 +68,8 @@ for (const path of [
   "/api/arrondissements/indicators.json",
   "/api/economy.json",
   "/data/v1/economy/fields.json",
+  "/api/housing.json",
+  "/data/v1/housing/fields.json",
 ]) {
   const r = await get(path);
   check(path, r.status === 200 && r.tier === null && r.contentType.includes("json") && r.cors === "*",
@@ -264,8 +266,8 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
   const list = await rpc("tools/list", {});
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
-  check("/mcp lists the 8 tools",
-    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_indicators,get_unit,list_communes,search", names.join(","));
+  check("/mcp lists the 9 tools",
+    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_housing,get_indicators,get_unit,list_communes,search", names.join(","));
   const borders = await rpc("tools/call", { name: "get_commune", arguments: { id: "tiznit" } });
   const neighbours = (borders.body.result?.structuredContent as { neighbours?: { code: string; km: number }[] } | undefined)?.neighbours;
   check("/mcp get_commune names the communes it borders",

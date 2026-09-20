@@ -60,6 +60,7 @@ GET /api/communes/:code/arrondissements.geojson
 GET /api/communes/:code/boundary.geojson
 GET /api/communes/:code/indicators.json
 GET /api/communes/:code/economy.json
+GET /api/communes/:code/housing.json
 GET /api/arrondissements.json
 GET /api/arrondissements/:code.json
 GET /api/arrondissements/:code/boundary.geojson
@@ -113,6 +114,12 @@ is a row of HCP's. `/data/v1/economy/README.md` says how to read the counts.
 `neighbours.json` names the communes a commune borders and the length of the boundary each
 pair shares, measured on the OpenStreetMap boundaries, so it carries their ODbL terms.
 `get_commune` returns the same list, longest shared boundary first.
+
+`housing.json` holds the urban dwellings of a unit that has an urban area, counted at the
+2024 census: how many there are, how many are occupied, vacant or second homes, what kind
+they are, how old, what their walls and roofs are made of, and how many are on the public
+networks. It counts dwellings rather than households, so a vacant flat is here and in
+nobody's census record. 784 units have one.
 
 A unit that has no children still has a list. The 8 préfectures d'arrondissements have no
 communes of their own and the 14 provinces without cercles have no cercles, and all of
@@ -262,8 +269,9 @@ session: each request gets a fresh server that answers in plain JSON.
 | `list_communes` | communes by région, province, cercle or type, 50 to a page, sorted by any figure or indicator |
 | `get_indicators` | HCP's 2024 census figures for Morocco, any unit, or every région or province at once, by topic, area and sex |
 | `get_economy` | the 2024 count of economic establishments for Morocco, any unit, or every région or province at once |
+| `get_housing` | the 2024 urban housing stock: dwellings, how many stand empty, what kind they are and what they're made of |
 
-All eight are read-only and say so in their annotations, so a client can call them without
+All nine are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just
 coded, and a tool that cannot answer says why and what to call instead: asking
 `get_commune` for a province's code gets pointed to `list_communes`.
