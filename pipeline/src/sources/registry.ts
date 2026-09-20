@@ -54,4 +54,10 @@ export const SOURCES: SourceSpec[] = [
     filename: "hcp-mobilite-2014.xlsx",
     licence: "Haut-Commissariat au Plan, RGPH 2014, Indicateurs sur la mobilité et le transport par commune. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
   },
+  {
+    id: "hcp-2024-establishments",
+    url: "https://www.hcp.ma/file/242672/",
+    filename: "hcp-etablissements-2024.xlsx",
+    licence: "Haut-Commissariat au Plan, RGPH 2024, Cartographie des établissements économiques. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+  },
 ];
