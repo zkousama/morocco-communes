@@ -57,7 +57,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "searchUnits",
           summary: "Find any administrative unit by name",
           description:
-            "Matches French names, Arabic names and slugs. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
+            "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
           parameters: [
             { name: "q", in: "query", required: true, description: `Text to find, up to ${QUERY.maxLength} characters.`, schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength }, example: "tanger" },
             {
@@ -420,7 +420,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             name: ref("Name"),
             slug: { type: "string" },
             score: { type: "number" },
-            matched: { type: "string", enum: ["exact", "alias", "prefix", "spelling", "trigram"] },
+            matched: { type: "string", enum: ["code", "exact", "alias", "prefix", "spelling", "trigram"] },
           },
         },
         NearHit: {

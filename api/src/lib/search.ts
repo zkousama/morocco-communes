@@ -57,7 +57,7 @@ export interface Hit {
   name: { fr: string; ar: string };
   slug: string;
   score: number;
-  matched: "exact" | "alias" | "prefix" | "spelling" | "trigram";
+  matched: "code" | "exact" | "alias" | "prefix" | "spelling" | "trigram";
 }
 
 const EXACT = 1000;
@@ -83,10 +83,28 @@ export function search(
   query: string,
   options: { levels?: Level[]; limit?: number } = {},
 ): Hit[] {
-  const q = normalise(query);
-  if (q === "") return [];
   const limit = options.limit ?? 10;
   const levels = options.levels ? new Set(options.levels) : null;
+
+  // A code is looked up, not spelt. Its digits share trigrams with no name that means
+  // anything, so 1511010 used to come back as whichever name held "151". It takes the
+  // forms an address does: dotted, zero-padded, or with the zeros lost in a spreadsheet.
+  // A code that names nothing finds nothing rather than a name that happens to match.
+  const raw = query.trim();
+  if (/^[0-9][0-9.]*$/.test(raw)) {
+    const bare = raw.includes(".") ? null : raw.replace(/^0+/, "");
+    const hits: Hit[] = [];
+    for (const [code, level, fr, ar, slug, , , , , , codeDigits] of index.entries) {
+      if (levels && !levels.has(level)) continue;
+      if (code !== raw && (bare === null || codeDigits.replace(/^0+/, "") !== bare)) continue;
+      hits.push({ code, level, name: { fr, ar }, slug, score: EXACT, matched: "code" });
+    }
+    hits.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level] || a.code.localeCompare(b.code));
+    return hits.slice(0, limit);
+  }
+
+  const q = normalise(query);
+  if (q === "") return [];
 
   const grams = trigrams(q);
   const shared = new Map<number, number>();

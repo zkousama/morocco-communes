@@ -150,7 +150,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "Takes French or Arabic, a slug, or another name a place is known by: Fez finds Fès, Mogador finds Essaouira. " +
         "Returns codes; pass a commune's code to get_commune for its population and parents.",
       inputSchema: {
-        query: z.string().min(1).max(QUERY.maxLength).describe("The name to look for, in French, Arabic or as a slug."),
+        query: z.string().min(1).max(QUERY.maxLength).describe("The name to look for, in French, Arabic or as a slug, or a unit's code."),
         levels: z.array(z.enum(LEVELS)).optional().describe("Only these levels. Every level when left out."),
         limit: z
           .number()
@@ -168,7 +168,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             name_fr: z.string(),
             name_ar: z.string(),
             slug: z.string(),
-            matched: z.enum(["exact", "alias", "prefix", "spelling", "trigram"]),
+            matched: z.enum(["code", "exact", "alias", "prefix", "spelling", "trigram"]),
           }),
         ),
       },

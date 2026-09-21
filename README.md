@@ -86,7 +86,7 @@ carries the figure it was sorted by. `2014.` before the path sorts by the 2014 f
 `change.` by how far a commune moved between the censuses. An establishment count goes
 under `economy.`.
 
-Search takes French, Arabic or a slug. It folds the alef variants, ta-marbuta and alef
+Search takes French, Arabic, a slug or a code. It folds the alef variants, ta-marbuta and alef
 maqsura the names actually carry, and the tatweel and vowel marks they never do but people
 type anyway. It matches names spelt another way by their consonants, so `titwan` finds
 Tétouan and `jdida` El Jadida. `01.511.01.0`, `001511010`, `1511010` and `tanger` all

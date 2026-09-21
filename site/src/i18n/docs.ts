@@ -9,7 +9,7 @@ import type { Locale } from "./ui";
 export const SPEC_FR: Record<string, string> = {
   "searchUnits.summary": "Trouver une unité administrative par son nom",
   "searchUnits.description":
-    "Cherche dans les noms français, les noms arabes et les slugs. Les accents, les variantes des lettres arabes et les voyelles sont ramenés à une forme, et un lieu se trouve aussi par ses autres noms, comme Fez pour Fès.",
+    "Cherche dans les noms français, les noms arabes, les slugs et les codes, avec ou sans points, avec ou sans leurs zéros de tête. Les accents, les variantes des lettres arabes et les voyelles sont ramenés à une forme, et un lieu se trouve aussi par ses autres noms, comme Fez pour Fès.",
   "searchUnits.param.q": `Texte à chercher, jusqu’à ${QUERY.maxLength} caractères.`,
   "searchUnits.param.levels": "Niveaux à inclure, séparés par des virgules. Tous quand il est absent.",
   "searchUnits.param.limit": `Nombre de résultats, jusqu’à ${LIMIT.max}.`,

@@ -242,3 +242,25 @@ describe("exonyms", () => {
     expect(top.matched).toBe("exact");
   });
 });
+
+describe("codes", () => {
+  it("finds a unit by its code in every form an address takes", () => {
+    for (const q of ["01.511.01.0", "001511010", "1511010"]) {
+      expect(search(index, q)[0], q).toMatchObject({ code: "01.511.01.0", name: { fr: "Tanger" }, matched: "code" });
+    }
+  });
+
+  it("finds a province and a région by theirs", () => {
+    expect(search(index, "01.511")[0]).toMatchObject({ level: "province", name: { fr: "Tanger-Assilah" } });
+    expect(search(index, "01")[0]).toMatchObject({ level: "region", code: "01" });
+  });
+
+  it("finds nothing for a code that names nothing, rather than a name that shares its digits", () => {
+    expect(search(index, "999999999")).toEqual([]);
+    expect(search(index, "01.999.99.9")).toEqual([]);
+  });
+
+  it("respects a level filter", () => {
+    expect(search(index, "1511010", { levels: ["province"] })).toEqual([]);
+  });
+});
