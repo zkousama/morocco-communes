@@ -80,7 +80,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "communeAt",
           summary: "The commune that contains a point",
           description:
-            "Tested against each commune's boundary, stored to about 2 m. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+            "Tested against each commune's boundary, stored on a grid of 2 to 6 m depending on the size of its région. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
           parameters: [
             { name: "lat", in: "query", required: true, description: "Latitude, in degrees.", schema: { type: "number", minimum: -90, maximum: 90 }, example: 35.786 },
             { name: "lng", in: "query", required: true, description: "Longitude, in degrees.", schema: { type: "number", minimum: -180, maximum: 180 }, example: -5.8125 },
@@ -305,6 +305,21 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           },
         },
       },
+      "/api/communes/{code}/neighbours": {
+        get: {
+          operationId: "listNeighbours",
+          summary: "The communes that border a commune",
+          description:
+            "Each with its names and the length of the border the two share, in km, measured along their OpenStreetMap boundaries. " +
+            "Sidi Mohamed Benmansour has no boundary, so its list is empty.",
+          parameters: [code("A dotted code, padded or unpadded digits, or a slug.", "tiznit")],
+          responses: {
+            "200": ok("The communes it borders.", { type: "array", items: ref("Neighbour") }),
+            "400": problem("Not an identifier."),
+            "404": problem("No commune has that identifier."),
+          },
+        },
+      },
       "/api/housing.json": {
         get: {
           operationId: "getNationalHousing",
@@ -380,6 +395,15 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             status: { type: "integer" },
             detail: { type: "string" },
             instance: { type: "string" },
+          },
+        },
+        Neighbour: {
+          type: "object",
+          required: ["code", "name", "km"],
+          properties: {
+            code: { type: "string" },
+            name: ref("Name"),
+            km: { type: "number", description: "The length of the border the two communes share." },
           },
         },
         Name: {

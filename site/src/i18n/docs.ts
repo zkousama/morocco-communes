@@ -18,7 +18,7 @@ export const SPEC_FR: Record<string, string> = {
 
   "communeAt.summary": "La commune qui contient un point",
   "communeAt.description":
-    "Le point est comparé à la limite de chaque commune, conservée à environ 2 m près. Dans les 6 villes divisées en arrondissements, `arrondissement` nomme celui où se trouve le point ; ailleurs, il vaut null. Sidi Mohamed Benmansour n’a pas de limite, et une zone d’environ 88 km² entre Ifrane et Boulemane n’en a pas non plus.",
+    "Le point est comparé à la limite de chaque commune, conservée sur une grille de 2 à 6 m selon la taille de sa région. Dans les 6 villes divisées en arrondissements, `arrondissement` nomme celui où se trouve le point ; ailleurs, il vaut null. Sidi Mohamed Benmansour n’a pas de limite, et une zone d’environ 88 km² entre Ifrane et Boulemane n’en a pas non plus.",
   "communeAt.param.lat": "Latitude, en degrés.",
   "communeAt.param.lng": "Longitude, en degrés.",
   "communeAt.200": "La commune, avec l’arrondissement où se trouve le point.",
@@ -105,6 +105,14 @@ export const SPEC_FR: Record<string, string> = {
   "getHousing.200": "Le parc logement urbain de l'unité.",
   "getHousing.400": "Ce n'est pas un identifiant.",
   "getHousing.404": "Aucune unité ne porte cet identifiant, elle est dans une autre collection, ou elle n'a pas de logements urbains.",
+  "listNeighbours.summary": "Les communes voisines d’une commune",
+  "listNeighbours.description":
+    "Chacune avec ses noms et la longueur de la limite que les deux partagent, en km, mesurée le long de leurs limites OpenStreetMap. " +
+    "Sidi Mohamed Benmansour n’a pas de limite, sa liste est donc vide.",
+  "listNeighbours.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
+  "listNeighbours.200": "Les communes qu’elle borde.",
+  "listNeighbours.400": "Ce n’est pas un identifiant.",
+  "listNeighbours.404": "Aucune commune ne porte cet identifiant.",
   "getNationalHousing.summary": "Le parc logement urbain du Maroc, recensé en 2024",
   "getNationalHousing.description": "Les mêmes chiffres pour toutes les villes du pays réunies.",
   "getNationalHousing.200": "Le parc logement urbain du Maroc.",
@@ -173,7 +181,7 @@ export const docs = {
         provincesIndicators: "Every province’s census figures, to compare them",
         regionsEconomy: "Every région’s establishments, to compare them",
         provincesEconomy: "Every province’s establishments, to compare them",
-        arrondissementsIndicators: "Every arrondissement’s census figures, which is how the 6 cities are counted",
+        arrondissementsIndicators: "Every arrondissement’s census figures, the level the 6 cities are counted at",
         arrondissementsEconomy: "Every arrondissement’s establishments, the same way",
         regionsHousing: "Every région’s urban housing stock, to compare them",
         provincesHousing: "Every province’s urban housing stock, to compare them",
@@ -524,7 +532,7 @@ export const docs = {
         regionsIndicators: "Les chiffres du recensement de chaque région, pour les comparer",
         regionsEconomy: "Les établissements de chaque région, pour les comparer",
         provincesEconomy: "Les établissements de chaque province, pour les comparer",
-        arrondissementsIndicators: "Les chiffres du recensement de chaque arrondissement, la façon dont les 6 villes sont comptées",
+        arrondissementsIndicators: "Les chiffres du recensement de chaque arrondissement, l’échelle à laquelle les 6 villes sont comptées",
         arrondissementsEconomy: "Les établissements de chaque arrondissement, de la même façon",
         regionsHousing: "Le parc logement urbain de chaque région, pour les comparer",
         provincesHousing: "Le parc logement urbain de chaque province, pour les comparer",

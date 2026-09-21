@@ -24,7 +24,9 @@ export interface Topology {
   objects: { communes: Geometries } & Record<string, Geometries>;
 }
 
-// The files are quantised to about 2 m. Six decimals holds that without float noise.
+// Each région is quantised to the same number of steps, so the grid runs from about 2 m
+// in the north to 6 m in the larger southern régions. Six decimals holds that without
+// float noise.
 const round = (n: number) => Math.round(n * 1e6) / 1e6;
 
 export function decodeTopology(topo: Topology, object = "communes"): Boundary[] {

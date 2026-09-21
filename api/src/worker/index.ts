@@ -309,9 +309,14 @@ app.get("/api/:collection/:id", async (c) => {
 
 /**
  * A unit's figures by any spelling of its identifier: /api/communes/tanger/indicators for
- * the census, /economy for the establishments, /housing for the urban dwellings.
+ * the census, /economy for the establishments, /housing for the urban dwellings and
+ * /neighbours for the communes it borders.
+ *
+ * The names sit in a group of their own. Written bare, the alternation split the whole
+ * path pattern at each bar, so indicators matched as a prefix and let indicators.json
+ * through, housing matched only at the end, and a slug's .json worked for 2 figures of 3.
  */
-app.get("/api/:collection/:id/:figures{indicators|economy|housing}", async (c) => {
+app.get("/api/:collection/:id/:figures{(?:indicators|economy|housing|neighbours)}", async (c) => {
   const url = new URL(c.req.url);
   const { collection, id, figures } = c.req.param();
   const found = resolve(lookup, id, LEVEL_OF[collection]);

@@ -103,7 +103,7 @@ export const reference = {
         "get": {
           "operationId": "communeAt",
           "summary": "The commune that contains a point",
-          "description": "Tested against each commune's boundary, stored to about 2 m. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+          "description": "Tested against each commune's boundary, stored on a grid of 2 to 6 m depending on the size of its région. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
           "parameters": [
             {
               "name": "lat",
@@ -872,6 +872,72 @@ export const reference = {
           }
         }
       },
+      "/api/communes/{code}/neighbours": {
+        "get": {
+          "operationId": "listNeighbours",
+          "summary": "The communes that border a commune",
+          "description": "Each with its names and the length of the border the two share, in km, measured along their OpenStreetMap boundaries. Sidi Mohamed Benmansour has no boundary, so its list is empty.",
+          "parameters": [
+            {
+              "name": "code",
+              "in": "path",
+              "required": true,
+              "description": "A dotted code, padded or unpadded digits, or a slug.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "tiznit"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The communes it borders.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Envelope"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "data": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/Neighbour"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Not an identifier.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "No commune has that identifier.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/housing.json": {
         "get": {
           "operationId": "getNationalHousing",
@@ -1119,6 +1185,26 @@ export const reference = {
             },
             "instance": {
               "type": "string"
+            }
+          }
+        },
+        "Neighbour": {
+          "type": "object",
+          "required": [
+            "code",
+            "name",
+            "km"
+          ],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "name": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "km": {
+              "type": "number",
+              "description": "The length of the border the two communes share."
             }
           }
         },
@@ -1594,7 +1680,7 @@ export const reference = {
       "op": {
         "operationId": "communeAt",
         "summary": "The commune that contains a point",
-        "description": "Tested against each commune's boundary, stored to about 2 m. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
+        "description": "Tested against each commune's boundary, stored on a grid of 2 to 6 m depending on the size of its région. In the 6 cities divided into arrondissements, `arrondissement` names the one the point is in; elsewhere it's null. Sidi Mohamed Benmansour has no boundary, and neither do about 88 km² between Ifrane and Boulemane.",
         "parameters": [
           {
             "name": "lat",
@@ -2370,6 +2456,74 @@ export const reference = {
           },
           "404": {
             "description": "No unit has that identifier, it's in another collection, or it has no urban dwellings.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/api/communes/{code}/neighbours",
+      "method": "get",
+      "op": {
+        "operationId": "listNeighbours",
+        "summary": "The communes that border a commune",
+        "description": "Each with its names and the length of the border the two share, in km, measured along their OpenStreetMap boundaries. Sidi Mohamed Benmansour has no boundary, so its list is empty.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "description": "A dotted code, padded or unpadded digits, or a slug.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "tiznit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The communes it borders.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Neighbour"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not an identifier.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No commune has that identifier.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5360,6 +5514,54 @@ export const reference = {
         },
         "links": {
           "self": "/api/communes/09.581.01.07/housing.json",
+          "prev": null,
+          "next": null
+        }
+      }
+    },
+    "listNeighbours": {
+      "request": "/api/communes/tiznit/neighbours",
+      "body": {
+        "data": [
+          {
+            "code": "09.581.11.07",
+            "name": {
+              "fr": "El Maader El Kabir",
+              "ar": "المعدر الكبير"
+            },
+            "km": 4.38
+          },
+          {
+            "code": "09.581.11.09",
+            "name": {
+              "fr": "Ouijjane",
+              "ar": "وجان"
+            },
+            "km": 9.83
+          },
+          {
+            "code": "09.581.11.11",
+            "name": {
+              "fr": "Reggada",
+              "ar": "الركادة"
+            },
+            "km": 5.98
+          },
+          {
+            "code": "09.581.11.15",
+            "name": {
+              "fr": "Tnine Aglou",
+              "ar": "اثنين أكلو"
+            },
+            "km": 20.76
+          }
+        ],
+        "meta": {
+          "datasetVersion": "1.8.0",
+          "total": 4
+        },
+        "links": {
+          "self": "/api/communes/09.581.01.07/neighbours.json",
           "prev": null,
           "next": null
         }

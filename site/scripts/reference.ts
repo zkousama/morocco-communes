@@ -168,6 +168,7 @@ const examples: Record<string, Example> = {
   getEconomy: { request: "/api/communes/tiznit/economy", body: file("/api/communes/09.581.01.07/economy.json") },
   getNationalEconomy: { request: "/api/economy.json", body: file("/api/economy.json") },
   getHousing: { request: "/api/communes/tiznit/housing", body: file("/api/communes/09.581.01.07/housing.json") },
+  listNeighbours: { request: "/api/communes/tiznit/neighbours", body: file("/api/communes/09.581.01.07/neighbours.json") },
   getNationalHousing: { request: "/api/housing.json", body: file("/api/housing.json") },
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },
 };
