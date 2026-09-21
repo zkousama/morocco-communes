@@ -321,30 +321,32 @@ will not help.
 
 ## Deploying
 
-Needs a Cloudflare account. The free plan covers all of this: 100,000 Worker requests a
-day, and requests to static assets are free and unlimited.
+Needs a Cloudflare account. It runs on Cloudflare Pages, and the free plan covers all of
+it: requests for the static files are free and unlimited, and the live routes share the
+100,000 function requests a day the plan allows.
 
 ```sh
-pnpm exec wrangler login                        # once
-SITE_URL=https://<your-deployment> pnpm build   # the site, then the API tree
-pnpm exec wrangler deploy
-pnpm api:smoke https://<your-deployment>
+pnpm exec wrangler login                                                  # once
+pnpm exec wrangler pages project create <project> --production-branch main  # once
+SITE_URL=https://<project>.pages.dev pnpm build   # the site, then the API tree
+pnpm run deploy
+pnpm api:smoke https://<project>.pages.dev
 ```
 
-`SITE_URL` is what makes link previews work. LinkedIn, X and Slack need an absolute URL
-for the preview image and the canonical link, and the hostname only exists once the
-Worker is deployed, so the first deploy is built without it, and the second, with the
-hostname known, is built with it. Without it the pages build fine and those tags are
-simply left out.
+`<project>` is the `name` in `wrangler.toml`. `SITE_URL` is what makes link previews
+work: LinkedIn, X and Slack need an absolute URL for the preview image and the canonical
+link. A Pages project's address comes from its name, so it's known before the first
+deploy. Without it the pages build fine and those tags are simply left out.
 
 `site/public/og.png` is the preview image. It is committed rather than built, because
 rendering it needs Chrome; regenerate it with `pnpm site:og` when the map or the headline
 changes.
 
-`wrangler deploy --dry-run` checks the bundle without an account. The Worker is 4,736 KiB
-uncompressed against a 64 MiB limit, most of it the commune records and indicators it
-holds, and `dist/` is 10,930 files, pages included, against a 20,000 limit. Wrangler's
-own count reads higher because it includes directories.
+`functions/` runs the app in `api/src/worker/` for every `/api` path that isn't a file,
+and for `/mcp`. `dist/_routes.json`, written by the API build, keeps the `.json` and
+`.geojson` files out of it, so Pages serves those without running any code. A rule can
+put its wildcard before an extension, `/api/*.json`, which was tested on a live Pages
+project before the build relied on it.
 
 Two more things a build can take:
 

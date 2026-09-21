@@ -42,7 +42,7 @@ than committed.
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
 **Pre-rendered.** 11,629 files written at build time and served straight from
-Cloudflare's asset store, without invoking Worker code. Free and unmetered.
+Cloudflare Pages, without running any code. Free and unmetered.
 
 ```
 GET /api/regions.json                        GET /api/regions/01.json
@@ -183,7 +183,7 @@ the only Worker and the pages cost nothing to serve.
 pnpm install
 pnpm dataset:build     # rebuilds data/v1 from the cached sources
 pnpm build             # the docs site, then the API tree, into dist/
-pnpm api:dev           # wrangler dev on :8788, serving the site and the API together
+pnpm api:dev           # wrangler pages dev on :8788, serving the site and the API together
 pnpm api:smoke         # probes a running deployment
 pnpm check             # typecheck both trees, then the tests
 pnpm eval              # asks a model 49 questions through the MCP server; see evals/
