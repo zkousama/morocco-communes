@@ -11,6 +11,18 @@ export type Tree = Map<string, Envelope<unknown>>;
  * correction ships as a new deploy, so a long max-age is safe and it is what keeps the
  * free tier free: a cached response never reaches Cloudflare at all.
  */
+/**
+ * Which paths run the functions on Cloudflare Pages. Every file the API tree holds ends in
+ * .json or .geojson and is excluded, so Pages serves it without running code: free and
+ * unmetered. The rest of /api, and /mcp, is the live tier. A rule may put its wildcard
+ * before an extension, which was tested on a live Pages project before relying on it.
+ */
+export const ROUTES_FILE = `${JSON.stringify(
+  { version: 1, include: ["/api/*", "/mcp"], exclude: ["/api/*.json", "/api/*.geojson"] },
+  null,
+  2,
+)}\n`;
+
 export const HEADERS_FILE = `/api/*
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET, OPTIONS

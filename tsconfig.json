@@ -21,6 +21,7 @@
     "api/src",
     "api/tests",
     "evals",
+    "functions",
     "packages/morocco-communes/build.ts",
     "packages/morocco-communes/tests",
     "packages/morocco-communes-py/tests"

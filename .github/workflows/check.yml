@@ -21,7 +21,7 @@ jobs:
       - run: pnpm dataset:fetch
       - run: pnpm check
       - run: pnpm build
-      # The smoke probes need the Worker and the files together, as wrangler dev serves them.
+      # The smoke probes need the functions and the files together, as wrangler pages dev serves them.
       - name: smoke
         run: |
           pnpm api:dev > wrangler.log 2>&1 &

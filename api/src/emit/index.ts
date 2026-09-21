@@ -1,6 +1,7 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { emitEconomy, emitHousing, emitIndicators, emitTree, HEADERS_FILE, type Tree } from "./static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
 import { buildIndicatorTable } from "../lib/indicators.ts";
 import { readIndicators } from "./indicators.ts";
 import { readEconomy } from "./economy.ts";
@@ -41,6 +42,11 @@ export async function writeTree(tree: Tree, outDir: string): Promise<void> {
     await writeFile(file, JSON.stringify(body));
   }
   await writeFile(join(outDir, "_headers"), HEADERS_FILE);
+  await writeFile(join(outDir, "_routes.json"), ROUTES_FILE);
+  // Pages answers a missing page with the nearest 404.html up the path, so the French
+  // section needs one of its own under that name to get its 404 in French.
+  const french = join(outDir, "fr", "404", "index.html");
+  if (existsSync(french)) await copyFile(french, join(outDir, "fr", "404.html"));
 }
 
 const dataset = await readDataset();
@@ -75,7 +81,7 @@ await writeFile(TILE_INDEX_OUT, `${JSON.stringify(geometry.tileIndex)}\n`);
 // A stale file from a previous shape would be served as if it were current, so these are
 // rebuilt rather than merged into. Only these: the site builds into the same dist/ and
 // this step runs second, so clearing the whole directory would delete its output.
-for (const owned of ["api", "data", "_headers"]) {
+for (const owned of ["api", "data", "_headers", "_routes.json"]) {
   await rm(join(OUT, owned), { recursive: true, force: true });
 }
 await writeTree(tree, OUT);
