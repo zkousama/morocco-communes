@@ -160,8 +160,11 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede } 
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  /* Named twice, since the even pair's own rule is the more specific and would otherwise
+     keep 2 columns on a phone. */
   @media (max-width: 48rem) {
-    .place :global(.pair) {
+    .place :global(.pair),
+    .place :global(.pair.even) {
       grid-template-columns: minmax(0, 1fr);
     }
   }
