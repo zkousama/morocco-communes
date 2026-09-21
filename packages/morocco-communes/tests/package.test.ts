@@ -27,7 +27,7 @@ let pkg: Record<"regions" | "provinces" | "cercles" | "communes" | "arrondisseme
 beforeAll(async () => {
   await promisify(execFile)("node", ["--experimental-strip-types", join(HERE, "build.ts")]);
   pkg = await import(resolve(HERE, "dist/index.js"));
-}, 60_000);
+});
 
 const attributes = (name: string) =>
   JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as { code: string }[];

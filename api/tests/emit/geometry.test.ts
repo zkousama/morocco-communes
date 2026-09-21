@@ -33,7 +33,7 @@ beforeAll(async () => {
     const ys = rings.flat().map((p) => p[1]);
     return { code, rings, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
   });
-}, 30_000);
+});
 
 const locate = (lat: number, lng: number) => {
   const key = tileAt(index, lat, lng);
@@ -96,7 +96,7 @@ describe("the boundary tiles", () => {
       }
     }
     expect(differ).toEqual([]);
-  }, 30_000);
+  });
 
   it("find nothing at sea or outside the country", () => {
     expect(locate(36.5, -12)).toBeNull();
