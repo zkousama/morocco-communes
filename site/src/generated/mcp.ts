@@ -14,7 +14,7 @@ export const mcp = {
             "type": "string",
             "minLength": 1,
             "maxLength": 100,
-            "description": "The name to look for, in French, Arabic or as a slug."
+            "description": "The name to look for, in French, Arabic or as a slug, or a unit's code."
           }
         },
         {

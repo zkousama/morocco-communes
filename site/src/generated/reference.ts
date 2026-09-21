@@ -25,7 +25,7 @@ export const reference = {
         "get": {
           "operationId": "searchUnits",
           "summary": "Find any administrative unit by name",
-          "description": "Matches French names, Arabic names and slugs. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
+          "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
           "parameters": [
             {
               "name": "q",
@@ -1259,6 +1259,7 @@ export const reference = {
             "matched": {
               "type": "string",
               "enum": [
+                "code",
                 "exact",
                 "alias",
                 "prefix",
@@ -1600,7 +1601,7 @@ export const reference = {
       "op": {
         "operationId": "searchUnits",
         "summary": "Find any administrative unit by name",
-        "description": "Matches French names, Arabic names and slugs. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
+        "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
         "parameters": [
           {
             "name": "q",
