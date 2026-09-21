@@ -363,11 +363,20 @@ const cities = Object.fromEntries(
     white-space: nowrap;
   }
 
-  /* On a narrow window the button is the magnifier alone, so the languages and the theme
-     still fit beside it. */
+  /* On a narrow window the button is the magnifier alone, a circle the size of the menu
+     button beside it. */
   @media (max-width: 48rem) {
     .open {
-      padding: 0.3rem 0.45rem;
+      width: 2.4rem;
+      height: 2.4rem;
+      padding: 0;
+      justify-content: center;
+      color: var(--ink);
+    }
+
+    .open svg {
+      width: 1rem;
+      height: 1rem;
     }
 
     .open .what {
