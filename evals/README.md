@@ -59,7 +59,7 @@ before the change.
 - **A city's arrondissements (31).** Casablanca's most populous arrondissement, because no
   tool listed a city's arrondissements. `get_commune` now returns them with their
   population.
-- **Comparing the régions (12).** One `get_indicators` call per région. It now takes a
+- **Comparing the régions (16).** One `get_indicators` call per région. It now takes a
   `level` and returns every unit of it at once.
 - **A name two levels share.** `list_communes` refused `province: "taroudannt"`, since the
   slug resolved to the commune of the same name. A filter now reads a shared name at the
