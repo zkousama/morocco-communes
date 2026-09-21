@@ -23,7 +23,8 @@
     "site:og": "node --experimental-strip-types site/scripts/og.ts",
     "npm:build": "node --experimental-strip-types packages/morocco-communes/build.ts",
     "py:build": "python3 packages/morocco-communes-py/build_data.py",
-    "eval": "node --experimental-strip-types evals/run.ts"
+    "eval": "node --experimental-strip-types evals/run.ts",
+    "stats": "node --experimental-strip-types scripts/stats.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

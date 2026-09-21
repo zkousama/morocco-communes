@@ -93,6 +93,13 @@ Tétouan and `jdida` El Jadida. `01.511.01.0`, `001511010`, `1511010` and `tange
 address one commune, and 18 exonyms are listed by hand because no amount of character folding gets from `Fez`
 to Fès or from `Port Lyautey` to Kénitra.
 
+**What's counted.** The alias and computed routes and the MCP server count their own use
+in Workers Analytics Engine: the route with its codes taken out, or the MCP tool, the name
+an MCP client gives itself, the first word of the User-Agent, the country, the status and
+how long it took. No IP address, query text or parameter value is recorded. Pre-rendered
+files run no code, so they aren't counted. `pnpm stats` reads it back, with the npm, PyPI
+and GitHub numbers.
+
 Every response is enveloped with `data`, `meta` and `links`. Errors are RFC 9457 problem
 documents, and a well-formed code that names nothing is a 404 while something unsearchable
 is a 400. CORS is open.

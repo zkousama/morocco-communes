@@ -5,3 +5,11 @@ compatibility_date = "2026-09-17"
 # without running code, and functions/ answers the live routes. dist/_routes.json, written
 # by the API build, says which paths those are.
 pages_build_output_dir = "./dist"
+
+# How the live routes and the MCP server are used, written by api/src/worker/usage.ts: the
+# route or tool, the client's name for itself, the country. No addresses or query text.
+# Free up to 100,000 data points a day, kept for 3 months. Static files aren't counted,
+# since no code runs for them. Queried by `pnpm stats`.
+[[analytics_engine_datasets]]
+binding = "USAGE"
+dataset = "communes_usage"

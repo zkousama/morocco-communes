@@ -11,6 +11,7 @@ import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts"
 import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import type { IndicatorTable } from "../lib/indicators.ts";
 import { createMcpServer } from "../mcp/server.ts";
+import { agentOf, mcpMessages, record, routeOf, type UsageDataset } from "./usage.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { communeIn, featureContaining, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } from "../lib/locate.ts";
@@ -33,7 +34,12 @@ const cities = new Set((rawArrondissements as { communeCode: string }[]).map((a)
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
+  /** Workers Analytics Engine, bound in wrangler.toml. Absent in local dev and tests. */
+  USAGE?: UsageDataset;
 }
+
+/** The country Cloudflare places a request in, when it says. */
+const countryOf = (request: Request) => (request as Request & { cf?: { country?: string } }).cf?.country ?? "";
 
 /** Reads a pre-rendered file through the asset binding, the way a client would. */
 const fetchJsonFrom = (env: Env, base: URL): FetchJson => async (path) => {
@@ -59,6 +65,21 @@ const app = new Hono<{ Bindings: Env }>();
 // POST is for /mcp: MCP clients send JSON-RPC as POST requests, and a browser-based one
 // would otherwise be refused at the preflight before reaching the server.
 app.use("/*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
+
+// Counts each live API call once it has been answered, 404s included. After cors, so a
+// preflight isn't counted as a call.
+app.use("/api/*", async (c, next) => {
+  const started = Date.now();
+  await next();
+  record(c.env.USAGE, {
+    kind: "api",
+    name: routeOf(new URL(c.req.url).pathname),
+    agent: agentOf(c.req.header("user-agent")),
+    country: countryOf(c.req.raw),
+    status: c.res.status,
+    ms: Date.now() - started,
+  });
+});
 
 /** Worker responses do not inherit the asset tier's _headers, so the tier is labelled here. */
 const json = (body: Envelope<unknown>, tier: "computed" | "alias") =>
@@ -363,6 +384,9 @@ app.get("/api/:collection", async (c) => {
  * the same answer to the same question.
  */
 app.all("/mcp", async (c) => {
+  const started = Date.now();
+  // Read from a copy, so the transport still gets the body it expects.
+  const messages = c.req.method === "POST" ? mcpMessages(await c.req.raw.clone().json().catch(() => null)) : [];
   const server = createMcpServer({
     index,
     lookup,
@@ -379,6 +403,17 @@ app.all("/mcp", async (c) => {
   const response = await transport.handleRequest(c.req.raw);
   const headers = new Headers(response.headers);
   headers.set("x-api-tier", "computed");
+  for (const message of messages) {
+    record(c.env.USAGE, {
+      kind: "mcp",
+      name: message.tool ?? message.method,
+      client: message.client,
+      agent: agentOf(c.req.header("user-agent")),
+      country: countryOf(c.req.raw),
+      status: response.status,
+      ms: Date.now() - started,
+    });
+  }
   return new Response(response.body, { status: response.status, headers });
 });
 
