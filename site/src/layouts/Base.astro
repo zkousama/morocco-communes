@@ -681,9 +681,12 @@ const themes = [
         justify-content: space-between;
       }
 
+      /* Wide enough for the whole credit on one line: at 70ch it overflowed by 10px and
+         dropped the year onto a second line, leaving the credits 3 lines against the 2
+         beside them. */
       footer p {
         margin: 0 0 0.35rem;
-        max-width: 70ch;
+        max-width: 74ch;
       }
 
       footer .made {
