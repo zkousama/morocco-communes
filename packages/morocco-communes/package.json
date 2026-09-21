@@ -53,5 +53,8 @@
     "url": "git+https://github.com/zkousama/morocco-communes.git",
     "directory": "packages/morocco-communes"
   },
-  "homepage": "https://github.com/zkousama/morocco-communes/tree/main/packages/morocco-communes"
+  "bugs": {
+    "url": "https://github.com/zkousama/morocco-communes/issues"
+  },
+  "homepage": "https://communes.pages.dev/docs/npm/"
 }

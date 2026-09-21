@@ -25,7 +25,8 @@ classifiers = [
 pandas = ["pandas>=1.5"]
 
 [project.urls]
-Homepage = "https://github.com/zkousama/morocco-communes"
+Homepage = "https://communes.pages.dev"
+Documentation = "https://communes.pages.dev/docs/python/"
 Source = "https://github.com/zkousama/morocco-communes"
 Issues = "https://github.com/zkousama/morocco-communes/issues"
 
