@@ -10,6 +10,8 @@ pnpm api:dev                                  # in another terminal
 pnpm eval                                     # every case, on Sonnet
 pnpm eval --model haiku                       # a weaker model finds weaker descriptions
 pnpm eval --only ktama,titwan --concurrency 2
+pnpm eval --tool get_indicators               # the cases that expect one tool
+pnpm eval --compare evals/results/<run>.json  # what moved since an earlier run
 ```
 
 Each question goes through `claude -p`, so it runs on a Claude Code login and spends that
@@ -29,6 +31,24 @@ rounded to the precision the data gives it.
 A case passes when the answer holds every expected name and figure and the expected tools
 were called, and counts as slow when it took more calls than its budget. Results go to
 `evals/results/`, which isn't committed, with every call, its input and any error.
+
+Each case also records what it cost, read off the CLI's own result event: input tokens
+split into fresh, written to the cache and read back from it, output tokens and the part
+of them spent thinking, dollars at API list price, wall time, API time and time to the
+first token. A case asked twice, because the first answer reached no tools, is charged
+for both. A run records the model the API says answered, which an alias like `sonnet`
+doesn't say, the CLI's version, the commit and whether it had uncommitted changes, the
+dataset version, and the tool list the server sent before any question, to the character.
+
+The summary gives each category's passes, calls, tokens and cost, then the median, 90th
+percentile and worst case for calls, turns, seconds, first token, tokens and cost, the
+share of input read from the cache, the 3 costliest cases and the wall and API time.
+`--compare` puts a run beside an earlier one, on the cases both asked: passes, calls,
+turns, tokens, cost and the size of the tool list, each with its change, then every case
+that flipped and the 5 whose call count moved most.
+
+The dollars are what the same tokens would cost on the API. On a Claude Code login a run
+spends the plan's usage instead, which these track but don't equal.
 
 ## What it has found
 

@@ -136,7 +136,10 @@ const urbanInTanger = communes.filter((c) => c.parents!.region === tangerRegion.
 
 const labour = (code: string, sex = "all", area = "total") => people(code)[area]![sex]!.labour!;
 /** A figure at the 2014 census, for the cases that ask what changed. */
-const illiteracy2014 = (code: string) => figures2014.get(code)?.people.total?.all?.illiteracy?.rate10Plus ?? null;
+/** A unit's 2014 illiteracy, or null where the 2014 census didn't count it, for a filter to test. */
+const illiteracy2014Of = (code: string) => figures2014.get(code)?.people.total?.all?.illiteracy?.rate10Plus ?? null;
+/** The same, as an expected figure, which has to exist: a null would match any 0 in an answer. */
+const illiteracy2014 = (code: string) => illiteracy2014Of(code) ?? fail(`no 2014 illiteracy for ${code}`);
 const illiteracy = (code: string, sex = "all", area = "total") => people(code)[area]![sex]!.illiteracy!.rate10Plus!;
 const over50k = communes.filter((c) => pop(c) > 50_000);
 const jobless = [...over50k].sort((a, b) => (labour(b.code).unemploymentRate ?? -1) - (labour(a.code).unemploymentRate ?? -1))[0]!;
@@ -147,8 +150,8 @@ const driest = communes
   .filter((c) => c.parents!.province === tiznitProvince.code && homes(c.code).total?.amenities?.runningWater != null)
   .sort((a, b) => homes(a.code).total!.amenities!.runningWater! - homes(b.code).total!.amenities!.runningWater!)[0]!;
 const fellMost = communes
-  .filter((c) => pop(c) > 20_000 && c.parents!.region === "01" && illiteracy2014(c.code) !== null)
-  .sort((a, b) => illiteracy(a.code) - illiteracy2014(a.code)! - (illiteracy(b.code) - illiteracy2014(b.code)!))[0]!;
+  .filter((c) => pop(c) > 20_000 && c.parents!.region === "01" && illiteracy2014Of(c.code) !== null)
+  .sort((a, b) => illiteracy(a.code) - illiteracy2014(a.code) - (illiteracy(b.code) - illiteracy2014(b.code)))[0]!;
 const womenAtWork = [...regions].sort(
   (a, b) => labour(b.code, "female").activityRate! - labour(a.code, "female").activityRate!,
 )[0]!;
@@ -367,7 +370,7 @@ export const CASES: Case[] = [
     category: "indicators",
     question: "In the commune of Assilah, how did illiteracy change between the 2014 and 2024 censuses?",
     expect: {
-      numbers: [illiteracy2014(assilah.code)!, illiteracy(assilah.code)],
+      numbers: [illiteracy2014(assilah.code), illiteracy(assilah.code)],
       tools: ["get_indicators"],
       maxCalls: 3,
     },
