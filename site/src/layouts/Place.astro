@@ -14,11 +14,14 @@ interface Props {
   /** The name in Arabic, shown beside the French one. */
   arabic?: string;
   lede: string;
+  /** The page's schema.org description, from placeData(). */
+  data?: Record<string, unknown> | null;
 }
-const { locale, route, title, documentTitle, description, trail, arabic, lede } = Astro.props;
+const { locale, route, title, documentTitle, description, trail, arabic, lede, data } = Astro.props;
 ---
 
 <Base locale={locale} route={route} title={documentTitle ?? title} description={description}>
+  {data && <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(data)} />}
   <article class="place">
     <header>
       {trail.length > 0 && (

@@ -14,6 +14,7 @@ import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
 import { density, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
+import { placeData } from "../../lib/placeData";
 import {
   arrondissementsOf,
   cercleOf,
@@ -108,6 +109,15 @@ getCommune("${c.slug}");`;
   locale={locale}
   route={`communes/${c.slug}/`}
   title={c.name.fr}
+  data={placeData({
+    site: Astro.site,
+    href: path(locale, `communes/${c.slug}/`),
+    name: c.name,
+    code: c.code,
+    parent: { name: province.name.fr, href: path(locale, `provinces/${province.slug}/`) },
+    osm: c.osm,
+    centroid: c.centroid,
+  })}
   documentTitle={sharedNames.has(c.name.fr) ? `${c.name.fr}, ${province.name.fr}` : undefined}
   description={description}
   arabic={c.name.ar}

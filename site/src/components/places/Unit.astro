@@ -16,6 +16,7 @@ import { de, fill, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
 import { density, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
+import { placeData } from "../../lib/placeData";
 import {
   arrondissementsInPrefecture,
   communeOf,
@@ -105,6 +106,13 @@ const standouts = [
   locale={locale}
   route={route}
   title={title}
+  data={placeData({
+    site: Astro.site,
+    href: path(locale, route),
+    name: unit.name,
+    code: unit.code,
+    parent: province ? { name: region.name.fr, href: path(locale, `regions/${region.slug}/`) } : undefined,
+  })}
   documentTitle={documentTitle}
   description={description}
   arabic={unit.name.ar}

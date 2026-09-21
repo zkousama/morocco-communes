@@ -81,6 +81,9 @@ const dataset =
         sameAs: REPO_URL,
         version: reference.version,
         isAccessibleForFree: true,
+        // HCP's tables are on CC BY 4.0 terms and the OpenStreetMap boundaries are ODbL,
+        // as the README's table of directories says.
+        license: ["https://creativecommons.org/licenses/by/4.0/", "https://opendatacommons.org/licenses/odbl/1-0/"],
         creator: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url },
         creditText: "Haut-Commissariat au Plan, RGPH 2024 and RGPH 2014. Boundaries © OpenStreetMap contributors, ODbL.",
         keywords: ["Morocco", "Maroc", "communes", "régions", "provinces", "census", "RGPH 2024", "HCP", "establishments"],
