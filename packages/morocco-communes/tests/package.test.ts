@@ -1,4 +1,5 @@
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -24,9 +25,9 @@ let pkg: Record<"regions" | "provinces" | "cercles" | "communes" | "arrondisseme
 };
 
 beforeAll(async () => {
-  execFileSync("node", ["--experimental-strip-types", join(HERE, "build.ts")], { stdio: "pipe" });
+  await promisify(execFile)("node", ["--experimental-strip-types", join(HERE, "build.ts")]);
   pkg = await import(resolve(HERE, "dist/index.js"));
-}, 30_000);
+}, 60_000);
 
 const attributes = (name: string) =>
   JSON.parse(readFileSync(`data/v1/attributes/${name}.json`, "utf8")) as { code: string }[];
@@ -75,7 +76,9 @@ describe("the npm package", () => {
     expect(pkg.version).toBe(sources.datasetVersion);
   });
 
-  it("type-checks for a consumer", () => {
+  // Asynchronous, so the worker keeps answering the runner while tsc works; a blocking call
+  // starves it, and under load the runner gives up on the worker before the check ends.
+  it("type-checks for a consumer", async () => {
     const dir = mkdtempSync(join(tmpdir(), "morocco-communes-"));
     const dist = resolve(HERE, "dist");
     writeFileSync(
@@ -91,10 +94,9 @@ first.centroid;
 export { code, urban, names };
 `,
     );
-    execFileSync(
-      "pnpm",
-      ["exec", "tsc", "--noEmit", "--strict", "--module", "nodenext", "--moduleResolution", "nodenext", "--target", "es2022", join(dir, "use.ts")],
-      { stdio: "pipe" },
+    await promisify(execFile)(
+      "node_modules/.bin/tsc",
+      ["--noEmit", "--strict", "--module", "nodenext", "--moduleResolution", "nodenext", "--target", "es2022", join(dir, "use.ts")],
     );
-  }, 60_000);
+  }, 120_000);
 });

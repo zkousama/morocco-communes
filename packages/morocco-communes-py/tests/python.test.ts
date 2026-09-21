@@ -1,4 +1,5 @@
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
+import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -18,13 +19,12 @@ const available = (() => {
 })();
 
 describe.skipIf(!available)("the Python package", () => {
-  it("builds its data from data/v1 and passes its tests", () => {
-    execFileSync("python3", [`${HERE}/build_data.py`], { stdio: "pipe" });
-    const output = execFileSync("python3", ["-m", "unittest", "discover", "-s", `${HERE}/tests`], {
-      stdio: "pipe",
-      encoding: "utf8",
-    });
+  // Asynchronous, so the worker keeps answering the runner while Python works.
+  it("builds its data from data/v1 and passes its tests", async () => {
+    const run = promisify(execFile);
+    await run("python3", [`${HERE}/build_data.py`]);
+    const { stdout } = await run("python3", ["-m", "unittest", "discover", "-s", `${HERE}/tests`], { encoding: "utf8" });
     // unittest writes its summary to stderr, so a silent stdout is what success looks like.
-    expect(output).toBe("");
+    expect(stdout).toBe("");
   }, 120_000);
 });
