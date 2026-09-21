@@ -111,6 +111,8 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
 ---
 
 <Base locale={locale}>
+  {/* Search Console's proof that the site is Ousama's. It only reads the home page. */}
+  <meta slot="head" name="google-site-verification" content="L222F8aGhOhS6v0FmK1h4pw6Y_4J2Pfwukw4wfiEE6c" />
   {dataset && <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(dataset)} />}
   <section class="hero">
     <div class="hero-words">
