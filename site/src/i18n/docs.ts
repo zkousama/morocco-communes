@@ -371,7 +371,7 @@ export const docs = {
         ["crosswalk()", "one per commune renumbered in 2015"],
       ],
       tablesBody:
-        "`indicators` takes `\"people\"` or `\"households\"`, and `census` `\"2024\"` or `\"2014\"`. The 2024 census asks 65 of the 2014 questions the same way, so those columns subtract.",
+        "`indicators` takes `\"people\"` or `\"households\"`, and `census` `\"2024\"` or `\"2014\"`. The 2024 census asks 73 of the 2014 questions the same way, so those columns subtract.",
       dictionary: "What each column means",
       dictionaryBody: [
         "`fields()` gives the column, an English label, HCP’s own heading and the unit, and for 2024 the concept HCP defines it under, with its wording. It takes `\"indicators\"`, `\"indicators2014\"`, `\"economy\"` or `\"housing\"`.",
@@ -723,7 +723,7 @@ export const docs = {
         ["crosswalk()", "une par commune renumérotée en 2015"],
       ],
       tablesBody:
-        "`indicators` prend `\"people\"` ou `\"households\"`, et `census` `\"2024\"` ou `\"2014\"`. Le recensement de 2024 pose 65 des questions de 2014 de la même façon : ces colonnes se soustraient.",
+        "`indicators` prend `\"people\"` ou `\"households\"`, et `census` `\"2024\"` ou `\"2014\"`. Le recensement de 2024 pose 73 des questions de 2014 de la même façon : ces colonnes se soustraient.",
       dictionary: "Ce que mesure chaque colonne",
       dictionaryBody: [
         "`fields()` donne la colonne, un libellé en anglais, l’intitulé du HCP et l’unité, et pour 2024 le concept sous lequel le HCP la définit, avec sa formulation. Il prend `\"indicators\"`, `\"indicators2014\"`, `\"economy\"` ou `\"housing\"`.",

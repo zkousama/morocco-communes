@@ -34,7 +34,7 @@ then the package needs nothing but the standard library.
 | `crosswalk()` | one per commune renumbered in 2015 |
 
 `indicators` takes `"people"` or `"households"`, and `census` `"2024"` or `"2014"`. The
-2024 census asks 65 of the 2014 questions the same way, so those columns subtract.
+2024 census asks 73 of the 2014 questions the same way, so those columns subtract.
 
 `fields()` says what each column measures, with HCP's own heading for it and its unit, and
 for 2024 the concept HCP defines it under and its wording. It takes `"indicators"`,

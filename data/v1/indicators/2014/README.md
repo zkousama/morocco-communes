@@ -52,7 +52,7 @@ The file names are the 2024 ones, and a record keeps the code and name the unit 
 
 ## Reading them against 2024
 
-65 fields carry `comparableTo`: the two censuses ask them the same way, and subtracting
+73 fields carry `comparableTo`: the two censuses ask them the same way, and subtracting
 one from the other says what changed. `/api/communes?sort=change.illiteracy.rate10Plus`
 ranks communes by that difference.
 
