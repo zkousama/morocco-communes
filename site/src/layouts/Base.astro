@@ -28,7 +28,9 @@ const sections = [
 ];
 const site = Astro.site;
 const absolute = (p: string) => (site ? new URL(p, site).href : null);
-const canonical = absolute(Astro.url.pathname);
+// A page that is no route of its own, the one for an address with nothing at it, has no
+// address to declare and nothing for a search engine to keep.
+const canonical = current ? absolute(Astro.url.pathname) : null;
 const ogImage = absolute("/og.png");
 const themes = [
   { id: "auto", label: copy.themeAuto },
@@ -60,13 +62,14 @@ const themes = [
     {ogImage && <meta property="og:image:height" content="630" />}
     {ogImage && <meta property="og:image:alt" content={copy.tagline} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
+    {!current && <meta name="robots" content="noindex" />}
     {
-      site &&
+      site && current &&
         LOCALES.map((l) => (
           <link rel="alternate" hreflang={l} href={absolute(path(l, route))!} />
         ))
     }
-    {site && <link rel="alternate" hreflang="x-default" href={absolute(path("en", route))!} />}
+    {site && current && <link rel="alternate" hreflang="x-default" href={absolute(path("en", route))!} />}
     {site && <link rel="sitemap" href="/sitemap.xml" />}
     <slot name="head" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
