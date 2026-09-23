@@ -2,8 +2,7 @@ node_modules/
 .cache/
 dist/
 .DS_Store
-.superpowers/
-docs/
+*.log
 .wrangler/
 packages/morocco-communes/dist/
 packages/morocco-communes-py/src/morocco_communes/data/
