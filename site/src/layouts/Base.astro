@@ -856,8 +856,11 @@ const themes = [
         max-width: 74ch;
       }
 
+      /* When the links don't fit beside the credits they drop below them, and the margin
+         keeps them against the right edge instead of starting a new line at the left. */
       footer .made {
         text-align: end;
+        margin-inline-start: auto;
       }
 
       footer a {
@@ -884,6 +887,7 @@ const themes = [
       @media (max-width: 40rem) {
         footer .made {
           text-align: start;
+          margin-inline-start: 0;
         }
       }
 
