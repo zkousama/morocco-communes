@@ -517,6 +517,33 @@ const FILE = /^[a-z0-9][a-z0-9/._-]{2,79}$/;
 const BEACON_BYTES = 1024;
 const HOST = /^[a-z0-9.-]{1,253}$/i;
 
+/** A request's body, or null once it runs past `limit` bytes or fails, read no further. */
+async function bodyUpTo(request: Request, limit: number): Promise<Uint8Array | null> {
+  const reader = request.body?.getReader();
+  if (!reader) return new Uint8Array(0);
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    for (let next = await reader.read(); !next.done; next = await reader.read()) {
+      size += next.value.byteLength;
+      if (size > limit) {
+        void reader.cancel().catch(() => {});
+        return null;
+      }
+      chunks.push(next.value);
+    }
+  } catch {
+    return null;
+  }
+  const bytes = new Uint8Array(size);
+  let at = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, at);
+    at += chunk.byteLength;
+  }
+  return bytes;
+}
+
 /**
  * What a static page can't count for itself: a place opened, a file taken, and a search
  * the site's own box settled on. The pages and the files are served without running code,
@@ -541,10 +568,10 @@ app.post("/api/beacon", async (c) => {
     return new Response(null, { status: 400 });
   }
   // A body that says it's over 1 KB is refused unread, and one sent without a length is
-  // measured before it's parsed.
+  // read no further than 1 KB.
   if (Number(c.req.header("content-length")) > BEACON_BYTES) return new Response(null, { status: 400 });
-  const bytes = await c.req.arrayBuffer().catch(() => new ArrayBuffer(0));
-  if (bytes.byteLength > BEACON_BYTES) return new Response(null, { status: 400 });
+  const bytes = await bodyUpTo(c.req.raw, BEACON_BYTES);
+  if (!bytes) return new Response(null, { status: 400 });
   let body: { kind?: unknown; code?: unknown; file?: unknown; text?: unknown; results?: unknown; locale?: unknown; from?: unknown } | null;
   try {
     body = JSON.parse(new TextDecoder().decode(bytes));

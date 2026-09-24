@@ -433,6 +433,48 @@ describe("the beacon", () => {
     expect(JSON.stringify(rows)).not.toContain("google.com");
   });
 
+  /** A beacon whose body is a stream, read only as far as the handler asks. */
+  const streamed = (pull: (controller: ReadableStreamDefaultController<Uint8Array>) => void, headers: Record<string, string> = {}) =>
+    new Request("https://communes.pages.dev/api/beacon", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://communes.pages.dev", ...headers },
+      body: new ReadableStream({ pull }, { highWaterMark: 0 }),
+      duplex: "half",
+    } as RequestInit);
+
+  it("refuses a body that says it's 5,000 bytes without touching it", async () => {
+    let touched = false;
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      streamed(() => {
+        touched = true;
+        throw new Error("the body was read");
+      }, { "content-length": "5000" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(400);
+    expect(touched).toBe(false);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("stops reading a body with no length once it's past 1 KB", async () => {
+    let pulls = 0;
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      streamed((controller) => {
+        pulls += 1;
+        if (pulls > 100) controller.close();
+        else controller.enqueue(new Uint8Array(512).fill(32));
+      }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(400);
+    expect(pulls).toBeLessThanOrEqual(3);
+    expect(rows).toHaveLength(0);
+  });
+
   it("refuses a request from another site", async () => {
     const rows: Captured[] = [];
     const response = await app.fetch(
