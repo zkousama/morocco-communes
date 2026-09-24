@@ -38,6 +38,17 @@ describe("scrubText", () => {
     expect(scrubText("٠٦١٢٣٤٥٦٧٨")).toBe("");
   });
 
+  // The privacy page gives both limits as numbers.
+  it("keeps 5 digits and drops 6", () => {
+    expect(scrubText("tanger 90000")).toBe("tanger 90000");
+    expect(scrubText("tanger 900000")).toBe("");
+  });
+
+  it("keeps 6 words and drops 7", () => {
+    expect(scrubText("commune de sidi ali ben hamza")).toBe("commune de sidi ali ben hamza");
+    expect(scrubText("la commune de sidi ali ben hamza")).toBe("");
+  });
+
   it("keeps a code in its dotted form, which names a place", () => {
     expect(scrubText("01.511.01.0")).toBe("01.511.01.0");
     expect(scrubText("04.501.03.11")).toBe("04.501.03.11");
