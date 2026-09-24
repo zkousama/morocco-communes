@@ -1,8 +1,8 @@
 /**
  * The month's most looked-up places, for the public page. Only page views count: the
- * beacon's place rows, `via = 'browser'`, so an API or MCP lookup can't move a place up
- * the list. Crawlers are left out, and a place has to have been opened 5 times before it
- * appears, so a single visit is never visible.
+ * beacon's place rows, so an API or MCP lookup can't move a place up the list. Crawlers are
+ * left out, and a place has to have been opened 5 times before it appears, so a single
+ * visit is never visible.
  *
  * The build never queries the owner's live database unasked. The `wrangler d1 execute …
  * --remote` query below only runs when the environment variable ATTENTION is set to
@@ -17,11 +17,17 @@ import { pathToFileURL } from "node:url";
 export interface Row {
   code: string;
   n: number;
-  bot: number;
 }
 
-export const publishable = (rows: Row[]): { code: string; n: number }[] =>
-  rows.filter((row) => row.bot === 0 && row.n >= 5).map(({ code, n }) => ({ code, n }));
+export const publishable = (rows: Row[]): Row[] => rows.filter((row) => row.n >= 5).map(({ code, n }) => ({ code, n }));
+
+/**
+ * Filtered before the LIMIT, so crawlers can't fill the 100 first. Only the beacon names a
+ * row "place": an API lookup is named by its route, and its via is whatever the caller's
+ * User-Agent starts with, which can be "browser" too.
+ */
+export const ranking = (since: string): string =>
+  `SELECT code, SUM(n) AS n FROM daily WHERE day >= '${since}' AND kind = 'place' AND name = 'place' AND via = 'browser' AND bot = 0 GROUP BY code ORDER BY n DESC LIMIT 100`;
 
 /** The first day counted: 30 days back from now, as `YYYY-MM-DD`. */
 export const sinceDate = (now = Date.now()): string => new Date(now - 30 * 86_400_000).toISOString().slice(0, 10);
@@ -52,7 +58,7 @@ export function read(since: string, env: NodeJS.ProcessEnv = process.env, run: R
       "--remote",
       "--json",
       "--command",
-      `SELECT code, SUM(n) AS n, bot FROM daily WHERE day >= '${since}' AND kind = 'place' AND via = 'browser' GROUP BY code, bot ORDER BY n DESC LIMIT 100`,
+      ranking(since),
     ]);
     return (JSON.parse(out) as { results: Row[] }[])[0]?.results ?? [];
   } catch {
