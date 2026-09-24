@@ -31,14 +31,20 @@ export interface DemandRow {
 
 const MAX_CHARACTERS = 64;
 
+/** An HCP code in its dotted form, from a région's 01 down to an urban centre's 04.501.03.11.4. */
+const HCP_CODE = /^[0-9]{2}(\.[0-9]{3}(\.[0-9]{2}(\.[0-9]{1,2}(\.[0-9])?)?)?)?$/;
+
 /** A search, lowercased and cut, or "" when it holds anything that could be personal. */
 export function scrubText(raw: string | null | undefined): string {
   const collapsed = (raw ?? "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
   // Array.from, so a cut lands between characters rather than inside one.
   const text = Array.from(collapsed).slice(0, MAX_CHARACTERS).join("");
   if (text === "") return "";
+  if (HCP_CODE.test(text)) return text;
   if (text.includes("@")) return "";
-  if (/[0-9]{6,}/.test(text)) return "";
+  // Counted rather than matched as a run, so a phone number is caught however it's spaced
+  // or dotted, and in Arabic-Indic digits too.
+  if ((text.match(/\p{Nd}/gu) ?? []).length >= 6) return "";
   if (/https?:|www\./.test(text)) return "";
   if (text.split(" ").length > 6) return "";
   return text;

@@ -17,6 +17,21 @@ describe("scrubText", () => {
     expect(scrubText("please tell me where my cousin lives in this town")).toBe("");
   });
 
+  it("drops a phone number however it's written", () => {
+    expect(scrubText("06 12 34 56 78")).toBe("");
+    expect(scrubText("06.12.34.56.78")).toBe("");
+    expect(scrubText("+212 6 12 34 56 78")).toBe("");
+    expect(scrubText("٠٦١٢٣٤٥٦٧٨")).toBe("");
+  });
+
+  it("keeps a code in its dotted form, which names a place", () => {
+    expect(scrubText("01.511.01.0")).toBe("01.511.01.0");
+    expect(scrubText("04.501.03.11")).toBe("04.501.03.11");
+    expect(scrubText("04.501.03.11.4")).toBe("04.501.03.11.4");
+    expect(scrubText("tanger")).toBe("tanger");
+    expect(scrubText("الرباط")).toBe("الرباط");
+  });
+
   it("cuts at 64 characters without splitting one", () => {
     // BMP characters: each takes 1 UTF-16 code unit
     const bmpLong = "ⵜⴰⵎⴰⵣⵉⵖⵜ".repeat(20);
