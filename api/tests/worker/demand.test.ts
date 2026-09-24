@@ -32,6 +32,22 @@ describe("scrubText", () => {
     expect(scrubText("الرباط")).toBe("الرباط");
   });
 
+  it("keeps a code-shaped text, given a way to check, only when it names a unit", () => {
+    const known = (code: string) => code === "01.511.01.0";
+    // A phone number grouped 2-3-2-2-1 has the shape of a code.
+    expect(scrubText("06.123.45.67.8", known)).toBe("");
+    expect(scrubText("01.511.01.0", known)).toBe("01.511.01.0");
+  });
+
+  it("reads a code typed with spaces as the dotted code", () => {
+    expect(scrubText("01 511 01 0")).toBe("01.511.01.0");
+    expect(scrubText(" 01  511 01 0 ", (code) => code === "01.511.01.0")).toBe("01.511.01.0");
+  });
+
+  it("counts circled digits with the rest", () => {
+    expect(scrubText("⓪⑥ ①② ③④ ⑤⑥ ⑦⑧")).toBe("");
+  });
+
   it("cuts at 64 characters without splitting one", () => {
     // BMP characters: each takes 1 UTF-16 code unit
     const bmpLong = "ⵜⴰⵎⴰⵣⵉⵖⵜ".repeat(20);

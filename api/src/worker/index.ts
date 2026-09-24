@@ -67,6 +67,9 @@ const LEVEL_OF = Object.fromEntries(Object.entries(COLLECTIONS).map(([level, col
 
 type Vars = { demandText?: string; demandResults?: number; demandCode?: string };
 
+/** Whether a code-shaped text names a real unit, for scrubText. */
+const knownCode = (code: string) => resolve(lookup, code).kind === "found";
+
 const NAMING = new Set<Hit["matched"]>(["code", "exact", "alias", "spelling"]);
 
 /**
@@ -108,7 +111,7 @@ app.use("/api/*", async (c, next) => {
   // sets Sec-Fetch-Site and a page's script can't, so only the site's own pages are skipped.
   if (c.req.header("sec-fetch-site") === "same-origin") return;
 
-  const text = scrubText(c.get("demandText"));
+  const text = scrubText(c.get("demandText"), knownCode);
   const code = c.get("demandCode") ?? "";
   const kind: DemandKind | null = text !== "" ? "search" : code !== "" ? "place" : null;
   if (kind) {
@@ -442,7 +445,7 @@ app.get("/api/:collection", async (c) => {
 app.all("/mcp", async (c) => {
   const started = Date.now();
   // Read from a copy, so the transport still gets the body it expects.
-  const messages = c.req.method === "POST" ? mcpMessages(await c.req.raw.clone().json().catch(() => null)) : [];
+  const messages = c.req.method === "POST" ? mcpMessages(await c.req.raw.clone().json().catch(() => null), knownCode) : [];
   const server = createMcpServer({
     index,
     lookup,
@@ -498,7 +501,7 @@ app.all("/mcp", async (c) => {
     }
     if (message.method === "initialize" && message.client) {
       // A client names itself in free text, so the name passes the scrub a search does.
-      const client = scrubText(message.client) || "other";
+      const client = scrubText(message.client, knownCode) || "other";
       c.executionCtx.waitUntil(
         recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: client, client, named: 0 }),
       );
@@ -571,7 +574,7 @@ app.post("/api/beacon", async (c) => {
   if (body.kind === "search") {
     if (typeof body.text !== "string") return new Response(null, { status: 400 });
     // As in the API: a search the scrub empties is answered, and nothing of it is kept.
-    const text = scrubText(body.text);
+    const text = scrubText(body.text, knownCode);
     if (text === "") return new Response(null, { status: 204 });
     const { results } = body;
     const found = typeof results === "number" && Number.isInteger(results) && results >= 0 && results <= 100 ? results : -1;

@@ -43,17 +43,24 @@ const MAX_CHARACTERS = 64;
 /** An HCP code in its dotted form, from a région's 01 down to an urban centre's 04.501.03.11.4. */
 const HCP_CODE = /^[0-9]{2}(\.[0-9]{3}(\.[0-9]{2}(\.[0-9]{1,2}(\.[0-9])?)?)?)?$/;
 
-/** A search, lowercased and cut, or "" when it holds anything that could be personal. */
-export function scrubText(raw: string | null | undefined): string {
+/**
+ * A search, lowercased and cut, or "" when it holds anything that could be personal.
+ *
+ * A code names a place, so it's kept whatever its digits. Given `knownCode`, only a code
+ * that names a real unit is: a phone number grouped 2-3-2-2-1 has a code's shape.
+ */
+export function scrubText(raw: string | null | undefined, knownCode?: (code: string) => boolean): string {
   const collapsed = (raw ?? "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
   // Array.from, so a cut lands between characters rather than inside one.
   const text = Array.from(collapsed).slice(0, MAX_CHARACTERS).join("");
   if (text === "") return "";
-  if (HCP_CODE.test(text)) return text;
+  // The search box takes a code typed with spaces, 01 511 01 0, and so does this.
+  const code = /^[0-9. ]+$/.test(text) ? text.replace(/ /g, ".") : text;
+  if (HCP_CODE.test(code) && (knownCode?.(code) ?? true)) return code;
   if (text.includes("@")) return "";
   // Counted rather than matched as a run, so a phone number is caught however it's spaced
-  // or dotted, and in Arabic-Indic digits too.
-  if ((text.match(/\p{Nd}/gu) ?? []).length >= 6) return "";
+  // or dotted, and in Arabic-Indic or circled digits too.
+  if ((text.match(/[\p{Nd}\p{No}]/gu) ?? []).length >= 6) return "";
   if (/https?:|www\./.test(text)) return "";
   if (text.split(" ").length > 6) return "";
   return text;

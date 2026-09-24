@@ -69,6 +69,8 @@ const LEVELS = new Set<string>(["commune", "arrondissement", "province", "region
  */
 export function mcpMessages(
   body: unknown,
+  /** Passed to scrubText, to tell a real code from a number shaped like one. */
+  knownCode?: (code: string) => boolean,
 ): { method: string; tool?: string; client?: string; args?: { place?: string; level?: Level; query?: string } }[] {
   const messages = Array.isArray(body) ? body : [body];
   return messages.flatMap((message) => {
@@ -87,7 +89,7 @@ export function mcpMessages(
     const given = [raw.code, raw.id, raw.unit].find((value): value is string => typeof value === "string")?.trim().toLowerCase();
     const place = given !== undefined && (CODE.test(given) || SLUG.test(given)) ? given : undefined;
     const level = place && typeof raw.level === "string" && LEVELS.has(raw.level) ? (raw.level as Level) : undefined;
-    const query = typeof raw.query === "string" ? scrubText(raw.query) : "";
+    const query = typeof raw.query === "string" ? scrubText(raw.query, knownCode) : "";
     const args = { ...(place && { place }), ...(level && { level }), ...(query !== "" && { query }) };
 
     return [{ method, ...(tool && { tool }), ...(client && { client }), ...(tool && { args }) }];

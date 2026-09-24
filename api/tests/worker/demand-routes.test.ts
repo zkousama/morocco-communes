@@ -351,6 +351,18 @@ describe("the beacon", () => {
     }
   });
 
+  it("checks a code-shaped search against the codes that exist", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(beacon({ kind: "search", text: "06.123.45.67.8", results: 0 }), env(rows) as never, ctx as never);
+    expect(response.status).toBe(204);
+    await app.fetch(call("search", { query: "06.123.45.67.8" }), env(rows) as never, ctx as never);
+    await app.fetch(beacon({ kind: "search", text: "01 511 01 0", results: 1 }), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn)).toMatchObject([
+      { kind: "tool", text: "" },
+      { kind: "search", text: "01.511.01.0", named: 1 },
+    ]);
+  });
+
   it("answers a search holding a phone number and keeps nothing of it", async () => {
     const rows: Captured[] = [];
     const response = await app.fetch(
