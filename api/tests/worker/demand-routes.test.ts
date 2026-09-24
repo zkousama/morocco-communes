@@ -291,6 +291,25 @@ describe("the beacon", () => {
     }
   });
 
+  it("refuses a body over 1 KB before reading it, and writes nothing", async () => {
+    const body = JSON.stringify({ kind: "place", code: "01.511.01.0", locale: "en", pad: "x".repeat(2000) });
+    const rows: Captured[] = [];
+    const response = await app.fetch(beacon(body, { "content-length": String(body.length) }), env(rows) as never, ctx as never);
+    expect(response.status).toBe(400);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("refuses a body over 1 KB that came without a length, and writes nothing", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beacon({ kind: "place", code: "01.511.01.0", locale: "en", pad: "x".repeat(2000) }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(400);
+    expect(rows).toHaveLength(0);
+  });
+
   it("refuses a request from another site", async () => {
     const rows: Captured[] = [];
     const response = await app.fetch(
