@@ -1,0 +1,106 @@
+---
+/**
+ * What each store keeps about a visit, in plain terms, and what it drops. Every sentence
+ * here has to stay true of api/src/worker/usage.ts, api/src/worker/demand.ts,
+ * api/src/worker/index.ts, the beacon in site/src/components/Beacon.astro and
+ * site/src/components/Search.astro, and workers/rollup/: those are the only places that
+ * write a row, and the mirror of this page under /fr/ says the same in French.
+ */
+import Docs from "../../layouts/Docs.astro";
+import { REPO_URL } from "../../i18n/ui";
+
+const locale = "en";
+
+const toc = [
+  { id: "requests", label: "Every request" },
+  { id: "asked-for", label: "What’s asked for" },
+  { id: "search", label: "A search" },
+  { id: "kept", label: "What’s kept" },
+  { id: "code", label: "The code" },
+];
+
+const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
+---
+
+<Docs
+  locale={locale}
+  route="docs/privacy/"
+  title="What this site counts"
+  description="What this site keeps when someone searches, opens a place or calls a tool."
+  lede="Two stores count how this site and its API get used. Neither keeps anything that ties a row to a visitor."
+  toc={toc}
+>
+  <section id="requests">
+    <h2>Every request</h2>
+    <p>
+      Every API call and MCP request is counted once, in Cloudflare’s Workers Analytics Engine. The row holds the
+      route with its codes taken out, or the MCP method and the tool it called, the name an MCP client gives
+      itself, the first word of the User-Agent, the country, the status and how long the request took. That’s the
+      whole row: enough to see how the API gets used, not who used it.
+    </p>
+    <p>
+      A tool or a method outside a fixed list is stored as “other”, and so is a client name the scrub empties.
+      Cloudflare keeps these rows for 3 months. A static file runs no code, so opening one isn’t counted here.
+    </p>
+  </section>
+
+  <section id="asked-for">
+    <h2>What’s asked for</h2>
+    <p>
+      A second store, in D1, counts 5 kinds of row: a search, a place opened, a tool an assistant calls through
+      the MCP server, the name an MCP client gives itself, and a file downloaded. A row holds the day, what was
+      asked for, the country, and which class of site sent the visitor, such as reddit or a search engine, never
+      the address itself.
+    </p>
+    <p>
+      The client that made the request is recorded too: “browser” for the site’s own search box and beacon, and
+      the first word of the User-Agent for anyone using the API or MCP directly.
+    </p>
+  </section>
+
+  <section id="search">
+    <h2>A search</h2>
+    <p>
+      A search is stored lower-cased and cut to 64 characters. It’s dropped completely if it holds an @, a web
+      address, more than 6 words, or 6 digits or more however they’re written, unless those digits spell out a
+      real place’s code. That’s how an email or a phone number typed into the box by mistake stays out.
+    </p>
+    <p>
+      The site’s own search box reports a search once it’s settled: 1.5 seconds after the results stop changing,
+      or as soon as one is opened, never on every keystroke. Nothing is sent by the search box, or by the beacon
+      that notes a place or a file opened, when the browser’s Do Not Track is on.
+    </p>
+  </section>
+
+  <section id="kept">
+    <h2>What’s kept</h2>
+    <p>
+      A row is a day and a handful of categories, the kind a tally needs and nothing more: no room in it for an
+      address, a cookie, a session or any other identifier. 2 rows can never be tied to the same visitor.
+    </p>
+    <p>
+      The demand log’s raw rows are deleted after 90 days. What’s left is counts by day, which the most
+      looked-up page is built from. A search keeps its words in that count only when they name a place or were
+      typed 3 or more times that day; otherwise only the count stays. The log can’t tell whether that’s one
+      visitor typing it 3 times or 3 different visitors, since nothing in a row would tell them apart.
+    </p>
+  </section>
+
+  <section id="code">
+    <h2>The code</h2>
+    <p>
+      This runs from <a href={file("api/src/worker/usage.ts")}><code>api/src/worker/usage.ts</code></a>,{" "}
+      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a> and{" "}
+      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a>, the beacon in{" "}
+      <a href={file("site/src/components/Beacon.astro")}><code>Beacon.astro</code></a> and{" "}
+      <a href={file("site/src/components/Search.astro")}><code>Search.astro</code></a>, and the nightly rollup in{" "}
+      <a href={file("workers/rollup/")}><code>workers/rollup/</code></a>. All of it is public.
+    </p>
+  </section>
+</Docs>
+
+<style>
+  .doc :global(#code code) {
+    font-size: 0.88em;
+  }
+</style>

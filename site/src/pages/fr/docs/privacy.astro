@@ -1,0 +1,108 @@
+---
+/**
+ * La version française de /docs/privacy/. Même contenu, même code : voir ce fichier pour
+ * le commentaire qui dit d’où chaque phrase vient.
+ */
+import Docs from "../../../layouts/Docs.astro";
+import { REPO_URL } from "../../../i18n/ui";
+
+const locale = "fr";
+
+const toc = [
+  { id: "requests", label: "Chaque requête" },
+  { id: "asked-for", label: "Ce qui est demandé" },
+  { id: "search", label: "Une recherche" },
+  { id: "kept", label: "Ce qui reste" },
+  { id: "code", label: "Le code" },
+];
+
+const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
+---
+
+<Docs
+  locale={locale}
+  route="docs/privacy/"
+  title="Ce que ce site compte"
+  description="Ce que ce site garde à chaque recherche, ouverture de lieu ou appel d’outil."
+  lede="Deux registres comptent l’usage du site et de son API. Aucun ne relie une ligne à un visiteur."
+  toc={toc}
+>
+  <section id="requests">
+    <h2>Chaque requête</h2>
+    <p>
+      Chaque appel à l’API et chaque requête MCP est compté une fois, dans Workers Analytics Engine de
+      Cloudflare. La ligne garde la route sans ses codes, ou la méthode MCP et l’outil appelé, le nom que se
+      donne un client MCP, le premier mot du User-Agent, le pays, le statut et la durée de la requête. C’est toute
+      la ligne : de quoi voir comment l’API est utilisée, jamais par qui.
+    </p>
+    <p>
+      Un outil ou une méthode hors d’une liste fixe devient « other », tout comme un nom de client que le filtre
+      vide. Cloudflare garde ces lignes 3 mois. Un fichier statique n’exécute aucun code, donc l’ouvrir n’est pas
+      compté ici.
+    </p>
+  </section>
+
+  <section id="asked-for">
+    <h2>Ce qui est demandé</h2>
+    <p>
+      Un second registre, dans D1, compte 5 types de ligne : une recherche, un lieu ouvert, un outil qu’un
+      assistant appelle via le serveur MCP, le nom que se donne un client MCP, et un fichier téléchargé. Une
+      ligne garde le jour, ce qui a été demandé, le pays, et la classe du site qui a envoyé le visiteur, comme
+      reddit ou un moteur de recherche, jamais son adresse.
+    </p>
+    <p>
+      Le client à l’origine de la requête est noté aussi : « browser » pour la recherche du site et sa balise, et
+      le premier mot du User-Agent pour qui passe par l’API ou le MCP directement.
+    </p>
+  </section>
+
+  <section id="search">
+    <h2>Une recherche</h2>
+    <p>
+      Une recherche est gardée en minuscules et coupée à 64 caractères. Elle est rejetée entièrement si elle
+      contient un @, une adresse web, plus de 6 mots, ou 6 chiffres ou plus quelle qu’en soit l’écriture, à moins
+      que ces chiffres ne forment le code réel d’un lieu. C’est ainsi qu’un e-mail ou un numéro de téléphone tapé
+      par erreur dans le champ reste dehors.
+    </p>
+    <p>
+      Le champ de recherche du site ne signale une recherche qu’une fois stabilisée : 1,5 seconde après l’arrêt
+      des résultats, ou dès qu’un résultat est ouvert, jamais à chaque frappe. Rien n’est envoyé par le champ de
+      recherche, ni par la balise qui note un lieu ou un fichier ouvert, quand le Do Not Track du navigateur est
+      activé.
+    </p>
+  </section>
+
+  <section id="kept">
+    <h2>Ce qui reste</h2>
+    <p>
+      Une ligne, c’est un jour et quelques catégories, de quoi faire un compte et rien de plus : ni adresse, ni
+      cookie, ni session, ni aucun autre identifiant. 2 lignes ne peuvent donc jamais être reliées au même
+      visiteur.
+    </p>
+    <p>
+      Les lignes brutes du registre de la demande sont supprimées après 90 jours. Ce qui reste, ce sont des
+      comptages par jour, dont est tirée la page des lieux les plus consultés. Une recherche garde ses mots dans
+      ce comptage seulement quand ils nomment un lieu ou qu’ils ont été tapés 3 fois ou plus ce jour-là ; sinon,
+      seul le compte reste. Le registre ne peut pas dire si c’est un même visiteur qui a tapé la recherche 3
+      fois, ou 3 visiteurs différents, puisque rien dans une ligne ne permettrait de les distinguer.
+    </p>
+  </section>
+
+  <section id="code">
+    <h2>Le code</h2>
+    <p>
+      Tout cela tourne depuis <a href={file("api/src/worker/usage.ts")}><code>api/src/worker/usage.ts</code></a>,{" "}
+      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a> et{" "}
+      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a>, la balise dans{" "}
+      <a href={file("site/src/components/Beacon.astro")}><code>Beacon.astro</code></a> et{" "}
+      <a href={file("site/src/components/Search.astro")}><code>Search.astro</code></a>, et le rollup nocturne
+      dans <a href={file("workers/rollup/")}><code>workers/rollup/</code></a>. Tout est public.
+    </p>
+  </section>
+</Docs>
+
+<style>
+  .doc :global(#code code) {
+    font-size: 0.88em;
+  }
+</style>
