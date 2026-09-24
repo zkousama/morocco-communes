@@ -34,9 +34,9 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <h2>Every request</h2>
     <p>
       Every API call and MCP request is counted once, in Cloudflare’s Workers Analytics Engine. The row holds the
-      route with its codes taken out, or the MCP method and the tool it called, the name an MCP client gives
-      itself, the first word of the User-Agent, the country, the status and how long the request took. That’s the
-      whole row: enough to see how the API gets used, not who used it.
+      route with its codes taken out, or an MCP message’s tool when it called one and its method otherwise, the
+      name an MCP client gives itself, the first word of the User-Agent, the country, the status and how long the
+      request took. That’s the whole row: enough to see how the API gets used, not who used it.
     </p>
     <p>
       A tool or a method outside a fixed list is stored as “other”, and so is a client name the scrub empties.

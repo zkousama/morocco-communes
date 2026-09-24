@@ -31,9 +31,9 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <h2>Chaque requête</h2>
     <p>
       Chaque appel à l’API et chaque requête MCP est compté une fois, dans Workers Analytics Engine de
-      Cloudflare. La ligne garde la route sans ses codes, ou la méthode MCP et l’outil appelé, le nom que se
-      donne un client MCP, le premier mot du User-Agent, le pays, le statut et la durée de la requête. C’est toute
-      la ligne : de quoi voir comment l’API est utilisée, jamais par qui.
+      Cloudflare. La ligne garde la route sans ses codes, ou l’outil d’un message MCP quand il en appelle un et
+      sa méthode sinon, le nom que se donne un client MCP, le premier mot du User-Agent, le pays, le statut et la
+      durée de la requête. C’est toute la ligne : de quoi voir comment l’API est utilisée, jamais par qui.
     </p>
     <p>
       Un outil ou une méthode hors d’une liste fixe devient « other », tout comme un nom de client que le filtre

@@ -94,10 +94,11 @@ address one commune, and 18 exonyms are listed by hand because no amount of char
 to Fès or from `Port Lyautey` to Kénitra.
 
 **What's counted.** The alias and computed routes and the MCP server count their own use
-in Workers Analytics Engine: the route with its codes taken out, or the MCP method and
-tool, the name an MCP client gives itself, the first word of the User-Agent, the country,
-the status and how long it took. Pre-rendered files run no code, so they aren't counted.
-`pnpm stats` reads it back, with the npm, PyPI and GitHub numbers.
+in Workers Analytics Engine: the route with its codes taken out, or an MCP message's tool
+when it called one and its method otherwise, the name an MCP client gives itself, the
+first word of the User-Agent, the country, the status and how long it took. Pre-rendered
+files run no code, so they aren't counted. `pnpm stats` reads it back, with the npm, PyPI
+and GitHub numbers.
 
 A second store, in D1, counts 5 kinds of row: a search, a place opened, a tool an assistant
 calls, the name an MCP client gives itself, and a file downloaded. An assistant connecting
