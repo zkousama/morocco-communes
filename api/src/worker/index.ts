@@ -441,6 +441,16 @@ app.all("/mcp", async (c) => {
   const response = await transport.handleRequest(c.req.raw);
   const headers = new Headers(response.headers);
   headers.set("x-api-tier", "computed");
+  // What every demand row from this request has in common.
+  const from = {
+    results: -1,
+    locale: "en" as const,
+    country: countryOf(c.req.raw),
+    via: agentOf(c.req.header("user-agent")),
+    viaSite: "direct",
+    bot: isBot(c.req.header("user-agent")),
+    dataset: DATASET_VERSION,
+  };
   for (const message of messages) {
     record(c.env.USAGE, {
       kind: "mcp",
@@ -458,19 +468,18 @@ app.all("/mcp", async (c) => {
       const place = message.args?.place === undefined ? undefined : resolve(lookup, message.args.place, message.args.level);
       c.executionCtx.waitUntil(
         recordDemand(c.env.DEMAND, {
+          ...from,
           kind: "tool",
           text: message.args?.query ?? "",
           code: place?.kind === "found" ? place.code : "",
           name: message.tool,
-          results: -1,
-          locale: "en",
-          country: countryOf(c.req.raw),
-          via: agentOf(c.req.header("user-agent")),
-          viaSite: "direct",
-          client: message.client ?? "",
-          bot: isBot(c.req.header("user-agent")),
-          dataset: DATASET_VERSION,
+          client: "",
         }),
+      );
+    }
+    if (message.method === "initialize" && message.client) {
+      c.executionCtx.waitUntil(
+        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client }),
       );
     }
   }

@@ -4,7 +4,7 @@
  * rows into a person. Search text passes scrubText first, so a phone number or an email
  * typed into the box by mistake is dropped rather than stored.
  */
-export type DemandKind = "search" | "place" | "tool" | "download";
+export type DemandKind = "search" | "place" | "tool" | "client" | "download";
 
 export interface DemandRow {
   kind: DemandKind;
@@ -22,7 +22,11 @@ export interface DemandRow {
   via: string;
   /** The kind of site a visitor came from, never the address itself. */
   viaSite: string;
-  /** For MCP, the name a client gives itself. */
+  /**
+   * For MCP, the name a client gives itself. It arrives only with the handshake, and the
+   * transport keeps no session to carry it to later requests, so it's set on client rows
+   * and "" on tool rows.
+   */
   client: string;
   bot: 0 | 1;
   /** The dataset version live at the time. */

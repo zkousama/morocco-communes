@@ -133,6 +133,31 @@ describe("demand rows from the API", () => {
   });
 });
 
+describe("the assistants that connect", () => {
+  it("are counted from the handshake, one client row each", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(
+      mcp({
+        jsonrpc: "2.0",
+        id: 0,
+        method: "initialize",
+        params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "claude-code", version: "2.0.0" } },
+      }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(rows.map(named)).toMatchObject([{ kind: "client", name: "claude-code", client: "claude-code", text: "", code: "" }]);
+  });
+
+  it("aren't counted from a tools/list, and a tool row doesn't claim to know the client", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(mcp({ jsonrpc: "2.0", id: 2, method: "tools/list" }), env(rows) as never, ctx as never);
+    expect(rows).toHaveLength(0);
+    await app.fetch(call("get_commune", { id: "tanger" }), env(rows) as never, ctx as never);
+    expect(rows.map(named)).toMatchObject([{ kind: "tool", client: "" }]);
+  });
+});
+
 describe("the place an assistant asks about", () => {
   it("is the code get_commune's id resolves to", async () => {
     const rows: Captured[] = [];
