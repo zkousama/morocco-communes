@@ -10,7 +10,7 @@ import { near, search, type Hit, type Level, type SearchIndex } from "../lib/sea
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
 import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import type { IndicatorTable } from "../lib/indicators.ts";
-import { createMcpServer, TOOL_NAMES } from "../mcp/server.ts";
+import { createMcpServer } from "../mcp/server.ts";
 import { agentOf, mcpMessages, record, routeOf, type UsageDataset } from "./usage.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
@@ -486,7 +486,8 @@ app.all("/mcp", async (c) => {
 
     if (message.tool) {
       // Stored as the code it resolves to, the way the tool reads it, so a slug that names
-      // no place leaves nothing behind.
+      // no place leaves nothing behind. message.tool already carries "other" in place of a
+      // name outside TOOL_NAMES, from mcpMessages.
       const place = message.args?.place === undefined ? undefined : resolve(lookup, message.args.place, message.args.level);
       c.executionCtx.waitUntil(
         recordDemand(c.env.DEMAND, {
@@ -494,17 +495,16 @@ app.all("/mcp", async (c) => {
           kind: "tool",
           text: message.args?.query ?? "",
           code: place?.kind === "found" ? place.code : "",
-          name: TOOL_NAMES.has(message.tool) ? message.tool : "other",
+          name: message.tool,
           client: "",
           named: message.args?.query ? namesAPlace(message.args.query) : 0,
         }),
       );
     }
     if (message.method === "initialize" && message.client) {
-      // A client names itself in free text, so the name passes the scrub a search does.
-      const client = scrubText(message.client, knownCode) || "other";
+      // message.client already passed the scrub, in mcpMessages.
       c.executionCtx.waitUntil(
-        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: client, client, named: 0 }),
+        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client, named: 0 }),
       );
     }
   }

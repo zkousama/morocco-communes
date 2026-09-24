@@ -8,6 +8,7 @@
  * the country are enough to see how it's used and by what.
  */
 import type { Level } from "../lib/search.ts";
+import { TOOL_NAMES } from "../mcp/server.ts";
 import { scrubText } from "./demand.ts";
 
 export interface UsageDataset {
@@ -62,10 +63,29 @@ const CODE = /^[0-9][0-9.]{1,13}$/;
 const SLUG = /^[a-z0-9][a-z0-9-]{1,60}$/;
 const LEVELS = new Set<string>(["commune", "arrondissement", "province", "region", "cercle"] satisfies Level[]);
 
+/** The JSON-RPC methods an MCP server answers. Anything else, "other". */
+const METHODS = new Set([
+  "initialize",
+  "ping",
+  "tools/list",
+  "tools/call",
+  "prompts/list",
+  "prompts/get",
+  "resources/list",
+  "resources/read",
+  "resources/templates/list",
+  "completion/complete",
+  "logging/setLevel",
+]);
+
 /**
  * Each JSON-RPC message in an MCP request: its method, the tool a call names, and the name
  * an initialize gives its client. Notifications are left out, since they say nothing about
  * use. A body that isn't JSON-RPC gives nothing.
+ *
+ * The tool, the client and the method are filtered here, once, so both the demand log and
+ * Analytics Engine's `record()` get the same values: a tool outside `TOOL_NAMES`, a client
+ * that scrubs to nothing, or a method outside the fixed list all become "other".
  */
 export function mcpMessages(
   body: unknown,
@@ -75,19 +95,21 @@ export function mcpMessages(
   const messages = Array.isArray(body) ? body : [body];
   return messages.flatMap((message) => {
     if (!message || typeof message !== "object") return [];
-    const { method, params } = message as { method?: unknown; params?: Record<string, unknown> };
-    if (typeof method !== "string" || method.startsWith("notifications/")) return [];
-    const tool = method === "tools/call" && typeof params?.name === "string" ? params.name.slice(0, 60) : undefined;
-    const info = method === "initialize" ? (params?.clientInfo as { name?: unknown } | undefined) : undefined;
-    const client = typeof info?.name === "string" ? info.name.slice(0, 60) : undefined;
+    const { method: given, params } = message as { method?: unknown; params?: Record<string, unknown> };
+    if (typeof given !== "string" || given.startsWith("notifications/")) return [];
+    const method = METHODS.has(given) ? given : "other";
+    const name = given === "tools/call" && typeof params?.name === "string" ? params.name : undefined;
+    const tool = name === undefined ? undefined : TOOL_NAMES.has(name) ? name : "other";
+    const info = given === "initialize" ? (params?.clientInfo as { name?: unknown } | undefined) : undefined;
+    const client = typeof info?.name === "string" ? scrubText(info.name, knownCode) || "other" : undefined;
 
     // Only the place a tool names, the level it's read at and a free-text query are kept.
     // The tools name a place as id or unit, by code or slug, lower-cased here since an
     // assistant writes Tanger as often as tanger, and anything else there is left out. The
     // query passes scrubText first, the way a site search is scrubbed.
-    const raw = (method === "tools/call" ? (params?.arguments as Record<string, unknown> | undefined) : undefined) ?? {};
-    const given = [raw.code, raw.id, raw.unit].find((value): value is string => typeof value === "string")?.trim().toLowerCase();
-    const place = given !== undefined && (CODE.test(given) || SLUG.test(given)) ? given : undefined;
+    const raw = (given === "tools/call" ? (params?.arguments as Record<string, unknown> | undefined) : undefined) ?? {};
+    const givenPlace = [raw.code, raw.id, raw.unit].find((value): value is string => typeof value === "string")?.trim().toLowerCase();
+    const place = givenPlace !== undefined && (CODE.test(givenPlace) || SLUG.test(givenPlace)) ? givenPlace : undefined;
     const level = place && typeof raw.level === "string" && LEVELS.has(raw.level) ? (raw.level as Level) : undefined;
     const query = typeof raw.query === "string" ? scrubText(raw.query, knownCode) : "";
     const args = { ...(place && { place }), ...(level && { level }), ...(query !== "" && { query }) };

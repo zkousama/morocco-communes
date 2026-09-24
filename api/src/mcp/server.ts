@@ -26,7 +26,7 @@ export interface McpDeps {
 const LEVELS = ["commune", "arrondissement", "province", "region", "cercle"] as const satisfies readonly Level[];
 
 /**
- * The tools registered below. The demand log keeps a tool's name only when it's one of
+ * The tools registered below. Usage counting keeps a tool's name only when it's one of
  * these, since a call can name anything; a test holds this to the registrations.
  */
 export const TOOL_NAMES: ReadonlySet<string> = new Set([

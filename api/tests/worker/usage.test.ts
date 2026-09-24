@@ -47,6 +47,23 @@ describe("mcpMessages", () => {
     const [message] = mcpMessages({ method: "tools/call", params: { name: "search", arguments: { visitor: "private" } } });
     expect(JSON.stringify(message)).not.toContain("private");
   });
+
+  it("filters the tool, the client and the method the way the demand log does, so Analytics Engine gets the same values", () => {
+    expect(mcpMessages({ method: "tools/call", params: { name: "ahmed 0612345678", arguments: {} } })).toEqual([
+      { method: "tools/call", tool: "other", args: {} },
+    ]);
+    expect(mcpMessages({ method: "initialize", params: { clientInfo: { name: "ahmed 0612345678" } } })).toEqual([
+      { method: "initialize", client: "other" },
+    ]);
+    expect(mcpMessages({ id: 1, method: "x/drop table" })).toEqual([{ method: "other" }]);
+    expect(mcpMessages({ method: "tools/call", params: { name: "get_commune", arguments: {} } })).toEqual([
+      { method: "tools/call", tool: "get_commune", args: {} },
+    ]);
+    expect(mcpMessages({ method: "initialize", params: { clientInfo: { name: "claude-code" } } })).toEqual([
+      { method: "initialize", client: "claude-code" },
+    ]);
+    expect(mcpMessages({ method: "tools/list" })).toEqual([{ method: "tools/list" }]);
+  });
 });
 
 describe("record", () => {
