@@ -67,6 +67,12 @@ describe("the units", () => {
     expect(data.units.get("07.191.11.13")?.basis).toBe("crosswalk"); // Lounasda
   });
 
+  it("reads a non-commune's 2014 population off its own census record, not attributes", () => {
+    const province = data.units.get("01.511")!; // Tanger-Assilah
+    expect(province.population.y2014).toBe(1065601);
+    expect(data.country.population.y2014).toBeGreaterThan(30_000_000);
+  });
+
   it("keeps a missing figure as null, never NaN", () => {
     for (const unit of data.units.values()) {
       for (const value of Object.values(unit.figures.y2024)) expect(Number.isNaN(value)).toBe(false);

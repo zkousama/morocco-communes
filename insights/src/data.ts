@@ -167,7 +167,12 @@ export function loadData(dir = "data/v1"): Data {
     const list = attributes.map((attr): Unit => {
       const population2024 = attr.population["2024"].total;
       const isCommune = level === "commune";
-      const population2014 = isCommune ? (attr.population["2014"]?.total ?? null) : null;
+      // A commune's 2014 population is the attributes' own reconciled figure, matched
+      // across the boundary changes a `basis` records. Every other level's boundary
+      // didn't need reconciling, so its 2014 population is just its own census record's.
+      const population2014 = isCommune
+        ? (attr.population["2014"]?.total ?? null)
+        : censusValue(census2014ByCode.get(attr.code) ?? null, "population.legal");
       const basis = isCommune ? (attr.population.change?.basis ?? null) : null;
       return {
         code: attr.code,
@@ -214,7 +219,7 @@ export function loadData(dir = "data/v1"): Data {
     level: "region",
     name: { fr: census.name.fr, ar: census.name.ar },
     parent: null,
-    population: { y2014: null, y2024: countryPopulation },
+    population: { y2014: censusValue(census2014, "population.legal"), y2024: countryPopulation },
     basis: null,
     neighbours: [],
     figures: buildFigures(census, census2014, housing, economy, countryPopulation),
