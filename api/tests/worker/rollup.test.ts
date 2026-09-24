@@ -117,6 +117,43 @@ describe("the rollup", () => {
   });
 });
 
+describe("a search's text in the rollup", () => {
+  const texts = (database: DatabaseSync) => database.prepare("SELECT kind, text, n FROM daily ORDER BY n DESC").all();
+
+  it("goes when the search found nothing and was typed fewer than 3 times, and stays in the raw rows", () => {
+    const database = db();
+    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "someone", results: 0 }, 2);
+    database.prepare(ROLLUP).run("2026-09-23");
+    expect(texts(database)).toEqual([{ kind: "search", text: "", n: 2 }]);
+    expect(database.prepare("SELECT DISTINCT text FROM events").all()).toEqual([{ text: "someone" }]);
+  });
+
+  it("stays when the search was typed 3 times, found or not", () => {
+    const database = db();
+    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "xyzzy", results: 0 }, 3);
+    database.prepare(ROLLUP).run("2026-09-23");
+    expect(texts(database)).toEqual([{ kind: "search", text: "xyzzy", n: 3 }]);
+  });
+
+  it("stays when the search found something, even once", () => {
+    const database = db();
+    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "tanger", results: 4 });
+    database.prepare(ROLLUP).run("2026-09-23");
+    expect(texts(database)).toEqual([{ kind: "search", text: "tanger", n: 1 }]);
+  });
+
+  it("holds an assistant's query to the same rule, where nothing says what it found", () => {
+    const database = db();
+    event(database, { day: "2026-09-23", kind: "tool", name: "search", text: "tiznit" }, 3);
+    event(database, { day: "2026-09-23", kind: "tool", name: "search", text: "someone" });
+    database.prepare(ROLLUP).run("2026-09-23");
+    expect(texts(database)).toEqual([
+      { kind: "tool", text: "tiznit", n: 3 },
+      { kind: "tool", text: "", n: 1 },
+    ]);
+  });
+});
+
 describe("the nightly run", () => {
   it("exports nothing but its handler, since the Workers runtime won't start on a string export", () => {
     expect(Object.keys(worker)).toEqual(["default"]);
