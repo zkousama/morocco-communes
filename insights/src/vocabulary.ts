@@ -269,13 +269,21 @@ export function evaluate(check: Check, finding: Finding, data: Data): Outcome {
   return evaluateRank(check, finding, data);
 }
 
-/** Every number in a check, rounded to 1 decimal, with keys sorted at every level. */
-function canonical(value: unknown): unknown {
-  if (typeof value === "number") return Math.round(value * 10) / 10;
-  if (Array.isArray(value)) return value.map(canonical);
+/**
+ * Every number in a check, rounded to 1 decimal, with keys sorted at every level. `share`
+ * is rounded to 2: it lives in [0, 0.5], where a 1-decimal round would make 0.05 and 0.1
+ * (or 0.01 and 0.04) sign the same, and a rank's share is the whole test.
+ */
+function canonical(value: unknown, key?: string): unknown {
+  if (typeof value === "number") {
+    const decimals = key === "share" ? 2 : 1;
+    const factor = 10 ** decimals;
+    return Math.round(value * factor) / factor;
+  }
+  if (Array.isArray(value)) return value.map((v) => canonical(v));
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
-    for (const key of Object.keys(value as Record<string, unknown>).sort()) out[key] = canonical((value as Record<string, unknown>)[key]);
+    for (const k of Object.keys(value as Record<string, unknown>).sort()) out[k] = canonical((value as Record<string, unknown>)[k], k);
     return out;
   }
   return value;
