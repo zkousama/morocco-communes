@@ -25,7 +25,7 @@ export interface DemandRow {
   named: 0 | 1;
   locale: "en" | "fr";
   country: string;
-  /** The first product of the User-Agent, as usage.ts reads it. */
+  /** "browser" on a beacon's row, and otherwise the first product of the User-Agent, as usage.ts reads it. */
   via: string;
   /** The kind of site a visitor came from, never the address itself. */
   viaSite: string;
