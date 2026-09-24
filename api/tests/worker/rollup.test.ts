@@ -61,6 +61,19 @@ const insert = (database: DatabaseSync, day: string, code: string, times: number
   }
 };
 
+/** Any kind of row, with the columns the rollup reads and the rest left to their defaults. */
+const event = (
+  database: DatabaseSync,
+  row: { day: string; kind: string; text?: string; code?: string; name?: string; results?: number },
+  times = 1,
+) => {
+  for (let i = 0; i < times; i += 1) {
+    database
+      .prepare("INSERT INTO events (day, kind, text, code, name, results) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(row.day, row.kind, row.text ?? "", row.code ?? "", row.name ?? "", row.results ?? -1);
+  }
+};
+
 describe("the rollup", () => {
   it("counts a day into one row per group", () => {
     const database = db();
@@ -80,6 +93,17 @@ describe("the rollup", () => {
     database.prepare(ROLLUP).run("2026-09-23");
     database.prepare(ROLLUP).run("2026-09-23");
     expect(database.prepare("SELECT n FROM daily").get()).toEqual({ n: 2 });
+  });
+
+  it("keeps which tool was called, so it's still known once the raw rows have gone", () => {
+    const database = db();
+    event(database, { day: "2026-09-23", kind: "tool", name: "get_commune" }, 2);
+    event(database, { day: "2026-09-23", kind: "tool", name: "get_indicators" });
+    database.prepare(ROLLUP).run("2026-09-23");
+    expect(database.prepare("SELECT kind, name, n FROM daily ORDER BY n DESC").all()).toEqual([
+      { kind: "tool", name: "get_commune", n: 2 },
+      { kind: "tool", name: "get_indicators", n: 1 },
+    ]);
   });
 
   it("deletes what is past 90 days and keeps the rest, including the cut-off day itself", () => {

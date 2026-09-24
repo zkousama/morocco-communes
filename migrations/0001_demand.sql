@@ -23,11 +23,12 @@ CREATE TABLE IF NOT EXISTS daily (
   kind TEXT NOT NULL,
   text TEXT NOT NULL DEFAULT '',
   code TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
   locale TEXT NOT NULL DEFAULT 'en',
   country TEXT NOT NULL DEFAULT '',
   via TEXT NOT NULL DEFAULT '',
   via_site TEXT NOT NULL DEFAULT 'direct',
   bot INTEGER NOT NULL DEFAULT 0,
   n INTEGER NOT NULL,
-  PRIMARY KEY (day, kind, text, code, locale, country, via, via_site, bot)
+  PRIMARY KEY (day, kind, text, code, name, locale, country, via, via_site, bot)
 );
