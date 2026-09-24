@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "most-looked-up/"] as const;
+export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/privacy/", "most-looked-up/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -202,6 +202,8 @@ export const ui = {
     attentionBody: "How often each place was opened on this site, over the last 30 days.",
     attentionEmpty: "Nothing counted yet.",
     attentionSince: "Counted since",
+    footerPrivacy: "Privacy",
+
     footerData: "Codes, population and census figures from the Haut-Commissariat au Plan, RGPH 2024 and 2014.",
     footerGeometry: "Boundaries from OpenStreetMap contributors, under the ODbL.",
     repo: "Source",
@@ -386,6 +388,8 @@ export const ui = {
     attentionBody: "Combien de fois chaque lieu a été ouvert sur ce site, sur les 30 derniers jours.",
     attentionEmpty: "Rien de compté pour l’instant.",
     attentionSince: "Compté depuis le",
+    footerPrivacy: "Confidentialité",
+
     footerData: "Codes, population et chiffres du recensement : Haut-Commissariat au Plan, RGPH 2024 et 2014.",
     footerGeometry: "Limites : contributeurs d’OpenStreetMap, sous licence ODbL.",
     repo: "Code source",
