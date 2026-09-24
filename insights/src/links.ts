@@ -46,6 +46,7 @@ export interface LinkOutcome {
 }
 
 const MIN_UNITS = 30;
+const MIN_HALF = 10; // peers: the smaller of its 2 halves must reach this, or a lopsided (or empty) split slips through
 const PERMUTATION_ROUNDS = 999;
 const PLACEBO_COUNT = 3;
 
@@ -55,6 +56,11 @@ function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 1 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+}
+
+/** Every value in the array is the same; a correlation over it isn't computable. */
+function isConstant(values: number[]): boolean {
+  return values.every((v) => v === values[0]);
 }
 
 /** A unit's 2024 value for `path`, or (year `"change"`) its 2024 figure minus its 2014 one; null unless both sides are finite. */
@@ -82,12 +88,20 @@ function pairedValues(units: Unit[], xPath: string, yPath: string, year: 2024 | 
   return { x, y };
 }
 
+/** A level's units, dropping a crosswalk-matched commune's changed figures when `year` is `"change"`: its 2014 figure describes a different area, exactly as `detect.ts`'s own change findings do. */
+function eligibleUnits(data: Data, level: Level, year: 2024 | "change"): Unit[] {
+  const units = data.byLevel.get(level) ?? [];
+  return year === "change" ? units.filter((u) => u.basis !== "crosswalk") : units;
+}
+
 /**
- * 3 percent fields, deterministic for a given seed: never the topic of either measure,
- * never a member of either measure's family, and (when `requireComparable`) only fields
- * with a 2014 figure asked the same way.
+ * Every percent field, shuffled deterministically for a given seed: never the topic of
+ * either measure, never a member of either measure's family, and (when
+ * `requireComparable`) only fields with a 2014 figure asked the same way. The caller tries
+ * them from the front until 3 actually compute; not every field pairs well with every
+ * outcome once missing data and a level's own spread are accounted for.
  */
-function pickPlacebos(measureA: string, measureB: string, requireComparable: boolean, seed: number): Field[] {
+function shuffledCandidates(measureA: string, measureB: string, requireComparable: boolean, seed: number): Field[] {
   const topics = new Set([field(measureA)!.topic, field(measureB)!.topic]);
   const family = new Set([...familyOf(measureA), ...familyOf(measureB)]);
   const candidates = FIELDS.filter(
@@ -101,7 +115,18 @@ function pickPlacebos(measureA: string, measureB: string, requireComparable: boo
     shuffled[i] = shuffled[j]!;
     shuffled[j] = vi;
   }
-  return shuffled.slice(0, PLACEBO_COUNT);
+  return shuffled;
+}
+
+/** The first 3 computable effects among `candidates`, in order; null if fewer than 3 of them compute at all. */
+function collectPlacebos(candidates: Field[], effectOf: (path: string) => number | null): number[] | null {
+  const effects: number[] = [];
+  for (const candidate of candidates) {
+    if (effects.length === PLACEBO_COUNT) break;
+    const effect = effectOf(candidate.path);
+    if (effect != null && Number.isFinite(effect)) effects.push(effect);
+  }
+  return effects.length === PLACEBO_COUNT ? effects : null;
 }
 
 /**
@@ -133,26 +158,43 @@ function splitByPeers(units: Unit[], premisePath: string, outcomePath: string): 
   return { a, b };
 }
 
+/** `x`/`y` paired over `units`, and whether that pairing is even usable: enough units, and neither side stuck on one value (a correlation over a constant array isn't computable). */
+function togetherPair(units: Unit[], xPath: string, yPath: string, year: 2024 | "change"): { x: number[]; y: number[]; n: number; usable: boolean } {
+  const { x, y } = pairedValues(units, xPath, yPath, year);
+  const usable = x.length >= MIN_UNITS && !isConstant(x) && !isConstant(y);
+  return { x, y, n: x.length, usable };
+}
+
 function runTogether(test: Extract<LinkTest, { link: "together" }>, data: Data, seed: number): LinkOutcome {
   const xField = field(test.x);
   const yField = field(test.y);
   if (!xField || !yField) return refused(0, "unknown field");
   if (test.year === "change" && (!xField.comparable || !yField.comparable)) return refused(0, "not comparable");
 
-  const units = data.byLevel.get(test.level) ?? [];
-  const { x, y } = pairedValues(units, test.x, test.y, test.year);
-  if (x.length < MIN_UNITS) return refused(x.length, "too few units");
+  const units = eligibleUnits(data, test.level, test.year);
+  const pair = togetherPair(units, test.x, test.y, test.year);
+  if (!pair.usable) return refused(pair.n, pair.n < MIN_UNITS ? "too few units" : "no variation");
 
-  const rho = spearman(x, y);
-  const p = permutationP(x, y, rho, PERMUTATION_ROUNDS, seed);
+  const rho = spearman(pair.x, pair.y);
+  const p = permutationP(pair.x, pair.y, rho, PERMUTATION_ROUNDS, seed);
   const held = test.direction === "positive" ? rho > 0 : rho < 0;
 
-  const placeboEffects = pickPlacebos(test.x, test.y, test.year === "change", seed).map((placebo) => {
-    const paired = pairedValues(units, placebo.path, test.y, test.year);
-    return spearman(paired.x, paired.y);
+  const candidates = shuffledCandidates(test.x, test.y, test.year === "change", seed);
+  const placeboEffects = collectPlacebos(candidates, (path) => {
+    const placeboPair = togetherPair(units, path, test.y, test.year);
+    return placeboPair.usable ? spearman(placeboPair.x, placeboPair.y) : null;
   });
+  if (!placeboEffects) return refused(pair.n, "too few computable placebos");
 
-  return { p, effect: rho, held, placeboEffects, n: x.length };
+  return { p, effect: rho, held, placeboEffects, n: pair.n };
+}
+
+/** The `premisePath`/`outcomePath` peer split over `units`, and whether it's usable: at least 30 units pooled, and neither half under 10 (an empty or lopsided half breaks the median difference and the Mann-Whitney test alike). */
+function peersSplit(units: Unit[], premisePath: string, outcomePath: string): { a: number[]; b: number[]; n: number; usable: boolean } {
+  const { a, b } = splitByPeers(units, premisePath, outcomePath);
+  const n = a.length + b.length;
+  const usable = n >= MIN_UNITS && a.length >= MIN_HALF && b.length >= MIN_HALF;
+  return { a, b, n, usable };
 }
 
 function runPeers(test: Extract<LinkTest, { link: "peers" }>, data: Data, seed: number): LinkOutcome {
@@ -161,18 +203,20 @@ function runPeers(test: Extract<LinkTest, { link: "peers" }>, data: Data, seed: 
   if (!premiseField || !outcomeField) return refused(0, "unknown field");
 
   const units = data.byLevel.get(test.level) ?? [];
-  const { a, b } = splitByPeers(units, test.premise, test.outcome);
-  const n = a.length + b.length;
-  if (n < MIN_UNITS) return refused(n, "too few units");
+  const split = peersSplit(units, test.premise, test.outcome);
+  if (!split.usable) return refused(split.n, split.n < MIN_UNITS ? "too few units" : "unbalanced halves");
 
+  const { a, b, n } = split;
   const p = mannWhitneyP(a, b);
   const effect = median(a) - median(b);
   const held = test.direction === "higher" ? effect > 0 : effect < 0;
 
-  const placeboEffects = pickPlacebos(test.premise, test.outcome, false, seed).map((placebo) => {
-    const split = splitByPeers(units, placebo.path, test.outcome);
-    return median(split.a) - median(split.b);
+  const candidates = shuffledCandidates(test.premise, test.outcome, false, seed);
+  const placeboEffects = collectPlacebos(candidates, (path) => {
+    const placeboSplit = peersSplit(units, path, test.outcome);
+    return placeboSplit.usable ? median(placeboSplit.a) - median(placeboSplit.b) : null;
   });
+  if (!placeboEffects) return refused(n, "too few computable placebos");
 
   return { p, effect, held, placeboEffects, n };
 }

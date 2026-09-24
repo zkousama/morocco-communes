@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
-import { judgeLinks, runLink } from "../src/links.ts";
+import { FIELDS } from "../src/fields.ts";
+import { judgeLinks, runLink, type LinkOutcome } from "../src/links.ts";
 
 const data = loadData();
+
+/** Either the outcome was refused, or every number in it is finite - never NaN, never Infinity. */
+function expectFiniteOrRefused(outcome: LinkOutcome): void {
+  if (outcome.refused) return;
+  expect(Number.isFinite(outcome.p)).toBe(true);
+  expect(Number.isFinite(outcome.effect)).toBe(true);
+  expect(outcome.placeboEffects).toHaveLength(3);
+  for (const placebo of outcome.placeboEffects) expect(Number.isFinite(placebo)).toBe(true);
+}
 
 describe("link tests", () => {
   // across communes, Spearman's rho between higher education and fertility is about -0.41 (n = 1,492)
@@ -36,5 +46,62 @@ describe("link tests", () => {
     const wrongWay = { ...strong, held: false };
     const weak = { ...strong, p: 0.3, effect: 0.05 };
     expect(judgeLinks([strong, placeboBeatsIt, wrongWay, weak])).toEqual(["consistent", "not consistent", "not consistent", "not consistent"]);
+  });
+});
+
+describe("link tests: refuses what it can't compute", () => {
+  it("refuses a peers split that leaves one side empty, rather than returning NaN", () => {
+    // almost every commune has 0% tram commuters, so most régions' median is 0 and one
+    // whole side of the split (nothing below 0) comes back empty
+    const outcome = runLink(
+      { link: "peers", premise: "commute.tram", outcome: "fertility.totalFertilityRate", level: "commune", direction: "higher" },
+      data,
+      1,
+    );
+    expect(outcome.refused).toBeTruthy();
+    expect(outcome.effect).toBe(0);
+    expect(outcome.placeboEffects).toEqual([]);
+  });
+
+  it("runs a peers link on real data with a finite effect and 3 finite placebos", () => {
+    // communes above their région's median unemployment rate have a lower median fertility
+    // rate than the ones below it (about -0.15, n = 1,480 across both halves)
+    const outcome = runLink(
+      { link: "peers", premise: "labour.unemploymentRate", outcome: "fertility.totalFertilityRate", level: "commune", direction: "lower" },
+      data,
+      1,
+    );
+    expect(outcome.refused).toBeUndefined();
+    expect(outcome.n).toBe(1480);
+    expect(outcome.effect).toBeCloseTo(-0.15, 1);
+    expect(outcome.held).toBe(true);
+    expect(Number.isFinite(outcome.p)).toBe(true);
+    expect(outcome.placeboEffects).toHaveLength(3);
+    for (const placebo of outcome.placeboEffects) expect(Number.isFinite(placebo)).toBe(true);
+  });
+
+  it("never returns NaN for any percent field tested against fertility, together or peers", () => {
+    for (const f of FIELDS) {
+      if (f.unit !== "percent") continue;
+      expectFiniteOrRefused(
+        runLink({ link: "together", x: f.path, y: "fertility.totalFertilityRate", year: 2024, level: "commune", direction: "negative" }, data, 1),
+      );
+      expectFiniteOrRefused(
+        runLink({ link: "peers", premise: f.path, outcome: "fertility.totalFertilityRate", level: "commune", direction: "higher" }, data, 1),
+      );
+    }
+  });
+
+  it("leaves out a crosswalk-matched commune from a change link", () => {
+    const withCrosswalk = (data.byLevel.get("commune") ?? []).filter((u) => {
+      const paths = ["labour.unemploymentRate", "fertility.totalFertilityRate"];
+      return paths.every((path) => u.figures.y2024[path] != null && u.figures.y2014[path] != null);
+    }).length;
+    const outcome = runLink(
+      { link: "together", x: "labour.unemploymentRate", y: "fertility.totalFertilityRate", year: "change", level: "commune", direction: "negative" },
+      data,
+      1,
+    );
+    expect(outcome.n).toBeLessThan(withCrosswalk);
   });
 });
