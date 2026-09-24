@@ -43,3 +43,25 @@ describe("the data paths the site and API name", () => {
     expect(missing.map((m) => `${m.file} names ${m.path}`)).toEqual([]);
   });
 });
+
+describe("the privacy page", () => {
+  const pages = [
+    "site/src/pages/docs/privacy.astro",
+    "site/src/pages/fr/docs/privacy.astro",
+  ].map((path) => readFileSync(path, "utf8"));
+
+  it("carries the privacy page in both languages", () => {
+    for (const page of pages) expect(page).toMatch(/90/);
+  });
+
+  // The retention windows and the scrub's own thresholds, pinned so a change to either
+  // store's numbers is felt here too, not just read back from the code by whoever changes it.
+  it("states the numbers the code and the config actually use", () => {
+    for (const page of pages) {
+      expect(page).toMatch(/64/); // demand.ts: MAX_CHARACTERS
+      expect(page).toMatch(/6/); // demand.ts: the word and digit thresholds
+      expect(page).toMatch(/90/); // workers/rollup: KEEP
+      expect(page).toMatch(/3/); // sql.ts: the search's keep-count, and wrangler.toml's 3 months
+    }
+  });
+});
