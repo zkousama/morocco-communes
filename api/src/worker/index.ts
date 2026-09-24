@@ -474,6 +474,47 @@ app.all("/mcp", async (c) => {
   return new Response(response.body, { status: response.status, headers });
 });
 
+const CODE = /^[0-9][0-9.]{1,13}$/;
+const FILE = /^[a-z0-9][a-z0-9/._-]{2,79}$/;
+
+/**
+ * What a static page can't count for itself: a place opened, a file taken. The pages and
+ * the files are served without running code, so the browser says so here instead. Same
+ * origin only, and a body that isn't one of ours writes nothing.
+ */
+app.post("/api/beacon", async (c) => {
+  const url = new URL(c.req.url);
+  const origin = c.req.header("origin");
+  if (origin && new URL(origin).host !== url.host) return new Response(null, { status: 400 });
+  const body = (await c.req.raw.clone().json().catch(() => null)) as
+    | { kind?: unknown; code?: unknown; file?: unknown; locale?: unknown }
+    | null;
+  if (!body || typeof body !== "object") return new Response(null, { status: 400 });
+  const kind = body.kind === "place" || body.kind === "download" ? body.kind : null;
+  const code = typeof body.code === "string" && CODE.test(body.code) ? body.code : "";
+  const file = typeof body.file === "string" && FILE.test(body.file) ? body.file : "";
+  if (!kind || (kind === "place" && code === "") || (kind === "download" && file === "")) {
+    return new Response(null, { status: 400 });
+  }
+  c.executionCtx.waitUntil(
+    recordDemand(c.env.DEMAND, {
+      kind,
+      text: "",
+      code: kind === "place" ? code : file,
+      name: kind,
+      results: -1,
+      locale: body.locale === "fr" ? "fr" : "en",
+      country: countryOf(c.req.raw),
+      via: "browser",
+      viaSite: viaSiteOf(c.req.header("referer"), url.host),
+      client: "",
+      bot: isBot(c.req.header("user-agent")),
+      dataset: DATASET_VERSION,
+    }),
+  );
+  return new Response(null, { status: 204 });
+});
+
 /**
  * Two audiences reach this. A client calling /api/* that got a path wrong wants a problem
  * document it can parse; a person who mistyped a page wants a page. Anything outside /api

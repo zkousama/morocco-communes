@@ -109,6 +109,7 @@ getCommune("${c.slug}");`;
   locale={locale}
   route={`communes/${c.slug}/`}
   title={c.name.fr}
+  code={c.code}
   data={placeData({
     site: Astro.site,
     href: path(locale, `communes/${c.slug}/`),

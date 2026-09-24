@@ -1,5 +1,6 @@
 ---
 import Base from "./Base.astro";
+import Beacon from "../components/Beacon.astro";
 import type { Locale } from "../i18n/ui";
 
 interface Props {
@@ -16,12 +17,15 @@ interface Props {
   lede: string;
   /** The page's schema.org description, from placeData(). */
   data?: Record<string, unknown> | null;
+  /** The unit's own code, for the beacon. Left out on a page that is no one unit, such as the browse list. */
+  code?: string;
 }
-const { locale, route, title, documentTitle, description, trail, arabic, lede, data } = Astro.props;
+const { locale, route, title, documentTitle, description, trail, arabic, lede, data, code } = Astro.props;
 ---
 
 <Base locale={locale} route={route} title={documentTitle ?? title} description={description}>
   {data && <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(data)} />}
+  <Beacon code={code} locale={locale} />
   <article class="place">
     <header>
       {trail.length > 0 && (

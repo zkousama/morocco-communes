@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import Beacon from "./Beacon.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
 import Atlas from "./Map.astro";
@@ -114,6 +115,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
   {/* Search Console's proof that the site is Ousama's. It only reads the home page. */}
   <meta slot="head" name="google-site-verification" content="L222F8aGhOhS6v0FmK1h4pw6Y_4J2Pfwukw4wfiEE6c" />
   {dataset && <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(dataset)} />}
+  <Beacon locale={locale} />
   <section class="hero">
     <div class="hero-words">
       <h1>{copy.tagline}</h1>
@@ -216,7 +218,7 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
           </span>
           <span class="dl-files">
             {group.files.map((file) => (
-              <a href={file.href}>
+              <a href={file.href} data-download>
                 <span class="dl-label">{file.label}</span>
                 <span class="dl-size">{size(file.bytes)}</span>
               </a>

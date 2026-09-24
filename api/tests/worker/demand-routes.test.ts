@@ -126,3 +126,53 @@ describe("demand rows from the API", () => {
     expect(tools[0]!.values).toContain("get_commune");
   });
 });
+
+const beacon = (body: unknown, headers: Record<string, string> = {}) =>
+  new Request("https://communes.pages.dev/api/beacon", {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "https://communes.pages.dev", ...headers },
+    body: typeof body === "string" ? body : JSON.stringify(body),
+  });
+
+describe("the beacon", () => {
+  it("counts a place and answers 204", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(beacon({ kind: "place", code: "01.511.01.0", locale: "fr" }), env(rows) as never, ctx as never);
+    expect(response.status).toBe(204);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.values).toContain("01.511.01.0");
+    expect(rows[0]!.values).toContain("fr");
+  });
+
+  it("counts a download", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(beacon({ kind: "download", file: "data/v1/attributes/communes.csv" }), env(rows) as never, ctx as never);
+    expect(rows[0]!.values).toContain("data/v1/attributes/communes.csv");
+  });
+
+  it("refuses a body that isn't one of ours, and writes nothing", async () => {
+    for (const body of [
+      { kind: "place", code: "'; DROP TABLE events; --" },
+      { kind: "elsewhere", code: "01.511.01.0" },
+      { kind: "download", file: "x".repeat(500) },
+      { kind: "place", code: 42 },
+      "not json at all",
+    ]) {
+      const rows: Captured[] = [];
+      const response = await app.fetch(beacon(body), env(rows) as never, ctx as never);
+      expect(response.status).toBe(400);
+      expect(rows).toHaveLength(0);
+    }
+  });
+
+  it("refuses a request from another site", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beacon({ kind: "place", code: "01.511.01.0" }, { origin: "https://example.org" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(400);
+    expect(rows).toHaveLength(0);
+  });
+});
