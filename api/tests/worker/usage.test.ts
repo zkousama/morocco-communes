@@ -25,7 +25,7 @@ describe("agentOf", () => {
 describe("mcpMessages", () => {
   it("names the tool a call uses and the client an initialize names", () => {
     expect(mcpMessages({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "search", arguments: { query: "Tanger" } } })).toEqual([
-      { method: "tools/call", tool: "search" },
+      { method: "tools/call", tool: "search", args: { query: "tanger" } },
     ]);
     expect(mcpMessages({ jsonrpc: "2.0", id: 0, method: "initialize", params: { clientInfo: { name: "claude-ai", version: "1" } } })).toEqual([
       { method: "initialize", client: "claude-ai" },
@@ -43,8 +43,8 @@ describe("mcpMessages", () => {
     expect(mcpMessages(null)).toEqual([]);
   });
 
-  it("never keeps an argument's value", () => {
-    const [message] = mcpMessages({ method: "tools/call", params: { name: "search", arguments: { query: "private" } } });
+  it("never keeps an argument outside code or query", () => {
+    const [message] = mcpMessages({ method: "tools/call", params: { name: "search", arguments: { visitor: "private" } } });
     expect(JSON.stringify(message)).not.toContain("private");
   });
 });

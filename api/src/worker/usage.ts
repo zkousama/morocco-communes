@@ -7,6 +7,8 @@
  * route or tool, the name an MCP client gives itself, the first word of the User-Agent and
  * the country are enough to see how it's used and by what.
  */
+import { scrubText } from "./demand.ts";
+
 export interface UsageDataset {
   writeDataPoint(point: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void;
 }
@@ -60,7 +62,9 @@ export function routeOf(pathname: string): string {
  * an initialize gives its client. Notifications are left out, since they say nothing about
  * use. A body that isn't JSON-RPC gives nothing.
  */
-export function mcpMessages(body: unknown): { method: string; tool?: string; client?: string }[] {
+export function mcpMessages(
+  body: unknown,
+): { method: string; tool?: string; client?: string; args?: { code?: string; query?: string } }[] {
   const messages = Array.isArray(body) ? body : [body];
   return messages.flatMap((message) => {
     if (!message || typeof message !== "object") return [];
@@ -69,6 +73,14 @@ export function mcpMessages(body: unknown): { method: string; tool?: string; cli
     const tool = method === "tools/call" && typeof params?.name === "string" ? params.name.slice(0, 60) : undefined;
     const info = method === "initialize" ? (params?.clientInfo as { name?: unknown } | undefined) : undefined;
     const client = typeof info?.name === "string" ? info.name.slice(0, 60) : undefined;
-    return [{ method, ...(tool && { tool }), ...(client && { client }) }];
+
+    // Only a code, a filter, a sort or a limit is worth keeping; a free-text query passes
+    // scrubText first, the way a site search is scrubbed.
+    const raw = (method === "tools/call" ? (params?.arguments as Record<string, unknown> | undefined) : undefined) ?? {};
+    const code = typeof raw.code === "string" && /^[0-9][0-9.]{1,13}$/.test(raw.code) ? raw.code : undefined;
+    const query = typeof raw.query === "string" ? scrubText(raw.query) : "";
+    const args = { ...(code && { code }), ...(query !== "" && { query }) };
+
+    return [{ method, ...(tool && { tool }), ...(client && { client }), ...(tool && { args }) }];
   });
 }

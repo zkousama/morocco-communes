@@ -109,4 +109,20 @@ describe("demand rows from the API", () => {
     );
     expect(response.status).toBe(200);
   });
+
+  it("records the tool an assistant calls, not the handshake", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(
+      new Request("https://communes.pages.dev/mcp", {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "get_commune", arguments: { code: "01.511.01.0" } } }),
+      }),
+      env(rows) as never,
+      ctx as never,
+    );
+    const tools = rows.filter((r) => r.values.includes("tool"));
+    expect(tools).toHaveLength(1);
+    expect(tools[0]!.values).toContain("get_commune");
+  });
 });

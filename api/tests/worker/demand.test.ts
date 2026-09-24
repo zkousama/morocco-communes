@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isBot, localeOf, recordDemand, scrubText, viaSiteOf, type DemandRow } from "../../src/worker/demand.ts";
+import { mcpMessages } from "../../src/worker/usage.ts";
 
 describe("scrubText", () => {
   it("keeps a place the way a person typed it", () => {
@@ -111,5 +112,22 @@ describe("recordDemand", () => {
   it("swallows a database that throws", async () => {
     const db = { prepare: () => { throw new Error("D1 is down"); } };
     await expect(recordDemand(db as never, row())).resolves.toBeUndefined();
+  });
+});
+
+describe("mcpMessages arguments", () => {
+  it("keeps the code a tool names", () => {
+    expect(
+      mcpMessages({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "get_indicators", arguments: { code: "01.511.01.0" } } }),
+    ).toEqual([{ method: "tools/call", tool: "get_indicators", args: { code: "01.511.01.0" } }]);
+  });
+
+  it("scrubs a free-text query the way a site search is scrubbed", () => {
+    expect(
+      mcpMessages({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "search", arguments: { query: "someone@example.com" } } }),
+    ).toEqual([{ method: "tools/call", tool: "search", args: {} }]);
+    expect(
+      mcpMessages({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "search", arguments: { query: "Tiznit" } } }),
+    ).toEqual([{ method: "tools/call", tool: "search", args: { query: "tiznit" } }]);
   });
 });

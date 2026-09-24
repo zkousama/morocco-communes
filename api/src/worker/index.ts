@@ -451,6 +451,25 @@ app.all("/mcp", async (c) => {
       status: response.status,
       ms: Date.now() - started,
     });
+
+    if (message.tool) {
+      c.executionCtx.waitUntil(
+        recordDemand(c.env.DEMAND, {
+          kind: "tool",
+          text: message.args?.query ?? "",
+          code: message.args?.code ?? "",
+          name: message.tool,
+          results: -1,
+          locale: "en",
+          country: countryOf(c.req.raw),
+          via: agentOf(c.req.header("user-agent")),
+          viaSite: "direct",
+          client: message.client ?? "",
+          bot: isBot(c.req.header("user-agent")),
+          dataset: DATASET_VERSION,
+        }),
+      );
+    }
   }
   return new Response(response.body, { status: response.status, headers });
 });
