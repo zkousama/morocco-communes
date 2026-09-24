@@ -25,7 +25,8 @@
     "workers",
     "packages/morocco-communes/build.ts",
     "packages/morocco-communes/tests",
-    "packages/morocco-communes-py/tests"
+    "packages/morocco-communes-py/tests",
+    "insights"
   ],
   "exclude": [
     "site",
