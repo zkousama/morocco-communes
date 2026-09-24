@@ -25,6 +25,22 @@ export interface McpDeps {
 
 const LEVELS = ["commune", "arrondissement", "province", "region", "cercle"] as const satisfies readonly Level[];
 
+/**
+ * The tools registered below. The demand log keeps a tool's name only when it's one of
+ * these, since a call can name anything; a test holds this to the registrations.
+ */
+export const TOOL_NAMES: ReadonlySet<string> = new Set([
+  "search",
+  "get_commune",
+  "communes_near",
+  "commune_at",
+  "list_communes",
+  "get_unit",
+  "get_indicators",
+  "get_economy",
+  "get_housing",
+]);
+
 /** Read-only, closed-world and repeatable, which lets a client call these without asking. */
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false, idempotentHint: true } as const;
 

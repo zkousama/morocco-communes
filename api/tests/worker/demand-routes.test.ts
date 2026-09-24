@@ -239,6 +239,38 @@ describe("the assistants that connect", () => {
   });
 });
 
+describe("the names an assistant gives", () => {
+  const initialize = (name: string) =>
+    mcp({
+      jsonrpc: "2.0",
+      id: 0,
+      method: "initialize",
+      params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name, version: "1.0.0" } },
+    });
+
+  it("keep a tool's name only when the server has that tool", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(call("ahmed 0612345678", { id: "tanger" }), env(rows) as never, ctx as never);
+    await app.fetch(call("get_commune", { id: "tanger" }), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn)).toMatchObject([
+      { kind: "tool", name: "other" },
+      { kind: "tool", name: "get_commune" },
+    ]);
+    expect(JSON.stringify(rows)).not.toContain("0612345678");
+  });
+
+  it("pass a client's name through the scrub, and leave \"other\" when nothing survives it", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(initialize("ahmed 0612345678"), env(rows) as never, ctx as never);
+    await app.fetch(initialize("claude-code"), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn)).toMatchObject([
+      { kind: "client", name: "other", client: "other" },
+      { kind: "client", name: "claude-code", client: "claude-code" },
+    ]);
+    expect(JSON.stringify(rows)).not.toContain("0612345678");
+  });
+});
+
 describe("the place an assistant asks about", () => {
   it("is the code get_commune's id resolves to", async () => {
     const rows: Captured[] = [];

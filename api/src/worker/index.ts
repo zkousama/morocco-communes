@@ -10,7 +10,7 @@ import { near, search, type Hit, type Level, type SearchIndex } from "../lib/sea
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
 import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import type { IndicatorTable } from "../lib/indicators.ts";
-import { createMcpServer } from "../mcp/server.ts";
+import { createMcpServer, TOOL_NAMES } from "../mcp/server.ts";
 import { agentOf, mcpMessages, record, routeOf, type UsageDataset } from "./usage.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
@@ -490,15 +490,17 @@ app.all("/mcp", async (c) => {
           kind: "tool",
           text: message.args?.query ?? "",
           code: place?.kind === "found" ? place.code : "",
-          name: message.tool,
+          name: TOOL_NAMES.has(message.tool) ? message.tool : "other",
           client: "",
           named: message.args?.query ? namesAPlace(message.args.query) : 0,
         }),
       );
     }
     if (message.method === "initialize" && message.client) {
+      // A client names itself in free text, so the name passes the scrub a search does.
+      const client = scrubText(message.client) || "other";
       c.executionCtx.waitUntil(
-        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client, named: 0 }),
+        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: client, client, named: 0 }),
       );
     }
   }

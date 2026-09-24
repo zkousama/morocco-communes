@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
-import { createMcpServer } from "../src/mcp/server.ts";
+import { createMcpServer, TOOL_NAMES } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
 import { emitEconomy, emitHousing, emitIndicators, emitTree } from "../src/emit/static.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
@@ -81,6 +81,11 @@ describe("the MCP server, through a real client", () => {
       expect(tool.description!.length, tool.name).toBeGreaterThan(40);
       expect(tool.outputSchema, tool.name).toBeDefined();
     }
+  });
+
+  it("registers exactly the tools TOOL_NAMES lists, which the demand log keeps by name", async () => {
+    const { tools } = await client.listTools();
+    expect(tools.map((t) => t.name).sort()).toEqual([...TOOL_NAMES].sort());
   });
 
   it("tells the client how to use it", () => {
