@@ -114,27 +114,33 @@ app.use("/api/*", async (c, next) => {
   // outside a browser can claim it, and then goes uncounted.
   if (c.req.header("sec-fetch-site") === "same-origin") return;
 
-  const text = scrubText(c.get("demandText"), knownCode);
-  const code = c.get("demandCode") ?? "";
-  const kind: DemandKind | null = text !== "" ? "search" : code !== "" ? "place" : null;
-  if (kind) {
-    c.executionCtx.waitUntil(
-      recordDemand(c.env.DEMAND, {
-        kind,
-        text,
-        code,
-        name: route,
-        results: c.get("demandResults") ?? -1,
-        named: kind === "search" ? namesAPlace(text) : 0,
-        locale: localeOf(url.pathname),
-        country,
-        via: agent,
-        viaSite: viaSiteOf(c.req.header("referer"), url.host),
-        client: "",
-        bot: isBot(c.req.header("user-agent")),
-        dataset: DATASET_VERSION,
-      }),
-    );
+  // The answer is already made by now, and a row that can't be built mustn't turn it into
+  // a 500, so a throw here skips the row and nothing else.
+  try {
+    const text = scrubText(c.get("demandText"), knownCode);
+    const code = c.get("demandCode") ?? "";
+    const kind: DemandKind | null = text !== "" ? "search" : code !== "" ? "place" : null;
+    if (kind) {
+      c.executionCtx.waitUntil(
+        recordDemand(c.env.DEMAND, {
+          kind,
+          text,
+          code,
+          name: route,
+          results: c.get("demandResults") ?? -1,
+          named: kind === "search" ? namesAPlace(text) : 0,
+          locale: localeOf(url.pathname),
+          country,
+          via: agent,
+          viaSite: viaSiteOf(c.req.header("referer"), url.host),
+          client: "",
+          bot: isBot(c.req.header("user-agent")),
+          dataset: DATASET_VERSION,
+        }),
+      );
+    }
+  } catch {
+    // Counting must never cost a caller their answer.
   }
 });
 
@@ -448,7 +454,7 @@ app.get("/api/:collection", async (c) => {
 app.all("/mcp", async (c) => {
   const started = Date.now();
   // Read from a copy, so the transport still gets the body it expects.
-  const messages = c.req.method === "POST" ? mcpMessages(await c.req.raw.clone().json().catch(() => null), knownCode) : [];
+  const body: unknown = c.req.method === "POST" ? await c.req.raw.clone().json().catch(() => null) : null;
   const server = createMcpServer({
     index,
     lookup,
@@ -465,16 +471,15 @@ app.all("/mcp", async (c) => {
   const response = await transport.handleRequest(c.req.raw);
   const headers = new Headers(response.headers);
   headers.set("x-api-tier", "computed");
-  // What every demand row from this request has in common.
-  const from = {
-    results: -1,
-    locale: "en" as const,
-    country: countryOf(c.req.raw),
-    via: agentOf(c.req.header("user-agent")),
-    viaSite: "direct",
-    bot: isBot(c.req.header("user-agent")),
-    dataset: DATASET_VERSION,
-  };
+
+  // Everything below is counting, after the answer is made, and a throw in it skips what
+  // it was counting rather than the answer.
+  let messages: ReturnType<typeof mcpMessages> = [];
+  try {
+    messages = mcpMessages(body, knownCode);
+  } catch {
+    // Counting must never cost a caller their answer.
+  }
   for (const message of messages) {
     record(c.env.USAGE, {
       kind: "mcp",
@@ -486,28 +491,42 @@ app.all("/mcp", async (c) => {
       ms: Date.now() - started,
     });
 
-    if (message.tool) {
-      // Stored as the code it resolves to, the way the tool reads it, so a slug that names
-      // no place leaves nothing behind. message.tool already carries "other" in place of a
-      // name outside TOOL_NAMES, from mcpMessages.
-      const place = message.args?.place === undefined ? undefined : resolve(lookup, message.args.place, message.args.level);
-      c.executionCtx.waitUntil(
-        recordDemand(c.env.DEMAND, {
-          ...from,
-          kind: "tool",
-          text: message.args?.query ?? "",
-          code: place?.kind === "found" ? place.code : "",
-          name: message.tool,
-          client: "",
-          named: message.args?.query ? namesAPlace(message.args.query) : 0,
-        }),
-      );
-    }
-    if (message.method === "initialize" && message.client) {
-      // message.client already passed the scrub, in mcpMessages.
-      c.executionCtx.waitUntil(
-        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client, named: 0 }),
-      );
+    try {
+      // What every demand row from this request has in common.
+      const from = {
+        results: -1,
+        locale: "en" as const,
+        country: countryOf(c.req.raw),
+        via: agentOf(c.req.header("user-agent")),
+        viaSite: "direct",
+        bot: isBot(c.req.header("user-agent")),
+        dataset: DATASET_VERSION,
+      };
+      if (message.tool) {
+        // Stored as the code it resolves to, the way the tool reads it, so a slug that names
+        // no place leaves nothing behind. message.tool already carries "other" in place of a
+        // name outside TOOL_NAMES, from mcpMessages.
+        const place = message.args?.place === undefined ? undefined : resolve(lookup, message.args.place, message.args.level);
+        c.executionCtx.waitUntil(
+          recordDemand(c.env.DEMAND, {
+            ...from,
+            kind: "tool",
+            text: message.args?.query ?? "",
+            code: place?.kind === "found" ? place.code : "",
+            name: message.tool,
+            client: "",
+            named: message.args?.query ? namesAPlace(message.args.query) : 0,
+          }),
+        );
+      }
+      if (message.method === "initialize" && message.client) {
+        // message.client already passed the scrub, in mcpMessages.
+        c.executionCtx.waitUntil(
+          recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client, named: 0 }),
+        );
+      }
+    } catch {
+      // Counting must never cost a caller their answer.
     }
   }
   return new Response(response.body, { status: response.status, headers });
