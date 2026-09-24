@@ -1,0 +1,11 @@
+name = "communes-rollup"
+main = "src/index.ts"
+compatibility_date = "2026-09-17"
+
+[triggers]
+crons = ["17 3 * * *"]
+
+[[d1_databases]]
+binding = "DEMAND"
+database_name = "communes_demand"
+database_id = "b475d0f6-062f-462b-8f8f-685c438ab5ed"
