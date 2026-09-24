@@ -38,12 +38,13 @@ describe("the rollup", () => {
     expect(database.prepare("SELECT n FROM daily").get()).toEqual({ n: 2 });
   });
 
-  it("deletes what is past 90 days and keeps the rest", () => {
+  it("deletes what is past 90 days and keeps the rest, including the cut-off day itself", () => {
     const database = db();
     insert(database, "2026-06-01", "01.511.01.0", 1);
+    insert(database, "2026-06-26", "01.511.01.0", 1);
     insert(database, "2026-09-23", "01.511.01.0", 1);
     database.exec(pruneSql("2026-06-26"));
-    const days = database.prepare("SELECT DISTINCT day FROM events").all();
-    expect(days).toEqual([{ day: "2026-09-23" }]);
+    const days = database.prepare("SELECT DISTINCT day FROM events ORDER BY day").all();
+    expect(days).toEqual([{ day: "2026-06-26" }, { day: "2026-09-23" }]);
   });
 });

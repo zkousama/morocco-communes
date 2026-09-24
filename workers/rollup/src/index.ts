@@ -5,6 +5,10 @@
  */
 const KEY = "day, kind, text, code, locale, country, via, via_site, bot";
 
+// day and before below go straight into the SQL text rather than as bound parameters.
+// That's fine only because scheduled() is their one caller, and it builds them itself
+// from the run time (see dayBefore) rather than taking them off a request. Any caller
+// that starts passing in something from outside must bind it instead of interpolating.
 export const rollupSql = (day: string): string =>
   `INSERT INTO daily (${KEY}, n)
    SELECT ${KEY}, COUNT(*) FROM events WHERE day = '${day}' GROUP BY ${KEY}
