@@ -4,6 +4,12 @@
  */
 const KEY = "day, kind, text, code, name, locale, country, via, via_site, bot";
 
+/** How long a raw row lives. The privacy page states it. */
+export const KEEP_DAYS = 90;
+
+/** How many times a search has to be typed in a day to keep its text whatever it is. */
+export const TYPED = 3;
+
 /**
  * One day's rows as counts. Run again for the same day, it replaces its counts rather than
  * adding to them.
@@ -18,7 +24,7 @@ export const ROLLUP = `WITH kept AS (
     SELECT kind, text FROM events
     WHERE day = ?1 AND text != ''
     GROUP BY kind, text
-    HAVING MAX(named) = 1 OR COUNT(*) >= 3
+    HAVING MAX(named) = 1 OR COUNT(*) >= ${TYPED}
   ),
   folded AS (
     SELECT day, kind, CASE WHEN (kind, text) IN (SELECT kind, text FROM kept) THEN text ELSE '' END AS text,

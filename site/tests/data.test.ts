@@ -1,6 +1,8 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { MAX_CHARACTERS, MAX_WORDS, TOO_MANY_DIGITS } from "../../api/src/worker/demand.ts";
+import { KEEP_DAYS, TYPED } from "../../workers/rollup/src/sql.ts";
 
 /**
  * The dataset paths the build reads and the download page offers.
@@ -83,14 +85,32 @@ describe("the privacy page", () => {
     }
   });
 
-  // The retention windows and the scrub's own thresholds, pinned so a change to either
-  // store's numbers is felt here too, not just read back from the code by whoever changes it.
-  it("states the numbers the code and the config actually use", () => {
-    for (const page of pages) {
-      expect(page).toMatch(/64/); // demand.ts: MAX_CHARACTERS
-      expect(page).toMatch(/6/); // demand.ts: the word and digit thresholds
-      expect(page).toMatch(/90/); // workers/rollup: KEEP
-      expect(page).toMatch(/3/); // sql.ts: the search's keep-count, and wrangler.toml's 3 months
+  // Read from the code, so changing a limit there fails here until both pages say the same.
+  it("states the limits and the retention the code uses", () => {
+    const months = /kept for (\d+) months/.exec(readFileSync("wrangler.toml", "utf8"))?.[1];
+    expect(months).toBeDefined();
+    const [en, fr] = pages.map((page) => page.replace(/\s+/g, " "));
+    for (const phrase of [
+      `cut to ${MAX_CHARACTERS} characters`,
+      `more than ${MAX_WORDS} words`,
+      `${TOO_MANY_DIGITS} digits or more`,
+      `deleted after ${KEEP_DAYS} days`,
+      `typed ${TYPED} or more times`,
+      `so the ${TYPED} can all come from one visitor`,
+      `rows for ${months} months`,
+    ]) {
+      expect(en).toContain(phrase);
+    }
+    for (const phrase of [
+      `coupée à ${MAX_CHARACTERS} caractères`,
+      `plus de ${MAX_WORDS} mots`,
+      `${TOO_MANY_DIGITS} chiffres ou plus`,
+      `supprimées après ${KEEP_DAYS} jours`,
+      `tapés ${TYPED} fois ou plus`,
+      `donc les ${TYPED} peuvent venir`,
+      `lignes ${months} mois`,
+    ]) {
+      expect(fr).toContain(phrase);
     }
   });
 });

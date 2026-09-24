@@ -4,6 +4,8 @@
  * rows into a person. Search text passes scrubText first, so a phone number or an email
  * typed into the box by mistake is dropped rather than stored.
  */
+import type { D1Database } from "@cloudflare/workers-types";
+
 export type DemandKind = "search" | "place" | "tool" | "client" | "download";
 
 export interface DemandRow {
@@ -38,7 +40,11 @@ export interface DemandRow {
   dataset: string;
 }
 
-const MAX_CHARACTERS = 64;
+// The privacy page states these, and site/tests/data.test.ts holds it to them.
+export const MAX_CHARACTERS = 64;
+export const MAX_WORDS = 6;
+/** Digits in any script, however they're spaced: a phone number has at least this many. */
+export const TOO_MANY_DIGITS = 6;
 
 /** An HCP code in its dotted form, from a région's 01 down to an urban centre's 04.501.03.11.4. */
 const HCP_CODE = /^[0-9]{2}(\.[0-9]{3}(\.[0-9]{2}(\.[0-9]{1,2}(\.[0-9])?)?)?)?$/;
@@ -62,11 +68,11 @@ export function scrubText(raw: string | null | undefined, knownCode?: (code: str
   if (text.includes("@")) return "";
   // Counted rather than matched as a run, so a phone number is caught however it's spaced
   // or dotted, and in Arabic-Indic or circled digits too.
-  if ((text.match(/[\p{Nd}\p{No}]/gu) ?? []).length >= 6) return "";
+  if ((text.match(/[\p{Nd}\p{No}]/gu) ?? []).length >= TOO_MANY_DIGITS) return "";
   // A web address without its scheme, facebook.com/someone or t.me/someone, names a person
   // as surely as one with it. No place name holds a slash or a dot.
   if (/https?:|www\.|\//.test(text) || /[\p{L}\p{N}-]\.[a-z]{2,}\b/u.test(text)) return "";
-  if (text.split(" ").length > 6) return "";
+  if (text.split(" ").length > MAX_WORDS) return "";
   // Array.from, so a cut lands between characters rather than inside one. Only what
   // survives every check above gets cut, and stored.
   return Array.from(text).slice(0, MAX_CHARACTERS).join("");

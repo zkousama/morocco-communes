@@ -6,11 +6,10 @@
  * The SQL goes through prepare() in one batch. D1's exec() splits its input on newlines,
  * so a statement written across lines can't pass through it.
  */
-import { PRUNE, ROLLUP } from "./sql.ts";
+import { KEEP_DAYS, PRUNE, ROLLUP } from "./sql.ts";
 
 /** Each night counts the 7 days before it again, so a night that doesn't run is caught up on the next. */
 const WINDOW = 7;
-const KEEP = 90;
 
 const dayBefore = (now: number, days: number): string =>
   new Date(now - days * 86_400_000).toISOString().slice(0, 10);
@@ -21,7 +20,7 @@ export default {
     const days = Array.from({ length: WINDOW }, (_, i) => dayBefore(now, i + 1));
     await env.DEMAND.batch([
       ...days.map((day) => env.DEMAND.prepare(ROLLUP).bind(day)),
-      env.DEMAND.prepare(PRUNE).bind(dayBefore(now, KEEP)),
+      env.DEMAND.prepare(PRUNE).bind(dayBefore(now, KEEP_DAYS)),
     ]);
   },
 };
