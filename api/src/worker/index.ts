@@ -16,6 +16,8 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { communeIn, featureContaining, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } from "../lib/locate.ts";
 import type { D1Database } from "@cloudflare/workers-types";
+import { isBot, localeOf, recordDemand, scrubText, viaSiteOf, type DemandKind } from "./demand.ts";
+import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -63,7 +65,9 @@ const COLLECTIONS: Record<Level, string> = {
 /** The level a collection holds, so /api/provinces/tiznit means the province, not the commune. */
 const LEVEL_OF = Object.fromEntries(Object.entries(COLLECTIONS).map(([level, collection]) => [collection, level as Level]));
 
-const app = new Hono<{ Bindings: Env }>();
+type Vars = { demandText?: string; demandResults?: number; demandCode?: string };
+
+const app = new Hono<{ Bindings: Env; Variables: Vars }>();
 
 // POST is for /mcp: MCP clients send JSON-RPC as POST requests, and a browser-based one
 // would otherwise be refused at the preflight before reaching the server.
@@ -74,14 +78,40 @@ app.use("/*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
 app.use("/api/*", async (c, next) => {
   const started = Date.now();
   await next();
+  const url = new URL(c.req.url);
+  const route = routeOf(url.pathname);
+  const agent = agentOf(c.req.header("user-agent"));
+  const country = countryOf(c.req.raw);
   record(c.env.USAGE, {
     kind: "api",
-    name: routeOf(new URL(c.req.url).pathname),
-    agent: agentOf(c.req.header("user-agent")),
-    country: countryOf(c.req.raw),
+    name: route,
+    agent,
+    country,
     status: c.res.status,
     ms: Date.now() - started,
   });
+
+  const text = scrubText(c.get("demandText"));
+  const code = c.get("demandCode") ?? "";
+  const kind: DemandKind | null = text !== "" ? "search" : code !== "" ? "place" : null;
+  if (kind) {
+    c.executionCtx.waitUntil(
+      recordDemand(c.env.DEMAND, {
+        kind,
+        text,
+        code,
+        name: route,
+        results: c.get("demandResults") ?? -1,
+        locale: localeOf(url.pathname),
+        country,
+        via: agent,
+        viaSite: viaSiteOf(c.req.header("referer"), url.host),
+        client: "",
+        bot: isBot(c.req.header("user-agent")),
+        dataset: DATASET_VERSION,
+      }),
+    );
+  }
 });
 
 /** Worker responses do not inherit the asset tier's _headers, so the tier is labelled here. */
@@ -134,6 +164,8 @@ app.get("/api/search", (c) => {
     if (parts.length > 0) levels = parts as Level[];
   }
   const hits = search(index, q, { levels, limit });
+  c.set("demandText", q);
+  c.set("demandResults", hits.length);
   return json(envelope(hits, { self: url.pathname + url.search }, { total: hits.length }), "computed");
 });
 
@@ -171,6 +203,7 @@ app.get("/api/communes/at", async (c) => {
   if (!tile.ok) return none();
   const code = communeIn((await tile.json()) as Tile, at.lat, at.lng);
   if (!code) return none();
+  c.set("demandCode", code);
 
   const canonical = `/api/communes/${code}.json`;
   const record = (await (await c.env.ASSETS.fetch(new Request(new URL(canonical, url)))).json()) as Envelope<object>;
@@ -314,6 +347,7 @@ app.get("/api/:collection/:id", async (c) => {
   const found = resolve(lookup, id, LEVEL_OF[collection]);
   if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
   if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
+  c.set("demandCode", found.code);
 
   const canonical = `/api/${collection}/${found.code}.json`;
   const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
@@ -346,6 +380,7 @@ app.get("/api/:collection/:id/:figures{(?:indicators|economy|housing|neighbours)
   const found = resolve(lookup, id, LEVEL_OF[collection]);
   if (found.kind === "malformed") return fail(url, "invalid-code", `${id} can’t be read as a code or a slug`, url.pathname);
   if (found.kind === "absent") return fail(url, "not-found", `no unit has code ${id}`, url.pathname);
+  c.set("demandCode", found.code);
 
   const canonical = `/api/${collection}/${found.code}/${figures}.json`;
   const asset = await c.env.ASSETS.fetch(new Request(new URL(canonical, url)));
