@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import app from "../../src/worker/index.ts";
+import { ROLLUP } from "../../../workers/rollup/src/sql.ts";
 
 interface Captured { sql: string; values: unknown[] }
 
@@ -25,8 +28,8 @@ const env = (rows: Captured[], failing = false) => ({
 const ctx = { waitUntil: (p: Promise<unknown>) => p, passThroughOnException: () => {}, props: {} };
 
 /** A captured row by column, in the order recordDemand binds them. */
-const COLUMNS = ["day", "kind", "text", "code", "name", "results", "locale", "country", "via", "viaSite", "client", "bot", "dataset"];
-const named = (row: Captured) => Object.fromEntries(COLUMNS.map((column, i) => [column, row.values[i]]));
+const COLUMNS = ["day", "kind", "text", "code", "name", "results", "locale", "country", "via", "viaSite", "client", "bot", "dataset", "named"];
+const byColumn = (row: Captured) => Object.fromEntries(COLUMNS.map((column, i) => [column, row.values[i]]));
 
 const mcp = (body: unknown) =>
   new Request("https://communes.pages.dev/mcp", {
@@ -37,6 +40,18 @@ const mcp = (body: unknown) =>
 
 const call = (name: string, args: Record<string, unknown>) =>
   mcp({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } });
+
+/** The captured rows written to SQLite with their own INSERT, then rolled up for their day. */
+function rolledUp(rows: Captured[]) {
+  const database = new DatabaseSync(":memory:");
+  database.exec(readFileSync(new URL("../../../migrations/0001_demand.sql", import.meta.url), "utf8"));
+  for (const { sql, values } of rows) database.prepare(sql).run(...(values as SQLInputValue[]));
+  for (const { day } of database.prepare("SELECT DISTINCT day FROM events").all()) database.prepare(ROLLUP).run(day as string);
+  return database.prepare("SELECT kind, text, n FROM daily ORDER BY text").all();
+}
+
+const search = (q: string, rows: Captured[]) =>
+  app.fetch(new Request(`https://communes.pages.dev/api/search?q=${encodeURIComponent(q)}`), env(rows) as never, ctx as never);
 
 describe("demand rows from the API", () => {
   it("records a search with its text and how many it found", async () => {
@@ -117,7 +132,7 @@ describe("demand rows from the API", () => {
 
     const theirs: Captured[] = [];
     await app.fetch(new Request("https://communes.pages.dev/api/search?q=tan"), env(theirs) as never, ctx as never);
-    expect(theirs.map(named)).toMatchObject([{ kind: "search", text: "tan" }]);
+    expect(theirs.map(byColumn)).toMatchObject([{ kind: "search", text: "tan" }]);
   });
 
   it("writes no place row for the site's own lookup", async () => {
@@ -159,6 +174,46 @@ describe("demand rows from the API", () => {
   });
 });
 
+describe("whether a search names a place", () => {
+  it("is worked out here, from the top hit, and never taken from the client", async () => {
+    const rows: Captured[] = [];
+    await search("tanger", rows);
+    await search("titwan", rows);
+    await search("ousama ajebbar", rows);
+    await app.fetch(beacon({ kind: "search", text: "karim el idrissi", results: 50 }), env(rows) as never, ctx as never);
+    await app.fetch(call("search", { query: "Tanger" }), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn)).toMatchObject([
+      { kind: "search", text: "tanger", named: 1 },
+      { kind: "search", text: "titwan", named: 1 },
+      { kind: "search", text: "ousama ajebbar", named: 0 },
+      { kind: "search", text: "karim el idrissi", results: 50, named: 0 },
+      { kind: "tool", text: "tanger", named: 1 },
+    ]);
+  });
+
+  it("folds a name typed once out of the rollup, though search found it hits and the beacon claimed 50", async () => {
+    const rows: Captured[] = [];
+    await search("ousama ajebbar", rows);
+    await app.fetch(beacon({ kind: "search", text: "karim el idrissi", results: 50 }), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn).map((r) => r.results)).toEqual([10, 50]);
+    // 2 groups, since the API's row and the beacon's differ in via.
+    expect(rolledUp(rows)).toEqual([
+      { kind: "search", text: "", n: 1 },
+      { kind: "search", text: "", n: 1 },
+    ]);
+  });
+
+  it("keeps a place typed once in the rollup, by its name or a known spelling", async () => {
+    const rows: Captured[] = [];
+    await search("tanger", rows);
+    await search("titwan", rows);
+    expect(rolledUp(rows)).toEqual([
+      { kind: "search", text: "tanger", n: 1 },
+      { kind: "search", text: "titwan", n: 1 },
+    ]);
+  });
+});
+
 describe("the assistants that connect", () => {
   it("are counted from the handshake, one client row each", async () => {
     const rows: Captured[] = [];
@@ -172,7 +227,7 @@ describe("the assistants that connect", () => {
       env(rows) as never,
       ctx as never,
     );
-    expect(rows.map(named)).toMatchObject([{ kind: "client", name: "claude-code", client: "claude-code", text: "", code: "" }]);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "client", name: "claude-code", client: "claude-code", text: "", code: "" }]);
   });
 
   it("aren't counted from a tools/list, and a tool row doesn't claim to know the client", async () => {
@@ -180,7 +235,7 @@ describe("the assistants that connect", () => {
     await app.fetch(mcp({ jsonrpc: "2.0", id: 2, method: "tools/list" }), env(rows) as never, ctx as never);
     expect(rows).toHaveLength(0);
     await app.fetch(call("get_commune", { id: "tanger" }), env(rows) as never, ctx as never);
-    expect(rows.map(named)).toMatchObject([{ kind: "tool", client: "" }]);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "tool", client: "" }]);
   });
 });
 
@@ -188,26 +243,26 @@ describe("the place an assistant asks about", () => {
   it("is the code get_commune's id resolves to", async () => {
     const rows: Captured[] = [];
     await app.fetch(call("get_commune", { id: "tanger" }), env(rows) as never, ctx as never);
-    expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_commune", code: "01.511.01.0" }]);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "tool", name: "get_commune", code: "01.511.01.0" }]);
   });
 
   it("is the code get_indicators' unit names", async () => {
     const rows: Captured[] = [];
     await app.fetch(call("get_indicators", { unit: "01.511.01.0" }), env(rows) as never, ctx as never);
-    expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_indicators", code: "01.511.01.0" }]);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "tool", name: "get_indicators", code: "01.511.01.0" }]);
   });
 
   it("is read at the level the tool was given, where a name is shared", async () => {
     const rows: Captured[] = [];
     await app.fetch(call("get_unit", { unit: "tiznit", level: "province" }), env(rows) as never, ctx as never);
-    expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_unit", code: "09.581" }]);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "tool", name: "get_unit", code: "09.581" }]);
   });
 
   it("is empty for an argument that's neither a code nor a slug, or a slug that names nothing", async () => {
     for (const id of ["Hay Mohammadi, rue 12", "someone"]) {
       const rows: Captured[] = [];
       await app.fetch(call("get_commune", { id }), env(rows) as never, ctx as never);
-      expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_commune", code: "" }]);
+      expect(rows.map(byColumn)).toMatchObject([{ kind: "tool", name: "get_commune", code: "" }]);
     }
   });
 });
@@ -251,7 +306,7 @@ describe("the beacon", () => {
       ctx as never,
     );
     expect(response.status).toBe(204);
-    expect(rows.map(named)).toMatchObject([
+    expect(rows.map(byColumn)).toMatchObject([
       { kind: "search", text: "tanger", code: "", name: "search", results: 3, locale: "fr", via: "browser", client: "" },
     ]);
   });
@@ -260,7 +315,7 @@ describe("the beacon", () => {
     for (const [results, stored] of [[0, 0], [100, 100], [101, -1], [2.5, -1], [-3, -1], ["3", -1], [undefined, -1]]) {
       const rows: Captured[] = [];
       await app.fetch(beacon({ kind: "search", text: "tanger", results }), env(rows) as never, ctx as never);
-      expect(rows.map(named)).toMatchObject([{ kind: "search", results: stored }]);
+      expect(rows.map(byColumn)).toMatchObject([{ kind: "search", results: stored }]);
     }
   });
 

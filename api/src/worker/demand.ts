@@ -16,6 +16,11 @@ export interface DemandRow {
   name: string;
   /** Hits a search returned. -1 where the kind isn't a search. */
   results: number;
+  /**
+   * 1 when a search names a place, by its code, its name, an exonym or a spelling of it.
+   * Worked out by the Worker from its own search, never taken from the client.
+   */
+  named: 0 | 1;
   locale: "en" | "fr";
   country: string;
   /** The first product of the User-Agent, as usage.ts reads it. */
@@ -89,8 +94,8 @@ export function localeOf(pathname: string): "en" | "fr" {
 }
 
 const INSERT =
-  "INSERT INTO events (day, kind, text, code, name, results, locale, country, via, via_site, client, bot, dataset)" +
-  " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)";
+  "INSERT INTO events (day, kind, text, code, name, results, locale, country, via, via_site, client, bot, dataset, named)" +
+  " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)";
 
 /**
  * Writes one row. Without the binding, as in local dev and tests, it does nothing, and a
@@ -108,7 +113,7 @@ export async function recordDemand(
       .bind(
         now.toISOString().slice(0, 10),
         row.kind, row.text, row.code, row.name, row.results,
-        row.locale, row.country, row.via, row.viaSite, row.client, row.bot, row.dataset,
+        row.locale, row.country, row.via, row.viaSite, row.client, row.bot, row.dataset, row.named,
       )
       .run();
   } catch {

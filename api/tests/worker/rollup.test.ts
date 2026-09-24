@@ -64,13 +64,13 @@ const insert = (database: DatabaseSync, day: string, code: string, times: number
 /** Any kind of row, with the columns the rollup reads and the rest left to their defaults. */
 const event = (
   database: DatabaseSync,
-  row: { day: string; kind: string; text?: string; code?: string; name?: string; results?: number },
+  row: { day: string; kind: string; text?: string; code?: string; name?: string; results?: number; named?: 0 | 1 },
   times = 1,
 ) => {
   for (let i = 0; i < times; i += 1) {
     database
-      .prepare("INSERT INTO events (day, kind, text, code, name, results) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(row.day, row.kind, row.text ?? "", row.code ?? "", row.name ?? "", row.results ?? -1);
+      .prepare("INSERT INTO events (day, kind, text, code, name, results, named) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(row.day, row.kind, row.text ?? "", row.code ?? "", row.name ?? "", row.results ?? -1, row.named ?? 0);
   }
 };
 
@@ -118,38 +118,42 @@ describe("the rollup", () => {
 });
 
 describe("a search's text in the rollup", () => {
-  const texts = (database: DatabaseSync) => database.prepare("SELECT kind, text, n FROM daily ORDER BY n DESC").all();
+  const texts = (database: DatabaseSync) => database.prepare("SELECT kind, text, n FROM daily ORDER BY n DESC, text").all();
 
-  it("goes when the search found nothing and was typed fewer than 3 times, and stays in the raw rows", () => {
+  it("goes when the search names no place and was typed fewer than 3 times, hits or not, and stays in the raw rows", () => {
     const database = db();
-    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "someone", results: 0 }, 2);
+    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "ousama ajebbar", results: 10, named: 0 });
+    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "someone", results: 0, named: 0 }, 2);
     database.prepare(ROLLUP).run("2026-09-23");
-    expect(texts(database)).toEqual([{ kind: "search", text: "", n: 2 }]);
-    expect(database.prepare("SELECT DISTINCT text FROM events").all()).toEqual([{ text: "someone" }]);
+    expect(texts(database)).toEqual([{ kind: "search", text: "", n: 3 }]);
+    expect(database.prepare("SELECT DISTINCT text FROM events ORDER BY text").all()).toEqual([
+      { text: "ousama ajebbar" },
+      { text: "someone" },
+    ]);
   });
 
-  it("stays when the search was typed 3 times, found or not", () => {
+  it("stays when the search was typed 3 times, a place or not", () => {
     const database = db();
     event(database, { day: "2026-09-23", kind: "search", name: "search", text: "xyzzy", results: 0 }, 3);
     database.prepare(ROLLUP).run("2026-09-23");
     expect(texts(database)).toEqual([{ kind: "search", text: "xyzzy", n: 3 }]);
   });
 
-  it("stays when the search found something, even once", () => {
+  it("stays when the search names a place, even once", () => {
     const database = db();
-    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "tanger", results: 4 });
+    event(database, { day: "2026-09-23", kind: "search", name: "search", text: "tanger", results: 4, named: 1 });
     database.prepare(ROLLUP).run("2026-09-23");
     expect(texts(database)).toEqual([{ kind: "search", text: "tanger", n: 1 }]);
   });
 
-  it("holds an assistant's query to the same rule, where nothing says what it found", () => {
+  it("holds an assistant's query to the same rule", () => {
     const database = db();
-    event(database, { day: "2026-09-23", kind: "tool", name: "search", text: "tiznit" }, 3);
+    event(database, { day: "2026-09-23", kind: "tool", name: "search", text: "tiznit", named: 1 });
     event(database, { day: "2026-09-23", kind: "tool", name: "search", text: "someone" });
     database.prepare(ROLLUP).run("2026-09-23");
     expect(texts(database)).toEqual([
-      { kind: "tool", text: "tiznit", n: 3 },
       { kind: "tool", text: "", n: 1 },
+      { kind: "tool", text: "tiznit", n: 1 },
     ]);
   });
 });

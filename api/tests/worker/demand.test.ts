@@ -97,7 +97,7 @@ describe("localeOf", () => {
 });
 
 const row = (over: Partial<DemandRow> = {}): DemandRow => ({
-  kind: "search", text: "tanger", code: "", name: "search", results: 3,
+  kind: "search", text: "tanger", code: "", name: "search", results: 3, named: 1,
   locale: "en", country: "MA", via: "mozilla", viaSite: "reddit", client: "",
   bot: 0, dataset: "1.8.0", ...over,
 });

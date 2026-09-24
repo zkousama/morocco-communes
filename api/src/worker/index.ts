@@ -6,7 +6,7 @@ import rawCommunes from "../../../data/v1/attributes/communes.json";
 import rawArrondissements from "../../../data/v1/attributes/arrondissements.json";
 import rawIndicators from "../../generated/commune-indicators.json";
 import { envelope, problem, type Envelope, type ProblemKind } from "../lib/envelope.ts";
-import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
+import { near, search, type Hit, type Level, type SearchIndex } from "../lib/search.ts";
 import { aliasPath, buildLookup, resolve, withArticle } from "../lib/resolve.ts";
 import { listCommunes, parseFilter, type FetchJson, type ListedCommune } from "../lib/list.ts";
 import type { IndicatorTable } from "../lib/indicators.ts";
@@ -67,6 +67,18 @@ const LEVEL_OF = Object.fromEntries(Object.entries(COLLECTIONS).map(([level, col
 
 type Vars = { demandText?: string; demandResults?: number; demandCode?: string };
 
+const NAMING = new Set<Hit["matched"]>(["code", "exact", "alias", "spelling"]);
+
+/**
+ * 1 when a search names a place: its top hit is a code, a name, an exonym or a spelling of
+ * one. A prefix or a few shared trigrams are how a person's name still finds hits, so they
+ * don't count. Worked out here, since a count the client sends can say anything.
+ */
+function namesAPlace(text: string): 0 | 1 {
+  const top = search(index, text, { limit: 1 })[0];
+  return top && NAMING.has(top.matched) ? 1 : 0;
+}
+
 const app = new Hono<{ Bindings: Env; Variables: Vars }>();
 
 // POST is for /mcp: MCP clients send JSON-RPC as POST requests, and a browser-based one
@@ -107,6 +119,7 @@ app.use("/api/*", async (c, next) => {
         code,
         name: route,
         results: c.get("demandResults") ?? -1,
+        named: kind === "search" ? namesAPlace(text) : 0,
         locale: localeOf(url.pathname),
         country,
         via: agent,
@@ -479,12 +492,13 @@ app.all("/mcp", async (c) => {
           code: place?.kind === "found" ? place.code : "",
           name: message.tool,
           client: "",
+          named: message.args?.query ? namesAPlace(message.args.query) : 0,
         }),
       );
     }
     if (message.method === "initialize" && message.client) {
       c.executionCtx.waitUntil(
-        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client }),
+        recordDemand(c.env.DEMAND, { ...from, kind: "client", text: "", code: "", name: message.client, client: message.client, named: 0 }),
       );
     }
   }
@@ -549,7 +563,7 @@ app.post("/api/beacon", async (c) => {
     const { results } = body;
     const found = typeof results === "number" && Number.isInteger(results) && results >= 0 && results <= 100 ? results : -1;
     c.executionCtx.waitUntil(
-      recordDemand(c.env.DEMAND, { ...shared, kind: "search", text, code: "", name: "search", results: found }),
+      recordDemand(c.env.DEMAND, { ...shared, kind: "search", text, code: "", name: "search", results: found, named: namesAPlace(text) }),
     );
     return new Response(null, { status: 204 });
   }
@@ -561,7 +575,7 @@ app.post("/api/beacon", async (c) => {
     return new Response(null, { status: 400 });
   }
   c.executionCtx.waitUntil(
-    recordDemand(c.env.DEMAND, { ...shared, kind, text: "", code: kind === "place" ? code : file, name: kind, results: -1 }),
+    recordDemand(c.env.DEMAND, { ...shared, kind, text: "", code: kind === "place" ? code : file, name: kind, results: -1, named: 0 }),
   );
   return new Response(null, { status: 204 });
 });

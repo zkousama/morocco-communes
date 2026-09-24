@@ -8,17 +8,17 @@ const KEY = "day, kind, text, code, name, locale, country, via, via_site, bot";
  * One day's rows as counts. Run again for the same day, it replaces its counts rather than
  * adding to them.
  *
- * A search keeps its text only when it found something that day or was typed 3 times or
- * more, and is otherwise counted under "". Raw rows keep the text for their 90 days, but a
+ * A search keeps its text only when it names a place or was typed 3 times or more that
+ * day, and is otherwise counted under "". Raw rows keep the text for their 90 days, but a
  * count is kept for good, and a search only one person typed, a name say, shouldn't be.
- * An assistant's query is held to the same rule; nothing says what it found, so it needs
- * the 3.
+ * Hits don't decide it, since a fuzzy search finds some for almost any name. An
+ * assistant's query is held to the same rule.
  */
 export const ROLLUP = `WITH kept AS (
     SELECT kind, text FROM events
     WHERE day = ?1 AND text != ''
     GROUP BY kind, text
-    HAVING MAX(results) > 0 OR COUNT(*) >= 3
+    HAVING MAX(named) = 1 OR COUNT(*) >= 3
   ),
   folded AS (
     SELECT day, kind, CASE WHEN (kind, text) IN (SELECT kind, text FROM kept) THEN text ELSE '' END AS text,
