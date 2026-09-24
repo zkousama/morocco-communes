@@ -161,7 +161,8 @@ const cities = Object.fromEntries(
       let rows: Hit[] = [];
       try {
         if (code) {
-          rows = await byCode(q.trim().replace(/\s+/g, ""));
+          // A code typed with spaces, 01 511 01 0, becomes the dotted form byCode expects.
+          rows = await byCode(q.trim().replace(/[.\s]+/g, "."));
         } else {
           const response = await fetch(
             `/api/search?q=${encodeURIComponent(q)}&levels=commune,arrondissement,province,region&limit=8`,
