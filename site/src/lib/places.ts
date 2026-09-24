@@ -10,7 +10,7 @@ import { sphericalArea } from "../../../pipeline/src/geo/rings.ts";
 import { boxOf, fit, pathOf, simplify, type Point } from "./geo.ts";
 import { slugify } from "./slug";
 
-interface Name {
+export interface Name {
   fr: string;
   ar: string;
 }
@@ -115,6 +115,27 @@ export const arrondissementsOf = (communeCode: string) =>
   arrondissements.filter((a) => a.communeCode === communeCode).sort(byPopulation);
 export const arrondissementsInPrefecture = (code: string) =>
   arrondissements.filter((a) => a.prefectureOfArrondissementsCode === code).sort(byPopulation);
+export const arrondissementOf = new Map(arrondissements.map((a) => [a.code, a]));
+
+/**
+ * Where a code's own page is, for any level a page reports: a commune, a province, a
+ * région, or an arrondissement, whose page is its city's, the way the search box already
+ * sends it there. A cercle, or a code that names nothing in the dataset, has none.
+ */
+export const pageOf = (code: string): { name: Name; route: string } | null => {
+  const commune = communeOf.get(code);
+  if (commune) return { name: commune.name, route: `communes/${commune.slug}/` };
+  const arrondissement = arrondissementOf.get(code);
+  if (arrondissement) {
+    const city = communeOf.get(arrondissement.communeCode);
+    return city ? { name: arrondissement.name, route: `communes/${city.slug}/` } : null;
+  }
+  const province = provinceOf.get(code);
+  if (province) return { name: province.name, route: `provinces/${province.slug}/` };
+  const region = regionOf.get(code);
+  if (region) return { name: region.name, route: `regions/${region.slug}/` };
+  return null;
+};
 
 /** The country's change between the censuses, over the communes that have both figures. */
 export const nationalChange = (() => {
