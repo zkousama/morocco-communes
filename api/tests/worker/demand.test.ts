@@ -17,10 +17,32 @@ describe("scrubText", () => {
   });
 
   it("cuts at 64 characters without splitting one", () => {
-    const long = "ⵜⴰⵎⴰⵣⵉⵖⵜ".repeat(20);
-    const cut = scrubText(long);
-    expect([...cut]).toHaveLength(64);
-    expect(cut.endsWith("�")).toBe(false);
+    // BMP characters: each takes 1 UTF-16 code unit
+    const bmpLong = "ⵜⴰⵎⴰⵣⵉⵖⵜ".repeat(20);
+    const bmpCut = scrubText(bmpLong);
+    expect([...bmpCut]).toHaveLength(64);
+    expect(bmpCut.endsWith("�")).toBe(false);
+
+    // Astral-plane characters: each takes 2 UTF-16 code units.
+    // With 1 BMP char + 63 astral chars, the 64-unit boundary falls in the middle
+    // of a surrogate pair. Array.from handles this correctly; plain slice would not.
+    const astralMixed = "a" + "𐐷".repeat(63);
+    const astralCut = scrubText(astralMixed);
+    expect([...astralCut]).toHaveLength(64);
+    // Verify no lone surrogates: every high surrogate must be followed by a low one
+    for (let i = 0; i < astralCut.length; i++) {
+      const code = astralCut.charCodeAt(i);
+      const isHighSurrogate = code >= 0xd800 && code <= 0xdbff;
+      const isLowSurrogate = code >= 0xdc00 && code <= 0xdfff;
+      if (isHighSurrogate) {
+        expect(i + 1 < astralCut.length).toBe(true);
+        expect(astralCut.charCodeAt(i + 1) >= 0xdc00 && astralCut.charCodeAt(i + 1) <= 0xdfff).toBe(true);
+      }
+      if (isLowSurrogate) {
+        expect(i > 0).toBe(true);
+        expect(astralCut.charCodeAt(i - 1) >= 0xd800 && astralCut.charCodeAt(i - 1) <= 0xdbff).toBe(true);
+      }
+    }
   });
 
   it("gives nothing for nothing", () => {
