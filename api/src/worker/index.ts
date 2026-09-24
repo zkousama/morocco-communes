@@ -38,9 +38,9 @@ const cities = new Set((rawArrondissements as { communeCode: string }[]).map((a)
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
-  /** Workers Analytics Engine, bound in wrangler.toml. Absent in local dev and tests. */
+  /** Workers Analytics Engine, bound in wrangler.toml. record() does nothing without it. */
   USAGE?: UsageDataset;
-  /** D1 database, bound in wrangler.toml. Absent in local dev and tests. */
+  /** D1 database, bound in wrangler.toml. recordDemand() does nothing without it. */
   DEMAND?: D1Database;
 }
 

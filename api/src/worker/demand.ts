@@ -117,8 +117,8 @@ const INSERT =
   " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)";
 
 /**
- * Writes one row. Without the binding, as in local dev and tests, it does nothing, and a
- * database that fails costs the caller nothing: this runs after the response is built.
+ * Writes one row, or does nothing when no database is bound. A database that fails costs
+ * the caller nothing: this runs after the response is built.
  */
 export async function recordDemand(
   db: D1Database | undefined,

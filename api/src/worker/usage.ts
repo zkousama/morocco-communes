@@ -28,7 +28,7 @@ export interface Use {
   ms: number;
 }
 
-/** Writes one use. Without the binding, as in local dev and tests, it does nothing. */
+/** Writes one use, or does nothing when no dataset is bound. */
 export function record(dataset: UsageDataset | undefined, use: Use): void {
   if (!dataset) return;
   try {
