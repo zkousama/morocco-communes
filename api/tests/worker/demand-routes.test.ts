@@ -91,15 +91,8 @@ describe("demand rows from the API", () => {
 
   it("records the place a point lookup names", async () => {
     const rows: Captured[] = [];
-    // Al Hoceima's centroid, from search-index.json. tileAt() resolves it against the real,
-    // unmocked production tile index (api/generated/tile-index.json, loaded at module scope
-    // in index.ts) to leaf tile "3/112/121", confirmed by walking the same quadtree logic
-    // outside the test. The tile's contents, though, come from the ASSETS binding, and the
-    // built tile files themselves are emitted at build time rather than checked into the
-    // repo, so this fake serves a small synthetic square standing in for the real boundary:
-    // it exercises the same code path (communeIn finds a code, the handler sets demandCode,
-    // the middleware writes a place row) without depending on generated geometry a unit test
-    // can't reach. Al Hoceima carries no arrondissements, so no second ASSETS fetch follows.
+    // Al Hoceima's centre. The tile index is the real one, but the tiles themselves are
+    // written by the build, so the fake serves a square around the point for its boundary.
     const lat = 35.23871444189453;
     const lng = -3.941081692480469;
     const code = "01.051.01.01";
