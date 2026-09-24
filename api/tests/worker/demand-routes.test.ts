@@ -136,6 +136,22 @@ describe("demand rows from the API", () => {
     expect(theirs.map(byColumn)).toMatchObject([{ kind: "search", text: "tan" }]);
   });
 
+  // What the privacy page says of Do Not Track: the box still asks the API, and that
+  // request is counted like any other, without what was typed.
+  it("counts the site's own search in Analytics Engine by its route, without its text", async () => {
+    const rows: Captured[] = [];
+    const points: { blobs?: string[] }[] = [];
+    await app.fetch(
+      new Request("https://communes.pages.dev/api/search?q=tanger", { headers: { "sec-fetch-site": "same-origin" } }),
+      { ...env(rows), USAGE: { writeDataPoint: (point: { blobs?: string[] }) => points.push(point) } } as never,
+      ctx as never,
+    );
+    expect(rows).toHaveLength(0);
+    expect(points).toHaveLength(1);
+    expect(points[0]!.blobs).toContain("search");
+    expect(JSON.stringify(points)).not.toContain("tanger");
+  });
+
   it("writes no place row for the site's own lookup", async () => {
     const rows: Captured[] = [];
     const response = await app.fetch(

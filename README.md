@@ -104,9 +104,8 @@ A second store, in D1, counts 5 kinds of row: a search, a place opened, a tool a
 calls, the name an MCP client gives itself, and a file downloaded. An assistant connecting
 through the MCP server is counted by the name it gives itself, and each tool it calls by
 the tool's name and the place it asks about. A row is a day and a handful of categories,
-never an address, a cookie, a session or an identifier, so 2 rows can never be tied to the
-same visitor. `pnpm demand` reads it back; the site's `/docs/privacy/` page says exactly
-what's kept.
+and no row holds a key, a cookie or an address that ties it to another. `pnpm demand`
+reads it back; the site's `/docs/privacy/` page says exactly what's kept.
 
 `pnpm deploy:live` switches it on. It applies the migration to the live database, builds
 the site with the most looked-up page read from that database, deploys it, then deploys

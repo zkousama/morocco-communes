@@ -54,6 +54,35 @@ describe("the privacy page", () => {
     for (const page of pages) expect(page).toMatch(/90/);
   });
 
+  /** What the pages call each column of a demand row, in English and in French. */
+  const COLUMNS: Record<string, [en: string, fr: string]> = {
+    day: ["the day", "le jour"],
+    kind: ["5 kinds of row", "5 types de ligne"],
+    text: ["what was asked for", "ce qui a été demandé"],
+    code: ["what was asked for", "ce qui a été demandé"],
+    name: ["a tool an assistant calls", "un outil qu’un assistant appelle"],
+    results: ["how many results a search showed", "le nombre de résultats qu’une recherche a affichés"],
+    named: ["a place’s name or code", "le nom ou le code d’un lieu"],
+    locale: ["the page’s language", "la langue de la page"],
+    country: ["the country", "le pays"],
+    via: ["“browser” for the site’s own search box", "« browser » pour la recherche du site"],
+    via_site: ["which class of site sent the visitor", "la classe du site qui a envoyé le visiteur"],
+    client: ["the name an MCP client gives itself", "le nom que se donne un client MCP"],
+    bot: ["looks like a crawler’s", "ressemble à celui d’un robot"],
+    dataset: ["the version of the dataset", "la version du jeu de données"],
+  };
+
+  it("names every column a demand row holds, in both languages", () => {
+    const table = /CREATE TABLE IF NOT EXISTS events \(([^;]*)\);/.exec(readFileSync("migrations/0001_demand.sql", "utf8"))?.[1] ?? "";
+    const columns = table.split("\n").map((line) => line.trim().split(" ")[0]).filter((word) => word !== undefined && word !== "");
+    expect(Object.keys(COLUMNS).sort()).toEqual(columns.sort());
+    const [en, fr] = pages.map((page) => page.replace(/\s+/g, " "));
+    for (const [column, [english, french]] of Object.entries(COLUMNS)) {
+      expect(en, column).toContain(english);
+      expect(fr, column).toContain(french);
+    }
+  });
+
   // The retention windows and the scrub's own thresholds, pinned so a change to either
   // store's numbers is felt here too, not just read back from the code by whoever changes it.
   it("states the numbers the code and the config actually use", () => {

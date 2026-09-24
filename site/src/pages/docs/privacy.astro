@@ -49,8 +49,9 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <p>
       A second store, in D1, counts 5 kinds of row: a search, a place opened, a tool an assistant calls through
       the MCP server, the name an MCP client gives itself, and a file downloaded. A row holds the day, what was
-      asked for, the country, whether the User-Agent looks like a crawler’s, and which class of site sent the
-      visitor, such as reddit or a search engine, never the address itself.
+      asked for, how many results a search showed, the page’s language, the country and the version of the
+      dataset live at the time. It also says whether the User-Agent looks like a crawler’s, and which class of
+      site sent the visitor, such as reddit or a search engine, never the address itself.
     </p>
     <p>
       The client that made the request is recorded too: “browser” for the site’s own search box and beacon, and
@@ -68,22 +69,23 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
     <p>
       The site’s own search box reports a search once it’s settled: 1.5 seconds after the results stop changing,
-      or as soon as one is opened, never on every keystroke. Nothing is sent by the search box, or by the beacon
-      that notes a place or a file opened, when the browser’s Do Not Track is on.
+      or as soon as one is opened, never on every keystroke. With the browser’s Do Not Track on, the search box
+      reports no search and the beacon notes no place or file opened. The box still asks the API for its
+      results, and Analytics Engine counts those requests like any other API call, without what was typed.
     </p>
   </section>
 
   <section id="kept">
     <h2>What’s kept</h2>
     <p>
-      A row is a day and a handful of categories, the kind a tally needs and nothing more: no room in it for an
-      address, a cookie, a session or any other identifier. 2 rows can never be tied to the same visitor.
+      A row is a day and a handful of categories, the kind a tally needs. No row holds a key, a cookie or an
+      address that ties it to another.
     </p>
     <p>
       The demand log’s raw rows are deleted after 90 days. What’s left is counts by day, which the most
       looked-up page is built from. A search keeps its words in that count only when they’re a place’s name or
-      code, or were typed 3 or more times that day; otherwise only the count stays. The log can’t tell whether
-      that’s one visitor typing it 3 times or 3 different visitors, since nothing in a row would tell them apart.
+      code, or were typed 3 or more times that day; otherwise only the count stays. The rule counts rows, so the 3
+      can all come from one visitor.
     </p>
   </section>
 

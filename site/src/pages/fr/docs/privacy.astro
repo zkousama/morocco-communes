@@ -47,8 +47,10 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <p>
       Un second registre, dans D1, compte 5 types de ligne : une recherche, un lieu ouvert, un outil qu’un
       assistant appelle via le serveur MCP, le nom que se donne un client MCP, et un fichier téléchargé. Une
-      ligne garde le jour, ce qui a été demandé, le pays, si le User-Agent ressemble à celui d’un robot, et la
-      classe du site qui a envoyé le visiteur, comme reddit ou un moteur de recherche, jamais son adresse.
+      ligne garde le jour, ce qui a été demandé, le nombre de résultats qu’une recherche a affichés, la langue de
+      la page, le pays et la version du jeu de données en ligne à ce moment-là. Elle dit aussi si le User-Agent
+      ressemble à celui d’un robot, et la classe du site qui a envoyé le visiteur, comme reddit ou un moteur de
+      recherche, jamais son adresse.
     </p>
     <p>
       Le client à l’origine de la requête est noté aussi : « browser » pour la recherche du site et sa balise, et
@@ -61,30 +63,30 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <p>
       Une recherche est gardée en minuscules et coupée à 64 caractères. Elle est rejetée entièrement si elle
       contient un @, une barre oblique, tout ce qui ressemble à une adresse web, plus de 6 mots, ou 6 chiffres ou
-      plus quelle qu’en soit l’écriture, à moins que ces chiffres ne forment le code réel d’un lieu. C’est ainsi qu’un e-mail ou un numéro de téléphone tapé
-      par erreur dans le champ reste dehors.
+      plus quelle qu’en soit l’écriture, à moins que ces chiffres ne forment le code réel d’un lieu. C’est ainsi
+      qu’un e-mail ou un numéro de téléphone tapé par erreur dans le champ reste dehors.
     </p>
     <p>
       Le champ de recherche du site ne signale une recherche qu’une fois stabilisée : 1,5 seconde après l’arrêt
-      des résultats, ou dès qu’un résultat est ouvert, jamais à chaque frappe. Rien n’est envoyé par le champ de
-      recherche, ni par la balise qui note un lieu ou un fichier ouvert, quand le Do Not Track du navigateur est
-      activé.
+      des résultats, ou dès qu’un résultat est ouvert, jamais à chaque frappe. Quand le Do Not Track du
+      navigateur est activé, le champ ne signale aucune recherche et la balise ne note aucun lieu ni fichier
+      ouvert. Le champ demande quand même ses résultats à l’API, et Analytics Engine compte ces requêtes comme
+      tout autre appel à l’API, sans ce qui a été tapé.
     </p>
   </section>
 
   <section id="kept">
     <h2>Ce qui reste</h2>
     <p>
-      Une ligne, c’est un jour et quelques catégories, de quoi faire un compte et rien de plus : ni adresse, ni
-      cookie, ni session, ni aucun autre identifiant. 2 lignes ne peuvent donc jamais être reliées au même
-      visiteur.
+      Une ligne, c’est un jour et quelques catégories, de quoi faire un compte. Aucune ligne ne garde de clé, de
+      cookie ou d’adresse qui la relie à une autre.
     </p>
     <p>
       Les lignes brutes du registre de la demande sont supprimées après 90 jours. Ce qui reste, ce sont des
       comptages par jour, dont est tirée la page des lieux les plus consultés. Une recherche garde ses mots dans
       ce comptage seulement quand ils sont le nom ou le code d’un lieu, ou qu’ils ont été tapés 3 fois ou plus ce
-      jour-là ; sinon, seul le compte reste. Le registre ne peut pas dire si c’est un même visiteur qui a tapé la
-      recherche 3 fois, ou 3 visiteurs différents, puisque rien dans une ligne ne permettrait de les distinguer.
+      jour-là ; sinon, seul le compte reste. La règle compte des lignes, donc les 3 peuvent venir d’un même
+      visiteur.
     </p>
   </section>
 
