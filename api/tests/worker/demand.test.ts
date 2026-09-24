@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBot, localeOf, scrubText, viaSiteOf } from "../../src/worker/demand.ts";
+import { isBot, localeOf, recordDemand, scrubText, viaSiteOf, type DemandRow } from "../../src/worker/demand.ts";
 
 describe("scrubText", () => {
   it("keeps a place the way a person typed it", () => {
@@ -77,5 +77,39 @@ describe("localeOf", () => {
     expect(localeOf("/fr/communes/rabat/")).toBe("fr");
     expect(localeOf("/communes/rabat/")).toBe("en");
     expect(localeOf("/api/search")).toBe("en");
+  });
+});
+
+const row = (over: Partial<DemandRow> = {}): DemandRow => ({
+  kind: "search", text: "tanger", code: "", name: "search", results: 3,
+  locale: "en", country: "MA", via: "mozilla", viaSite: "reddit", client: "",
+  bot: 0, dataset: "1.8.0", ...over,
+});
+
+describe("recordDemand", () => {
+  it("writes one row, with the day in front", async () => {
+    const bound: unknown[][] = [];
+    const db = {
+      prepare: (sql: string) => ({
+        bind: (...values: unknown[]) => {
+          bound.push([sql, ...values]);
+          return { run: async () => ({ success: true }) };
+        },
+      }),
+    };
+    await recordDemand(db as never, row(), new Date("2026-09-24T10:00:00Z"));
+    expect(bound).toHaveLength(1);
+    expect(bound[0]![0]).toContain("INSERT INTO events");
+    expect(bound[0]![1]).toBe("2026-09-24");
+    expect(bound[0]).toContain("tanger");
+  });
+
+  it("does nothing without a binding", async () => {
+    await expect(recordDemand(undefined, row())).resolves.toBeUndefined();
+  });
+
+  it("swallows a database that throws", async () => {
+    const db = { prepare: () => { throw new Error("D1 is down"); } };
+    await expect(recordDemand(db as never, row())).resolves.toBeUndefined();
   });
 });

@@ -15,6 +15,7 @@ import { agentOf, mcpMessages, record, routeOf, type UsageDataset } from "./usag
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { LIMIT, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { communeIn, featureContaining, prepareIndex, tileAt, tilePath, type Tile, type TileIndex } from "../lib/locate.ts";
+import type { D1Database } from "@cloudflare/workers-types";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -36,6 +37,8 @@ interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
   /** Workers Analytics Engine, bound in wrangler.toml. Absent in local dev and tests. */
   USAGE?: UsageDataset;
+  /** D1 database, bound in wrangler.toml. Absent in local dev and tests. */
+  DEMAND?: D1Database;
 }
 
 /** The country Cloudflare places a request in, when it says. */

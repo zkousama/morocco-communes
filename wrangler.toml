@@ -13,3 +13,12 @@ pages_build_output_dir = "./dist"
 [[analytics_engine_datasets]]
 binding = "USAGE"
 dataset = "communes_usage"
+
+# What the site was asked for, written by api/src/worker/demand.ts: the search, the place,
+# the tool, the country. No addresses, no identifiers. Raw rows are deleted after 90 days
+# by workers/rollup. Queried by `pnpm demand`.
+[[d1_databases]]
+binding = "DEMAND"
+database_name = "communes_demand"
+database_id = "b475d0f6-062f-462b-8f8f-685c438ab5ed"
+migrations_dir = "migrations"

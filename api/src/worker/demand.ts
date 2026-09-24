@@ -77,3 +77,31 @@ export function isBot(userAgent: string | null | undefined): 0 | 1 {
 export function localeOf(pathname: string): "en" | "fr" {
   return pathname === "/fr" || pathname.startsWith("/fr/") ? "fr" : "en";
 }
+
+const INSERT =
+  "INSERT INTO events (day, kind, text, code, name, results, locale, country, via, via_site, client, bot, dataset)" +
+  " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)";
+
+/**
+ * Writes one row. Without the binding, as in local dev and tests, it does nothing, and a
+ * database that fails costs the caller nothing: this runs after the response is built.
+ */
+export async function recordDemand(
+  db: D1Database | undefined,
+  row: DemandRow,
+  now: Date = new Date(),
+): Promise<void> {
+  if (!db) return;
+  try {
+    await db
+      .prepare(INSERT)
+      .bind(
+        now.toISOString().slice(0, 10),
+        row.kind, row.text, row.code, row.name, row.results,
+        row.locale, row.country, row.via, row.viaSite, row.client, row.bot, row.dataset,
+      )
+      .run();
+  } catch {
+    // Counting must never cost a caller their answer.
+  }
+}
