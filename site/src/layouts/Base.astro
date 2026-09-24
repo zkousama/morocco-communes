@@ -171,6 +171,7 @@ const themes = [
       <div class="made">
         <p>© {new Date().getFullYear()} <a href={AUTHOR.url}>{AUTHOR.name}</a></p>
         <p class="links">
+          <a href={path(locale, "most-looked-up/")}>{copy.attention}</a>
           <a href={REPO_URL}>{copy.repo}</a>
           <a href={`${REPO_URL}/blob/main/CITATION.cff`}>{copy.cite}</a>
           <a href={`${REPO_URL}/issues/new/choose`}>{copy.report}</a>

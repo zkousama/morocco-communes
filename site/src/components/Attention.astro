@@ -1,0 +1,106 @@
+---
+/**
+ * What people have opened most in the last 30 days, from the demand log's nightly
+ * rollup. The ranking can name any level a page reports: a commune, a province, a région,
+ * or an arrondissement, whose link goes to its city's page, the way the search box already
+ * sends it there. A code the dataset no longer has, or that never had a page, is dropped
+ * rather than shown broken.
+ */
+import Base from "../layouts/Base.astro";
+import { attention, since } from "../generated/attention.ts";
+import { pageOf } from "../lib/places";
+import { path, t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+
+const rows = attention
+  .map((row) => {
+    const unit = pageOf(row.code);
+    return unit ? { n: row.n, name: unit.name.fr, href: path(locale, unit.route) } : null;
+  })
+  .filter((row) => row !== null);
+---
+
+<Base locale={locale} route="most-looked-up/" title={copy.attention} description={copy.attentionBody}>
+  <article class="page">
+    <h1>{copy.attention}</h1>
+    <p class="lede">{copy.attentionBody}</p>
+    {rows.length === 0 ? (
+      <p>{copy.attentionEmpty}</p>
+    ) : (
+      <ol class="ranking">
+        {rows.map((row) => (
+          <li>
+            <a href={row.href}>{row.name}</a>
+            <span class="num">{n.format(row.n)}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+    <p class="note">{copy.attentionSince} {since}</p>
+  </article>
+</Base>
+
+<style>
+  .page {
+    padding-block: clamp(2rem, 6vw, 4rem);
+    max-width: 40rem;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(var(--t-lg), 5vw, var(--t-xl));
+    line-height: 1.1;
+    margin: 0 0 0.75rem;
+  }
+
+  .lede {
+    color: var(--quiet);
+    font-size: var(--t-md);
+    max-width: 42ch;
+  }
+
+  .ranking {
+    list-style: none;
+    margin: 1.5rem 0;
+    padding: 0;
+  }
+
+  .ranking li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ranking li:first-child {
+    border-top: 1px solid var(--rule);
+  }
+
+  .ranking a {
+    text-decoration: none;
+  }
+
+  .ranking a:hover {
+    color: var(--brass);
+  }
+
+  .num {
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .note {
+    color: var(--quiet);
+    font-size: var(--t-sm);
+  }
+</style>

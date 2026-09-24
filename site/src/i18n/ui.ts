@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/"] as const;
+export const PAGES = ["", "communes/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "most-looked-up/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -198,6 +198,10 @@ export const ui = {
     notFoundBody: "Nothing lives at this address. If you were after the API, its routes start with /api/.",
     notFoundHome: "Go to the home page",
     notFoundCommunes: "Every commune, by région",
+    attention: "Most looked-up places",
+    attentionBody: "How often each place was opened on this site, over the last 30 days.",
+    attentionEmpty: "Nothing counted yet.",
+    attentionSince: "Counted since",
     footerData: "Codes, population and census figures from the Haut-Commissariat au Plan, RGPH 2024 and 2014.",
     footerGeometry: "Boundaries from OpenStreetMap contributors, under the ODbL.",
     repo: "Source",
@@ -378,6 +382,10 @@ export const ui = {
     notFoundBody: "Rien ne se trouve à cette adresse. Si vous cherchiez l’API, ses routes commencent par /api/.",
     notFoundHome: "Aller à l’accueil",
     notFoundCommunes: "Toutes les communes, par région",
+    attention: "Les lieux les plus consultés",
+    attentionBody: "Combien de fois chaque lieu a été ouvert sur ce site, sur les 30 derniers jours.",
+    attentionEmpty: "Rien de compté pour l’instant.",
+    attentionSince: "Compté depuis le",
     footerData: "Codes, population et chiffres du recensement : Haut-Commissariat au Plan, RGPH 2024 et 2014.",
     footerGeometry: "Limites : contributeurs d’OpenStreetMap, sous licence ODbL.",
     repo: "Code source",
