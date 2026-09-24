@@ -81,6 +81,36 @@ describe("scrubText", () => {
     expect(scrubText(undefined)).toBe("");
     expect(scrubText("   ")).toBe("");
   });
+
+  // The drop checks have to see the whole text, not just what a 64-character cut leaves
+  // behind, or a phone number, an email, a web address or a 7th word past the cut would
+  // slip through uncounted.
+  it("drops a phone number even when it starts past character 64", () => {
+    expect(scrubText("a".repeat(60) + " 0612345678")).toBe("");
+  });
+
+  it("drops an email even when it starts past character 64", () => {
+    expect(scrubText("a".repeat(70) + " x@y.com")).toBe("");
+  });
+
+  it("drops a web address even when it starts past character 64", () => {
+    expect(scrubText("a".repeat(70) + " https://example.com")).toBe("");
+  });
+
+  it("drops a 7-word text even when the cut would otherwise leave 6 or fewer", () => {
+    const text = Array(7).fill("x".repeat(10)).join(" ");
+    // Confirms the fixture actually exercises the bug: a naive cut-then-check reads only
+    // 6 tokens from the first 64 characters of this text.
+    expect([...text.slice(0, 64)].join("").split(" ")).toHaveLength(6);
+    expect(scrubText(text)).toBe("");
+  });
+
+  it("keeps a place name longer than 64 characters, cut to 64", () => {
+    const long = scrubText("casablanca".repeat(10));
+    expect(long).not.toBe("");
+    expect([...long]).toHaveLength(64);
+    expect(long).toBe("casablanca".repeat(10).slice(0, 64));
+  });
 });
 
 describe("viaSiteOf", () => {

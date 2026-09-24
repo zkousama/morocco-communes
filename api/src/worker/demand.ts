@@ -48,11 +48,13 @@ const HCP_CODE = /^[0-9]{2}(\.[0-9]{3}(\.[0-9]{2}(\.[0-9]{1,2}(\.[0-9])?)?)?)?$/
  *
  * A code names a place, so it's kept whatever its digits. Given `knownCode`, only a code
  * that names a real unit is: a phone number grouped 2-3-2-2-1 has a code's shape.
+ *
+ * Every drop check runs on the whole text before anything is cut, so a phone number, an
+ * email, a web address or a 7th word past character 64 is still caught: cutting first
+ * would let all of those through unseen.
  */
 export function scrubText(raw: string | null | undefined, knownCode?: (code: string) => boolean): string {
-  const collapsed = (raw ?? "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
-  // Array.from, so a cut lands between characters rather than inside one.
-  const text = Array.from(collapsed).slice(0, MAX_CHARACTERS).join("");
+  const text = (raw ?? "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
   if (text === "") return "";
   // The search box takes a code typed with spaces, 01 511 01 0, and so does this.
   const code = /^[0-9. ]+$/.test(text) ? text.replace(/ /g, ".") : text;
@@ -63,7 +65,9 @@ export function scrubText(raw: string | null | undefined, knownCode?: (code: str
   if ((text.match(/[\p{Nd}\p{No}]/gu) ?? []).length >= 6) return "";
   if (/https?:|www\./.test(text)) return "";
   if (text.split(" ").length > 6) return "";
-  return text;
+  // Array.from, so a cut lands between characters rather than inside one. Only what
+  // survives every check above gets cut, and stored.
+  return Array.from(text).slice(0, MAX_CHARACTERS).join("");
 }
 
 const SITES: [RegExp, string][] = [
