@@ -108,6 +108,12 @@ never an address, a cookie, a session or an identifier, so 2 rows can never be t
 same visitor. `pnpm demand` reads it back; the site's `/docs/privacy/` page says exactly
 what's kept.
 
+`pnpm deploy:live` switches it on. It applies the migration to the live database, builds
+the site with the most looked-up page read from that database, deploys it, then deploys
+the nightly rollup Worker. A plain `pnpm build` doesn't query the database and leaves that
+page empty. A failed write is swallowed, so `pnpm demand` a day after the first deploy is
+how to see rows are arriving.
+
 Every response is enveloped with `data`, `meta` and `links`. Errors are RFC 9457 problem
 documents, and a well-formed code that names nothing is a 404 while something unsearchable
 is a 400. CORS is open.

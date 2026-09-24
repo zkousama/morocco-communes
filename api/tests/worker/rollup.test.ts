@@ -193,3 +193,24 @@ describe("the nightly run", () => {
     expect(database.prepare("SELECT DISTINCT day FROM events ORDER BY day").all()).toEqual([{ day: "2026-06-26" }]);
   });
 });
+
+describe("switching it on", () => {
+  const scripts = (JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")) as {
+    scripts: Record<string, string>;
+  }).scripts;
+
+  // pnpm deploy is pnpm's own command for workspaces, so the site's deploy goes through run.
+  it("migrates the live database, builds the ranking from it, then deploys the site and the rollup", () => {
+    expect(scripts["deploy:live"]?.split(" && ")).toEqual([
+      "wrangler d1 migrations apply communes_demand --remote",
+      "ATTENTION=remote SITE_URL=https://communes.pages.dev pnpm build",
+      "pnpm run deploy",
+      "pnpm rollup:deploy",
+    ]);
+  });
+
+  it("gives the rollup Worker no public address, since only its schedule runs it", () => {
+    const config = readFileSync(new URL("../../../workers/rollup/wrangler.toml", import.meta.url), "utf8");
+    expect(config).toMatch(/^workers_dev = false$/m);
+  });
+});

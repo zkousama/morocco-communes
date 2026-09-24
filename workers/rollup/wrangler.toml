@@ -1,6 +1,8 @@
 name = "communes-rollup"
 main = "src/index.ts"
 compatibility_date = "2026-09-17"
+# Its schedule is the only thing that runs it, so it needs no workers.dev address.
+workers_dev = false
 
 [triggers]
 crons = ["17 3 * * *"]
