@@ -40,8 +40,11 @@ show("Searches", query(
 show("Searches that found nothing", query(
   `SELECT text, COUNT(*) AS n FROM events WHERE day >= '${since}' AND kind = 'search' AND results = 0 AND text != '' GROUP BY text ORDER BY n DESC LIMIT 25`,
 ));
-show("Tools and clients", query(
-  `SELECT name, client, COUNT(*) AS n FROM events WHERE day >= '${since}' AND kind = 'tool' GROUP BY name, client ORDER BY n DESC LIMIT 25`,
+show("Tools", query(
+  `SELECT name, SUM(n) AS n FROM daily WHERE day >= '${since}' AND kind = 'tool' GROUP BY name ORDER BY n DESC LIMIT 25`,
+));
+show("Clients", query(
+  `SELECT name, SUM(n) AS n FROM daily WHERE day >= '${since}' AND kind = 'client' GROUP BY name ORDER BY n DESC LIMIT 25`,
 ));
 show("Where people came from", query(
   `SELECT via_site, SUM(n) AS n FROM daily WHERE day >= '${since}' AND bot = 0 GROUP BY via_site ORDER BY n DESC`,
