@@ -17,7 +17,7 @@ export interface DemandRow {
   /** Hits a search returned. -1 where the kind isn't a search. */
   results: number;
   /**
-   * 1 when a search names a place, by its code, its name, an exonym or a spelling of it.
+   * 1 when a search names a place, by its code, its name or an exonym.
    * Worked out by the Worker from its own search, never taken from the client.
    */
   named: 0 | 1;

@@ -70,12 +70,14 @@ type Vars = { demandText?: string; demandResults?: number; demandCode?: string }
 /** Whether a code-shaped text names a real unit, for scrubText. */
 const knownCode = (code: string) => resolve(lookup, code).kind === "found";
 
-const NAMING = new Set<Hit["matched"]>(["code", "exact", "alias", "spelling"]);
+// Not "spelling": that's only an equal consonant skeleton, and surnames share one with a
+// place often enough, ajebbar with Jbabra and bennani with El Bibane.
+const NAMING = new Set<Hit["matched"]>(["code", "exact", "alias"]);
 
 /**
- * 1 when a search names a place: its top hit is a code, a name, an exonym or a spelling of
- * one. A prefix or a few shared trigrams are how a person's name still finds hits, so they
- * don't count. Worked out here, since a count the client sends can say anything.
+ * 1 when a search names a place: its top hit is a code, a name or an exonym. A prefix, a
+ * shared skeleton or a few shared trigrams are how a person's name still finds hits, so
+ * they don't count. Worked out here, since a count the client sends can say anything.
  */
 function namesAPlace(text: string): 0 | 1 {
   const top = search(index, text, { limit: 1 })[0];

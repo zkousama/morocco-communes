@@ -184,10 +184,22 @@ describe("whether a search names a place", () => {
     await app.fetch(call("search", { query: "Tanger" }), env(rows) as never, ctx as never);
     expect(rows.map(byColumn)).toMatchObject([
       { kind: "search", text: "tanger", named: 1 },
-      { kind: "search", text: "titwan", named: 1 },
+      { kind: "search", text: "titwan", named: 0 },
       { kind: "search", text: "ousama ajebbar", named: 0 },
       { kind: "search", text: "karim el idrissi", results: 50, named: 0 },
       { kind: "tool", text: "tanger", named: 1 },
+    ]);
+  });
+
+  it("takes a place's name or code, and not a surname with a place's consonants", async () => {
+    const rows: Captured[] = [];
+    for (const q of ["tanger", "01.511.01.0", "ajebbar", "tazi", "bennani"]) await search(q, rows);
+    expect(rows.map(byColumn)).toMatchObject([
+      { text: "tanger", named: 1 },
+      { text: "01.511.01.0", named: 1 },
+      { text: "ajebbar", named: 0 },
+      { text: "tazi", named: 0 },
+      { text: "bennani", named: 0 },
     ]);
   });
 
@@ -203,14 +215,18 @@ describe("whether a search names a place", () => {
     ]);
   });
 
-  it("keeps a place typed once in the rollup, by its name or a known spelling", async () => {
-    const rows: Captured[] = [];
-    await search("tanger", rows);
-    await search("titwan", rows);
-    expect(rolledUp(rows)).toEqual([
+  it("keeps a place's name typed once in the rollup, and another spelling of it once it's typed 3 times", async () => {
+    const once: Captured[] = [];
+    await search("tanger", once);
+    await search("titwan", once);
+    expect(rolledUp(once)).toEqual([
+      { kind: "search", text: "", n: 1 },
       { kind: "search", text: "tanger", n: 1 },
-      { kind: "search", text: "titwan", n: 1 },
     ]);
+
+    const thrice: Captured[] = [];
+    for (let i = 0; i < 3; i++) await search("titwan", thrice);
+    expect(rolledUp(thrice)).toEqual([{ kind: "search", text: "titwan", n: 3 }]);
   });
 });
 
