@@ -485,7 +485,20 @@ const FILE = /^[a-z0-9][a-z0-9/._-]{2,79}$/;
 app.post("/api/beacon", async (c) => {
   const url = new URL(c.req.url);
   const origin = c.req.header("origin");
-  if (origin && new URL(origin).host !== url.host) return new Response(null, { status: 400 });
+  let sameOrigin = false;
+  try {
+    sameOrigin = origin !== undefined && new URL(origin).host === url.host;
+  } catch {
+    sameOrigin = false;
+  }
+  // A missing header is not consent: a browser sends Origin on every POST and Sec-Fetch-Site
+  // on every request, so a real page always carries one of the two. curl and a plain script
+  // that send neither are refused rather than let through by default. Someone who sets the
+  // headers by hand still gets counted — this guards a page counter, not a boundary that has
+  // to hold under attack.
+  if (!sameOrigin && c.req.header("sec-fetch-site") !== "same-origin") {
+    return new Response(null, { status: 400 });
+  }
   const body = (await c.req.raw.clone().json().catch(() => null)) as
     | { kind?: unknown; code?: unknown; file?: unknown; locale?: unknown }
     | null;

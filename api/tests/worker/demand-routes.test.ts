@@ -134,6 +134,14 @@ const beacon = (body: unknown, headers: Record<string, string> = {}) =>
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 
+// No Origin at all, unlike beacon() above, for the requests that stand or fall on Sec-Fetch-Site alone.
+const beaconNoOrigin = (body: unknown, headers: Record<string, string> = {}) =>
+  new Request("https://communes.pages.dev/api/beacon", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...headers },
+    body: JSON.stringify(body),
+  });
+
 describe("the beacon", () => {
   it("counts a place and answers 204", async () => {
     const rows: Captured[] = [];
@@ -169,6 +177,39 @@ describe("the beacon", () => {
     const rows: Captured[] = [];
     const response = await app.fetch(
       beacon({ kind: "place", code: "01.511.01.0" }, { origin: "https://example.org" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(400);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("refuses a request with neither Origin nor Sec-Fetch-Site, and writes nothing", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beaconNoOrigin({ kind: "place", code: "01.511.01.0" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(400);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("accepts a request with no Origin but Sec-Fetch-Site same-origin", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beaconNoOrigin({ kind: "place", code: "01.511.01.0" }, { "sec-fetch-site": "same-origin" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(204);
+    expect(rows).toHaveLength(1);
+  });
+
+  it("refuses a cross-site Sec-Fetch-Site even with an Origin present", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beacon({ kind: "place", code: "01.511.01.0" }, { origin: "https://example.org", "sec-fetch-site": "cross-site" }),
       env(rows) as never,
       ctx as never,
     );
