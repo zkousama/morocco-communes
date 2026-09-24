@@ -45,6 +45,52 @@ describe("demand rows from the API", () => {
     expect(place?.values).toContain("01.511.01.0");
   });
 
+  it("writes no row for a search the scrub drops", async () => {
+    const rows: Captured[] = [];
+    // An email address scrubs to "", so the middleware's kind ternary falls through to
+    // "place" (empty too, since this handler never sets demandCode) and then to null.
+    const response = await app.fetch(
+      new Request("https://communes.pages.dev/api/search?q=someone%40example.com"),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(200);
+    expect(rows.find((r) => r.values.includes("search"))).toBeUndefined();
+    expect(rows).toHaveLength(0);
+  });
+
+  it("records the place a point lookup names", async () => {
+    const rows: Captured[] = [];
+    // Al Hoceima's centroid, from search-index.json. tileAt() resolves it against the real,
+    // unmocked production tile index (api/generated/tile-index.json, loaded at module scope
+    // in index.ts) to leaf tile "3/112/121", confirmed by walking the same quadtree logic
+    // outside the test. The tile's contents, though, come from the ASSETS binding, and the
+    // built tile files themselves are emitted at build time rather than checked into the
+    // repo, so this fake serves a small synthetic square standing in for the real boundary:
+    // it exercises the same code path (communeIn finds a code, the handler sets demandCode,
+    // the middleware writes a place row) without depending on generated geometry a unit test
+    // can't reach. Al Hoceima carries no arrondissements, so no second ASSETS fetch follows.
+    const lat = 35.23871444189453;
+    const lng = -3.941081692480469;
+    const code = "01.051.01.01";
+    const tile = { origin: [lng - 1, lat - 1], unit: 1, communes: [{ code, rings: [[0, 0, 2, 0, 2, 2, 0, 2]] }] };
+    const assets = {
+      fetch: async (request: Request) =>
+        new Response(
+          new URL(request.url).pathname.startsWith("/api/tiles/") ? JSON.stringify(tile) : "{}",
+          { status: 200 },
+        ),
+    };
+    const response = await app.fetch(
+      new Request(`https://communes.pages.dev/api/communes/at?lat=${lat}&lng=${lng}`),
+      { ASSETS: assets, DEMAND: fakeDb(rows) } as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(200);
+    const place = rows.find((r) => r.values.includes("place"));
+    expect(place?.values).toContain(code);
+  });
+
   it("answers normally when the database is down", async () => {
     const response = await app.fetch(
       new Request("https://communes.pages.dev/api/search?q=titwan"),
