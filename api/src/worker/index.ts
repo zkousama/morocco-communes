@@ -106,9 +106,10 @@ app.use("/api/*", async (c, next) => {
     ms: Date.now() - started,
   });
 
-  // The site's own search box asks on every pause while someone types, and counts itself
-  // through the beacon once a query settles, so its requests write nothing here. The browser
-  // sets Sec-Fetch-Site and a page's script can't, so only the site's own pages are skipped.
+  // A request that says it's same-origin writes nothing here. The site's own search box
+  // always says so: it asks on every pause while someone types, and counts itself through
+  // the beacon once a query settles. A page's script can't set the header, but a script
+  // outside a browser can claim it, and then goes uncounted.
   if (c.req.header("sec-fetch-site") === "same-origin") return;
 
   const text = scrubText(c.get("demandText"), knownCode);
