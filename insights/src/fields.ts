@@ -132,14 +132,23 @@ export function field(path: string): Field | undefined {
 const prefixOf = (path: string): string => path.slice(0, path.lastIndexOf("."));
 
 /**
+ * A percent field's siblings can overlap rather than add up to a whole: a person can speak
+ * more than one local language, read and write more than one, and a household can have
+ * more than one amenity or network connection. Those don't group.
+ */
+const OVERLAPPING_SHARES = new Set(["localLanguages", "languagesReadAndWritten", "amenities", "housing.networks"]);
+
+/**
  * Every percent field grouped with the others that share its prefix: the age bands, the
  * dwelling types, the commute modes, a share and the total it's part of. A percent field
- * with no such sibling is alone in its own group.
+ * with no such sibling, or whose siblings overlap rather than partition a whole, is alone
+ * in its own group.
  */
 const families = new Map<string, Set<string>>();
 for (const f of FIELDS) {
   if (f.unit !== "percent") continue;
   const prefix = prefixOf(f.path);
+  if (OVERLAPPING_SHARES.has(prefix)) continue;
   const group = families.get(prefix) ?? new Set<string>();
   group.add(f.path);
   families.set(prefix, group);

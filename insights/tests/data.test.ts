@@ -28,6 +28,11 @@ describe("the field catalogue", () => {
     expect(empty.has("labour.unemploymentRate")).toBe(false);
   });
 
+  it("keeps a share that overlaps its siblings, rather than partitioning them, out of their family", () => {
+    expect(familyOf("localLanguages.tamazight").has("localLanguages.tachelhit")).toBe(false);
+    expect(familyOf("housing.occupancy.unoccupied").has("housing.occupancy.seasonal")).toBe(true);
+  });
+
   it("breaks an empty-homes share into its parts", () => {
     expect(breakdownOf("housing.occupancy.unoccupied")).toEqual(["housing.occupancy.vacant", "housing.occupancy.seasonal"]);
     expect(breakdownOf("labour.unemploymentRate")).toBeNull();
