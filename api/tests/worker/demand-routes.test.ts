@@ -105,6 +105,32 @@ describe("demand rows from the API", () => {
     expect(place?.values).toContain(code);
   });
 
+  it("leaves the site's own requests to its beacon, and still counts everyone else's", async () => {
+    const own: Captured[] = [];
+    const response = await app.fetch(
+      new Request("https://communes.pages.dev/api/search?q=tan", { headers: { "sec-fetch-site": "same-origin" } }),
+      env(own) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(200);
+    expect(own).toHaveLength(0);
+
+    const theirs: Captured[] = [];
+    await app.fetch(new Request("https://communes.pages.dev/api/search?q=tan"), env(theirs) as never, ctx as never);
+    expect(theirs.map(named)).toMatchObject([{ kind: "search", text: "tan" }]);
+  });
+
+  it("writes no place row for the site's own lookup", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      new Request("https://communes.pages.dev/api/communes/01.511.01.0", { headers: { "sec-fetch-site": "same-origin" } }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(200);
+    expect(rows).toHaveLength(0);
+  });
+
   it("answers normally when the database is down", async () => {
     const response = await app.fetch(
       new Request("https://communes.pages.dev/api/search?q=titwan"),
@@ -217,8 +243,41 @@ describe("the beacon", () => {
     expect(rows[0]!.values).toContain("data/v1/attributes/communes.csv");
   });
 
+  it("counts a search the site's box settled on, scrubbed, with what it found and the page's language", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beacon({ kind: "search", text: "  Tanger ", results: 3, locale: "fr" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(204);
+    expect(rows.map(named)).toMatchObject([
+      { kind: "search", text: "tanger", code: "", name: "search", results: 3, locale: "fr", via: "browser", client: "" },
+    ]);
+  });
+
+  it("takes a search's results only as a whole number from 0 to 100", async () => {
+    for (const [results, stored] of [[0, 0], [100, 100], [101, -1], [2.5, -1], [-3, -1], ["3", -1], [undefined, -1]]) {
+      const rows: Captured[] = [];
+      await app.fetch(beacon({ kind: "search", text: "tanger", results }), env(rows) as never, ctx as never);
+      expect(rows.map(named)).toMatchObject([{ kind: "search", results: stored }]);
+    }
+  });
+
+  it("answers a search holding a phone number and keeps nothing of it", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(
+      beacon({ kind: "search", text: "06 12 34 56 78", results: 0, locale: "fr" }),
+      env(rows) as never,
+      ctx as never,
+    );
+    expect(response.status).toBe(204);
+    expect(rows).toHaveLength(0);
+  });
+
   it("refuses a body that isn't one of ours, and writes nothing", async () => {
     for (const body of [
+      { kind: "search", text: 42 },
       { kind: "place", code: "'; DROP TABLE events; --" },
       { kind: "elsewhere", code: "01.511.01.0" },
       { kind: "download", file: "x".repeat(500) },

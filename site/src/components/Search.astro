@@ -126,9 +126,33 @@ const cities = Object.fromEntries(
       return [];
     };
 
+    /**
+     * A query is counted once it settles, through the beacon: 1.5 s after its results show
+     * with nothing typed since, or as soon as one of them is opened. The API doesn't count
+     * this box's own requests, so a pause while typing "tanger" never logs "tan". Each query
+     * is sent once, and nothing is sent when the reader asks not to be tracked.
+     */
+    const counting = navigator.doNotTrack !== "1" && "sendBeacon" in navigator;
+    const counted = new Set<string>();
+    let shown: { text: string; results: number } | null = null;
+    let settle = 0;
+    const count = () => {
+      clearTimeout(settle);
+      if (!counting || !shown || counted.has(shown.text)) return;
+      counted.add(shown.text);
+      const body = {
+        kind: "search",
+        text: shown.text,
+        results: shown.results,
+        locale: document.documentElement.lang === "fr" ? "fr" : "en",
+      };
+      navigator.sendBeacon("/api/beacon", new Blob([JSON.stringify(body)], { type: "application/json" }));
+    };
+
     let latest = 0;
     const search = async (q: string) => {
       const mine = ++latest;
+      shown = null;
       hits.innerHTML = "";
       none.hidden = true;
       if (q.trim().length < 2) return;
@@ -162,12 +186,22 @@ const cities = Object.fromEntries(
         .join("");
       none.textContent = d.none ?? "";
       none.hidden = listed.length > 0;
+      shown = { text: q.trim(), results: listed.length };
+      clearTimeout(settle);
+      settle = window.setTimeout(count, 1500);
     };
 
     let timer = 0;
     input.addEventListener("input", () => {
       clearTimeout(timer);
+      clearTimeout(settle);
       timer = window.setTimeout(() => void search(input.value), 120);
+    });
+
+    // Opening a result settles its query at once, before the page goes. Enter opens the
+    // first by clicking it, so it arrives here too.
+    hits.addEventListener("click", (event) => {
+      if (event.target instanceof Element && event.target.closest("a")) count();
     });
 
     const show = () => {

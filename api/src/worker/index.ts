@@ -91,6 +91,11 @@ app.use("/api/*", async (c, next) => {
     ms: Date.now() - started,
   });
 
+  // The site's own search box asks on every pause while someone types, and counts itself
+  // through the beacon once a query settles, so its requests write nothing here. The browser
+  // sets Sec-Fetch-Site and a page's script can't, so only the site's own pages are skipped.
+  if (c.req.header("sec-fetch-site") === "same-origin") return;
+
   const text = scrubText(c.get("demandText"));
   const code = c.get("demandCode") ?? "";
   const kind: DemandKind | null = text !== "" ? "search" : code !== "" ? "place" : null;
@@ -490,9 +495,10 @@ const CODE = /^[0-9][0-9.]{1,13}$/;
 const FILE = /^[a-z0-9][a-z0-9/._-]{2,79}$/;
 
 /**
- * What a static page can't count for itself: a place opened, a file taken. The pages and
- * the files are served without running code, so the browser says so here instead. Same
- * origin only, and a body that isn't one of ours writes nothing.
+ * What a static page can't count for itself: a place opened, a file taken, and a search
+ * the site's own box settled on. The pages and the files are served without running code,
+ * and the box's requests to the API aren't counted, so the browser says so here instead.
+ * Same origin only, and a body that isn't one of ours writes nothing.
  */
 app.post("/api/beacon", async (c) => {
   const url = new URL(c.req.url);
@@ -512,9 +518,32 @@ app.post("/api/beacon", async (c) => {
     return new Response(null, { status: 400 });
   }
   const body = (await c.req.raw.clone().json().catch(() => null)) as
-    | { kind?: unknown; code?: unknown; file?: unknown; locale?: unknown }
+    | { kind?: unknown; code?: unknown; file?: unknown; text?: unknown; results?: unknown; locale?: unknown }
     | null;
   if (!body || typeof body !== "object") return new Response(null, { status: 400 });
+  const shared = {
+    locale: body.locale === "fr" ? ("fr" as const) : ("en" as const),
+    country: countryOf(c.req.raw),
+    via: "browser",
+    viaSite: viaSiteOf(c.req.header("referer"), url.host),
+    client: "",
+    bot: isBot(c.req.header("user-agent")),
+    dataset: DATASET_VERSION,
+  };
+
+  if (body.kind === "search") {
+    if (typeof body.text !== "string") return new Response(null, { status: 400 });
+    // As in the API: a search the scrub empties is answered, and nothing of it is kept.
+    const text = scrubText(body.text);
+    if (text === "") return new Response(null, { status: 204 });
+    const { results } = body;
+    const found = typeof results === "number" && Number.isInteger(results) && results >= 0 && results <= 100 ? results : -1;
+    c.executionCtx.waitUntil(
+      recordDemand(c.env.DEMAND, { ...shared, kind: "search", text, code: "", name: "search", results: found }),
+    );
+    return new Response(null, { status: 204 });
+  }
+
   const kind = body.kind === "place" || body.kind === "download" ? body.kind : null;
   const code = typeof body.code === "string" && CODE.test(body.code) ? body.code : "";
   const file = typeof body.file === "string" && FILE.test(body.file) ? body.file : "";
@@ -522,20 +551,7 @@ app.post("/api/beacon", async (c) => {
     return new Response(null, { status: 400 });
   }
   c.executionCtx.waitUntil(
-    recordDemand(c.env.DEMAND, {
-      kind,
-      text: "",
-      code: kind === "place" ? code : file,
-      name: kind,
-      results: -1,
-      locale: body.locale === "fr" ? "fr" : "en",
-      country: countryOf(c.req.raw),
-      via: "browser",
-      viaSite: viaSiteOf(c.req.header("referer"), url.host),
-      client: "",
-      bot: isBot(c.req.header("user-agent")),
-      dataset: DATASET_VERSION,
-    }),
+    recordDemand(c.env.DEMAND, { ...shared, kind, text: "", code: kind === "place" ? code : file, name: kind, results: -1 }),
   );
   return new Response(null, { status: 204 });
 });
