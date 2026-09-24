@@ -63,7 +63,9 @@ export function scrubText(raw: string | null | undefined, knownCode?: (code: str
   // Counted rather than matched as a run, so a phone number is caught however it's spaced
   // or dotted, and in Arabic-Indic or circled digits too.
   if ((text.match(/[\p{Nd}\p{No}]/gu) ?? []).length >= 6) return "";
-  if (/https?:|www\./.test(text)) return "";
+  // A web address without its scheme, facebook.com/someone or t.me/someone, names a person
+  // as surely as one with it. No place name holds a slash or a dot.
+  if (/https?:|www\.|\//.test(text) || /[\p{L}\p{N}-]\.[a-z]{2,}\b/u.test(text)) return "";
   if (text.split(" ").length > 6) return "";
   // Array.from, so a cut lands between characters rather than inside one. Only what
   // survives every check above gets cut, and stored.

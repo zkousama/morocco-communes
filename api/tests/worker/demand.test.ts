@@ -17,6 +17,20 @@ describe("scrubText", () => {
     expect(scrubText("please tell me where my cousin lives in this town")).toBe("");
   });
 
+  it("drops a web address typed without its https://", () => {
+    expect(scrubText("facebook.com/ahmed.benali")).toBe("");
+    expect(scrubText("instagram.com/ahmedbenali")).toBe("");
+    expect(scrubText("t.me/ahmed")).toBe("");
+    expect(scrubText("ahmed.benali.ma")).toBe("");
+    expect(scrubText("ahmed/benali")).toBe("");
+  });
+
+  it("keeps a place and a code beside the web address rule", () => {
+    expect(scrubText("Ksar El Kebir")).toBe("ksar el kebir");
+    expect(scrubText("سيدي بنور")).toBe("سيدي بنور");
+    expect(scrubText("04.501.03.11.4")).toBe("04.501.03.11.4");
+  });
+
   it("drops a phone number however it's written", () => {
     expect(scrubText("06 12 34 56 78")).toBe("");
     expect(scrubText("06.12.34.56.78")).toBe("");

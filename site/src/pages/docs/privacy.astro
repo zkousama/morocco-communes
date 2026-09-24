@@ -61,9 +61,10 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   <section id="search">
     <h2>A search</h2>
     <p>
-      A search is stored lower-cased and cut to 64 characters. It’s dropped completely if it holds an @, a web
-      address, more than 6 words, or 6 digits or more however they’re written, unless those digits spell out a
-      real place’s code. That’s how an email or a phone number typed into the box by mistake stays out.
+      A search is stored lower-cased and cut to 64 characters. It’s dropped completely if it holds an @, a slash,
+      anything shaped like a web address, more than 6 words, or 6 digits or more however they’re written, unless
+      those digits spell out a real place’s code. That’s how an email or a phone number typed into the box by
+      mistake stays out.
     </p>
     <p>
       The site’s own search box reports a search once it’s settled: 1.5 seconds after the results stop changing,
