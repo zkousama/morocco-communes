@@ -78,10 +78,13 @@ const METHODS = new Set([
   "logging/setLevel",
 ]);
 
+/** A batch can hold any number of messages, and each one counted writes a row. */
+const MAX_MESSAGES = 20;
+
 /**
- * Each JSON-RPC message in an MCP request: its method, the tool a call names, and the name
- * an initialize gives its client. Notifications are left out, since they say nothing about
- * use. A body that isn't JSON-RPC gives nothing.
+ * Each JSON-RPC message in an MCP request, up to the first 20: its method, the tool a call
+ * names, and the name an initialize gives its client. Notifications are left out, since
+ * they say nothing about use. A body that isn't JSON-RPC gives nothing.
  *
  * The tool, the client and the method are filtered here, once, so both the demand log and
  * Analytics Engine's `record()` get the same values: a tool outside `TOOL_NAMES`, a client
@@ -92,7 +95,7 @@ export function mcpMessages(
   /** Passed to scrubText, to tell a real code from a number shaped like one. */
   knownCode?: (code: string) => boolean,
 ): { method: string; tool?: string; client?: string; args?: { place?: string; level?: Level; query?: string } }[] {
-  const messages = Array.isArray(body) ? body : [body];
+  const messages = Array.isArray(body) ? body.slice(0, MAX_MESSAGES) : [body];
   return messages.flatMap((message) => {
     if (!message || typeof message !== "object") return [];
     const { method: given, params } = message as { method?: unknown; params?: Record<string, unknown> };

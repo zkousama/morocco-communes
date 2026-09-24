@@ -254,6 +254,20 @@ describe("the assistants that connect", () => {
     await app.fetch(call("get_commune", { id: "tanger" }), env(rows) as never, ctx as never);
     expect(rows.map(byColumn)).toMatchObject([{ kind: "tool", client: "" }]);
   });
+
+  it("are counted for the first 20 messages of a batch, and no more", async () => {
+    const rows: Captured[] = [];
+    const points: unknown[] = [];
+    const batch = Array.from({ length: 25 }, (_, id) => ({
+      jsonrpc: "2.0",
+      id,
+      method: "tools/call",
+      params: { name: "get_commune", arguments: { id: "tanger" } },
+    }));
+    await app.fetch(mcp(batch), { ...env(rows), USAGE: { writeDataPoint: (point: unknown) => points.push(point) } } as never, ctx as never);
+    expect(rows).toHaveLength(20);
+    expect(points).toHaveLength(20);
+  });
 });
 
 describe("the names an assistant gives", () => {
