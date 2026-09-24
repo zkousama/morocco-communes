@@ -1,18 +1,19 @@
 ---
 // Tells the site what a static page can't: which place was opened, which file was taken.
-// It sends a code and nothing else, and it stays quiet when the reader asks not to be
-// tracked.
+// It sends a code and the host the reader came from, never the address they were on, and
+// it stays quiet when the reader asks not to be tracked.
 interface Props { code?: string; locale: "en" | "fr" }
 const { code, locale } = Astro.props;
 ---
 <script is:inline define:vars={{ code, locale }}>
   if (navigator.doNotTrack !== "1" && navigator.sendBeacon) {
+    const from = document.referrer ? new URL(document.referrer).hostname : "";
     const send = (body) =>
       navigator.sendBeacon("/api/beacon", new Blob([JSON.stringify(body)], { type: "application/json" }));
-    if (code) send({ kind: "place", code, locale });
+    if (code) send({ kind: "place", code, locale, from });
     document.addEventListener("click", (event) => {
       const link = event.target.closest?.("a[download], a[data-download]");
-      if (link) send({ kind: "download", file: link.getAttribute("href").replace(/^\//, ""), locale });
+      if (link) send({ kind: "download", file: link.getAttribute("href").replace(/^\//, ""), locale, from });
     });
   }
 </script>

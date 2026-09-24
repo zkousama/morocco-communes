@@ -509,6 +509,7 @@ const CODE = /^[0-9][0-9.]{1,13}$/;
 const FILE = /^[a-z0-9][a-z0-9/._-]{2,79}$/;
 /** A beacon is a few dozen bytes. */
 const BEACON_BYTES = 1024;
+const HOST = /^[a-z0-9.-]{1,253}$/i;
 
 /**
  * What a static page can't count for itself: a place opened, a file taken, and a search
@@ -538,18 +539,28 @@ app.post("/api/beacon", async (c) => {
   if (Number(c.req.header("content-length")) > BEACON_BYTES) return new Response(null, { status: 400 });
   const bytes = await c.req.arrayBuffer().catch(() => new ArrayBuffer(0));
   if (bytes.byteLength > BEACON_BYTES) return new Response(null, { status: 400 });
-  let body: { kind?: unknown; code?: unknown; file?: unknown; text?: unknown; results?: unknown; locale?: unknown } | null;
+  let body: { kind?: unknown; code?: unknown; file?: unknown; text?: unknown; results?: unknown; locale?: unknown; from?: unknown } | null;
   try {
     body = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     body = null;
   }
   if (!body || typeof body !== "object") return new Response(null, { status: 400 });
+  // Where the reader came from is the host the page read from document.referrer. The
+  // beacon's own Referer is the page that sent it, so it would only ever say "site". Only
+  // the class is kept, never the host.
+  const { from } = body;
+  const cameFrom =
+    from === undefined || from === ""
+      ? "direct"
+      : typeof from === "string" && HOST.test(from)
+        ? viaSiteOf(`https://${from}`, url.hostname)
+        : "other";
   const shared = {
     locale: body.locale === "fr" ? ("fr" as const) : ("en" as const),
     country: countryOf(c.req.raw),
     via: "browser",
-    viaSite: viaSiteOf(c.req.header("referer"), url.host),
+    viaSite: cameFrom,
     client: "",
     bot: isBot(c.req.header("user-agent")),
     dataset: DATASET_VERSION,

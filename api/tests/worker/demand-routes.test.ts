@@ -365,6 +365,30 @@ describe("the beacon", () => {
     expect(rows).toHaveLength(0);
   });
 
+  it("says where the reader came from by the host the page read, never by the beacon's own Referer", async () => {
+    const cases: [from: unknown, viaSite: string, headers?: Record<string, string>][] = [
+      ["www.reddit.com", "reddit"],
+      ["", "direct"],
+      ["communes.pages.dev", "site"],
+      ["not a host!", "other"],
+      [42, "other"],
+      [undefined, "direct", { referer: "https://www.reddit.com/r/morocco/" }],
+    ];
+    for (const [from, viaSite, headers] of cases) {
+      const rows: Captured[] = [];
+      const body = { kind: "place", code: "01.511.01.0", ...(from !== undefined && { from }) };
+      await app.fetch(beacon(body, headers), env(rows) as never, ctx as never);
+      expect(rows.map(byColumn), String(from)).toMatchObject([{ viaSite }]);
+    }
+  });
+
+  it("keeps the class of the host a search came from, and never the host", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(beacon({ kind: "search", text: "tanger", results: 3, from: "www.google.com" }), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "search", viaSite: "search" }]);
+    expect(JSON.stringify(rows)).not.toContain("google.com");
+  });
+
   it("refuses a request from another site", async () => {
     const rows: Captured[] = [];
     const response = await app.fetch(
