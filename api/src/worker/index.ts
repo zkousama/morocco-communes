@@ -18,6 +18,7 @@ import { communeIn, featureContaining, prepareIndex, tileAt, tilePath, type Tile
 import type { D1Database } from "@cloudflare/workers-types";
 import { isBot, localeOf, recordDemand, scrubText, viaSiteOf, type DemandKind } from "./demand.ts";
 import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
+import { downloads } from "../../../site/src/generated/downloads.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -533,7 +534,12 @@ app.all("/mcp", async (c) => {
 });
 
 const CODE = /^[0-9][0-9.]{1,13}$/;
-const FILE = /^[a-z0-9][a-z0-9/._-]{2,79}$/;
+/**
+ * The files the site's download links point to, the only ones a beacon can name. A download
+ * row is kept for good, so a path someone made up, with a phone number or a name in it,
+ * mustn't become one.
+ */
+const OFFERED = new Set(downloads.flatMap((group) => group.files.map((file) => file.href.replace(/^\//, ""))));
 /** A beacon is a few dozen bytes. */
 const BEACON_BYTES = 1024;
 const HOST = /^[a-z0-9.-]{1,253}$/i;
@@ -634,8 +640,10 @@ app.post("/api/beacon", async (c) => {
   }
 
   const kind = body.kind === "place" || body.kind === "download" ? body.kind : null;
-  const code = typeof body.code === "string" && CODE.test(body.code) ? body.code : "";
-  const file = typeof body.file === "string" && FILE.test(body.file) ? body.file : "";
+  // Only a code that names a place, the same as a lookup, so a made-up number isn't kept.
+  const place = typeof body.code === "string" && CODE.test(body.code) ? resolve(lookup, body.code) : null;
+  const code = place?.kind === "found" ? place.code : "";
+  const file = typeof body.file === "string" && OFFERED.has(body.file) ? body.file : "";
   if (!kind || (kind === "place" && code === "") || (kind === "download" && file === "")) {
     return new Response(null, { status: 400 });
   }

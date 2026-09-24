@@ -3,6 +3,7 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import app from "../../src/worker/index.ts";
 import { ROLLUP } from "../../../workers/rollup/src/sql.ts";
+import { downloads } from "../../../site/src/generated/downloads.ts";
 
 interface Captured { sql: string; values: unknown[] }
 
@@ -388,6 +389,35 @@ describe("the beacon", () => {
     );
     expect(response.status).toBe(204);
     expect(rows).toHaveLength(0);
+  });
+
+  it("keeps a place only when its code names one, as the code it resolves to", async () => {
+    const rows: Captured[] = [];
+    const response = await app.fetch(beacon({ kind: "place", code: "99.999.99.99" }), env(rows) as never, ctx as never);
+    expect(response.status).toBe(400);
+    expect(rows).toHaveLength(0);
+    await app.fetch(beacon({ kind: "place", code: "1511010" }), env(rows) as never, ctx as never);
+    expect(rows.map(byColumn)).toMatchObject([{ kind: "place", code: "01.511.01.0" }]);
+  });
+
+  it("keeps every file the site offers for download", async () => {
+    const offered = downloads.flatMap((group) => group.files.map((file) => file.href.replace(/^\//, "")));
+    expect(offered).toContain("data/v1/crosswalk/2014-2024.csv");
+    for (const file of offered) {
+      const rows: Captured[] = [];
+      const response = await app.fetch(beacon({ kind: "download", file }), env(rows) as never, ctx as never);
+      expect(response.status, file).toBe(204);
+      expect(rows.map(byColumn), file).toMatchObject([{ kind: "download", code: file }]);
+    }
+  });
+
+  it("keeps no file the site doesn't offer", async () => {
+    for (const file of ["data/v1/0612345678.json", "data/v1/ahmed-benali.json", "api/communes/ahmed.json", "somewhere/else.csv"]) {
+      const rows: Captured[] = [];
+      const response = await app.fetch(beacon({ kind: "download", file }), env(rows) as never, ctx as never);
+      expect(response.status, file).toBe(400);
+      expect(rows, file).toHaveLength(0);
+    }
   });
 
   it("refuses a body that isn't one of ours, and writes nothing", async () => {
