@@ -7,6 +7,7 @@
  * route or tool, the name an MCP client gives itself, the first word of the User-Agent and
  * the country are enough to see how it's used and by what.
  */
+import type { Level } from "../lib/search.ts";
 import { scrubText } from "./demand.ts";
 
 export interface UsageDataset {
@@ -57,6 +58,10 @@ export function routeOf(pathname: string): string {
   return `${collection}/:id/${figures}`;
 }
 
+const CODE = /^[0-9][0-9.]{1,13}$/;
+const SLUG = /^[a-z0-9][a-z0-9-]{1,60}$/;
+const LEVELS = new Set<string>(["commune", "arrondissement", "province", "region", "cercle"] satisfies Level[]);
+
 /**
  * Each JSON-RPC message in an MCP request: its method, the tool a call names, and the name
  * an initialize gives its client. Notifications are left out, since they say nothing about
@@ -64,7 +69,7 @@ export function routeOf(pathname: string): string {
  */
 export function mcpMessages(
   body: unknown,
-): { method: string; tool?: string; client?: string; args?: { code?: string; query?: string } }[] {
+): { method: string; tool?: string; client?: string; args?: { place?: string; level?: Level; query?: string } }[] {
   const messages = Array.isArray(body) ? body : [body];
   return messages.flatMap((message) => {
     if (!message || typeof message !== "object") return [];
@@ -74,12 +79,16 @@ export function mcpMessages(
     const info = method === "initialize" ? (params?.clientInfo as { name?: unknown } | undefined) : undefined;
     const client = typeof info?.name === "string" ? info.name.slice(0, 60) : undefined;
 
-    // Only a code, a filter, a sort or a limit is worth keeping; a free-text query passes
-    // scrubText first, the way a site search is scrubbed.
+    // Only the place a tool names, the level it's read at and a free-text query are kept.
+    // The tools name a place as id or unit, by code or slug, lower-cased here since an
+    // assistant writes Tanger as often as tanger, and anything else there is left out. The
+    // query passes scrubText first, the way a site search is scrubbed.
     const raw = (method === "tools/call" ? (params?.arguments as Record<string, unknown> | undefined) : undefined) ?? {};
-    const code = typeof raw.code === "string" && /^[0-9][0-9.]{1,13}$/.test(raw.code) ? raw.code : undefined;
+    const given = [raw.code, raw.id, raw.unit].find((value): value is string => typeof value === "string")?.trim().toLowerCase();
+    const place = given !== undefined && (CODE.test(given) || SLUG.test(given)) ? given : undefined;
+    const level = place && typeof raw.level === "string" && LEVELS.has(raw.level) ? (raw.level as Level) : undefined;
     const query = typeof raw.query === "string" ? scrubText(raw.query) : "";
-    const args = { ...(code && { code }), ...(query !== "" && { query }) };
+    const args = { ...(place && { place }), ...(level && { level }), ...(query !== "" && { query }) };
 
     return [{ method, ...(tool && { tool }), ...(client && { client }), ...(tool && { args }) }];
   });

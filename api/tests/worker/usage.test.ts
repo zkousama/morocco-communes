@@ -43,7 +43,7 @@ describe("mcpMessages", () => {
     expect(mcpMessages(null)).toEqual([]);
   });
 
-  it("never keeps an argument outside code or query", () => {
+  it("never keeps an argument outside a place, its level or a query", () => {
     const [message] = mcpMessages({ method: "tools/call", params: { name: "search", arguments: { visitor: "private" } } });
     expect(JSON.stringify(message)).not.toContain("private");
   });

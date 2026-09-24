@@ -453,11 +453,14 @@ app.all("/mcp", async (c) => {
     });
 
     if (message.tool) {
+      // Stored as the code it resolves to, the way the tool reads it, so a slug that names
+      // no place leaves nothing behind.
+      const place = message.args?.place === undefined ? undefined : resolve(lookup, message.args.place, message.args.level);
       c.executionCtx.waitUntil(
         recordDemand(c.env.DEMAND, {
           kind: "tool",
           text: message.args?.query ?? "",
-          code: message.args?.code ?? "",
+          code: place?.kind === "found" ? place.code : "",
           name: message.tool,
           results: -1,
           locale: "en",

@@ -24,6 +24,20 @@ const env = (rows: Captured[], failing = false) => ({
 
 const ctx = { waitUntil: (p: Promise<unknown>) => p, passThroughOnException: () => {}, props: {} };
 
+/** A captured row by column, in the order recordDemand binds them. */
+const COLUMNS = ["day", "kind", "text", "code", "name", "results", "locale", "country", "via", "viaSite", "client", "bot", "dataset"];
+const named = (row: Captured) => Object.fromEntries(COLUMNS.map((column, i) => [column, row.values[i]]));
+
+const mcp = (body: unknown) =>
+  new Request("https://communes.pages.dev/mcp", {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+    body: JSON.stringify(body),
+  });
+
+const call = (name: string, args: Record<string, unknown>) =>
+  mcp({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } });
+
 describe("demand rows from the API", () => {
   it("records a search with its text and how many it found", async () => {
     const rows: Captured[] = [];
@@ -110,20 +124,40 @@ describe("demand rows from the API", () => {
     expect(response.status).toBe(200);
   });
 
-  it("records the tool an assistant calls, not the handshake", async () => {
+  it("records the tool an assistant calls", async () => {
     const rows: Captured[] = [];
-    await app.fetch(
-      new Request("https://communes.pages.dev/mcp", {
-        method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "get_commune", arguments: { code: "01.511.01.0" } } }),
-      }),
-      env(rows) as never,
-      ctx as never,
-    );
+    await app.fetch(call("get_commune", { id: "01.511.01.0" }), env(rows) as never, ctx as never);
     const tools = rows.filter((r) => r.values.includes("tool"));
     expect(tools).toHaveLength(1);
     expect(tools[0]!.values).toContain("get_commune");
+  });
+});
+
+describe("the place an assistant asks about", () => {
+  it("is the code get_commune's id resolves to", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(call("get_commune", { id: "tanger" }), env(rows) as never, ctx as never);
+    expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_commune", code: "01.511.01.0" }]);
+  });
+
+  it("is the code get_indicators' unit names", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(call("get_indicators", { unit: "01.511.01.0" }), env(rows) as never, ctx as never);
+    expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_indicators", code: "01.511.01.0" }]);
+  });
+
+  it("is read at the level the tool was given, where a name is shared", async () => {
+    const rows: Captured[] = [];
+    await app.fetch(call("get_unit", { unit: "tiznit", level: "province" }), env(rows) as never, ctx as never);
+    expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_unit", code: "09.581" }]);
+  });
+
+  it("is empty for an argument that's neither a code nor a slug, or a slug that names nothing", async () => {
+    for (const id of ["Hay Mohammadi, rue 12", "someone"]) {
+      const rows: Captured[] = [];
+      await app.fetch(call("get_commune", { id }), env(rows) as never, ctx as never);
+      expect(rows.map(named)).toMatchObject([{ kind: "tool", name: "get_commune", code: "" }]);
+    }
   });
 });
 

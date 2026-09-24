@@ -131,10 +131,25 @@ describe("recordDemand", () => {
 });
 
 describe("mcpMessages arguments", () => {
-  it("keeps the code a tool names", () => {
-    expect(
-      mcpMessages({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "get_indicators", arguments: { code: "01.511.01.0" } } }),
-    ).toEqual([{ method: "tools/call", tool: "get_indicators", args: { code: "01.511.01.0" } }]);
+  const call = (name: string, args: Record<string, unknown>) =>
+    mcpMessages({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } });
+
+  it("keeps the place a tool names, by id or by unit, with the level it's given", () => {
+    expect(call("get_commune", { id: "tanger" })).toEqual([{ method: "tools/call", tool: "get_commune", args: { place: "tanger" } }]);
+    expect(call("get_indicators", { unit: "01.511.01.0" })).toEqual([
+      { method: "tools/call", tool: "get_indicators", args: { place: "01.511.01.0" } },
+    ]);
+    expect(call("get_unit", { unit: "tiznit", level: "province" })).toEqual([
+      { method: "tools/call", tool: "get_unit", args: { place: "tiznit", level: "province" } },
+    ]);
+    expect(call("get_commune", { id: "Tanger" })).toEqual([{ method: "tools/call", tool: "get_commune", args: { place: "tanger" } }]);
+  });
+
+  it("keeps no place that's neither a code nor a slug, and no level that isn't one", () => {
+    expect(call("get_commune", { id: "Hay Mohammadi, rue 12" })).toEqual([{ method: "tools/call", tool: "get_commune", args: {} }]);
+    expect(call("get_unit", { unit: "tiznit", level: "somewhere" })).toEqual([
+      { method: "tools/call", tool: "get_unit", args: { place: "tiznit" } },
+    ]);
   });
 
   it("scrubs a free-text query the way a site search is scrubbed", () => {
