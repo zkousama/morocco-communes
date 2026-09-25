@@ -8,6 +8,7 @@ import { familyOf } from "../src/fields.ts";
 import { runLink } from "../src/links.ts";
 import { hash, LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
 import { aboutThisFinding, localWarning, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
+import { parseSetup } from "../src/setup.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
@@ -19,17 +20,22 @@ const proposal = JSON.stringify({ hypotheses: [{
 }] });
 const answers = (call: { stage: string }) => call.stage === "propose" ? proposal : JSON.stringify({ counter: null, reason: "none" });
 const runner = () => makeRunner(stubTransport(answers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+const testSetup = parseSetup({
+  propose: { transport: "claude", model: "sonnet", effort: "high", samples: 5 },
+  falsify: { transport: "claude", model: "opus", effort: "medium" },
+  attackShownOnly: false, decidedBy: null,
+});
 
 describe("the pipeline", () => {
   it("runs end to end on a few findings with stubbed models", async () => {
-    const file = await pipeline(data, { limit: 3, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { limit: 3, run: runner(), falsifier: runner(), setup: testSetup });
     expect(file.items).toHaveLength(3);
     for (const item of file.items) expect(item.line.en.length).toBeGreaterThan(0);
   });
 
   it("names the run, and says when it covered only some findings", async () => {
-    const limited = await pipeline(data, { limit: 1, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
-    const only = await pipeline(data, { only: [limited.items[0]!.finding.code], run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
+    const limited = await pipeline(data, { limit: 1, run: runner(), falsifier: runner(), setup: testSetup });
+    const only = await pipeline(data, { only: [limited.items[0]!.finding.code], run: runner(), falsifier: runner(), setup: testSetup });
     expect(limited.runId).toMatch(/^[0-9a-f]{12}$/);
     expect(only.runId).not.toBe(limited.runId);
     expect(limited.partial).toBe(true);
@@ -41,7 +47,7 @@ describe("the pipeline", () => {
     const answeredAs = (id: string) => makeRunner(async (call) => ({ text: answers(call), model: id, usage: NO_USAGE }), {
       cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" },
     });
-    const file = await pipeline(data, { limit: 3, run: answeredAs("proposer-id"), falsifier: answeredAs("adversary-id"), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { limit: 3, run: answeredAs("proposer-id"), falsifier: answeredAs("adversary-id"), setup: testSetup });
     expect(file.models).toEqual({ propose: "sonnet", falsify: "opus", answered: ["adversary-id", "proposer-id"] });
 
     const item = file.items.find((i) => i.hypotheses.length > 0)!;
@@ -52,7 +58,7 @@ describe("the pipeline", () => {
   });
 
   it("publishes only survivors, one file per unit, with its evidence", async () => {
-    const file = await pipeline(data, { limit: 3, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { limit: 3, run: runner(), falsifier: runner(), setup: testSetup });
     const files = publishable(file);
     for (const [path, body] of files) {
       expect(path).toMatch(/^(regions|provinces|communes|arrondissements)\/[0-9.]+\.json$|^index\.json$/);
@@ -100,7 +106,7 @@ describe("tokens and cost", () => {
     const usageRunner = () =>
       makeRunner(stubTransport(usageAnswers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
 
-    const file = await pipeline(data, { only: [finding.code], run: usageRunner(), falsifier: usageRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: usageRunner(), falsifier: usageRunner(), setup: testSetup });
     const propose = file.usage.find((u) => u.stage === "propose");
     const falsify = file.usage.find((u) => u.stage === "falsify");
     expect(propose?.calls).toBeGreaterThan(0);
@@ -144,7 +150,7 @@ describe("where a hypothesis stops", () => {
   const stageRunner = () => makeRunner(stubTransport(stageAnswers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
 
   it("gives each hypothesis the stage where it stopped", async () => {
-    const file = await pipeline(data, { only: [finding.code], run: stageRunner(), falsifier: stageRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: stageRunner(), falsifier: stageRunner(), setup: testSetup });
     const item = file.items.find((i) => i.finding.id === finding.id)!;
     const byClaim = new Map(item.hypotheses.map((h) => [h.claim.en, h]));
 
@@ -164,7 +170,7 @@ describe("a hypothesis that the figure is an error in the data", () => {
     const flagged = JSON.stringify({ hypotheses: [{ ...hyp("an error in the data", alwaysTrue("labour.activityRate")), artefact: true }] });
     const answers = (call: ModelCall) => (call.stage === "propose" ? flagged : JSON.stringify({ counter: null, reason: "no counter" }));
     const r = () => makeRunner(stubTransport(answers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
-    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), setup: testSetup });
 
     const [, body] = [...publishable(file, data)].find(([path]) => path.endsWith(`/${finding.code}.json`))!;
     const h = (body as { findings: { hypotheses: { artefact: boolean }[] }[] }).findings[0]!.hypotheses[0]!;
@@ -198,7 +204,7 @@ describe("an adversary that doesn't answer", () => {
       if (call.key.includes('"labour.activityRate"')) throw new Error("claude exited 1: overloaded");
       return { text: JSON.stringify({ counter: null, reason: "no counter" }), model: "adversary-id", usage: NO_USAGE };
     }, cache());
-    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, setup: testSetup });
     const byClaim = new Map(file.items[0]!.hypotheses.map((h) => [h.claim.en, h]));
 
     expect(byClaim.get("labour.activityRate")).toMatchObject({ stage: "falsify", reason: "the adversary didn't answer", adversary: null });
@@ -214,7 +220,7 @@ describe("an adversary that doesn't answer", () => {
       calls++;
       throw new Error("claude exited 1: something broke");
     }, cache());
-    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, setup: testSetup, concurrency: 1 });
 
     expect(calls).toBe(3);
     expect(file.partial).toBe(true);
@@ -226,7 +232,7 @@ describe("an adversary that doesn't answer", () => {
   it("stops at once when a usage limit outlasts its wait, and says so", async () => {
     // a runner that throws the LimitError withRetries throws after its wait
     const limited = makeRunner(async () => { throw new LimitError("the usage limit didn't reset within 6 hours", null); }, cache());
-    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier: limited, proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier: limited, setup: testSetup, concurrency: 1 });
     expect(file.stopped).toMatch(/usage limit/);
     expect(file.partial).toBe(true);
   });
@@ -237,7 +243,7 @@ describe("an adversary that doesn't answer", () => {
       calls++;
       throw new Error("claude exited 1: usage limit reached");
     }, cache());
-    const file = await pipeline(data, { limit: 3, run: failing, falsifier: proposer(), proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
+    const file = await pipeline(data, { limit: 3, run: failing, falsifier: proposer(), setup: testSetup, concurrency: 1 });
 
     expect(calls).toBe(3);
     expect(file.stopped).toMatch(/^3 proposer calls in a row failed/);
@@ -254,8 +260,8 @@ describe("running findings at the same time", () => {
 
   it("gives the same run file at concurrency 1 and 3", async () => {
     const only = isolatedFindings([], 6).map((f) => f.code);
-    const one = await pipeline(data, { only, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
-    const three = await pipeline(data, { only, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus", concurrency: 3 });
+    const one = await pipeline(data, { only, run: runner(), falsifier: runner(), setup: testSetup, concurrency: 1 });
+    const three = await pipeline(data, { only, run: runner(), falsifier: runner(), setup: testSetup, concurrency: 3 });
     expect(strip(three)).toEqual(strip(one));
   });
 
@@ -276,7 +282,7 @@ describe("running findings at the same time", () => {
       return { text: answer(call), model: call.model, usage: NO_USAGE };
     }, cache());
     const at = (concurrency: number, only = linked.map((f) => f.code)) =>
-      pipeline(data, { only, run: scrambled(), falsifier: scrambled(), proposer: "sonnet", falsifierModel: "opus", concurrency });
+      pipeline(data, { only, run: scrambled(), falsifier: scrambled(), setup: testSetup, concurrency });
 
     const one = await at(1);
     const three = await at(3);
@@ -312,7 +318,7 @@ describe("running findings at the same time", () => {
       }
       return { text: proposal, model: call.model, usage: NO_USAGE };
     }, cache());
-    const file = await pipeline(data, { only: seven.map((f) => f.code), run: proposer, falsifier: runner(), proposer: "sonnet", falsifierModel: "opus", concurrency: 3 });
+    const file = await pipeline(data, { only: seven.map((f) => f.code), run: proposer, falsifier: runner(), setup: testSetup, concurrency: 3 });
 
     expect(file.stopped).toMatch(/^3 proposer calls in a row failed.*something broke/);
     expect(file.partial).toBe(true);
@@ -354,7 +360,7 @@ describe("a link test that isn't about the finding", () => {
     });
     const r = stubbed(unrelated);
 
-    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), setup: testSetup });
     const item = file.items.find((i) => i.finding.id === finding.id)!;
     const published = item.hypotheses.find((h) => h.claim.en === "unrelated link")!;
 
@@ -375,7 +381,7 @@ describe("a link test that isn't about the finding", () => {
     });
     const r = stubbed(itself);
 
-    const file = await pipeline(data, { only: [target.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [target.code], run: r(), falsifier: r(), setup: testSetup });
     const item = file.items.find((i) => i.finding.id === target.id)!;
     const h = item.hypotheses.find((x) => x.claim.en === "itself")!;
     expect(h.linkTest).toMatchObject({ verdict: "refused", reason: "not about this figure" });
@@ -393,7 +399,7 @@ describe("a link test that isn't about the finding", () => {
     });
     const r = stubbed(related);
 
-    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), setup: testSetup });
     const item = file.items.find((i) => i.finding.id === finding.id)!;
     const h = item.hypotheses.find((x) => x.claim.en === "related link")!;
     expect(h.linkTest?.verdict).not.toBe("refused");
@@ -470,7 +476,7 @@ describe("how many hypotheses a finding keeps", () => {
   const survivorRunner = () => makeRunner(stubTransport(survivorAnswers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
 
   it("keeps every survivor in the run file, but publishable shows only the top 3 by support", async () => {
-    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: survivorRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: survivorRunner(), setup: testSetup });
     const item = file.items.find((i) => i.finding.id === finding.id)!;
     const published = item.hypotheses.filter((h) => h.stage === "published");
     expect(published.map((h) => h.support)).toEqual([5, 4, 3, 2, 1]);
@@ -482,13 +488,37 @@ describe("how many hypotheses a finding keeps", () => {
   });
 
   it("leaves the adversary's model and its words out of the published files", async () => {
-    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: survivorRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: survivorRunner(), setup: testSetup });
     expect(file.items.find((i) => i.finding.id === finding.id)!.hypotheses[0]!.adversary).not.toBeNull();
 
     const [, body] = [...publishable(file, data)].find(([path]) => path.endsWith(`/${finding.code}.json`))!;
     for (const f of (body as { findings: { hypotheses: object[] }[] }).findings) {
       for (const h of f.hypotheses) expect(h).not.toHaveProperty("adversary");
     }
+  });
+
+  it("sends the adversary only the top 3 by support when told to, and marks the rest unshown", async () => {
+    let adversaryCalls = 0;
+    const counting = makeRunner(async (c) => { adversaryCalls++; return { text: survivorAnswers(c), model: c.model, usage: NO_USAGE }; },
+      { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: counting, setup: { ...testSetup, attackShownOnly: true } });
+    const item = file.items.find((i) => i.finding.id === finding.id)!;
+    expect(item.hypotheses.filter((h) => h.stage === "published").map((h) => h.support)).toEqual([5, 4, 3]);
+    expect(item.hypotheses.filter((h) => h.stage === "unshown").map((h) => h.support)).toEqual([2, 1]);
+    expect(adversaryCalls).toBe(3);
+  });
+
+  it("passes the setup's effort to both roles", async () => {
+    const seen = new Set<string>();
+    const spy = makeRunner(async (c) => { seen.add(`${c.stage}:${c.effort}`); return { text: survivorAnswers(c), model: c.model, usage: NO_USAGE }; },
+      { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+    await pipeline(data, { only: [finding.code], run: spy, falsifier: spy, setup: testSetup });
+    expect(seen).toEqual(new Set(["propose:high", "falsify:medium"]));
+  });
+
+  it("records the setup it ran with in the run file", async () => {
+    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: survivorRunner(), setup: testSetup });
+    expect(file.setup).toEqual(testSetup);
   });
 });
 
@@ -500,7 +530,7 @@ describe("a call that fails in a way nothing anticipated", () => {
     };
     const brokenRunner = () => makeRunner(throwing, { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
 
-    const file = await pipeline(data, { only: [finding.code], run: brokenRunner(), falsifier: brokenRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: brokenRunner(), falsifier: brokenRunner(), setup: testSetup });
 
     expect(file.items).toHaveLength(1);
     expect(file.items[0]!.hypotheses).toEqual([]);

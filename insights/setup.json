@@ -1,0 +1,6 @@
+{
+  "propose": { "transport": "claude", "model": "sonnet", "effort": "high", "samples": 5 },
+  "falsify": { "transport": "claude", "model": "opus", "effort": "medium" },
+  "attackShownOnly": false,
+  "decidedBy": null
+}

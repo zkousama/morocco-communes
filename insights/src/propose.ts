@@ -12,7 +12,7 @@ import type { Data, Unit } from "./data.ts";
 import type { Finding } from "./detect.ts";
 import { familyOf, FIELDS } from "./fields.ts";
 import { linkSchema, type LinkTest } from "./links.ts";
-import { hash, type Runner } from "./model.ts";
+import { hash, type Effort, type Runner } from "./model.ts";
 import { refusal } from "./safety.ts";
 import { findingLine, subjectOf } from "./text.ts";
 import { CHECK_GRAMMAR, checkSchema, signature, type Check } from "./vocabulary.ts";
@@ -229,23 +229,31 @@ export function semanticEntropy(signaturesPerSample: string[][]): number {
   return sum === 0 ? 0 : -sum;
 }
 
-export async function propose(finding: Finding, data: Data, run: Runner, model = "sonnet", terms: RegExp | null = null): Promise<Proposal> {
+export async function propose(
+  finding: Finding,
+  data: Data,
+  run: Runner,
+  role: { model: string; effort?: Effort; samples?: number } = { model: "sonnet" },
+  terms: RegExp | null = null,
+): Promise<Proposal> {
   const prompt = context(finding, data);
   const replies: Proposal["replies"] = [];
   const samples: Hypothesis[][] = [];
   let lastError: string | null = null;
   let lastProblem: string | null = null;
+  const sampleCount = role.samples ?? SAMPLES;
 
   // One after another: 5 at once for every finding would be a burst on a subscription's limits.
-  for (let i = 0; i < SAMPLES; i++) {
+  for (let i = 0; i < sampleCount; i++) {
     try {
       const reply = await run({
-        model,
+        model: role.model,
         system: SYSTEM,
         prompt,
         stage: "propose",
         key: `${finding.id}:${i}`,
         accept: (text) => readReply(text).hypotheses.length > 0,
+        effort: role.effort,
       });
       replies.push({ model: reply.model, promptHash: reply.promptHash });
       const { hypotheses, problem } = readReply(reply.text);
@@ -261,8 +269,8 @@ export async function propose(finding: Finding, data: Data, run: Runner, model =
 
   if (samples.every((sample) => sample.length === 0)) {
     const skipped = lastError
-      ? `no usable answer in ${SAMPLES} samples; the last call failed: ${lastError}`
-      : `no usable answer in ${SAMPLES} samples; the last came back with ${lastProblem}`;
+      ? `no usable answer in ${sampleCount} samples; the last call failed: ${lastError}`
+      : `no usable answer in ${sampleCount} samples; the last came back with ${lastProblem}`;
     return { finding, candidates: [], entropy, skipped, replies };
   }
 

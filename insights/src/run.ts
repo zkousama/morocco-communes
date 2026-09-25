@@ -14,7 +14,7 @@ import { read, sinceDate } from "../../site/scripts/attention.ts";
 import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
-import { falsify, falsifierModel, NO_ANSWER, PROMPT_HASH as FALSIFY_PROMPT_HASH, UNREADABLE } from "./falsify.ts";
+import { falsify, NO_ANSWER, PROMPT_HASH as FALSIFY_PROMPT_HASH, UNREADABLE } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
 import {
   addUsage,
@@ -36,6 +36,7 @@ import { mapPool } from "./pool.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
 import { termsPattern } from "./safety.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
+import { readSetup, type Setup } from "./setup.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
 import { evaluate, fieldsRead, type Check, type Outcome } from "./vocabulary.ts";
@@ -59,7 +60,7 @@ export interface Hypothesis {
   linkTest: LinkResult | null;
   artefact: boolean; // the proposer's own call that the figure is an error in the data, rather than a reason for it
   support: number;
-  stage: "published" | "check" | "link" | "falsify" | "safety"; // where it stopped, or published
+  stage: "published" | "check" | "link" | "falsify" | "safety" | "unshown"; // where it stopped, or published
   reason: string | null;
   adversary: { model: string; reason: string } | null; // the model that argued against it and what it said; null when none did
 }
@@ -95,6 +96,7 @@ export interface RunFile {
   stopped: string | null; // why the run stopped before its last finding, when it did
   datasetVersion: string;
   models: { propose: string; falsify: string; answered: string[] }; // the aliases asked for, and every id that answered
+  setup: Setup; // the setup this run used, so every run file records the model and effort each role ran at
   stageVersions: Record<string, string>;
   items: Item[];
   spans: Span[];
@@ -105,6 +107,7 @@ export interface RunFile {
 const STAGE_VERSIONS: Record<string, string> = { propose: "3", falsify: "2" };
 
 const LINK_NOT_CONSISTENT_REASON = "the link wasn't consistent across places";
+const NOT_SHOWN_REASON = "not among the reasons a page shows";
 
 function buildHypothesis(
   candidate: Candidate,
@@ -288,8 +291,10 @@ function spanAccumulator() {
  * Traces itself as it goes: a span per stage, and one per finding under `propose` and
  * `falsify`, since those are the stages a `claude -p` call happens in. `options.views`, when
  * given, reorders the findings by demand before any of it runs. `options.terms`, when given,
- * is passed to both the proposer and the adversary's safety check. Nothing here sends a span
- * anywhere; that's `exportSpans`'s job, left to the caller.
+ * is passed to both the proposer and the adversary's safety check. With `options.setup.
+ * attackShownOnly`, a finding's passing candidates past the top `PUBLISHED_CAP` by support
+ * never reach the adversary at all: they're marked `"unshown"` straight away. Nothing here
+ * sends a span anywhere; that's `exportSpans`'s job, left to the caller.
  *
  * When `STOP_AFTER_FAILURES` proposer or adversary calls fail in a row, the run stops: the
  * findings it was on are kept as skipped, the ones it hadn't started are left out, and the
@@ -302,15 +307,14 @@ export async function pipeline(
     only?: string[];
     run: Runner;
     falsifier: Runner;
-    proposer: string;
-    falsifierModel: string;
+    setup: Setup;
     views?: Map<string, number>;
     concurrency?: number;
     terms?: RegExp | null;
   },
 ): Promise<RunFile> {
   const startedAt = new Date().toISOString();
-  const models = { propose: options.proposer, falsify: options.falsifierModel };
+  const models = { propose: options.setup.propose.model, falsify: options.setup.falsify.model };
   const answered = new Set<string>();
   const halt: { reason: string | null } = { reason: null };
   const usageTotals = new Map<string, UsageTotal>();
@@ -361,7 +365,7 @@ export async function pipeline(
       const findingProposeId = newSpanId();
       const proposeCallStart = Date.now();
       const tracedRun: Runner = (call) => proposer({ ...call, traceparent: traceparent(traceId, findingProposeId) });
-      const proposal = await propose(finding, data, tracedRun, options.proposer, options.terms ?? null);
+      const proposal = await propose(finding, data, tracedRun, options.setup.propose, options.terms ?? null);
       const proposeCallEnd = Date.now();
       for (const reply of proposal.replies) answered.add(reply.model);
       if (halt.reason) return stoppedHere();
@@ -379,6 +383,7 @@ export async function pipeline(
       const findingFalsify = spanAccumulator();
       const tracedFalsifier: Runner = (call) => adversary({ ...call, traceparent: traceparent(traceId, findingFalsifyId) });
 
+      let shownCount = 0;
       for (const [order, candidate] of proposal.candidates.entries()) {
         if (halt.reason) break;
         const checkStart = Date.now();
@@ -388,6 +393,14 @@ export async function pipeline(
           decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, "check", outcome.reason ?? "the test failed", null) });
           continue;
         }
+
+        // `proposal.candidates` is already ranked by support, ties broken by propose
+        // order: past the cap, a passing candidate is never sent to the adversary at all.
+        if (options.setup.attackShownOnly && shownCount >= PUBLISHED_CAP) {
+          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, "unshown", NOT_SHOWN_REASON, null) });
+          continue;
+        }
+        shownCount++;
 
         let linkOutcomeIndex: number | null = null;
         let linkRefused: string | null = null;
@@ -401,7 +414,7 @@ export async function pipeline(
         }
 
         const falsifyStart = Date.now();
-        const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.falsifierModel, options.terms ?? null);
+        const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.setup.falsify, options.terms ?? null);
         findingFalsify.record(falsifyStart, Date.now());
         if (verdict.model) answered.add(verdict.model);
         const argued = verdict.model ? { model: verdict.model, reason: verdict.reason } : null;
@@ -504,6 +517,7 @@ export async function pipeline(
     stopped: halt.reason,
     datasetVersion: data.version,
     models: { ...models, answered: [...answered].sort() },
+    setup: options.setup,
     stageVersions: STAGE_VERSIONS,
     items: kept.map((result) => result.item),
     spans,
@@ -825,12 +839,17 @@ async function main(): Promise<void> {
     throw new Error("pnpm insights needs INSIGHTS_LIVE=1: it would spend real calls against a subscription");
   }
 
-  const proposer = "sonnet";
-  let falsifierChoice: ReturnType<typeof falsifierModel>;
+  let setup: Setup;
   try {
-    falsifierChoice = falsifierModel(process.env, proposer);
+    setup = readSetup();
   } catch (error) {
     refuseToStart(error);
+    return;
+  }
+  // The Gemini transport arrives with the pilot's connector (Task 11): the schema accepts
+  // "gemini" already, but a run asked for one today has nothing to call it with.
+  if (setup.propose.transport === "gemini" || setup.falsify.transport === "gemini") {
+    refuseToStart(new Error("the gemini transport arrives with the pilot's connector"));
     return;
   }
 
@@ -847,16 +866,17 @@ async function main(): Promise<void> {
   const data = loadData();
   const cacheDir = ".cache/insights/cache";
   const cacheOptions = { cacheDir, datasetVersion: data.version, stageVersions: STAGE_VERSIONS };
-  const run = makeRunner(withRetries(claudeTransport(), retryOptions), cacheOptions);
-  const falsifierTransport = falsifierChoice.transport === "ollama" ? ollamaTransport() : claudeTransport();
-  const falsifier = makeRunner(withRetries(falsifierTransport, retryOptions), cacheOptions);
+  const proposeTransport = setup.propose.transport === "ollama" ? ollamaTransport() : claudeTransport();
+  const run = makeRunner(withRetries(proposeTransport, retryOptions), cacheOptions);
+  const falsifyTransport = setup.falsify.transport === "ollama" ? ollamaTransport() : claudeTransport();
+  const falsifier = makeRunner(withRetries(falsifyTransport, retryOptions), cacheOptions);
 
   const local = readLocal(process.env);
   const warning = localWarning(local);
   if (warning) console.error(warning);
   const terms = termsPattern(local?.terms ?? []);
 
-  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views, concurrency, terms });
+  const file = await pipeline(data, { limit, only, run, falsifier, setup, views, concurrency, terms });
   await exportSpans(file.spans, process.env);
 
   const runsDir = ".cache/insights/runs";

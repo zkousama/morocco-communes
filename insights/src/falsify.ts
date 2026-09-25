@@ -13,7 +13,7 @@
 import { z } from "zod";
 import type { Data } from "./data.ts";
 import type { Finding } from "./detect.ts";
-import { hash, type Runner } from "./model.ts";
+import { hash, type Effort, type Runner } from "./model.ts";
 import { catalogue, context, unfence, type Candidate } from "./propose.ts";
 import { refusal } from "./safety.ts";
 import { CHECK_GRAMMAR, checkSchema, evaluate, signature, type Check, type Outcome } from "./vocabulary.ts";
@@ -103,14 +103,30 @@ function refusedCandidate(candidate: Candidate, terms: RegExp | null): ReturnTyp
  * a call that fails stops the candidate with `NO_ANSWER` and no model, and a reply that
  * can't be parsed or validated stops it with `UNREADABLE`, and is never cached.
  */
-export async function falsify(candidate: Candidate, finding: Finding, data: Data, run: Runner, model: string, terms: RegExp | null = null): Promise<Verdict> {
+export async function falsify(
+  candidate: Candidate,
+  finding: Finding,
+  data: Data,
+  run: Runner,
+  role: { model: string; effort?: Effort; label?: string },
+  terms: RegExp | null = null,
+): Promise<Verdict> {
   const key = `${finding.id}:${signature(candidate.test)}`;
   const hypothesis = { claim: candidate.claim, link: candidate.link, premise: candidate.premise, test: candidate.test };
   const prompt = `${context(finding, data).slice(0, -1)},"hypothesis":${JSON.stringify(hypothesis)}}`;
 
   let reply: Awaited<ReturnType<Runner>>;
   try {
-    reply = await run({ model, system: SYSTEM, prompt, stage: "falsify", key, accept: (text) => readReply(text) !== null });
+    reply = await run({
+      model: role.model,
+      system: SYSTEM,
+      prompt,
+      stage: "falsify",
+      key,
+      accept: (text) => readReply(text) !== null,
+      effort: role.effort,
+      label: role.label,
+    });
   } catch {
     return { survived: false, stage: "falsify", counter: null, counterOutcome: null, reason: NO_ANSWER, model: null };
   }
@@ -140,27 +156,4 @@ export async function falsify(candidate: Candidate, finding: Finding, data: Data
     if (rule) return { survived: false, stage: "safety", counter: null, counterOutcome: null, reason: `refused: ${rule}`, model: answered };
   }
   return verdict;
-}
-
-/**
- * The model that argues against `proposer`'s hypotheses: `INSIGHTS_FALSIFIER` as
- * "ollama:<model>" or "claude:<model>" when one is set up, split at its first colon; an
- * unrecognised prefix is ignored. Otherwise Claude's "opus" answers a "sonnet" proposer,
- * and "sonnet" answers any other proposer, so the 2 are always different models. A
- * setting that names the proposer's own model through claude throws, before a run starts.
- */
-export function falsifierModel(env: NodeJS.ProcessEnv, proposer: string): { transport: "claude" | "ollama"; model: string } {
-  const raw = env.INSIGHTS_FALSIFIER;
-  if (raw) {
-    const at = raw.indexOf(":");
-    if (at > 0) {
-      const prefix = raw.slice(0, at);
-      const model = raw.slice(at + 1);
-      if (prefix === "claude" && model === proposer) {
-        throw new Error(`INSIGHTS_FALSIFIER=${raw} is the proposer's own model, ${proposer}: the adversary has to be a different model`);
-      }
-      if (prefix === "ollama" || prefix === "claude") return { transport: prefix, model };
-    }
-  }
-  return proposer === "sonnet" ? { transport: "claude", model: "opus" } : { transport: "claude", model: "sonnet" };
 }

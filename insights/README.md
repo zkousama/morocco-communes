@@ -18,10 +18,10 @@ pnpm insights --publish                              # writes data/v1/insights/ 
 ```
 
 It needs Node, pnpm and the `claude` command-line tool signed in: every proposal is a
-`claude -p` call, charged to that login's subscription rather than an API bill, and so is the
-counter-argument unless `INSIGHTS_FALSIFIER` sends it to Ollama instead. Nothing calls a
-model without `INSIGHTS_LIVE=1` set, so a stray `pnpm insights` never spends a real call by
-accident. Ollama is optional, and only for running the adversary locally.
+`claude -p` call, charged to that login's subscription rather than an API bill, and the
+counter-argument is too unless `insights/setup.json` sends it to Ollama instead. Nothing
+calls a model without `INSIGHTS_LIVE=1` set, so a stray `pnpm insights` never spends a real
+call by accident. Ollama is optional, and only for running the adversary locally.
 
 Each `claude -p` call runs from the system's temp directory, apart from this repository and
 your own setup, with local settings only and the flags `--strict-mcp-config` (with no MCP
@@ -33,10 +33,6 @@ in your shell.
 
 - **`INSIGHTS_LIVE=1`**: required before `pnpm insights` or any transport in `model.ts` will
   call a model at all.
-- **`INSIGHTS_FALSIFIER`**: which model argues against a proposal. `"ollama:<model>"` or
-  `"claude:<model>"`, split at the first colon; left unset, the adversary is always a
-  different model from the proposer, run through the same `claude` command-line tool. A
-  `claude:` setting that names the proposer's own model stops the run before it starts.
 - **`INSIGHTS_DEMAND`**: `"remote"` lets `pnpm insights --demand` read the site's own demand
   log, the last 30 days of page views, and order findings by what people actually open
   before it orders them by score. The same double opt-in the site build uses for
@@ -58,6 +54,10 @@ project's host with `/api/public/otel` added, and `OTEL_EXPORTER_OTLP_HEADERS` t
 
 ## Where things live
 
+- **`insights/setup.json`**: which model plays proposer and adversary, at what effort, how
+  many samples the proposer asks and whether the adversary sees only the reasons a page
+  would show. The pilot chooses these by measurement and commits the file; `pnpm insights`
+  only ever reads it, and refuses to start on a role it can't yet run.
 - **`.cache/insights/cache/`**: every model answer, keyed on the prompt, the system prompt,
   the model, the stage's own version and the dataset version. Safe to delete: a re-run just
   asks again for whatever's missing.
