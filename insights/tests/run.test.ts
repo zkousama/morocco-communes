@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
+import { runLink } from "../src/links.ts";
 import { hash, LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
 import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
@@ -381,11 +382,13 @@ describe("a link test that isn't about the finding", () => {
   });
 
   it("still runs a link whose premise is the field the data test read", async () => {
+    const peersTest = { link: "peers", premise: "commute.privateCar", outcome: finding.measure, level: finding.level, direction: "higher" } as const;
     const related = JSON.stringify({
       hypotheses: [
         hyp("related link", alwaysTrue("education.higher"), {
           link: "together", x: "education.higher", y: finding.measure, year: 2024, level: finding.level, direction: "positive",
         }),
+        hyp("related peers link", alwaysTrue("commute.privateCar"), peersTest),
       ],
     });
     const r = stubbed(related);
@@ -396,6 +399,13 @@ describe("a link test that isn't about the finding", () => {
     expect(h.linkTest?.verdict).not.toBe("refused");
     expect(h.linkTest?.placeboEffects).toHaveLength(3);
     expect(h.linkTest?.reason).toBeUndefined();
+
+    // A together link's size happens to equal |effect|, which run.ts could get right by
+    // accident even if it recomputed rather than copied `outcome.size`; a peers link's size
+    // divides by the outcome's spread, so only a copied-through value can match it here.
+    const peers = item.hypotheses.find((x) => x.claim.en === "related peers link")!;
+    const outcome = runLink(peersTest, data, 1);
+    expect(peers.linkTest?.size).toBe(outcome.size);
   });
 });
 

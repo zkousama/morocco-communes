@@ -66,11 +66,15 @@ checks this build runs.
   - `effect` is the size and direction of what the test found, and `placeboEffects` the
     same test's effect with 3 unrelated measures in place of the premise's, which `effect`
     has to beat.
+  - `size` is that effect's strength on a scale a placebo doesn't move: the correlation's
+    own size for a `together` test, and for `peers` its median difference divided by the
+    figure's spread across both halves. A link needs a `size` of at least 0.2 to count as
+    consistent.
   - `reason` is there only when the verdict is `refused`, and says why the test couldn't
     run: `not about this figure` when it doesn't pair a field the premise's data test read
     with the figure's own measure, `too few units` with fewer than 30 places to compare, and
-    so on. A refused test has a `p` of 1, an `effect` of 0 and no placebos, and its link is
-    shown as proposed only.
+    so on. A refused test has a `p` of 1, an `effect` of 0, a `size` of 0 and no placebos,
+    and its link is shown as proposed only.
 - `artefact` is `true` when the hypothesis is that the figure itself may be an error in the
   data, or a change in how the census asked. It has a premise and a data test like any
   other, and the place page labels it as a possible error.

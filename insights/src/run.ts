@@ -43,6 +43,7 @@ export type LinkResult = LinkTest & {
   verdict: "consistent" | "not consistent" | "refused";
   p: number;
   effect: number;
+  size: number;
   placeboEffects: number[];
   reason?: string;
 };
@@ -459,7 +460,7 @@ export async function pipeline(
         // Refused before it ran: kept on the hypothesis, so the run file says why its link
         // is shown as proposed only.
         const linkTest: LinkResult | null = entry.linkRefused
-          ? { ...entry.candidate.linkTest!, verdict: "refused", p: 1, effect: 0, placeboEffects: [], reason: entry.linkRefused }
+          ? { ...entry.candidate.linkTest!, verdict: "refused", p: 1, effect: 0, size: 0, placeboEffects: [], reason: entry.linkRefused }
           : null;
         eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest, adversary: entry.adversary });
         continue;
@@ -471,6 +472,7 @@ export async function pipeline(
         verdict,
         p: outcome.p,
         effect: outcome.effect,
+        size: outcome.size,
         placeboEffects: outcome.placeboEffects,
         ...(outcome.refused ? { reason: outcome.refused } : {}),
       };
