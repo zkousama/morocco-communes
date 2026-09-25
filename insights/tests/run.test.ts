@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
-import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
+import { makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
 import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
@@ -37,7 +37,7 @@ describe("the pipeline", () => {
 
   it("keeps which model answered each proposal and each argument", async () => {
     // A transport that answers under ids of its own, as claude -p does for an alias.
-    const answeredAs = (id: string) => makeRunner(async (call) => ({ text: answers(call), model: id }), {
+    const answeredAs = (id: string) => makeRunner(async (call) => ({ text: answers(call), model: id, usage: NO_USAGE }), {
       cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" },
     });
     const file = await pipeline(data, { limit: 3, run: answeredAs("proposer-id"), falsifier: answeredAs("adversary-id"), proposer: "sonnet", falsifierModel: "opus" });
@@ -84,6 +84,24 @@ function pickIsolatedFinding(usedFields: string[]) {
   if (!found) throw new Error("no finding isolated enough for this fixture");
   return found;
 }
+
+describe("tokens and cost", () => {
+  it("totals tokens and cost by stage and model", async () => {
+    const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
+    const usageProposal = JSON.stringify({ hypotheses: [hyp("a", alwaysTrue("labour.activityRate"))] });
+    const usageAnswers = (call: ModelCall) =>
+      call.stage === "propose" ? usageProposal : JSON.stringify({ counter: null, reason: "no counter" });
+    const usageRunner = () =>
+      makeRunner(stubTransport(usageAnswers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+
+    const file = await pipeline(data, { only: [finding.code], run: usageRunner(), falsifier: usageRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    const propose = file.usage.find((u) => u.stage === "propose");
+    const falsify = file.usage.find((u) => u.stage === "falsify");
+    expect(propose?.calls).toBeGreaterThan(0);
+    expect(propose?.model).toBe("sonnet");
+    expect(falsify?.calls).toBeGreaterThan(0);
+  });
+});
 
 describe("where a hypothesis stops", () => {
   const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
@@ -172,7 +190,7 @@ describe("an adversary that doesn't answer", () => {
   it("stops that hypothesis at falsify, and the rest go on", async () => {
     const falsifier = makeRunner(async (call) => {
       if (call.key.includes('"labour.activityRate"')) throw new Error("claude exited 1: overloaded");
-      return { text: JSON.stringify({ counter: null, reason: "no counter" }), model: "adversary-id" };
+      return { text: JSON.stringify({ counter: null, reason: "no counter" }), model: "adversary-id", usage: NO_USAGE };
     }, cache());
     const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus" });
     const byClaim = new Map(file.items[0]!.hypotheses.map((h) => [h.claim.en, h]));
@@ -366,7 +384,7 @@ describe("how many hypotheses a finding keeps", () => {
 describe("a call that fails in a way nothing anticipated", () => {
   it("still lets the run complete, with the finding skipped", async () => {
     const finding = pickIsolatedFinding([]);
-    const throwing = async (): Promise<{ text: string; model: string }> => {
+    const throwing = async (): Promise<{ text: string; model: string; usage: Usage }> => {
       throw { weird: "not an Error instance" };
     };
     const brokenRunner = () => makeRunner(throwing, { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });

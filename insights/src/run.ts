@@ -15,7 +15,7 @@ import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
 import { falsify, falsifierModel, NO_ANSWER, PROMPT_HASH as FALSIFY_PROMPT_HASH, UNREADABLE } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
-import { claudeTransport, hash, makeRunner, ollamaTransport, type Runner } from "./model.ts";
+import { addUsage, claudeTransport, hash, makeRunner, NO_USAGE, ollamaTransport, type Runner, type Usage } from "./model.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
@@ -55,6 +55,20 @@ export interface Item {
   skipped: string | null;
 }
 
+/**
+ * What every call to one model, in one stage, spent across the whole run. A cache hit
+ * reports the usage its original call recorded, so `usage` always says what an answer
+ * cost, whether this run paid for it or a past one did; `cached` counts those hits, so
+ * the total can be read as "spent this run" (`calls - cached`) or "the answers' cost".
+ */
+export interface UsageTotal {
+  stage: string;
+  model: string;
+  calls: number;
+  cached: number;
+  usage: Usage;
+}
+
 export interface RunFile {
   runId: string;
   startedAt: string;
@@ -65,6 +79,7 @@ export interface RunFile {
   stageVersions: Record<string, string>;
   items: Item[];
   spans: Span[];
+  usage: UsageTotal[];
 }
 
 /** Bumped by hand when a prompt's parsing or merging changes, not when its wording does: the cache key already carries the prompt's own hash. */
@@ -180,6 +195,27 @@ function stopAfterFailures(run: Runner, who: string, halt: { reason: string | nu
   };
 }
 
+/**
+ * Wraps a runner so every reply it hands back adds to `totals`, keyed on the call's stage
+ * and the model that actually answered. A call that throws adds nothing, since it never
+ * produced a reply to cost anything.
+ */
+function trackUsage(run: Runner, totals: Map<string, UsageTotal>): Runner {
+  return async (call) => {
+    const reply = await run(call);
+    const key = `${call.stage}|${reply.model}`;
+    const prior = totals.get(key) ?? { stage: call.stage, model: reply.model, calls: 0, cached: 0, usage: NO_USAGE };
+    totals.set(key, {
+      stage: prior.stage,
+      model: prior.model,
+      calls: prior.calls + 1,
+      cached: prior.cached + (reply.cached ? 1 : 0),
+      usage: addUsage(prior.usage, reply.usage),
+    });
+    return reply;
+  };
+}
+
 /** The earliest start and latest end passed to `record`, for a span with no one call of its own to wrap; `started` says whether anything ever was. */
 function spanAccumulator() {
   let start: number | null = null;
@@ -226,8 +262,9 @@ export async function pipeline(
   const models = { propose: options.proposer, falsify: options.falsifierModel };
   const answered = new Set<string>();
   const halt: { reason: string | null } = { reason: null };
-  const proposer = stopAfterFailures(options.run, "proposer", halt);
-  const adversary = stopAfterFailures(options.falsifier, "adversary", halt);
+  const usageTotals = new Map<string, UsageTotal>();
+  const proposer = stopAfterFailures(trackUsage(options.run, usageTotals), "proposer", halt);
+  const adversary = stopAfterFailures(trackUsage(options.falsifier, usageTotals), "adversary", halt);
   const { traceId } = newIds();
   const spans: Span[] = [];
   const newSpanId = () => newIds().spanId;
@@ -416,13 +453,20 @@ export async function pipeline(
     stageVersions: STAGE_VERSIONS,
     items,
     spans,
+    usage: [...usageTotals.values()].sort((a, b) => a.stage.localeCompare(b.stage) || a.model.localeCompare(b.model)),
   };
 }
+
+/** Every input token a call spent, whether fresh or read back from the API's own cache. */
+const inputOf = (usage: Usage): number => usage.input + usage.cacheRead + usage.cacheWrite;
+const k = (n: number): string => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n)));
+const usd = (n: number): string => `$${n.toFixed(2)}`;
 
 /**
  * What a finished run says in the terminal: its id, how many findings and candidates it
  * saw, how many were published and where the rest stopped, how many the adversary never
- * gave a usable answer on, and why the run stopped early, when it did.
+ * gave a usable answer on, why the run stopped early, when it did, and what every stage
+ * and model spent.
  */
 export function summary(file: RunFile): string[] {
   let candidates = 0;
@@ -446,6 +490,11 @@ export function summary(file: RunFile): string[] {
     `adversary failures: ${adversaryFailures}`,
   ];
   if (file.stopped) lines.push(`stopped early: ${file.stopped}`);
+  for (const u of file.usage) {
+    lines.push(
+      `usage: ${u.stage} ${u.model}: ${u.calls} calls (${u.cached} cached), ${k(inputOf(u.usage))} tokens in, ${k(u.usage.output)} out, ${usd(u.usage.costUsd)}`,
+    );
+  }
   return lines;
 }
 

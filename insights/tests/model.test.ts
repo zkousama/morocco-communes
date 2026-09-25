@@ -2,7 +2,16 @@ import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { claudeInvocation, claudeTransport, makeRunner, ollamaTransport, stubTransport, type Effort, type ModelCall } from "../src/model.ts";
+import {
+  claudeInvocation,
+  claudeTransport,
+  makeRunner,
+  ollamaTransport,
+  parseClaudeOutput,
+  stubTransport,
+  type Effort,
+  type ModelCall,
+} from "../src/model.ts";
 import { newIds, traceparent } from "../src/trace.ts";
 
 const call: ModelCall = { model: "sonnet", system: "s", prompt: "p", stage: "propose", key: "finding-1:0" };
@@ -16,6 +25,31 @@ function setup() {
     makeRunner(transport, { cacheDir, datasetVersion, stageVersions });
   return { runner, count: () => calls };
 }
+
+describe("tokens and cost", () => {
+  it("reads tokens and cost from the CLI's JSON", () => {
+    const json = JSON.stringify({
+      result: "{}", is_error: false, total_cost_usd: 0.0123,
+      usage: { input_tokens: 10, output_tokens: 200, cache_creation_input_tokens: 30, cache_read_input_tokens: 4000, output_tokens_details: { thinking_tokens: 150 } },
+      modelUsage: { "claude-sonnet-5": { canonicalModel: "claude-sonnet-5" } },
+    });
+    expect(parseClaudeOutput(json, "sonnet")).toEqual({
+      text: "{}", model: "claude-sonnet-5",
+      usage: { input: 10, output: 200, cacheRead: 4000, cacheWrite: 30, thinking: 150, costUsd: 0.0123 },
+    });
+  });
+
+  it("keeps the original call's usage on a cache hit", async () => {
+    const usage = { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, thinking: 5, costUsd: 0.5 };
+    const transport = async (c: ModelCall) => ({ text: '{"ok":true}', model: c.model, usage });
+    const cacheDir = mkdtempSync(join(tmpdir(), "usage-"));
+    const run = makeRunner(transport, { cacheDir, datasetVersion: "t", stageVersions: {} });
+    await run(call);
+    const again = await run(call);
+    expect(again.cached).toBe(true);
+    expect(again.usage).toEqual(usage);
+  });
+});
 
 describe("the runner", () => {
   it("asks again when the effort or the label changes", async () => {

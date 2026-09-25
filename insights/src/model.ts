@@ -25,16 +25,40 @@ export interface ModelCall {
   label?: string; // tells apart a deliberate repeat of the same calls, such as the pilot's noise floor
 }
 
+/** What one call spent: every token category the API bills and its dollar cost at list price. */
+export interface Usage {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  thinking: number;
+  costUsd: number;
+}
+
+export const NO_USAGE: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, thinking: 0, costUsd: 0 };
+
+export function addUsage(a: Usage, b: Usage): Usage {
+  return {
+    input: a.input + b.input,
+    output: a.output + b.output,
+    cacheRead: a.cacheRead + b.cacheRead,
+    cacheWrite: a.cacheWrite + b.cacheWrite,
+    thinking: a.thinking + b.thinking,
+    costUsd: a.costUsd + b.costUsd,
+  };
+}
+
 export interface ModelReply {
   text: string;
   model: string;
   promptHash: string;
   cached: boolean;
   ms: number;
+  usage: Usage;
 }
 
 // model: the id that actually answered, which an alias like "sonnet" doesn't say
-export type Transport = (call: ModelCall) => Promise<{ text: string; model: string }>;
+export type Transport = (call: ModelCall) => Promise<{ text: string; model: string; usage: Usage }>;
 
 export type Runner = (call: ModelCall) => Promise<ModelReply>;
 
@@ -130,18 +154,50 @@ export function claudeTransport(options?: { timeoutMs?: number }): Transport {
     if (timedOut) throw new Error(`claude timed out after ${timeoutMs}ms`);
     if (code !== 0) throw new Error(`claude exited ${code}: ${err.trim().split("\n").slice(-2).join(" ")}`);
 
-    let parsed: { result?: string; is_error?: boolean; modelUsage?: Record<string, { canonicalModel?: string }> };
-    try {
-      parsed = JSON.parse(out);
-    } catch {
-      throw new Error(`claude produced unparseable output: ${out.slice(0, 300)}`);
-    }
-    if (parsed.is_error) throw new Error(`claude reported an error: ${parsed.result ?? out.slice(0, 300)}`);
-    if (typeof parsed.result !== "string") throw new Error(`claude's output had no result: ${out.slice(0, 300)}`);
-
-    const answered = Object.values(parsed.modelUsage ?? {})[0]?.canonicalModel;
-    return { text: parsed.result, model: answered ?? call.model };
+    return parseClaudeOutput(out, call.model);
   };
+}
+
+/**
+ * Reads one `claude -p --output-format json` result: its text, the model that actually
+ * answered (an alias like "sonnet" doesn't say), and its tokens and cost. The same fields
+ * `evals/run.ts` reads off the CLI's JSON, each defaulting to 0 when the CLI leaves it out.
+ * Throws exactly what `claudeTransport` threw inline before this was pulled out of it:
+ * unparseable output, `is_error`, or no `result`.
+ */
+export function parseClaudeOutput(stdout: string, requestedModel: string): { text: string; model: string; usage: Usage } {
+  let parsed: {
+    result?: string;
+    is_error?: boolean;
+    total_cost_usd?: number;
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_creation_input_tokens?: number;
+      cache_read_input_tokens?: number;
+      output_tokens_details?: { thinking_tokens?: number };
+    };
+    modelUsage?: Record<string, { canonicalModel?: string }>;
+  };
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    throw new Error(`claude produced unparseable output: ${stdout.slice(0, 300)}`);
+  }
+  if (parsed.is_error) throw new Error(`claude reported an error: ${parsed.result ?? stdout.slice(0, 300)}`);
+  if (typeof parsed.result !== "string") throw new Error(`claude's output had no result: ${stdout.slice(0, 300)}`);
+
+  const answered = Object.values(parsed.modelUsage ?? {})[0]?.canonicalModel;
+  const u = parsed.usage ?? {};
+  const usage: Usage = {
+    input: u.input_tokens ?? 0,
+    output: u.output_tokens ?? 0,
+    cacheRead: u.cache_read_input_tokens ?? 0,
+    cacheWrite: u.cache_creation_input_tokens ?? 0,
+    thinking: u.output_tokens_details?.thinking_tokens ?? 0,
+    costUsd: parsed.total_cost_usd ?? 0,
+  };
+  return { text: parsed.result, model: answered ?? requestedModel, usage };
 }
 
 /** POSTs to a local Ollama server's generate endpoint. */
@@ -155,15 +211,19 @@ export function ollamaTransport(url?: string): Transport {
       body: JSON.stringify({ model: call.model, system: call.system, prompt: call.prompt, stream: false, format: "json" }),
     });
     if (!res.ok) throw new Error(`ollama at ${base} answered ${res.status}: ${(await res.text()).slice(0, 300)}`);
-    const parsed = (await res.json()) as { response?: string };
+    const parsed = (await res.json()) as { response?: string; prompt_eval_count?: number; eval_count?: number };
     if (typeof parsed.response !== "string") throw new Error(`ollama's output had no response: ${JSON.stringify(parsed).slice(0, 300)}`);
-    return { text: parsed.response, model: call.model };
+    return {
+      text: parsed.response,
+      model: call.model,
+      usage: { ...NO_USAGE, input: parsed.prompt_eval_count ?? 0, output: parsed.eval_count ?? 0 },
+    };
   };
 }
 
 /** A transport for tests: answers from a function, never touching the environment or the network. */
 export function stubTransport(answer: (call: ModelCall) => string): Transport {
-  return async (call) => ({ text: answer(call), model: call.model });
+  return async (call) => ({ text: answer(call), model: call.model, usage: NO_USAGE });
 }
 
 interface CacheEntry {
@@ -171,6 +231,7 @@ interface CacheEntry {
   model: string;
   promptHash: string;
   ms: number;
+  usage: Usage;
 }
 
 function cacheId(call: ModelCall, datasetVersion: string, stageVersions: Record<string, string>): string {
@@ -210,7 +271,9 @@ async function readCacheFile(path: string): Promise<CacheEntry | null> {
     ) {
       return null;
     }
-    return parsed as CacheEntry;
+    // An older cache file, written before usage was tracked, has no `usage` at all: read
+    // as zero rather than a miss, so it isn't asked again just to learn what it cost.
+    return { ...parsed, usage: parsed.usage ?? NO_USAGE } as CacheEntry;
   } catch {
     // Unreadable or unparseable: a miss, not a crash. The call is asked again and the
     // file overwritten.
@@ -240,9 +303,9 @@ export function makeRunner(
     if (cached && readable(cached.text)) return { ...cached, cached: true };
 
     const started = Date.now();
-    const { text, model } = await transport(call);
+    const { text, model, usage } = await transport(call);
     const ms = Date.now() - started;
-    const entry: CacheEntry = { text, model, promptHash, ms };
+    const entry: CacheEntry = { text, model, promptHash, ms, usage };
     if (readable(text)) await writeCacheFile(path, entry);
     return { ...entry, cached: false };
   };
