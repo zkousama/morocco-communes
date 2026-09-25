@@ -28,7 +28,7 @@ premise or a consistent link doesn't make a hypothesis true, only one that survi
 checks this build runs.
 
 A reason may describe an action, such as a public programme, but never judge one, and it
-never names a private person or generalises about a group.
+never names a private person or generalises about an ethnic, religious or regional group.
 
 ## Files
 

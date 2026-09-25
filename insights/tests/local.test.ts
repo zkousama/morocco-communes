@@ -1,6 +1,6 @@
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { readLocal } from "../src/model.ts";
 
@@ -16,5 +16,22 @@ describe("the local folder", () => {
   });
   it("treats missing files as empty", () => {
     expect(readLocal({ INSIGHTS_LOCAL: mkdtempSync(join(tmpdir(), "empty-")) })).toEqual({ terms: [], keys: {} });
+  });
+  it("throws a clean error, naming no path, when INSIGHTS_LOCAL names a file rather than a folder", () => {
+    const dir = mkdtempSync(join(tmpdir(), "local-"));
+    const notAFolder = join(dir, "settings");
+    writeFileSync(notAFolder, "x");
+
+    let message = "";
+    try {
+      readLocal({ INSIGHTS_LOCAL: notAFolder });
+      throw new Error("readLocal didn't throw");
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("terms.txt");
+    expect(message).not.toContain(notAFolder);
+    expect(message).not.toContain(dir);
+    expect(message).not.toContain(basename(notAFolder));
   });
 });

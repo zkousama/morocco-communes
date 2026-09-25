@@ -98,9 +98,9 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       La même question est posée {count(method.samples)} fois. Les réponses sont regroupées selon ce que vérifient
       leurs tests, et le soutien d’une hypothèse est le nombre de réponses sur les {count(method.samples)} qui l’ont
       proposée. Le désaccord entre les {count(method.samples)} est enregistré pour chaque chiffre comme son entropie
-      sémantique, calculée sur ces groupes. Chaque raison peut décrire une action, jamais la juger : elle peut
-      nommer un programme public ou une action publique documentée, et elle ne blâme personne, ne nomme aucune
-      personne privée et ne généralise sur aucun groupe.
+      sémantique, calculée sur ces groupes. Chaque raison peut décrire une action, sans la juger. Elle peut nommer
+      un programme public ou une action publique documentée, et elle écarte le blâme, les personnes privées et les
+      généralisations sur des groupes ethniques, religieux ou régionaux.
     </p>
     <p>
       Pour une évolution depuis 2014, le modèle peut aussi proposer que le chiffre soit une erreur dans les données,
@@ -167,7 +167,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       qui l’a proposée. Il voit les mêmes chiffres et l’hypothèse, et cherche à la faire tomber avec un contre-test
       dans le même vocabulaire, qui serait vrai si la prémisse n’expliquait pas le chiffre. Le contre-test est
       calculé de la même façon, et s’il est vrai, l’hypothèse est écartée. L’adversaire refuse aussi de discuter
-      une raison qui enfreint cette règle, ce qui l’écarte.
+      une raison qui enfreint la règle sur ce que peut dire une raison, ce qui l’écarte.
     </p>
     <p>
       Un contre-test qui échoue ou qui est refusé laisse l’hypothèse en place, tout comme une réponse sans

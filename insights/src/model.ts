@@ -88,13 +88,21 @@ export interface Local {
   keys: Record<string, string>;
 }
 
-/** A file's text, or "" when it's missing; anything else reading it still throws. */
-function readOrEmpty(path: string): string {
+/**
+ * `filename`'s text from `dir`, or "" when the file's missing. Any other failure (the folder
+ * is really a file, so joining onto it lands on ENOTDIR; the file exists but can't be read;
+ * the file is itself a folder) throws a fresh error naming only the filename and the error
+ * code, never the folder's path: `readFileSync`'s own error carries the full path in both its
+ * message and its `path` property, and nothing here is caught further up, so a rethrow of it
+ * would print that path to the terminal. No `cause` either, since Node prints that chain too.
+ */
+function readOrEmpty(dir: string, filename: string): string {
   try {
-    return readFileSync(path, "utf8");
+    return readFileSync(join(dir, filename), "utf8");
   } catch (error) {
-    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return "";
-    throw error;
+    const code = (error as NodeJS.ErrnoException)?.code;
+    if (code === "ENOENT") return "";
+    throw new Error(`insights: couldn't read ${filename} in the INSIGHTS_LOCAL folder (${code})`);
   }
 }
 
@@ -108,13 +116,13 @@ export function readLocal(env: NodeJS.ProcessEnv): Local | null {
   const dir = env.INSIGHTS_LOCAL;
   if (!dir) return null;
 
-  const terms = readOrEmpty(join(dir, "terms.txt"))
+  const terms = readOrEmpty(dir, "terms.txt")
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0 && !line.startsWith("#"));
 
   const keys: Record<string, string> = {};
-  for (const rawLine of readOrEmpty(join(dir, "keys.env")).split("\n")) {
+  for (const rawLine of readOrEmpty(dir, "keys.env").split("\n")) {
     const line = rawLine.trim();
     if (!line) continue;
     const at = line.indexOf("=");

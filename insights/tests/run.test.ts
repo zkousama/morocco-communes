@@ -7,7 +7,7 @@ import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { runLink } from "../src/links.ts";
 import { hash, LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
-import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
+import { aboutThisFinding, localWarning, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
@@ -583,5 +583,19 @@ describe("publishing", () => {
     const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-b", partial: false }, metrics: worse, baseline, files: new Map([["index.json", []]]) });
     expect(result.written).toBe(false);
     expect(JSON.parse(readFileSync(publishedPath, "utf8")).runId).toBe("run-a");
+  });
+});
+
+describe("the private-terms warning", () => {
+  it("warns, without naming a path, when INSIGHTS_LOCAL isn't set", () => {
+    expect(localWarning(null)).toBe("insights: INSIGHTS_LOCAL isn't set, so no private terms are checked");
+  });
+
+  it("still warns, without naming a path, when the folder has no terms", () => {
+    expect(localWarning({ terms: [], keys: {} })).toBe("insights: no private terms are checked");
+  });
+
+  it("says nothing once there's at least one term", () => {
+    expect(localWarning({ terms: ["zorblat"], keys: {} })).toBeNull();
   });
 });

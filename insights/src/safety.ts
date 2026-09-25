@@ -11,7 +11,7 @@ const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\
 
 /**
  * Any of `words`, case aside, standing as a whole word. `\b` only knows ASCII letters, so
- * "ministère" would end at the è; a lookaround on any Unicode letter doesn't.
+ * "école" would end at the é; a lookaround on any Unicode letter doesn't.
  */
 const wholeWords = (words: string[]): RegExp =>
   new RegExp(`(?<!\\p{L})(?:${words.map((w) => escape(w).replace(/ /g, "\\s+")).join("|")})(?!\\p{L})`, "iu");
@@ -29,7 +29,7 @@ const individuals = [
   new RegExp(String.raw`(?<!\p{L})(?:[Tt]he\s+[Mm]ayor|[Tt]he\s+[Gg]overnor|[Ll]e\s+[Mm]aire|[Ll]e\s+[Gg]ouverneur)\s*,?\s+(?:${HONORIFIC}\s+)?\p{Lu}`, "u"),
 ];
 
-/** Curly apostrophes read as straight ones, so "l’État" matches "l'État". */
+/** Curly apostrophes read as straight ones, so "l’école" matches "l'école". */
 const normalise = (text: string): string => text.replace(/[‘’ʼ]/g, "'");
 
 /** Which rule `text` breaks: a private term first, then a named person; null when neither. The model applies the rest of the policy. */

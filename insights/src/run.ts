@@ -28,6 +28,7 @@ import {
   readLocal,
   RETRY_DEFAULTS,
   withRetries,
+  type Local,
   type Runner,
   type Usage,
 } from "./model.ts";
@@ -788,6 +789,18 @@ export function parseArgs(args: string[]): {
   };
 }
 
+/**
+ * The line a live run warns with about the private backstop, or null when there's nothing to
+ * warn about. `local` is null when `INSIGHTS_LOCAL` isn't set at all; a folder that's set but
+ * whose `terms.txt` is missing or empty reads no differently from that, since either way the
+ * run has no private terms, so it warns too, under its own wording that names no path.
+ */
+export function localWarning(local: Local | null): string | null {
+  if (!local) return "insights: INSIGHTS_LOCAL isn't set, so no private terms are checked";
+  if (local.terms.length === 0) return "insights: no private terms are checked";
+  return null;
+}
+
 /** A mistake in how the run was started: said in one line, with nothing run. */
 function refuseToStart(error: unknown): void {
   console.log(messageOf(error));
@@ -839,7 +852,8 @@ async function main(): Promise<void> {
   const falsifier = makeRunner(withRetries(falsifierTransport, retryOptions), cacheOptions);
 
   const local = readLocal(process.env);
-  if (!local) console.error("insights: INSIGHTS_LOCAL isn't set, so no private terms are checked");
+  const warning = localWarning(local);
+  if (warning) console.error(warning);
   const terms = termsPattern(local?.terms ?? []);
 
   const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views, concurrency, terms });
