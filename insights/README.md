@@ -23,6 +23,12 @@ counter-argument unless `INSIGHTS_FALSIFIER` sends it to Ollama instead. Nothing
 model without `INSIGHTS_LIVE=1` set, so a stray `pnpm insights` never spends a real call by
 accident. Ollama is optional, and only for running the adversary locally.
 
+Each `claude -p` call runs from the system's temp directory, apart from this repository and
+your own setup, with local settings only and the flags `--strict-mcp-config` (with no MCP
+config given), `--tools ""` and `--no-session-persistence`. `ANTHROPIC_API_KEY` is taken
+out of its environment, so it answers on the signed-in subscription even when a key is set
+in your shell.
+
 ## Environment variables
 
 - **`INSIGHTS_LIVE=1`**: required before `pnpm insights` or any transport in `model.ts` will

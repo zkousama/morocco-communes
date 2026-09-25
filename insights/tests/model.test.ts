@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { claudeTransport, makeRunner, ollamaTransport, stubTransport, type ModelCall } from "../src/model.ts";
+import { claudeInvocation, claudeTransport, makeRunner, ollamaTransport, stubTransport, type ModelCall } from "../src/model.ts";
 import { newIds, traceparent } from "../src/trace.ts";
 
 const call: ModelCall = { model: "sonnet", system: "s", prompt: "p", stage: "propose", key: "finding-1:0" };
@@ -127,5 +127,32 @@ describe("the runner", () => {
     const second = await runner(call);
     expect(calls).toBe(2);
     expect(second.cached).toBe(false);
+  });
+});
+
+describe("the claude child", () => {
+  const withTrace = { ...call, traceparent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01" };
+
+  it("runs from the temp directory, with no MCP servers, no tools and no saved session", () => {
+    const { args, cwd } = claudeInvocation(call, {});
+    expect(cwd).toBe(tmpdir());
+    expect(args).toContain("--strict-mcp-config");
+    expect(args).not.toContain("--mcp-config");
+    expect(args.slice(args.indexOf("--tools"), args.indexOf("--tools") + 2)).toEqual(["--tools", ""]);
+    expect(args.slice(args.indexOf("--setting-sources"), args.indexOf("--setting-sources") + 2)).toEqual(["--setting-sources", "local"]);
+    expect(args).toContain("--no-session-persistence");
+  });
+
+  it("never passes an API key on, so it answers on the signed-in subscription", () => {
+    const { env } = claudeInvocation(call, { ANTHROPIC_API_KEY: "sk-test", PATH: "/usr/bin" });
+    expect(env).not.toHaveProperty("ANTHROPIC_API_KEY");
+    expect(env.PATH).toBe("/usr/bin");
+  });
+
+  it("turns its telemetry on only when a collector is set", () => {
+    expect(claudeInvocation(withTrace, {}).env).not.toHaveProperty("TRACEPARENT");
+    const traced = claudeInvocation(withTrace, { OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector.test" }).env;
+    expect(traced.TRACEPARENT).toBe(withTrace.traceparent);
+    expect(traced.CLAUDE_CODE_ENABLE_TELEMETRY).toBe("1");
   });
 });

@@ -32,8 +32,6 @@ export function traceparent(traceId: string, spanId: string): string {
   return `00-${traceId}-${spanId}-01`;
 }
 
-const hexToBase64 = (hex: string): string => Buffer.from(hex, "hex").toString("base64");
-
 /** A span's attributes as OTLP JSON wants them: one `{key, value}` pair each, a string or an int. */
 function otlpAttributes(attributes: Record<string, string | number>): { key: string; value: { stringValue: string } | { intValue: string } }[] {
   return Object.entries(attributes).map(([key, value]) =>
@@ -41,12 +39,12 @@ function otlpAttributes(attributes: Record<string, string | number>): { key: str
   );
 }
 
-/** A span as OTLP/HTTP JSON wants it: ids as base64 bytes, and times as nanoseconds since epoch carried as strings, since OTLP's 64-bit fields travel as JSON strings so they don't lose precision. */
+/** A span as OTLP/HTTP JSON wants it: ids as hex strings, and times as nanoseconds since epoch carried as strings, since OTLP's 64-bit fields travel as JSON strings so they don't lose precision. */
 function otlpSpan(span: Span): object {
   return {
-    traceId: hexToBase64(span.traceId),
-    spanId: hexToBase64(span.spanId),
-    parentSpanId: span.parentSpanId ? hexToBase64(span.parentSpanId) : undefined,
+    traceId: span.traceId,
+    spanId: span.spanId,
+    parentSpanId: span.parentSpanId,
     name: span.name,
     kind: 1, // SPAN_KIND_INTERNAL
     startTimeUnixNano: String(span.start * 1_000_000),
@@ -68,9 +66,9 @@ function parseHeaders(raw: string | undefined): Record<string, string> {
 /**
  * POSTs `spans` to `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces` as OTLP/HTTP JSON, with the
  * headers `OTEL_EXPORTER_OTLP_HEADERS` carries. Does nothing, and never touches the network,
- * unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set: a failed export is swallowed, so a broken or
- * unreachable collector never breaks a run. Prompts and replies never reach a span's
- * attributes, so nothing sent here can leak one.
+ * unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set. A collector that turns the spans down gets
+ * one line on stderr and an unreachable one gets nothing, and neither fails the run.
+ * Prompts and replies never reach a span's attributes, so nothing sent here can leak one.
  */
 export async function exportSpans(spans: Span[], env: NodeJS.ProcessEnv): Promise<void> {
   const endpoint = env.OTEL_EXPORTER_OTLP_ENDPOINT;
@@ -86,11 +84,12 @@ export async function exportSpans(spans: Span[], env: NodeJS.ProcessEnv): Promis
   };
 
   try {
-    await fetch(`${endpoint}/v1/traces`, {
+    const res = await fetch(`${endpoint}/v1/traces`, {
       method: "POST",
       headers: { "content-type": "application/json", ...parseHeaders(env.OTEL_EXPORTER_OTLP_HEADERS) },
       body: JSON.stringify(body),
     });
+    if (!res.ok) console.error(`traces: ${endpoint} answered ${res.status}, so these spans weren't kept`);
   } catch {
     // A collector that's down or unreachable shouldn't fail the run it's only watching.
   }

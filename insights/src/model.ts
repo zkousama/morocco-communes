@@ -1,13 +1,14 @@
 /**
  * Calls a language model and caches every answer, so a re-run of a stage that already
  * asked a question spends nothing. The cache key folds in everything that could change
- * the answer's meaning — the prompt, the system prompt, the model, the stage's own
- * version and the dataset version — so a change to any of them asks again, and nothing
- * stale is ever read back.
+ * the answer's meaning (the prompt, the system prompt, the model, the stage's own version
+ * and the dataset version), so a change to any of them asks again, and nothing stale is
+ * ever read back.
  */
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 export interface ModelCall {
@@ -45,37 +46,49 @@ function requireLive(name: string): void {
   }
 }
 
-/** Spawns `claude -p`, following `evals/run.ts`'s idiom, and reads its one JSON result. */
+/**
+ * How `claude -p` is started for one call, kept apart from the spawn so a test can read
+ * it. As `evals/run.ts` does, the child reads local settings only, gets no tools and saves
+ * no session; it also gets no MCP servers (`--strict-mcp-config` with no config beside it)
+ * and runs from the temp directory, so nothing in this repository or the person's own setup
+ * reaches it. `ANTHROPIC_API_KEY` is taken out of its environment, so it always answers on
+ * the signed-in subscription, never on a key billed per call.
+ */
+export function claudeInvocation(call: ModelCall, parentEnv: NodeJS.ProcessEnv): { args: string[]; cwd: string; env: NodeJS.ProcessEnv } {
+  const { ANTHROPIC_API_KEY: _, ...env } = parentEnv;
+
+  // Nothing here reaches a collector unless the pipeline's own environment already names
+  // one: without it, the child gets no telemetry env at all, traceparent included, so
+  // nothing leaves the machine that wasn't opted into.
+  if (env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+    if (call.traceparent) env.TRACEPARENT = call.traceparent;
+    env.CLAUDE_CODE_ENABLE_TELEMETRY = "1";
+    env.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA = "1";
+    env.OTEL_TRACES_EXPORTER = "otlp";
+    env.OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf";
+  }
+
+  const args = [
+    "-p", call.prompt,
+    "--model", call.model,
+    "--setting-sources", "local",
+    "--strict-mcp-config",
+    "--tools", "",
+    "--system-prompt", call.system,
+    "--output-format", "json",
+    "--no-session-persistence",
+  ];
+  return { args, cwd: tmpdir(), env };
+}
+
+/** Spawns `claude -p` as `claudeInvocation` sets it up, and reads its one JSON result. */
 export function claudeTransport(options?: { timeoutMs?: number }): Transport {
   return async (call) => {
     requireLive("claudeTransport");
     const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
-    // Nothing here reaches a collector unless the pipeline's own environment already names
-    // one: without it, the child gets no telemetry env at all, traceparent included, so
-    // nothing leaves the machine that wasn't opted into.
-    const env = { ...process.env };
-    if (env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-      if (call.traceparent) env.TRACEPARENT = call.traceparent;
-      env.CLAUDE_CODE_ENABLE_TELEMETRY = "1";
-      env.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA = "1";
-      env.OTEL_TRACES_EXPORTER = "otlp";
-      env.OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf";
-    }
-
-    const child = spawn(
-      "claude",
-      [
-        "-p", call.prompt,
-        "--model", call.model,
-        "--setting-sources", "local",
-        "--tools", "",
-        "--system-prompt", call.system,
-        "--output-format", "json",
-        "--no-session-persistence",
-      ],
-      { stdio: ["ignore", "pipe", "pipe"], env },
-    );
+    const { args, cwd, env } = claudeInvocation(call, process.env);
+    const child = spawn("claude", args, { stdio: ["ignore", "pipe", "pipe"], cwd, env });
     let out = "";
     let err = "";
     child.stdout.on("data", (d) => (out += d));
