@@ -1,6 +1,7 @@
 ---
 import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
 import Search from "../components/Search.astro";
+import { currentOf, sections as barSections, themes as themeList } from "../lib/nav";
 
 interface Props {
   locale: Locale;
@@ -16,28 +17,14 @@ const { locale, route = "", title, description, current = true } = Astro.props;
 // Cloudflare Web Analytics, when a token is given at build time. It sets no cookies.
 const analytics = process.env.CF_ANALYTICS_TOKEN;
 const copy = t(locale);
-const sections = [
-  { route: "communes/", label: copy.navCommunes },
-  { route: "docs/indicators/", label: copy.navFigures },
-  { route: "docs/glossary/", label: copy.navGlossary },
-  { route: "docs/insights/", label: copy.navInsights },
-  { route: "docs/api/", label: copy.navApi },
-  { route: "docs/mcp/", label: copy.navMcp },
-  { route: "docs/components/", label: copy.navComponents },
-  { route: "docs/npm/", label: copy.navNpm },
-  { route: "docs/python/", label: copy.navPython },
-];
+const sections = barSections(copy);
 const site = Astro.site;
 const absolute = (p: string) => (site ? new URL(p, site).href : null);
 // A page that is no route of its own, the one for an address with nothing at it, has no
 // address to declare and nothing for a search engine to keep.
 const canonical = current ? absolute(Astro.url.pathname) : null;
 const ogImage = absolute("/og.png");
-const themes = [
-  { id: "auto", label: copy.themeAuto },
-  { id: "light", label: copy.themeLight },
-  { id: "dark", label: copy.themeDark },
-];
+const themes = themeList(copy);
 ---
 
 <!doctype html>
@@ -102,18 +89,7 @@ const themes = [
       <div class="menu" id="site-menu">
       <nav class="sections" aria-label={copy.navLabel}>
         {sections.map((s) => (
-          <a
-            href={path(locale, s.route)}
-            aria-current={
-              !current
-                ? undefined
-                : s.route === route
-                  ? "page"
-                  : s.route === "communes/" && /^(communes|provinces|regions)\//.test(route)
-                    ? "true"
-                    : undefined
-            }
-          >
+          <a href={path(locale, s.route)} aria-current={currentOf(s.route, route, current)}>
             {s.label}
           </a>
         ))}
