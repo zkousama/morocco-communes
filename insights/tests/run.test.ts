@@ -69,10 +69,13 @@ describe("where a hypothesis stops", () => {
     hyp("a check fails", alwaysFalse(CHECK_FAILS_FIELD)),
     hyp("b falsify holds", alwaysTrue("commute.privateCar")),
     hyp("c safety kill", alwaysTrue("occupancy.tenant")),
-    // The real rank correlation between these two is negative; claiming "positive" makes
-    // judgeLinks reject it outright, regardless of significance or its placebos.
+    // The link test has to be about the finding: its own outcome (finding.measure, at
+    // finding.level) is what a proposed link test is checked against before it's ever run.
+    // The real rank correlation between education.higher and this finding's own measure is
+    // positive; claiming "negative" makes judgeLinks reject it outright, regardless of
+    // significance or its placebos.
     hyp("d link not consistent", alwaysTrue("disability.prevalence"), {
-      link: "together", x: "education.higher", y: "fertility.totalFertilityRate", year: 2024, level: "commune", direction: "positive",
+      link: "together", x: "education.higher", y: finding.measure, year: 2024, level: finding.level, direction: "negative",
     }),
     hyp("e published", alwaysTrue("labour.activityRate")),
   ];
@@ -102,6 +105,32 @@ describe("where a hypothesis stops", () => {
     expect(byClaim.get("d link not consistent")?.stage).toBe("link");
     expect(byClaim.get("e published")?.stage).toBe("published");
     expect(byClaim.get("e published")?.reason).toBeNull();
+  });
+});
+
+describe("a link test that isn't about the finding", () => {
+  const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
+
+  it("is refused before it runs, so the hypothesis is published with its link untested", async () => {
+    // education.higher and fertility.totalFertilityRate are unrelated to this finding's own
+    // measure: neither is what a link test's outcome would have to be for it to be about
+    // this figure, so it should never reach judgeLinks or come back "consistent".
+    const unrelated = JSON.stringify({
+      hypotheses: [
+        hyp("unrelated link", alwaysTrue("labour.activityRate"), {
+          link: "together", x: "education.higher", y: "fertility.totalFertilityRate", year: 2024, level: finding.level, direction: "positive",
+        }),
+      ],
+    });
+    const answers = (call: ModelCall) => (call.stage === "propose" ? unrelated : JSON.stringify({ counter: null, reason: "no counter" }));
+    const r = () => makeRunner(stubTransport(answers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+
+    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const item = file.items.find((i) => i.finding.id === finding.id)!;
+    const published = item.hypotheses.find((h) => h.claim.en === "unrelated link")!;
+
+    expect(published.stage).toBe("published");
+    expect(published.linkTest).toBeNull();
   });
 });
 

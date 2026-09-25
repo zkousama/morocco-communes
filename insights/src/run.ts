@@ -106,6 +106,12 @@ export function orderByDemand<T extends { code: string; score: number }>(finding
   return [...findings].sort((a, b) => (views.get(b.code) ?? 0) - (views.get(a.code) ?? 0) || b.score - a.score);
 }
 
+/** A candidate's link test is refused before it's ever run, "not about this figure", unless its own outcome is the finding's own measure, read at the finding's own level: pairing 2 fields neither of which is the figure itself would test nothing about why the figure is what it is. */
+function aboutThisFinding(test: LinkTest, finding: Finding): boolean {
+  const outcomeField = test.link === "together" ? test.y : test.outcome;
+  return outcomeField === finding.measure && test.level === finding.level;
+}
+
 /** The earliest start and latest end passed to `record`, for a span with no one call of its own to wrap; `started` says whether anything ever was. */
 function spanAccumulator() {
   let start: number | null = null;
@@ -212,7 +218,7 @@ export async function pipeline(
         }
 
         let linkOutcomeIndex: number | null = null;
-        if (candidate.linkTest) {
+        if (candidate.linkTest && aboutThisFinding(candidate.linkTest, finding)) {
           const linkStart = Date.now();
           linkOutcomeIndex = linkOutcomes.length;
           linkOutcomes.push(runLink(candidate.linkTest, data, linkSeed(finding.id, candidate.linkTest)));
