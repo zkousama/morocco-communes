@@ -16,6 +16,7 @@ export interface ModelCall {
   prompt: string;
   stage: string;
   key: string;
+  traceparent?: string; // left out of the cache id, so tracing never invalidates a cached answer
 }
 
 export interface ModelReply {
@@ -48,6 +49,19 @@ export function claudeTransport(options?: { timeoutMs?: number }): Transport {
   return async (call) => {
     requireLive("claudeTransport");
     const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+    // Nothing here reaches a collector unless the pipeline's own environment already names
+    // one: without it, the child gets no telemetry env at all, traceparent included, so
+    // nothing leaves the machine that wasn't opted into.
+    const env = { ...process.env };
+    if (env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+      if (call.traceparent) env.TRACEPARENT = call.traceparent;
+      env.CLAUDE_CODE_ENABLE_TELEMETRY = "1";
+      env.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA = "1";
+      env.OTEL_TRACES_EXPORTER = "otlp";
+      env.OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf";
+    }
+
     const child = spawn(
       "claude",
       [
@@ -59,7 +73,7 @@ export function claudeTransport(options?: { timeoutMs?: number }): Transport {
         "--output-format", "json",
         "--no-session-persistence",
       ],
-      { stdio: ["ignore", "pipe", "pipe"], env: process.env },
+      { stdio: ["ignore", "pipe", "pipe"], env },
     );
     let out = "";
     let err = "";

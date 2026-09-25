@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { read, sinceDate } from "../../site/scripts/attention.ts";
 import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
@@ -19,6 +20,7 @@ import { claudeTransport, hash, makeRunner, ollamaTransport, type Runner } from 
 import { propose, type Candidate } from "./propose.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
+import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
 import { evaluate, type Check, type Outcome } from "./vocabulary.ts";
 import type { Level } from "./fields.ts";
 
@@ -48,6 +50,7 @@ export interface RunFile {
   models: { propose: string; falsify: string };
   stageVersions: Record<string, string>;
   items: Item[];
+  spans: Span[];
 }
 
 /** Bumped by hand when a prompt's parsing or merging changes, not when its wording does: the cache key already carries the prompt's own hash. */
@@ -95,25 +98,76 @@ interface Pending {
 }
 
 /**
+ * Orders findings by what people open: the page views their unit had in the last 30 days,
+ * most first, then by score, so a batch that can't run everything spends its calls on the
+ * places people actually look at. A unit with no rows in `views` counts as 0.
+ */
+export function orderByDemand<T extends { code: string; score: number }>(findings: T[], views: Map<string, number>): T[] {
+  return [...findings].sort((a, b) => (views.get(b.code) ?? 0) - (views.get(a.code) ?? 0) || b.score - a.score);
+}
+
+/** The earliest start and latest end passed to `record`, for a span with no one call of its own to wrap; `started` says whether anything ever was. */
+function spanAccumulator() {
+  let start: number | null = null;
+  let end = 0;
+  return {
+    record(t0: number, t1: number): void {
+      if (start === null) start = t0;
+      end = t1;
+    },
+    started: (): boolean => start !== null,
+    range: (): { start: number; end: number } => ({ start: start ?? 0, end }),
+  };
+}
+
+/**
  * Runs `detect`, then proposes, checks, link-tests and argues against every finding's
  * candidates in turn. Every link test in the run is collected as it comes up and judged
  * once, together, after the last finding, since `judgeLinks`'s correction only means
  * anything read across the whole batch; a hypothesis's stage and any link verdict are
  * settled only once that judgement is in.
+ *
+ * Traces itself as it goes: a span per stage, and one per finding under `propose` and
+ * `falsify`, since those are the stages a `claude -p` call happens in. `options.views`, when
+ * given, reorders the findings by demand before any of it runs. Nothing here sends a span
+ * anywhere; that's `exportSpans`'s job, left to the caller.
  */
 export async function pipeline(
   data: Data,
-  options: { limit?: number; only?: string[]; run: Runner; falsifier: Runner; proposer: string; falsifierModel: string },
+  options: {
+    limit?: number;
+    only?: string[];
+    run: Runner;
+    falsifier: Runner;
+    proposer: string;
+    falsifierModel: string;
+    views?: Map<string, number>;
+  },
 ): Promise<RunFile> {
   const startedAt = new Date().toISOString();
+  const { traceId } = newIds();
+  const spans: Span[] = [];
+  const newSpanId = () => newIds().spanId;
+
+  const detectSpanId = newSpanId();
+  const detectStart = Date.now();
   let findings = detect(data);
   if (options.only) findings = findings.filter((f) => options.only!.includes(f.code));
+  if (options.views) findings = orderByDemand(findings, options.views);
   if (options.limit != null) findings = findings.slice(0, options.limit);
+  spans.push({ traceId, spanId: detectSpanId, name: "detect", start: detectStart, end: Date.now(), attributes: { findings: findings.length } });
 
   const items: Item[] = [];
   const decidedByItem: { order: number; hypothesis: Hypothesis }[][] = [];
   const pendingByItem: Pending[][] = [];
   const linkOutcomes: LinkOutcome[] = [];
+
+  const proposeStageId = newSpanId();
+  const falsifyStageId = newSpanId();
+  const proposeStage = spanAccumulator();
+  const falsifyStage = spanAccumulator();
+  const checkSpan = spanAccumulator();
+  const linksSpan = spanAccumulator();
 
   for (const finding of findings) {
     const line = findingLine(finding, data);
@@ -130,12 +184,28 @@ export async function pipeline(
     // never throw on a bad model reply; this is one more net under that, so a bug in any
     // of them skips one finding with the error recorded, rather than losing the run.
     try {
-      const proposal = await propose(finding, data, options.run, options.proposer);
+      const findingProposeId = newSpanId();
+      const proposeCallStart = Date.now();
+      const tracedRun: Runner = (call) => options.run({ ...call, traceparent: traceparent(traceId, findingProposeId) });
+      const proposal = await propose(finding, data, tracedRun, options.proposer);
+      const proposeCallEnd = Date.now();
+      spans.push({
+        traceId, spanId: findingProposeId, parentSpanId: proposeStageId, name: "propose",
+        start: proposeCallStart, end: proposeCallEnd, attributes: { finding: finding.id },
+      });
+      proposeStage.record(proposeCallStart, proposeCallEnd);
+
       const decided: { order: number; hypothesis: Hypothesis }[] = [];
       const pending: Pending[] = [];
 
+      const findingFalsifyId = newSpanId();
+      const findingFalsify = spanAccumulator();
+      const tracedFalsifier: Runner = (call) => options.falsifier({ ...call, traceparent: traceparent(traceId, findingFalsifyId) });
+
       for (const [order, candidate] of proposal.candidates.entries()) {
+        const checkStart = Date.now();
         const outcome = evaluate(candidate.test, finding, data);
+        checkSpan.record(checkStart, Date.now());
         if (outcome.status !== "passed") {
           decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, "check", outcome.reason ?? "the test failed", null) });
           continue;
@@ -143,11 +213,15 @@ export async function pipeline(
 
         let linkOutcomeIndex: number | null = null;
         if (candidate.linkTest) {
+          const linkStart = Date.now();
           linkOutcomeIndex = linkOutcomes.length;
           linkOutcomes.push(runLink(candidate.linkTest, data, linkSeed(finding.id, candidate.linkTest)));
+          linksSpan.record(linkStart, Date.now());
         }
 
-        const verdict = await falsify(candidate, finding, data, options.falsifier, options.falsifierModel);
+        const falsifyStart = Date.now();
+        const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.falsifierModel);
+        findingFalsify.record(falsifyStart, Date.now());
         if (!verdict.survived) {
           // A killed-by-refusal verdict never carries a counter-test; only a counter-test
           // that came out true does, which is what "falsify" means here.
@@ -157,6 +231,11 @@ export async function pipeline(
         }
 
         pending.push({ order, candidate, outcome, linkOutcomeIndex });
+      }
+
+      if (findingFalsify.started()) {
+        spans.push({ traceId, spanId: findingFalsifyId, parentSpanId: falsifyStageId, name: "falsify", attributes: { finding: finding.id }, ...findingFalsify.range() });
+        falsifyStage.record(findingFalsify.range().start, findingFalsify.range().end);
       }
 
       items.push({ finding, line, breakdown: breakdownRows, entropy: proposal.entropy, hypotheses: [], skipped: proposal.skipped ?? null });
@@ -176,7 +255,14 @@ export async function pipeline(
     }
   }
 
+  const linksJudgeStart = Date.now();
   const verdicts = judgeLinks(linkOutcomes);
+  linksSpan.record(linksJudgeStart, Date.now());
+
+  if (checkSpan.started()) spans.push({ traceId, spanId: newSpanId(), name: "check", attributes: {}, ...checkSpan.range() });
+  spans.push({ traceId, spanId: newSpanId(), name: "links", attributes: { tests: linkOutcomes.length }, ...linksSpan.range() });
+  if (proposeStage.started()) spans.push({ traceId, spanId: proposeStageId, name: "propose", attributes: {}, ...proposeStage.range() });
+  if (falsifyStage.started()) spans.push({ traceId, spanId: falsifyStageId, name: "falsify", attributes: {}, ...falsifyStage.range() });
 
   for (let i = 0; i < items.length; i++) {
     const decided = decidedByItem[i]!;
@@ -212,6 +298,7 @@ export async function pipeline(
     models: { propose: options.proposer, falsify: options.falsifierModel },
     stageVersions: STAGE_VERSIONS,
     items,
+    spans,
   };
 }
 
@@ -355,7 +442,13 @@ async function runPublish(): Promise<void> {
 
   const baseline = readBaselineMetrics();
   const files = publishable(latest);
+
+  const { traceId, spanId } = newIds();
+  const start = Date.now();
   const result = await publishIfAllowed({ outDir: OUT_DIR, metrics, baseline, files });
+  const span: Span = { traceId, spanId, name: "publish", start, end: Date.now(), attributes: { files: files.size, written: String(result.written) } };
+  await exportSpans([span], process.env);
+
   if (!result.written) {
     for (const reason of result.reasons) console.log(reason);
     process.exitCode = 1;
@@ -382,6 +475,15 @@ async function main(): Promise<void> {
   const limit = option("limit") ? Number(option("limit")) : undefined;
   const only = option("only")?.split(",");
 
+  // Reuses the site's own demand log reader: the same "remote" opt-in, under its own name
+  // here, so a run never queries the owner's database unless it's asked to twice over.
+  let views: Map<string, number> | undefined;
+  if (args.includes("--demand")) {
+    const env = { ATTENTION: process.env.INSIGHTS_DEMAND === "remote" ? "remote" : undefined };
+    const rows = read(sinceDate(), env);
+    views = new Map(rows.map((r) => [r.code, r.n]));
+  }
+
   const data = loadData();
   const proposer = "sonnet";
   const falsifierChoice = falsifierModel(process.env, proposer);
@@ -391,7 +493,8 @@ async function main(): Promise<void> {
   const falsifierTransport = falsifierChoice.transport === "ollama" ? ollamaTransport() : claudeTransport();
   const falsifier = makeRunner(falsifierTransport, cacheOptions);
 
-  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model });
+  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views });
+  await exportSpans(file.spans, process.env);
 
   const runsDir = ".cache/insights/runs";
   await mkdir(runsDir, { recursive: true });

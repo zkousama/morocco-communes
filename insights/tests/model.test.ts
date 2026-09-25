@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { claudeTransport, makeRunner, ollamaTransport, stubTransport, type ModelCall } from "../src/model.ts";
+import { newIds, traceparent } from "../src/trace.ts";
 
 const call: ModelCall = { model: "sonnet", system: "s", prompt: "p", stage: "propose", key: "finding-1:0" };
 
@@ -38,6 +39,17 @@ describe("the runner", () => {
     expect(s.count()).toBe(6);
     await s.runner()(call);
     expect(s.count()).toBe(6);
+  });
+
+  it("shares one cache entry for 2 calls differing only in traceparent", async () => {
+    const s = setup();
+    const a = newIds();
+    const b = newIds();
+    const first = await s.runner()({ ...call, traceparent: traceparent(a.traceId, a.spanId) });
+    const second = await s.runner()({ ...call, traceparent: traceparent(b.traceId, b.spanId) });
+    expect(second.cached).toBe(true);
+    expect(second.text).toBe(first.text);
+    expect(s.count()).toBe(1);
   });
 
   it("records what produced each answer", async () => {
