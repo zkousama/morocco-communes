@@ -74,6 +74,21 @@ const communesRoute = path(locale, "communes/");
   data-gap={copy.gapAny} data-gap-03={copy.gap03} data-gap-04={copy.gap04}>
   <div class="frame">
     <svg class="map" viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={markup} />
+    <p id="map-keys" hidden>{copy.mapKeys}</p>
+    <div class="zoom" role="group" aria-label={copy.mapZoom} hidden>
+      <button type="button" data-zoom="in" aria-label={copy.mapZoomIn}>
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 3.5v9M3.5 8h9" /></svg>
+      </button>
+      <button type="button" data-zoom="out" aria-label={copy.mapZoomOut} aria-disabled="true">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.5 8h9" /></svg>
+      </button>
+      <button type="button" data-zoom="reset" aria-label={copy.mapZoomReset} hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M3.25 8a4.75 4.75 0 1 0 4.75-4.75 5.15 5.15 0 0 0-3.56 1.44L3.25 5.89" />
+          <path d="M3.25 3.25v2.64h2.64" />
+        </svg>
+      </button>
+    </div>
     <div class="tip" hidden></div>
   </div>
   <figcaption>
@@ -101,6 +116,7 @@ const communesRoute = path(locale, "communes/");
 
 <script>
   import {
+    MAX_ZOOM,
     MIN_ZOOM,
     between,
     panBy,
@@ -214,8 +230,16 @@ const communesRoute = path(locale, "communes/");
     // Drawing -----------------------------------------------------------------------------
 
     const hatch = svg.querySelector("pattern");
+    const controls = atlas.querySelector<HTMLElement>(".zoom");
+    const zoomIn = controls?.querySelector<HTMLButtonElement>('[data-zoom="in"]');
+    const zoomOut = controls?.querySelector<HTMLButtonElement>('[data-zoom="out"]');
+    const reset = controls?.querySelector<HTMLButtonElement>('[data-zoom="reset"]');
     let drawnK = MIN_ZOOM;
     let pending = 0;
+    // Only what changed is written, since this runs every frame of a gesture.
+    const mark = (button: HTMLButtonElement | null | undefined, off: boolean) => {
+      if (button && button.getAttribute("aria-disabled") !== String(off)) button.setAttribute("aria-disabled", String(off));
+    };
     const draw = () => {
       pending = 0;
       const frameBox = bounds();
@@ -226,7 +250,14 @@ const communesRoute = path(locale, "communes/");
         drawnK = view.k;
         hatch?.setAttribute("patternTransform", `rotate(45) scale(${1 / view.k})`);
       }
-      frame.classList.toggle("zoomed", view.k > MIN_ZOOM);
+      const zoomed = view.k > MIN_ZOOM;
+      frame.classList.toggle("zoomed", zoomed);
+      mark(zoomIn, view.k >= MAX_ZOOM);
+      mark(zoomOut, !zoomed);
+      if (reset && reset.hidden === zoomed) {
+        if (!zoomed && document.activeElement === reset) zoomIn?.focus();
+        reset.hidden = !zoomed;
+      }
       if (anchor && !tip.hidden) {
         const p = toScreen(view, box, frameBox, anchor);
         const inside = p.x >= frameBox.left && p.x <= frameBox.right && p.y >= frameBox.top && p.y <= frameBox.bottom;
@@ -240,7 +271,7 @@ const communesRoute = path(locale, "communes/");
       pending ||= requestAnimationFrame(draw);
     };
 
-    // A double-click eases to its view; a hand on the map follows the hand.
+    // A button, key or double-click eases to its view; a hand on the map follows the hand.
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
     let aim: View | null = null;
     let flight = 0;
@@ -265,7 +296,11 @@ const communesRoute = path(locale, "communes/");
       };
       flight = requestAnimationFrame(step);
     };
-    const zoomBy = (factor: number, p: Point) => {
+    const middle = (): Point => {
+      const b = bounds();
+      return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    };
+    const zoomBy = (factor: number, p = middle()) => {
       const base = aim ?? view;
       glide(zoomAt(base, box, bounds(), p, base.k * factor));
     };
@@ -437,6 +472,40 @@ const communesRoute = path(locale, "communes/");
       if (!dragged) zoomBy(2, { x: event.clientX, y: event.clientY });
     });
 
+    // Buttons and keys --------------------------------------------------------------------
+
+    // The map takes focus for the keys only once there's a script to answer them.
+    svg.tabIndex = 0;
+    svg.setAttribute("aria-describedby", "map-keys");
+    if (controls && zoomIn && zoomOut && reset) {
+      controls.hidden = false;
+      const press = (button: HTMLButtonElement, act: () => void) =>
+        button.addEventListener("click", () => {
+          if (button.getAttribute("aria-disabled") !== "true") act();
+        });
+      press(zoomIn, () => zoomBy(2));
+      press(zoomOut, () => zoomBy(0.5));
+      press(reset, () => glide(whole(box)));
+    }
+    svg.addEventListener("keydown", (event) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const base = aim ?? view;
+      const step = bounds().width / 8;
+      const moves: Record<string, [number, number]> = {
+        ArrowLeft: [step, 0],
+        ArrowRight: [-step, 0],
+        ArrowUp: [0, step],
+        ArrowDown: [0, -step],
+      };
+      const move = moves[event.key];
+      if (event.key === "+" || event.key === "=") zoomBy(2);
+      else if (event.key === "-" || event.key === "_") zoomBy(0.5);
+      // At 1x there's nowhere to move, so the arrows scroll the page as usual.
+      else if (move && base.k > MIN_ZOOM) glide(panBy(base, box, bounds(), ...move));
+      else return;
+      event.preventDefault();
+    });
+
     const views = atlas.querySelector<HTMLElement>(".views");
     if (views) views.hidden = false;
     for (const button of atlas.querySelectorAll<HTMLButtonElement>(".views button")) {
@@ -468,6 +537,12 @@ const communesRoute = path(locale, "communes/");
     touch-action: pan-x pan-y;
     user-select: none;
     -webkit-user-select: none;
+  }
+
+  /* Chrome rings any focused SVG, even one a finger or the mouse focused. The keyboard
+     still gets the page's ring. */
+  .map:focus:not(:focus-visible) {
+    outline: none;
   }
 
   /* Zoomed in, the map keeps to its frame and takes every touch, so a finger drags it. */
@@ -605,6 +680,66 @@ const communesRoute = path(locale, "communes/");
   .swatch.tu { fill: var(--chart-down); background: var(--chart-down); }
   .atlas[data-view="type"] :global([data-t="r"]),
   .swatch.tr { fill: var(--chart-up); background: var(--chart-up); }
+
+  /* Zoom buttons in the corner, drawn like the way back to the top: round, on the page's
+     paper, 44px to a finger. */
+  .zoom {
+    position: absolute;
+    inset-block-end: 0.5rem;
+    inset-inline-end: 0.5rem;
+    z-index: 1;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .zoom[hidden],
+  .zoom button[hidden] {
+    display: none;
+  }
+
+  .zoom button {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--quiet);
+    cursor: pointer;
+    /* 2 quick presses would otherwise zoom the page on some phones. */
+    touch-action: manipulation;
+    transition: color 0.18s ease, border-color 0.18s ease;
+  }
+
+  .zoom button:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  /* The page's ring, drawn inside the button, where it's on paper rather than on a map
+     colour it might match. */
+  .zoom button:focus-visible {
+    outline-offset: -5px;
+  }
+
+  .zoom button[aria-disabled="true"] {
+    color: var(--quiet);
+    border-color: var(--rule);
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .zoom svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 
   .tip {
     position: absolute;

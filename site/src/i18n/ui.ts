@@ -87,6 +87,11 @@ export const ui = {
     tipDensity: "per km²",
     tipChange: "since 2014",
     tipOpen: "Open its page",
+    mapZoom: "Zoom",
+    mapZoomIn: "Zoom in",
+    mapZoomOut: "Zoom out",
+    mapZoomReset: "Show the whole map",
+    mapKeys: "Zoom with + and −. Move around with the arrow keys.",
 
     codeHeading: "How a code reads",
     codeBody:
@@ -276,6 +281,11 @@ export const ui = {
     tipDensity: "au km²",
     tipChange: "depuis 2014",
     tipOpen: "Voir sa page",
+    mapZoom: "Zoom",
+    mapZoomIn: "Zoom avant",
+    mapZoomOut: "Zoom arrière",
+    mapZoomReset: "Voir toute la carte",
+    mapKeys: "Zoomez avec + et −. Déplacez-vous avec les flèches.",
 
     codeHeading: "Comment se lit un code",
     codeBody:
