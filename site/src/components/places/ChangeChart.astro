@@ -21,16 +21,24 @@ const W = 600;
 const H = 120;
 const pct = (v: number) => ((Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * 100;
 const x = (v: number) => (pct(v) / 100) * W;
+// The clamped bins hold the edge values too, and a full-width stroke on the SVG's own
+// edge only half shows, so the mark and national lines sit a hair inside it.
+const xLine = (v: number) => Math.min(W - 1, Math.max(1, x(v)));
 const barWidth = W / bins.length;
 const y = (count: number) => (1 - count / max) * H;
 const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 const ticks = [-40, 0, 40, 100];
-const tick = (v: number) => (v === 0 ? "0" : percent(locale, v, { signed: true, digits: 0 }) + (v === hi ? "+" : ""));
+const tick = (v: number) =>
+  v === 0 ? "0" : (v === lo ? "<" : "") + percent(locale, v, { signed: true, digits: 0 }) + (v === hi ? "+" : "");
 const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");
+// The label's own width isn't known at build time, so this estimates it in characters
+// (the CSS turns that into a "ch" length) and keeps the whole label inside the figure,
+// however far off-centre the mark sits or however long the name is.
+const chars = name.length + 1 + signed(value).length;
 ---
 
 <figure class="change-chart">
-  <p class="mark-label" data-align={align(pct(value))} style={`--at: ${pct(value)}%`}>
+  <p class="mark-label" style={`--at: ${pct(value)}%; --chars: ${chars}`}>
     <strong>{name}</strong> {signed(value)}
   </p>
   <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={srText}>
@@ -43,8 +51,8 @@ const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");
         height={H - y(count)}
       />
     ))}
-    <line class="national" x1={x(nationalChange)} x2={x(nationalChange)} y1="0" y2={H} vector-effect="non-scaling-stroke" />
-    <line class="mark" x1={x(value)} x2={x(value)} y1="0" y2={H} vector-effect="non-scaling-stroke" />
+    <line class="national" x1={xLine(nationalChange)} x2={xLine(nationalChange)} y1="0" y2={H} vector-effect="non-scaling-stroke" />
+    <line class="mark" x1={xLine(value)} x2={xLine(value)} y1="0" y2={H} vector-effect="non-scaling-stroke" />
   </svg>
   <div class="ticks" aria-hidden="true">
     {ticks.map((t) => <span data-align={align(pct(t))} style={`--at: ${pct(t)}%`}>{tick(t)}</span>)}
@@ -88,8 +96,8 @@ const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");
     stroke-width: 2;
   }
 
-  /* Labels sit at a percentage along the axis, anchored the way SVG's text-anchor would be. */
-  .mark-label,
+  /* Tick labels sit at a percentage along the axis, anchored the way SVG's text-anchor
+     would be: they're short and fixed, so a threshold on position is enough. */
   .ticks span {
     position: relative;
     display: block;
@@ -105,7 +113,14 @@ const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");
     transform: translateX(-100%);
   }
 
+  /* The commune's name has no fixed length, so it's centred on the mark by an estimate of
+     its own width (its character count, in "ch") rather than a fixed anchor, and clamped
+     so the estimate can never push it past either edge of the figure. */
   .mark-label {
+    position: relative;
+    display: block;
+    width: max-content;
+    left: clamp(0%, calc(var(--at) * 1% - (var(--chars) * 1ch) / 2), calc(100% - var(--chars) * 1ch));
     margin: 0 0 0.3rem;
     font-size: var(--t-xs);
     font-variant-numeric: tabular-nums;
