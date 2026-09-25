@@ -13,7 +13,7 @@ import { read, sinceDate } from "../../site/scripts/attention.ts";
 import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
-import { falsify, falsifierModel, PROMPT_HASH as FALSIFY_PROMPT_HASH } from "./falsify.ts";
+import { falsify, falsifierModel, NO_ANSWER, PROMPT_HASH as FALSIFY_PROMPT_HASH, UNREADABLE } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
 import { claudeTransport, hash, makeRunner, ollamaTransport, type Runner } from "./model.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
@@ -57,7 +57,8 @@ export interface Item {
 export interface RunFile {
   runId: string;
   startedAt: string;
-  partial: boolean; // true when --limit or --only left findings out
+  partial: boolean; // true when --limit or --only left findings out, or the run stopped early
+  stopped: string | null; // why the run stopped before its last finding, when it did
   datasetVersion: string;
   models: { propose: string; falsify: string; answered: string[] }; // the aliases asked for, and every id that answered
   stageVersions: Record<string, string>;
@@ -151,6 +152,32 @@ export function aboutThisFinding(test: LinkTest, check: Check, finding: Finding)
   return true;
 }
 
+/** How many calls in a row may fail before a run stops: past a subscription's limit, every call fails the same way. */
+export const STOP_AFTER_FAILURES = 3;
+
+const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
+/**
+ * `run`, counting the calls that fail in a row. The one that makes `STOP_AFTER_FAILURES`
+ * sets `halt.reason`, and from then on nothing is called at all, by this runner or any
+ * other sharing the same `halt`: each call fails straight away with that reason instead.
+ */
+function stopAfterFailures(run: Runner, who: string, halt: { reason: string | null }): Runner {
+  let inARow = 0;
+  return async (call) => {
+    if (halt.reason) throw new Error(halt.reason);
+    try {
+      const reply = await run(call);
+      inARow = 0;
+      return reply;
+    } catch (error) {
+      inARow++;
+      if (inARow >= STOP_AFTER_FAILURES) halt.reason = `${STOP_AFTER_FAILURES} ${who} calls in a row failed, the last with: ${messageOf(error)}`;
+      throw error;
+    }
+  };
+}
+
 /** The earliest start and latest end passed to `record`, for a span with no one call of its own to wrap; `started` says whether anything ever was. */
 function spanAccumulator() {
   let start: number | null = null;
@@ -176,6 +203,10 @@ function spanAccumulator() {
  * `falsify`, since those are the stages a `claude -p` call happens in. `options.views`, when
  * given, reorders the findings by demand before any of it runs. Nothing here sends a span
  * anywhere; that's `exportSpans`'s job, left to the caller.
+ *
+ * When `STOP_AFTER_FAILURES` proposer or adversary calls fail in a row, the run stops: the
+ * finding it was on is kept as skipped, the rest are left out, and the file says why in
+ * `stopped`.
  */
 export async function pipeline(
   data: Data,
@@ -192,6 +223,9 @@ export async function pipeline(
   const startedAt = new Date().toISOString();
   const models = { propose: options.proposer, falsify: options.falsifierModel };
   const answered = new Set<string>();
+  const halt: { reason: string | null } = { reason: null };
+  const proposer = stopAfterFailures(options.run, "proposer", halt);
+  const adversary = stopAfterFailures(options.falsifier, "adversary", halt);
   const { traceId } = newIds();
   const spans: Span[] = [];
   const newSpanId = () => newIds().spanId;
@@ -219,6 +253,11 @@ export async function pipeline(
   for (const finding of findings) {
     const line = findingLine(finding, data);
     const breakdownRows = breakdown(finding, data);
+    const stoppedHere = (): void => {
+      items.push({ finding, line, breakdown: breakdownRows, entropy: 0, replies: [], hypotheses: [], skipped: `the run stopped: ${halt.reason}` });
+      decidedByItem.push([]);
+      pendingByItem.push([]);
+    };
 
     if (finding.kind === "artefact") {
       items.push({ finding, line, breakdown: breakdownRows, entropy: 0, replies: [], hypotheses: [], skipped: null });
@@ -233,10 +272,14 @@ export async function pipeline(
     try {
       const findingProposeId = newSpanId();
       const proposeCallStart = Date.now();
-      const tracedRun: Runner = (call) => options.run({ ...call, traceparent: traceparent(traceId, findingProposeId) });
+      const tracedRun: Runner = (call) => proposer({ ...call, traceparent: traceparent(traceId, findingProposeId) });
       const proposal = await propose(finding, data, tracedRun, options.proposer);
       const proposeCallEnd = Date.now();
       for (const reply of proposal.replies) answered.add(reply.model);
+      if (halt.reason) {
+        stoppedHere();
+        break;
+      }
       spans.push({
         traceId, spanId: findingProposeId, parentSpanId: proposeStageId, name: "propose",
         start: proposeCallStart, end: proposeCallEnd, attributes: { finding: finding.id },
@@ -248,9 +291,10 @@ export async function pipeline(
 
       const findingFalsifyId = newSpanId();
       const findingFalsify = spanAccumulator();
-      const tracedFalsifier: Runner = (call) => options.falsifier({ ...call, traceparent: traceparent(traceId, findingFalsifyId) });
+      const tracedFalsifier: Runner = (call) => adversary({ ...call, traceparent: traceparent(traceId, findingFalsifyId) });
 
       for (const [order, candidate] of proposal.candidates.entries()) {
+        if (halt.reason) break;
         const checkStart = Date.now();
         const outcome = evaluate(candidate.test, finding, data);
         checkSpan.record(checkStart, Date.now());
@@ -273,17 +317,19 @@ export async function pipeline(
         const falsifyStart = Date.now();
         const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.falsifierModel);
         findingFalsify.record(falsifyStart, Date.now());
-        answered.add(verdict.model);
-        const adversary = { model: verdict.model, reason: verdict.reason };
+        if (verdict.model) answered.add(verdict.model);
+        const argued = verdict.model ? { model: verdict.model, reason: verdict.reason } : null;
         if (!verdict.survived) {
-          // A killed-by-refusal verdict never carries a counter-test; only a counter-test
-          // that came out true does, which is what "falsify" means here.
-          const stage = verdict.counter ? "falsify" : "safety";
-          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, stage, verdict.reason, null, adversary) });
+          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, verdict.stage ?? "falsify", verdict.reason, null, argued) });
           continue;
         }
 
-        pending.push({ order, candidate, outcome, linkOutcomeIndex, linkRefused, adversary });
+        pending.push({ order, candidate, outcome, linkOutcomeIndex, linkRefused, adversary: argued });
+      }
+
+      if (halt.reason) {
+        stoppedHere();
+        break;
       }
 
       if (findingFalsify.started()) {
@@ -361,13 +407,44 @@ export async function pipeline(
   return {
     runId: runIdOf(startedAt, data.version, models),
     startedAt,
-    partial: options.limit != null || options.only != null,
+    partial: options.limit != null || options.only != null || halt.reason != null,
+    stopped: halt.reason,
     datasetVersion: data.version,
     models: { ...models, answered: [...answered].sort() },
     stageVersions: STAGE_VERSIONS,
     items,
     spans,
   };
+}
+
+/**
+ * What a finished run says in the terminal: its id, how many findings and candidates it
+ * saw, how many were published and where the rest stopped, how many the adversary never
+ * gave a usable answer on, and why the run stopped early, when it did.
+ */
+export function summary(file: RunFile): string[] {
+  let candidates = 0;
+  let published = 0;
+  let adversaryFailures = 0;
+  const stopped = new Map<string, number>();
+  for (const item of file.items) {
+    for (const h of item.hypotheses) {
+      candidates++;
+      if (h.stage === "published") published++;
+      else stopped.set(h.stage, (stopped.get(h.stage) ?? 0) + 1);
+      if (h.reason === NO_ANSWER || h.reason === UNREADABLE) adversaryFailures++;
+    }
+  }
+  const lines = [
+    `run: ${file.runId}${file.partial ? ", partial" : ""}`,
+    `findings: ${file.items.length}`,
+    `candidates: ${candidates}`,
+    `published: ${published}`,
+    ...[...stopped].map(([stage, count]) => `${stage}: ${count}`),
+    `adversary failures: ${adversaryFailures}`,
+  ];
+  if (file.stopped) lines.push(`stopped early: ${file.stopped}`);
+  return lines;
 }
 
 const COLLECTION: Record<Level, string> = {
@@ -471,13 +548,14 @@ export function publishable(file: RunFile, data: Data = loadData()): Map<string,
 export async function publishIfAllowed(options: {
   outDir: string;
   publishedPath: string;
-  run: { runId: string; partial: boolean };
+  run: { runId: string; partial: boolean; stopped?: string | null };
   metrics: Metrics | null;
   baseline: Metrics | null;
   files: Map<string, unknown>;
 }): Promise<{ written: boolean; reasons: string[] }> {
   const reasons: string[] = [];
-  if (options.run.partial) reasons.push("the latest run left findings out with --limit or --only: run pnpm insights on all of them first");
+  if (options.run.stopped) reasons.push(`the latest run stopped early (${options.run.stopped}): run pnpm insights again`);
+  else if (options.run.partial) reasons.push("the latest run left findings out with --limit or --only: run pnpm insights on all of them first");
   if (!options.metrics) {
     reasons.push("no graded set yet: run pnpm insights:grade");
   } else if (options.metrics.runId !== options.run.runId) {
@@ -613,21 +691,8 @@ async function main(): Promise<void> {
   await writeFile(join(runsDir, `${file.startedAt}.json`), body);
   await writeFile(join(runsDir, "latest.json"), body);
 
-  let candidates = 0;
-  let published = 0;
-  const stopped = new Map<string, number>();
-  for (const item of file.items) {
-    for (const h of item.hypotheses) {
-      candidates++;
-      if (h.stage === "published") published++;
-      else stopped.set(h.stage, (stopped.get(h.stage) ?? 0) + 1);
-    }
-  }
-  console.log(`run: ${file.runId}${file.partial ? ", partial" : ""}`);
-  console.log(`findings: ${file.items.length}`);
-  console.log(`candidates: ${candidates}`);
-  console.log(`published: ${published}`);
-  for (const [stage, count] of stopped) console.log(`${stage}: ${count}`);
+  for (const line of summary(file)) console.log(line);
+  if (file.stopped) process.exitCode = 1;
 }
 
 // Runs the pipeline when this file is the entry point, not when a test imports it.

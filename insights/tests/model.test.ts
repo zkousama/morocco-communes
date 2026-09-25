@@ -85,6 +85,33 @@ describe("the runner", () => {
     expect(second.ms).toBe(first.ms);
   });
 
+  it("never caches an answer its stage can't read, so a re-run asks again", async () => {
+    let calls = 0;
+    const transport = stubTransport(() => { calls += 1; return calls === 1 ? "not json" : '{"ok":true}'; });
+    const cacheDir = mkdtempSync(join(tmpdir(), "insights-cache-"));
+    const runner = makeRunner(transport, { cacheDir, datasetVersion: "1.8.0", stageVersions: { propose: "1" } });
+    const readable = { ...call, accept: (text: string) => text.startsWith("{") };
+
+    const first = await runner(readable);
+    expect(first.text).toBe("not json");
+    const second = await runner(readable);
+    expect(second.cached).toBe(false);
+    const third = await runner(readable);
+    expect(third.cached).toBe(true);
+    expect(calls).toBe(2);
+  });
+
+  it("asks again rather than hand back a cached answer its stage can't read", async () => {
+    let calls = 0;
+    const transport = stubTransport(() => { calls += 1; return "not json"; });
+    const cacheDir = mkdtempSync(join(tmpdir(), "insights-cache-"));
+    const runner = makeRunner(transport, { cacheDir, datasetVersion: "1.8.0", stageVersions: { propose: "1" } });
+    await runner(call); // cached, with nothing to say it can't be read
+    const again = await runner({ ...call, accept: (text: string) => text.startsWith("{") });
+    expect(again.cached).toBe(false);
+    expect(calls).toBe(2);
+  });
+
   it("treats a corrupt cache file as a miss", async () => {
     let calls = 0;
     const transport = stubTransport(() => { calls += 1; return '{"ok":true}'; });

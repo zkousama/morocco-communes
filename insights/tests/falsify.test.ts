@@ -40,19 +40,32 @@ describe("falsify", () => {
     expect(falsifierModel({}, "opus")).toEqual({ transport: "claude", model: "sonnet" });
   });
 
-  it("keeps a candidate alive, with reason \"no counter-test\", when the call fails", async () => {
+  it("stops a candidate at falsify when the adversary doesn't answer", async () => {
     const failing = makeRunner(async () => { throw new Error("ollama refused the connection"); },
       { cacheDir: mkdtempSync(join(tmpdir(), "f-")), datasetVersion: "t", stageVersions: { falsify: "1" } });
     const v = await falsify(candidate, finding, data, failing, "opus");
-    expect(v.survived).toBe(true);
-    expect(v.reason).toBe("no counter-test");
-    expect(v.counter).toBeNull();
+    expect(v).toMatchObject({ survived: false, stage: "falsify", reason: "the adversary didn't answer", model: null, counter: null });
   });
 
-  it("keeps a candidate alive, with reason \"no counter-test\", when the reply can't be parsed", async () => {
-    const v = await falsify(candidate, finding, data, run("not json"), "opus");
-    expect(v.survived).toBe(true);
-    expect(v.reason).toBe("no counter-test");
+  it("stops a candidate at falsify when the adversary's answer can't be read, and asks again next time", async () => {
+    let calls = 0;
+    const cacheDir = mkdtempSync(join(tmpdir(), "f-"));
+    const garbled = makeRunner(stubTransport(() => { calls += 1; return "not json"; }), { cacheDir, datasetVersion: "t", stageVersions: { falsify: "1" } });
+    const v = await falsify(candidate, finding, data, garbled, "opus");
+    expect(v).toMatchObject({ survived: false, stage: "falsify", reason: "the adversary's answer couldn't be read", model: "opus" });
+    await falsify(candidate, finding, data, garbled, "opus");
+    expect(calls).toBe(2);
+  });
+
+  it("keeps the adversary's reason, and who gave it, on a candidate that survives", async () => {
+    const v = await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "nothing breaks it" })), "opus");
+    expect(v).toMatchObject({ survived: true, stage: null, reason: "nothing breaks it", model: "opus" });
+  });
+
+  it("says a refusal stops a candidate at safety, and a counter-test that holds at falsify", async () => {
+    const counter = { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: 20 } };
+    expect((await falsify(candidate, finding, data, run(JSON.stringify({ counter, reason: "r" })), "opus")).stage).toBe("falsify");
+    expect((await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "r", refuse: "groups" })), "opus")).stage).toBe("safety");
   });
 
   it("keeps a candidate alive when its own counter-test is refused, such as one on the finding's own measure", async () => {

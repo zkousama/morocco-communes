@@ -17,6 +17,7 @@ export interface ModelCall {
   stage: string;
   key: string;
   traceparent?: string; // left out of the cache id, so tracing never invalidates a cached answer
+  accept?: (text: string) => boolean; // whether the stage can read an answer: one it can't is handed back but never cached, so a re-run asks again
 }
 
 export interface ModelReply {
@@ -193,7 +194,9 @@ async function readCacheFile(path: string): Promise<CacheEntry | null> {
 /**
  * Wraps a transport with a cache keyed on everything that could change an answer's
  * meaning. A cache hit returns the original call's `ms` with `cached: true`; a miss asks
- * the transport, writes the answer to the cache and returns it with `cached: false`.
+ * the transport, writes the answer to the cache and returns it with `cached: false`. An
+ * answer the call's `accept` turns down is never written, and one already in the cache is
+ * read as a miss, so a stage never gets stuck on a reply it couldn't read the first time.
  */
 export function makeRunner(
   transport: Transport,
@@ -204,14 +207,16 @@ export function makeRunner(
     const id = cacheId(call, options.datasetVersion, options.stageVersions);
     const path = join(options.cacheDir, call.stage, `${id}.json`);
 
+    const readable = (text: string): boolean => !call.accept || call.accept(text);
+
     const cached = await readCacheFile(path);
-    if (cached) return { ...cached, cached: true };
+    if (cached && readable(cached.text)) return { ...cached, cached: true };
 
     const started = Date.now();
     const { text, model } = await transport(call);
     const ms = Date.now() - started;
     const entry: CacheEntry = { text, model, promptHash, ms };
-    await writeCacheFile(path, entry);
+    if (readable(text)) await writeCacheFile(path, entry);
     return { ...entry, cached: false };
   };
 }

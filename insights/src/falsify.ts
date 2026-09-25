@@ -3,9 +3,11 @@
  * passed its data test. It sees the same finding and figures the proposer saw, and the
  * candidate itself, and writes a counter-test in the same vocabulary: one that would come
  * out true if the premise were wrong. A counter-test that comes out true kills the
- * candidate; one that fails, is refused, or never gets written leaves it alive, since the
- * adversary only removes, never adds. `refusal` runs again on the candidate's own text as
- * a last check, and so does the adversary's own call that the hypothesis shouldn't be
+ * candidate; one that fails or is refused, or an answer with no counter-test, leaves it
+ * alive, since the adversary only removes, never adds. An adversary that never answers,
+ * or answers in a shape that can't be read, hasn't argued at all, so the candidate stops
+ * there rather than pass for free. `refusal` runs again on the candidate's own text as a
+ * last check, and so does the adversary's own call that the hypothesis shouldn't be
  * argued with at all.
  */
 import { z } from "zod";
@@ -18,11 +20,15 @@ import { CHECK_GRAMMAR, checkSchema, evaluate, signature, type Check, type Outco
 
 export interface Verdict {
   survived: boolean;
+  stage: "falsify" | "safety" | null; // where a killed candidate stopped: a counter-test or no usable answer, or a refusal
   counter: Check | null;
   counterOutcome: Outcome | null;
   reason: string;
-  model: string;
+  model: string | null; // the id that answered; null when the call failed
 }
+
+export const NO_ANSWER = "the adversary didn't answer";
+export const UNREADABLE = "the adversary's answer couldn't be read";
 
 const SYSTEM = `You're checking a hypothesis someone else wrote about why a figure from Morocco's 2024 census stands out. Try to break it.
 
@@ -87,46 +93,47 @@ function refusedCandidate(candidate: Candidate): ReturnType<typeof refusal> {
   return null;
 }
 
-const ALIVE_NO_COUNTER: Omit<Verdict, "model"> = { survived: true, counter: null, counterOutcome: null, reason: "no counter-test" };
-
 /**
  * Asks the adversary to break `candidate`, evaluates its counter-test against the same
  * finding, and applies `refusal` to the candidate's own text as a last check. Never throws:
- * a call that fails, or a reply that can't be parsed or validated, leaves the candidate
- * alive, since the adversary only ever removes a candidate, never adds one.
+ * a call that fails stops the candidate with `NO_ANSWER` and no model, and a reply that
+ * can't be parsed or validated stops it with `UNREADABLE`, and is never cached.
  */
 export async function falsify(candidate: Candidate, finding: Finding, data: Data, run: Runner, model: string): Promise<Verdict> {
   const key = `${finding.id}:${signature(candidate.test)}`;
   const hypothesis = { claim: candidate.claim, link: candidate.link, premise: candidate.premise, test: candidate.test };
   const prompt = `${context(finding, data).slice(0, -1)},"hypothesis":${JSON.stringify(hypothesis)}}`;
 
-  let verdict: Verdict;
+  let reply: Awaited<ReturnType<Runner>>;
   try {
-    const reply = await run({ model, system: SYSTEM, prompt, stage: "falsify", key });
-    const parsed = readReply(reply.text);
-    if (!parsed) {
-      verdict = { ...ALIVE_NO_COUNTER, model: reply.model };
-    } else if (parsed.refuse) {
-      verdict = { survived: false, counter: null, counterOutcome: null, reason: `refused: ${parsed.refuse}`, model: reply.model };
-    } else if (!parsed.counter) {
-      verdict = { survived: true, counter: null, counterOutcome: null, reason: parsed.reason, model: reply.model };
-    } else {
-      const outcome = evaluate(parsed.counter, finding, data);
-      if (outcome.status === "passed") {
-        verdict = { survived: false, counter: parsed.counter, counterOutcome: outcome, reason: parsed.reason, model: reply.model };
-      } else if (outcome.status === "refused") {
-        verdict = { survived: true, counter: parsed.counter, counterOutcome: outcome, reason: `the counter-test was refused: ${outcome.reason}`, model: reply.model };
-      } else {
-        verdict = { survived: true, counter: parsed.counter, counterOutcome: outcome, reason: parsed.reason, model: reply.model };
-      }
-    }
+    reply = await run({ model, system: SYSTEM, prompt, stage: "falsify", key, accept: (text) => readReply(text) !== null });
   } catch {
-    verdict = { ...ALIVE_NO_COUNTER, model };
+    return { survived: false, stage: "falsify", counter: null, counterOutcome: null, reason: NO_ANSWER, model: null };
+  }
+
+  const answered = reply.model;
+  const parsed = readReply(reply.text);
+  let verdict: Verdict;
+  if (!parsed) {
+    verdict = { survived: false, stage: "falsify", counter: null, counterOutcome: null, reason: UNREADABLE, model: answered };
+  } else if (parsed.refuse) {
+    verdict = { survived: false, stage: "safety", counter: null, counterOutcome: null, reason: `refused: ${parsed.refuse}`, model: answered };
+  } else if (!parsed.counter) {
+    verdict = { survived: true, stage: null, counter: null, counterOutcome: null, reason: parsed.reason, model: answered };
+  } else {
+    const outcome = evaluate(parsed.counter, finding, data);
+    if (outcome.status === "passed") {
+      verdict = { survived: false, stage: "falsify", counter: parsed.counter, counterOutcome: outcome, reason: parsed.reason, model: answered };
+    } else if (outcome.status === "refused") {
+      verdict = { survived: true, stage: null, counter: parsed.counter, counterOutcome: outcome, reason: `the counter-test was refused: ${outcome.reason}`, model: answered };
+    } else {
+      verdict = { survived: true, stage: null, counter: parsed.counter, counterOutcome: outcome, reason: parsed.reason, model: answered };
+    }
   }
 
   if (verdict.survived) {
     const rule = refusedCandidate(candidate);
-    if (rule) return { survived: false, counter: null, counterOutcome: null, reason: `refused: ${rule}`, model: verdict.model };
+    if (rule) return { survived: false, stage: "safety", counter: null, counterOutcome: null, reason: `refused: ${rule}`, model: answered };
   }
   return verdict;
 }

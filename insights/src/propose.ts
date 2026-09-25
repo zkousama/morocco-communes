@@ -236,7 +236,14 @@ export async function propose(finding: Finding, data: Data, run: Runner, model =
   // One after another: 5 at once for every finding would be a burst on a subscription's limits.
   for (let i = 0; i < SAMPLES; i++) {
     try {
-      const reply = await run({ model, system: SYSTEM, prompt, stage: "propose", key: `${finding.id}:${i}` });
+      const reply = await run({
+        model,
+        system: SYSTEM,
+        prompt,
+        stage: "propose",
+        key: `${finding.id}:${i}`,
+        accept: (text) => readReply(text).hypotheses.length > 0,
+      });
       replies.push({ model: reply.model, promptHash: reply.promptHash });
       const { hypotheses, problem } = readReply(reply.text);
       if (problem) lastProblem = problem;

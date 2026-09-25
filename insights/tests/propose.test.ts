@@ -59,6 +59,19 @@ describe("propose", () => {
     expect(p.skipped).toBeUndefined();
   });
 
+  it("never caches a sample it can't read, so a re-run asks again", async () => {
+    let calls = 0;
+    const cacheDir = mkdtempSync(join(tmpdir(), "p-"));
+    const counting = (answer: string) => makeRunner(stubTransport(() => { calls += 1; return answer; }),
+      { cacheDir, datasetVersion: "t", stageVersions: { propose: "1" } });
+    await propose(finding, data, counting("not json"));
+    await propose(finding, data, counting("not json"));
+    expect(calls).toBe(10);
+    await propose(finding, data, counting(good));
+    await propose(finding, data, counting(good));
+    expect(calls).toBe(15);
+  });
+
   it("drops a candidate the safety check refuses", async () => {
     const bad = JSON.parse(good);
     bad.hypotheses[0].claim.en = "The ministry's neglect lowered fertility";

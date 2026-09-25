@@ -6,7 +6,7 @@ import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
-import { aboutThisFinding, pipeline, publishable, publishIfAllowed, readBaseline } from "../src/run.ts";
+import { aboutThisFinding, pipeline, publishable, publishIfAllowed, readBaseline, summary } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
@@ -131,6 +131,57 @@ describe("where a hypothesis stops", () => {
     expect(byClaim.get("d link not consistent")?.stage).toBe("link");
     expect(byClaim.get("e published")?.stage).toBe("published");
     expect(byClaim.get("e published")?.reason).toBeNull();
+  });
+});
+
+describe("an adversary that doesn't answer", () => {
+  const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
+  const proposal = JSON.stringify({ hypotheses: STAGE_TEST_FIELDS.slice(1).map((field) => hyp(field, alwaysTrue(field))) });
+  const cache = () => ({ cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+  const proposer = () => makeRunner(stubTransport(() => proposal), cache());
+
+  it("stops that hypothesis at falsify, and the rest go on", async () => {
+    const falsifier = makeRunner(async (call) => {
+      if (call.key.includes('"labour.activityRate"')) throw new Error("claude exited 1: overloaded");
+      return { text: JSON.stringify({ counter: null, reason: "no counter" }), model: "adversary-id" };
+    }, cache());
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus" });
+    const byClaim = new Map(file.items[0]!.hypotheses.map((h) => [h.claim.en, h]));
+
+    expect(byClaim.get("labour.activityRate")).toMatchObject({ stage: "falsify", reason: "the adversary didn't answer", adversary: null });
+    expect(byClaim.get("education.higher")).toMatchObject({ stage: "published", reason: null, adversary: { model: "adversary-id", reason: "no counter" } });
+    expect(file.stopped).toBeNull();
+    expect(file.models.answered).not.toContain("opus");
+    expect(summary(file)).toContain("adversary failures: 1");
+  });
+
+  it("stops the run after 3 failures in a row, and says why", async () => {
+    let calls = 0;
+    const falsifier = makeRunner(async () => {
+      calls++;
+      throw new Error("claude exited 1: usage limit reached");
+    }, cache());
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus" });
+
+    expect(calls).toBe(3);
+    expect(file.partial).toBe(true);
+    expect(file.stopped).toMatch(/^3 adversary calls in a row failed.*usage limit reached/);
+    expect(file.items.at(-1)!.skipped).toMatch(/^the run stopped/);
+    expect(summary(file).join("\n")).toMatch(/stopped early: 3 adversary calls/);
+  });
+
+  it("stops the run after 3 proposer calls in a row fail, before the next finding", async () => {
+    let calls = 0;
+    const failing = makeRunner(async () => {
+      calls++;
+      throw new Error("claude exited 1: usage limit reached");
+    }, cache());
+    const file = await pipeline(data, { limit: 3, run: failing, falsifier: proposer(), proposer: "sonnet", falsifierModel: "opus" });
+
+    expect(calls).toBe(3);
+    expect(file.stopped).toMatch(/^3 proposer calls in a row failed/);
+    expect(file.items.length).toBeLessThan(3);
+    expect(file.items.at(-1)!.skipped).toMatch(/^the run stopped/);
   });
 });
 
@@ -344,6 +395,14 @@ describe("publishing", () => {
     const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-a", partial: true }, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
     expect(result.written).toBe(false);
     expect(result.reasons.join("\n")).toMatch(/--limit or --only/);
+  });
+
+  it("refuses a run that stopped early, and says why it stopped", async () => {
+    const { outDir, publishedPath } = place();
+    const stopped = { runId: "run-a", partial: true, stopped: "3 adversary calls in a row failed, the last with: usage limit reached" };
+    const result = await publishIfAllowed({ outDir, publishedPath, run: stopped, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(false);
+    expect(result.reasons.join("\n")).toMatch(/stopped early.*usage limit reached/);
   });
 
   it("records the run it published and the numbers it passed with", async () => {
