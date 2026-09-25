@@ -26,6 +26,11 @@ describe("refusal", () => {
     expect(refusal("Une partie des familles est partie vers la côte")).toBeNull();
     expect(refusal("More people read and write Arabic than in 2014")).toBeNull();
   });
+  it("reads someone leaving as leaving, and a political party only when it says so", () => {
+    expect(refusal("Il est parti vers la ville pour trouver du travail")).toBeNull();
+    expect(refusal("Les jeunes sont partis travailler à Casablanca")).toBeNull();
+    expect(refusal("Un parti politique a bloqué le projet")).toBe("political");
+  });
   it("needs a capitalised name after a title", () => {
     expect(refusal("Le maire Ahmed Benali a fermé le souk")).toBe("individuals");
     expect(refusal("Mme Tazi a ouvert une école")).toBe("individuals");

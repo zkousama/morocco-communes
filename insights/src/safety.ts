@@ -7,13 +7,17 @@
 
 type Refusal = "individuals" | "groups" | "political";
 
-/** Each listed word, with the plurals and feminines that mean the same thing. */
+/**
+ * Each listed word, with the plurals and feminines that mean the same thing. A bare "parti"
+ * is also how French says someone left ("il est parti vers la ville"), the commonest reason
+ * offered for a change, so a party is caught by name or as "parti politique".
+ */
 const POLITICAL = [
   "government", "governments", "ministry", "ministries", "minister", "ministers", "mayor's decision",
   "parliament", "parliaments", "party", "parties", "PJD", "RNI", "PAM", "Istiqlal", "USFP", "makhzen",
   "palace", "palaces", "corruption",
-  "gouvernement", "gouvernements", "ministère", "ministères", "ministre", "ministres", "parti",
-  "négligence de l'État",
+  "gouvernement", "gouvernements", "ministère", "ministères", "ministre", "ministres",
+  "parti politique", "partis politiques", "négligence de l'État",
 ];
 
 // "arabe" and "berbère" in the singular also name a language in French ("l'arabe"), and a
