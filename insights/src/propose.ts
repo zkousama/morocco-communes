@@ -36,7 +36,8 @@ export interface Proposal {
 
 export const SAMPLES = 5;
 
-const catalogue = FIELDS.map((f) => {
+/** Reused by the adversary (`falsify.ts`), so it argues over the same fields it's checking. */
+export const catalogue = FIELDS.map((f) => {
   const what = subjectOf(f.path);
   const described = what ? what.en.charAt(0).toUpperCase() + what.en.slice(1) : f.label.en;
   return `${f.path} | ${described} | ${f.unit}${f.comparable ? " | 2014" : ""}`;
