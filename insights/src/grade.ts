@@ -119,18 +119,20 @@ export function appendRegrade(file: GradedFile, entry: GradedFile["regrades"][nu
   return { grades: file.grades, regrades: [...file.regrades, entry] };
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
+function round(value: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
 }
 
 function formatNumbers(numbers: Record<string, number>): string {
   const keys = Object.keys(numbers).sort();
   if (keys.length === 0) return "none";
-  return keys.map((key) => `${key}=${round2(numbers[key]!)}`).join(", ");
+  return keys.map((key) => `${key}=${round(numbers[key]!, 2)}`).join(", ");
 }
 
+/** p to 4 decimals, so a small but real p (0.0032, say) doesn't round away to "0". */
 function formatLinkTest(linkTest: NonNullable<Hypothesis["linkTest"]>): string {
-  return `${linkTest.verdict}, p=${round2(linkTest.p)}, effect=${round2(linkTest.effect)}`;
+  return `${linkTest.verdict}, p=${round(linkTest.p, 4)}, effect=${round(linkTest.effect, 2)}`;
 }
 
 /**

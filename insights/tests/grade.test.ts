@@ -180,6 +180,18 @@ describe("formatItem", () => {
         linkTest: { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "consistent", p: 0.01234, effect: 0.5678 },
       } as unknown as Hypothesis,
     };
-    expect(formatItem(withLink)).toContain("link test: consistent, p=0.01, effect=0.57");
+    expect(formatItem(withLink)).toContain("link test: consistent, p=0.0123, effect=0.57");
+  });
+
+  it("keeps a small p readable rather than rounding it away to 0", () => {
+    const withLink = {
+      ...item,
+      hypothesis: {
+        ...item.hypothesis,
+        linkTest: { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "consistent", p: 0.0032, effect: -0.281 },
+      } as unknown as Hypothesis,
+    };
+    expect(formatItem(withLink)).toContain("p=0.0032");
+    expect(formatItem(withLink)).not.toContain("p=0,");
   });
 });
