@@ -14,7 +14,7 @@ import { linkSchema, type LinkTest } from "./links.ts";
 import type { Runner } from "./model.ts";
 import { refusal } from "./safety.ts";
 import { findingLine, subjectOf } from "./text.ts";
-import { checkSchema, signature, type Check } from "./vocabulary.ts";
+import { CHECK_GRAMMAR, checkSchema, signature, type Check } from "./vocabulary.ts";
 
 export interface Candidate {
   claim: { en: string; fr: string };
@@ -54,26 +54,9 @@ Pick premises the figures you're sent support, and write each data test so it co
 
 DATA TESTS
 
-A reference names one figure: {"of": <subject>, "field": <path>, "year": 2024 or 2014}.
-A subject is one of:
-{"unit":"self"}  the unit the figure is about
-{"unit":"parent"}  its province for a commune, its région for a province
-{"unit":"country"}  Morocco as a whole
-{"unit":"neighbours","stat":"median"}  the median of its neighbours: the communes next to a commune, the other units under the same parent otherwise
-{"unit":"code","code":"04.421.01.0"}  any unit, by its code
-
 A data test is one of 3 checks.
 
-compare: one figure against another, or against a number. "op" is ">", "<", ">=" or "<="; "right" can be {"value": 20} in place of a reference.
-{"check":"compare","left":{"of":{"unit":"self"},"field":"education.higher","year":2024},"op":">","right":{"of":{"unit":"country"},"field":"education.higher","year":2024}}
-
-change: how far a figure moved from 2014 to 2024, in the field's own unit, so percentage points for a percent. "op" is ">" or "<".
-{"check":"change","of":{"unit":"neighbours","stat":"median"},"field":"dwellingType.apartment","op":">","value":5}
-
-rank: where a unit's figure sits among the units of its level in an area. "within" is "province", "region" or "country"; "position" is "top" or "bottom"; "share" runs from 0 to 0.5, so 0.1 is the top or bottom 10%. The subject is "self", "parent" or a code.
-{"check":"rank","of":{"unit":"self"},"field":"commute.privateCar","year":2024,"within":"province","position":"top","share":0.1}
-
-A 2014 figure, and so any change test, only exists for a field marked 2014 in the list at the end. A test naming a field or a unit that doesn't exist is refused.
+${CHECK_GRAMMAR}
 
 The figure's own field can't appear in a data test, and nor can a field that's part of the same whole, such as another age band when the figure is an age band. Each request lists these as "offLimits". A test that uses one is refused, and its hypothesis with it: a premise has to be a different fact from the figure it explains.
 
@@ -192,7 +175,7 @@ const hypothesisSchema = z.object({
 type Hypothesis = Omit<Candidate, "support">;
 
 /** A model often fences JSON in a code block despite being asked not to; the fence isn't part of the answer. */
-const unfence = (text: string): string =>
+export const unfence = (text: string): string =>
   text.trim().replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/, "");
 
 /** A reply's valid hypotheses, or why there are none. */

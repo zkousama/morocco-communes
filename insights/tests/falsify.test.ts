@@ -39,4 +39,32 @@ describe("falsify", () => {
     expect(falsifierModel({}, "sonnet")).toEqual({ transport: "claude", model: "opus" });
     expect(falsifierModel({}, "opus")).toEqual({ transport: "claude", model: "sonnet" });
   });
+
+  it("keeps a candidate alive, with reason \"no counter-test\", when the call fails", async () => {
+    const failing = makeRunner(async () => { throw new Error("ollama refused the connection"); },
+      { cacheDir: mkdtempSync(join(tmpdir(), "f-")), datasetVersion: "t", stageVersions: { falsify: "1" } });
+    const v = await falsify(candidate, finding, data, failing, "opus");
+    expect(v.survived).toBe(true);
+    expect(v.reason).toBe("no counter-test");
+    expect(v.counter).toBeNull();
+  });
+
+  it("keeps a candidate alive, with reason \"no counter-test\", when the reply can't be parsed", async () => {
+    const v = await falsify(candidate, finding, data, run("not json"), "opus");
+    expect(v.survived).toBe(true);
+    expect(v.reason).toBe("no counter-test");
+  });
+
+  it("keeps a candidate alive when its own counter-test is refused, such as one on the finding's own measure", async () => {
+    const counter = { check: "compare", left: { of: { unit: "self" }, field: "fertility.totalFertilityRate", year: 2024 }, op: ">", right: { value: 1 } };
+    const v = await falsify(candidate, finding, data, run(JSON.stringify({ counter, reason: "r" })), "opus");
+    expect(v.survived).toBe(true);
+    expect(v.counterOutcome?.status).toBe("refused");
+  });
+
+  it("kills a candidate whose own text trips the word list, even with no counter-test", async () => {
+    const bad: Candidate = { ...candidate, claim: { en: "The ministry's neglect lowered fertility", fr: "c" } };
+    const v = await falsify(bad, finding, data, run(JSON.stringify({ counter: null, reason: "nothing breaks it" })), "opus");
+    expect(v.survived).toBe(false);
+  });
 });

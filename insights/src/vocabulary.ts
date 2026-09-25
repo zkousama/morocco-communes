@@ -76,6 +76,32 @@ export const checkSchema: z.ZodType<Check> = z.discriminatedUnion("check", [
   }),
 ]);
 
+/**
+ * The grammar a check is written in: the subjects a reference can name, and the 3 checks
+ * themselves with an example each, exactly what `checkSchema` validates. `propose.ts`'s
+ * data test and `falsify.ts`'s counter-test are the same grammar with different framing,
+ * so both prompts splice this in after their own opening sentence rather than keeping
+ * their own copy, which would drift the first time a check changes.
+ */
+export const CHECK_GRAMMAR = `A reference names one figure: {"of": <subject>, "field": <path>, "year": 2024 or 2014}.
+A subject is one of:
+{"unit":"self"}  the unit the figure is about
+{"unit":"parent"}  its province for a commune, its région for a province
+{"unit":"country"}  Morocco as a whole
+{"unit":"neighbours","stat":"median"}  the median of its neighbours: the communes next to a commune, the other units under the same parent otherwise
+{"unit":"code","code":"04.421.01.0"}  any unit, by its code
+
+compare: one figure against another, or against a number. "op" is ">", "<", ">=" or "<="; "right" can be {"value": 20} in place of a reference.
+{"check":"compare","left":{"of":{"unit":"self"},"field":"education.higher","year":2024},"op":">","right":{"of":{"unit":"country"},"field":"education.higher","year":2024}}
+
+change: how far a figure moved from 2014 to 2024, in the field's own unit, so percentage points for a percent. "op" is ">" or "<".
+{"check":"change","of":{"unit":"neighbours","stat":"median"},"field":"dwellingType.apartment","op":">","value":5}
+
+rank: where a unit's figure sits among the units of its level in an area. "within" is "province", "region" or "country"; "position" is "top" or "bottom"; "share" runs from 0 to 0.5, so 0.1 is the top or bottom 10%. The subject is "self", "parent" or a code.
+{"check":"rank","of":{"unit":"self"},"field":"commute.privateCar","year":2024,"within":"province","position":"top","share":0.1}
+
+A 2014 figure, and so any change test, only exists for a field marked 2014 in the list at the end. A test naming a field or a unit that doesn't exist is refused.`;
+
 export interface Outcome {
   status: "passed" | "failed" | "refused";
   reason?: string;

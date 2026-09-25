@@ -12,9 +12,9 @@ import { z } from "zod";
 import type { Data } from "./data.ts";
 import type { Finding } from "./detect.ts";
 import type { Runner } from "./model.ts";
-import { catalogue, context, type Candidate } from "./propose.ts";
+import { catalogue, context, unfence, type Candidate } from "./propose.ts";
 import { refusal } from "./safety.ts";
-import { checkSchema, evaluate, signature, type Check, type Outcome } from "./vocabulary.ts";
+import { CHECK_GRAMMAR, checkSchema, evaluate, signature, type Check, type Outcome } from "./vocabulary.ts";
 
 export interface Verdict {
   survived: boolean;
@@ -32,26 +32,11 @@ For example, a hypothesis claims a commune's low fertility comes from more peopl
 
 DATA TESTS
 
-A reference names one figure: {"of": <subject>, "field": <path>, "year": 2024 or 2014}.
-A subject is one of:
-{"unit":"self"}  the unit the finding is about
-{"unit":"parent"}  its province for a commune, its région for a province
-{"unit":"country"}  Morocco as a whole
-{"unit":"neighbours","stat":"median"}  the median of its neighbours: the communes next to a commune, the other units under the same parent otherwise
-{"unit":"code","code":"04.421.01.0"}  any unit, by its code
-
 A counter-test is one of 3 checks.
 
-compare: one figure against another, or against a number. "op" is ">", "<", ">=" or "<="; "right" can be {"value": 20} in place of a reference.
-{"check":"compare","left":{"of":{"unit":"self"},"field":"education.higher","year":2024},"op":">","right":{"of":{"unit":"country"},"field":"education.higher","year":2024}}
+${CHECK_GRAMMAR}
 
-change: how far a figure moved from 2014 to 2024, in the field's own unit, so percentage points for a percent. "op" is ">" or "<".
-{"check":"change","of":{"unit":"neighbours","stat":"median"},"field":"dwellingType.apartment","op":">","value":5}
-
-rank: where a unit's figure sits among the units of its level in an area. "within" is "province", "region" or "country"; "position" is "top" or "bottom"; "share" runs from 0 to 0.5, so 0.1 is the top or bottom 10%. The subject is "self", "parent" or a code.
-{"check":"rank","of":{"unit":"self"},"field":"commute.privateCar","year":2024,"within":"province","position":"top","share":0.1}
-
-A 2014 figure, and so any change test, only exists for a field marked 2014 in the list at the end. The request's "offLimits" fields are the finding's own measure and its siblings: a counter-test that names one is refused, same as it would have been for the original test.
+The request's "offLimits" fields are the finding's own measure and its siblings: a counter-test that names one is refused, same as it would have been for the original test.
 
 WHAT YOU MAY NOT ARGUE WITH
 
@@ -65,7 +50,7 @@ Leave "refuse" out unless it applies.
 
 THE REQUEST
 
-A request is a JSON object with the same shape the hypothesis's own data test was checked against: "finding", "offLimits", "unit", "parent" and "figures", followed by "hypothesis": the claim, link, premise and data test you're trying to break.
+A request is a JSON object with the same shape the hypothesis's own data test was checked against: "finding", "measure" and "kind" (its field and whether it's extreme, change or gap), "offLimits", "unit", "parent" and "figures", followed by "hypothesis": the claim, link, premise and data test you're trying to break.
 
 FIELDS
 
@@ -77,10 +62,6 @@ const replySchema = z.object({
   reason: z.string().trim().min(1),
   refuse: z.enum(["individuals", "groups", "political"]).optional(),
 });
-
-/** A model often fences JSON in a code block despite being asked not to; the fence isn't part of the answer. */
-const unfence = (text: string): string =>
-  text.trim().replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/, "");
 
 /** A reply's parsed verdict fields, or null when the text isn't valid JSON in the expected shape. */
 function readReply(text: string): z.infer<typeof replySchema> | null {
