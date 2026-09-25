@@ -1,0 +1,442 @@
+---
+/**
+ * The phone menu and the search, in one dialog. On a phone the menu button opens it over
+ * the whole screen: the search field on top, the site's sections under it in 2 groups,
+ * and the language and theme at the foot. On a wider window the bar keeps its sections,
+ * and its search button opens the same dialog as a panel with the search alone.
+ *
+ * Without a script neither button shows, and the bar lays everything out as it always has.
+ */
+import Search from "./Search.astro";
+import { LOCALE_NAMES, LOCALES, path, t, type Locale } from "../i18n/ui";
+import { build, currentOf, explore, themes } from "../lib/nav";
+
+interface Props {
+  locale: Locale;
+  route: string;
+  current: boolean;
+}
+const { locale, route, current } = Astro.props;
+const copy = t(locale);
+const groups = [
+  { id: "menu-explore", label: copy.menuExplore, sections: explore(copy) },
+  { id: "menu-build", label: copy.menuBuild, sections: build(copy) },
+];
+---
+
+<button type="button" class="find-open" aria-haspopup="dialog" aria-controls="sheet" aria-expanded="false" hidden>
+  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+    <circle cx="7" cy="7" r="4.5" />
+    <line x1="10.4" y1="10.4" x2="14" y2="14" />
+  </svg>
+  <span>{copy.findOpen}</span>
+</button>
+<button
+  type="button"
+  class="round menu-toggle"
+  aria-haspopup="dialog"
+  aria-controls="sheet"
+  aria-expanded="false"
+  aria-label={copy.menu}
+>
+  <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+    <line x1="2.5" y1="5" x2="15.5" y2="5" />
+    <line x1="2.5" y1="9" x2="15.5" y2="9" />
+    <line x1="2.5" y1="13" x2="15.5" y2="13" />
+  </svg>
+</button>
+
+<dialog id="sheet" class="sheet" aria-label={copy.findTitle} data-menu={copy.menu} data-find={copy.findTitle}>
+  <div class="top">
+    <a class="wordmark" href={path(locale)}>{copy.title}</a>
+    <button type="button" class="round shut" aria-label={copy.findClose} data-close>
+      <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+        <line x1="4" y1="4" x2="14" y2="14" />
+        <line x1="14" y1="4" x2="4" y2="14" />
+      </svg>
+    </button>
+  </div>
+
+  <Search locale={locale}>
+    <nav class="groups" aria-label={copy.navLabel}>
+      {groups.map((group) => (
+        <section aria-labelledby={group.id}>
+          <h2 id={group.id}>{group.label}</h2>
+          <ul>
+            {group.sections.map((s) => (
+              <li>
+                <a href={path(locale, s.route)} aria-current={currentOf(s.route, route, current)}>
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </nav>
+  </Search>
+
+  <div class="foot">
+    <nav class="tongues" aria-label={copy.language}>
+      {LOCALES.map((l) => (
+        <a href={path(l, route)} hreflang={l} lang={l} aria-current={current && l === locale ? "page" : undefined}>
+          {LOCALE_NAMES[l]}
+        </a>
+      ))}
+    </nav>
+    <fieldset class="themes">
+      <legend class="sr-only">{copy.theme}</legend>
+      {themes(copy).map((theme) => (
+        <button type="button" data-set-theme={theme.id} aria-pressed="false">{theme.label}</button>
+      ))}
+    </fieldset>
+  </div>
+</dialog>
+
+<script>
+  const sheet = document.querySelector<HTMLDialogElement>("dialog.sheet");
+  const menu = document.querySelector<HTMLButtonElement>(".menu-toggle");
+  const finder = document.querySelector<HTMLButtonElement>(".find-open");
+  const input = sheet?.querySelector<HTMLInputElement>("input[type=search]");
+  const shut = sheet?.querySelector<HTMLButtonElement>(".shut");
+
+  if (sheet && menu && finder && input && shut) {
+    const root = document.documentElement;
+    const narrow = window.matchMedia("(max-width: 48rem)");
+    let opener: HTMLButtonElement | null = null;
+    finder.hidden = false;
+
+    /**
+     * On a phone it opens on the menu, with the field waiting, so the keyboard doesn't
+     * cover the menu before it's wanted. On a wider window, and from "/", the caret is
+     * already in the field.
+     */
+    const open = (from: HTMLButtonElement, typing: boolean) => {
+      if (sheet.open) return;
+      opener = from;
+      sheet.setAttribute("aria-label", (narrow.matches ? sheet.dataset.menu : sheet.dataset.find) ?? "");
+      // The page behind holds still. Where it had a scroll bar, its gutter stays, so
+      // nothing moves sideways when the bar goes.
+      if (window.innerWidth > root.clientWidth) root.style.scrollbarGutter = "stable";
+      root.classList.add("sheet-open");
+      sheet.showModal();
+      from.setAttribute("aria-expanded", "true");
+      (typing || !narrow.matches ? input : shut).focus();
+    };
+
+    const close = () => {
+      if (sheet.open) sheet.close();
+    };
+
+    sheet.addEventListener("close", () => {
+      root.classList.remove("sheet-open");
+      root.style.scrollbarGutter = "";
+      menu.setAttribute("aria-expanded", "false");
+      finder.setAttribute("aria-expanded", "false");
+      opener?.focus();
+      opener = null;
+    });
+
+    menu.addEventListener("click", () => open(menu, false));
+    finder.addEventListener("click", () => open(finder, true));
+    for (const button of sheet.querySelectorAll("[data-close]")) button.addEventListener("click", close);
+
+    // Escape closes it from anywhere inside, the field included, where it would otherwise
+    // only clear what was typed.
+    sheet.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || event.isComposing) return;
+      event.preventDefault();
+      close();
+    });
+
+    // A click outside the panel, on the dimmed page, closes it. On a phone there's no
+    // outside.
+    sheet.addEventListener("click", (event) => {
+      if (event.target !== sheet || narrow.matches) return;
+      const box = sheet.getBoundingClientRect();
+      const inside =
+        event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+      if (!inside) close();
+    });
+
+    // "/" anywhere but a field opens it, the way a search box is reached everywhere else.
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey || sheet.open) return;
+      const on = document.activeElement;
+      if (on instanceof HTMLInputElement || on instanceof HTMLTextAreaElement || on instanceof HTMLSelectElement) return;
+      if (on instanceof HTMLElement && on.isContentEditable) return;
+      event.preventDefault();
+      open(narrow.matches ? menu : finder, true);
+    });
+
+    // A window that crosses between the two layouts closes it, and so does coming back to
+    // this page from the next one, which the browser may have kept as it was left.
+    narrow.addEventListener("change", close);
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) close();
+    });
+  }
+</script>
+
+<style>
+  /* The bar's buttons -------------------------------------------------- */
+
+  .find-open {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--quiet);
+    font: inherit;
+    font-size: var(--t-xs);
+    cursor: pointer;
+  }
+
+  .find-open[hidden] {
+    display: none;
+  }
+
+  .find-open:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .find-open svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  /* The menu button and the one that closes the sheet, drawn alike and in the same place,
+     so closing is a tap where opening was. The circle is 38px and takes a tap 44px across. */
+  .round {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .round::after {
+    content: "";
+    position: absolute;
+    inset: -0.2rem;
+  }
+
+  .round svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  /* The dialog ---------------------------------------------------------- */
+
+  /* A wide window's panel, near the top, over the page dimmed. */
+  .sheet {
+    --gutter: 1.25rem;
+    width: min(40rem, calc(100vw - 4rem));
+    max-width: none;
+    max-height: min(40rem, 76vh);
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+    overscroll-behavior: contain;
+  }
+
+  .sheet[open] {
+    display: flex;
+    flex-direction: column;
+    animation: sheet-in 0.2s ease-out;
+  }
+
+  .sheet::backdrop {
+    background: rgb(12 15 12 / 0.4);
+  }
+
+  .sheet[open]::backdrop {
+    animation: sheet-veil 0.2s ease-out;
+  }
+
+  /* The panel holds the search alone; the bar beside it has the rest. */
+  .top,
+  .foot,
+  .groups {
+    display: none;
+  }
+
+  :global(html.sheet-open) {
+    overflow: hidden;
+  }
+
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  @keyframes sheet-veil {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheet-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* The phone menu's groups: small quiet labels, and the sections large in the serif. */
+  .groups section + section {
+    margin-top: 1.25rem;
+  }
+
+  .groups h2 {
+    margin: 1rem 0 0.25rem;
+    font-family: var(--sans);
+    font-size: var(--t-xs);
+    font-weight: 400;
+    color: var(--quiet);
+  }
+
+  .groups ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .groups a {
+    display: flex;
+    align-items: center;
+    min-height: 2.9rem;
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    line-height: 1.15;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .groups a:hover {
+    color: var(--brass);
+  }
+
+  .groups a[aria-current] {
+    text-decoration: underline;
+    text-decoration-color: var(--brass);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* On a phone ---------------------------------------------------------- */
+
+  @media (max-width: 48rem) {
+    :global(.js) .find-open {
+      display: none;
+    }
+
+    :global(.js) .menu-toggle {
+      display: inline-grid;
+    }
+
+    /* The whole screen, in the page's own colour. The top row repeats the bar's, to the
+       pixel, so the bar seems to stay and only its button turns into a cross. */
+    .sheet {
+      --gutter: clamp(1rem, 3vw, 2.5rem);
+      inset: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .sheet[open] {
+      animation-name: sheet-fade;
+    }
+
+    .sheet[open] > :global(:not(.top)) {
+      animation: sheet-in 0.2s ease-out;
+    }
+
+    .sheet::backdrop {
+      background: transparent;
+    }
+
+    .top {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem 1.75rem;
+      padding: calc(1rem + env(safe-area-inset-top, 0px)) var(--gutter) 1rem;
+    }
+
+    .groups {
+      display: block;
+    }
+
+    .foot {
+      flex: none;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      padding: 0.5rem var(--gutter) calc(0.5rem + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--rule);
+    }
+
+    /* The bar sets these small; at the foot of the sheet they're for a thumb. */
+    .foot .tongues a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+    }
+
+    .foot .themes button {
+      position: relative;
+      min-height: 2.5rem;
+      padding-inline: 0.85rem;
+      font-size: var(--t-sm);
+    }
+
+    .foot .themes button::after {
+      content: "";
+      position: absolute;
+      inset: -0.2rem 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheet[open],
+    .sheet[open]::backdrop,
+    .sheet[open] > :global(*) {
+      animation: none;
+    }
+  }
+</style>

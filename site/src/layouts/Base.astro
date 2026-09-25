@@ -1,6 +1,6 @@
 ---
 import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
-import Search from "../components/Search.astro";
+import Sheet from "../components/Sheet.astro";
 import { currentOf, sections as barSections, themes as themeList } from "../lib/nav";
 
 interface Props {
@@ -86,7 +86,7 @@ const themes = themeList(copy);
     <header class="site-header">
       <div class="masthead">
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
-      <div class="menu" id="site-menu">
+      <div class="menu">
       <nav class="sections" aria-label={copy.navLabel}>
         {sections.map((s) => (
           <a href={path(locale, s.route)} aria-current={currentOf(s.route, route, current)}>
@@ -111,20 +111,7 @@ const themes = themeList(copy);
       </div>
       </div>
       <div class="tools">
-        <Search locale={locale} />
-        <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="site-menu" aria-label={copy.menu}>
-          <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
-            <g class="open-lines">
-              <line x1="2.5" y1="5" x2="15.5" y2="5" />
-              <line x1="2.5" y1="9" x2="15.5" y2="9" />
-              <line x1="2.5" y1="13" x2="15.5" y2="13" />
-            </g>
-            <g class="shut">
-              <line x1="4" y1="4" x2="14" y2="14" />
-              <line x1="14" y1="4" x2="4" y2="14" />
-            </g>
-          </svg>
-        </button>
+        <Sheet locale={locale} route={route} current={current} />
       </div>
       </div>
     </header>
@@ -199,48 +186,12 @@ const themes = themeList(copy);
           function () {
             var y = window.scrollY;
             bar.classList.toggle("scrolled", y > 4);
-            bar.classList.toggle(
-              "away",
-              narrow.matches && y > last && y > bar.offsetHeight && !bar.classList.contains("menu-open"),
-            );
+            bar.classList.toggle("away", narrow.matches && y > last && y > bar.offsetHeight);
             if (top) top.classList.toggle("shown", y > window.innerHeight * 1.5);
             last = y;
           },
           { passive: true },
         );
-      })();
-    </script>
-
-    <script is:inline>
-      // The phone menu: the button opens it, and Escape, a tap outside the bar, or a
-      // window grown past the phone layout closes it.
-      (function () {
-        var bar = document.querySelector(".site-header");
-        var button = document.querySelector(".menu-toggle");
-        var menu = document.getElementById("site-menu");
-        if (!bar || !button || !menu) return;
-        var set = function (open) {
-          button.setAttribute("aria-expanded", String(open));
-          menu.classList.toggle("open", open);
-          bar.classList.toggle("menu-open", open);
-        };
-        button.addEventListener("click", function () {
-          set(button.getAttribute("aria-expanded") !== "true");
-        });
-        document.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && menu.classList.contains("open")) {
-            set(false);
-            button.focus();
-          }
-        });
-        document.addEventListener("click", function (event) {
-          if (menu.classList.contains("open") && !bar.contains(event.target)) set(false);
-        });
-        var narrow = window.matchMedia("(max-width: 48rem)");
-        var widen = function () {
-          if (!narrow.matches) set(false);
-        };
-        if (narrow.addEventListener) narrow.addEventListener("change", widen);
       })();
     </script>
 
@@ -663,13 +614,9 @@ const themes = themeList(copy);
         align-items: baseline;
       }
 
-      .menu-toggle {
-        display: none;
-      }
-
-      /* On a phone the bar keeps the wordmark, search and a menu button, and the rest
-         opens under it. Only with a script: without one there is nothing to open the
-         menu with, so the full bar stays. */
+      /* On a phone the bar keeps the wordmark and a menu button, which opens the sheet in
+         components/Sheet.astro. Only with a script: without one there is nothing to open
+         it with, so the full bar stays. */
       @media (max-width: 48rem) {
         .js .masthead {
           flex-wrap: nowrap;
@@ -680,75 +627,8 @@ const themes = themeList(copy);
           margin-inline-start: auto;
         }
 
-        .js .menu-toggle {
-          display: inline-grid;
-          place-items: center;
-          width: 2.4rem;
-          height: 2.4rem;
-          padding: 0;
-          border: 1px solid var(--rule);
-          border-radius: 999px;
-          background: none;
-          color: var(--ink);
-          cursor: pointer;
-        }
-
-        .menu-toggle svg {
-          width: 1.1rem;
-          height: 1.1rem;
-          fill: none;
-          stroke: currentColor;
-          stroke-width: 1.6;
-          stroke-linecap: round;
-        }
-
-        .menu-toggle .shut {
-          display: none;
-        }
-
-        .menu-toggle[aria-expanded="true"] .open-lines {
-          display: none;
-        }
-
-        .menu-toggle[aria-expanded="true"] .shut {
-          display: inline;
-        }
-
         .js .menu {
           display: none;
-        }
-
-        .js .menu.open {
-          display: flex;
-          flex-direction: column;
-          position: absolute;
-          top: 100%;
-          inset-inline: 0;
-          max-height: calc(100dvh - var(--bar-h, 4rem));
-          overflow-y: auto;
-          padding: 0.25rem clamp(1rem, 3vw, 2.5rem) 1.25rem;
-          background: var(--paper);
-          border-bottom: 1px solid var(--rule);
-        }
-
-        .js .menu.open .sections {
-          flex-direction: column;
-          flex-wrap: nowrap;
-          gap: 0;
-          margin: 0;
-          font-size: var(--t-md);
-        }
-
-        .js .menu.open .sections a {
-          padding: 0.65rem 0;
-          border-bottom: 1px solid var(--rule);
-        }
-
-        .js .menu.open .settings {
-          justify-content: space-between;
-          align-items: center;
-          gap: 1rem;
-          padding-top: 1.1rem;
         }
       }
 

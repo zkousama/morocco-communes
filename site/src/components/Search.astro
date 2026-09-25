@@ -1,13 +1,20 @@
 ---
 /**
- * Finding a place from any page. The dialog asks the API the question the API is for,
+ * Finding a place from any page. The field asks the API the question the API is for,
  * `/api/search?q=`, so a name typed any way finds its unit: another spelling, the Arabic,
  * an exonym, or the code.
+ *
+ * It sits in the header's dialog, which covers a phone's screen and is a panel near the
+ * top of a wider window, and it's the same field and list in both. With the field empty
+ * it offers the month's most looked-up places, when there are any. The slot is what shows
+ * under the field until there's something to search for: the phone menu.
  *
  * Cercles are left out, since they have no page. An arrondissement has none either, and
  * goes to the page of the city that holds it.
  */
-import { arrondissements, communes } from "../lib/places";
+import { attention } from "../generated/attention";
+import { isolate } from "../lib/find";
+import { placesFor, shortcuts } from "../lib/findData";
 import { path, t, type Locale } from "../i18n/ui";
 
 interface Props {
@@ -15,84 +22,124 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-
-// The 6 cities that hold arrondissements, so a result for one of them has a page to go to.
-// Checked against the data: an arrondissement's code is its city's first three groups
-// and a 0, for all 41 of them.
-const cityOf = new Map(communes.map((c) => [c.code, { slug: c.slug, name: c.name.fr }]));
-const cities = Object.fromEntries(
-  [...new Set(arrondissements.map((a) => a.communeCode))].map((code) => [code, cityOf.get(code)]),
-);
 ---
 
-<div class="find">
-  <button type="button" class="open" aria-haspopup="dialog" aria-label={copy.findOpen} hidden>
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+<div
+  class="find"
+  data-view="idle"
+  data-places={JSON.stringify(placesFor(locale))}
+  data-levels={JSON.stringify(copy.findLevels)}
+  data-shortcuts={JSON.stringify(shortcuts(locale, attention))}
+  data-none={copy.findNone}
+  data-offline={copy.findOffline}
+  data-browse={path(locale, "communes/")}
+  data-browse-label={copy.mapBrowse}
+>
+  <form class="field" role="search">
+    <label class="sr-only" for="find-q">{copy.findTitle}</label>
+    <svg class="glass" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <circle cx="7" cy="7" r="4.5" />
       <line x1="10.4" y1="10.4" x2="14" y2="14" />
     </svg>
-    <span class="what">{copy.findOpen}</span>
-  </button>
-
-  <dialog
-    class="sheet"
-    aria-label={copy.findTitle}
-    data-base-commune={path(locale, "communes/")}
-    data-base-province={path(locale, "provinces/")}
-    data-base-region={path(locale, "regions/")}
-    data-cities={JSON.stringify(cities)}
-    data-browse={path(locale, "communes/")}
-    data-in={copy.findIn}
-    data-none={copy.findNone}
-    data-offline={copy.findOffline}
-    data-levels={JSON.stringify(copy.findLevels)}
-  >
-    <form method="dialog" class="row">
-      <label for="find-q">{copy.findTitle}</label>
-      <input id="find-q" type="search" autocomplete="off" spellcheck="false" placeholder={copy.findPlaceholder} />
-      <button type="submit" class="close">{copy.findClose}</button>
-    </form>
-    <ul class="hits"></ul>
+    <input
+      id="find-q"
+      type="search"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-expanded="false"
+      aria-controls="find-list"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="go"
+      placeholder={isolate(copy.findPlaceholder)}
+    />
+    <button type="button" class="clear" aria-label={copy.findClear} hidden>
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <line x1="4.5" y1="4.5" x2="11.5" y2="11.5" />
+        <line x1="11.5" y1="4.5" x2="4.5" y2="11.5" />
+      </svg>
+    </button>
+    <button type="button" class="close" data-close>{copy.findClose}</button>
+  </form>
+  <div class="body">
+    <h2 class="label" id="find-label">{copy.attention}</h2>
+    <div class="list" id="find-list" role="listbox" aria-label={copy.findTitle}></div>
+    <div class="status" role="status"></div>
     <p class="hint">{copy.findHint}</p>
-    <p class="none" hidden></p>
-  </dialog>
+    <slot />
+  </div>
 </div>
 
 <script>
+  import { escape, rowHtml, rowOf, type Hit, type Places, type Row } from "../lib/find";
   import { slugify } from "../lib/slug";
 
-  interface Hit {
-    code: string;
-    level: string;
-    name: { fr: string; ar: string };
-    slug: string;
-  }
-
   const find = document.querySelector<HTMLElement>(".find");
-  const open = find?.querySelector<HTMLButtonElement>("button.open");
-  const sheet = find?.querySelector<HTMLDialogElement>("dialog.sheet");
-  const input = sheet?.querySelector<HTMLInputElement>("input");
-  const hits = sheet?.querySelector<HTMLUListElement>(".hits");
-  const none = sheet?.querySelector<HTMLParagraphElement>(".none");
+  const form = find?.querySelector<HTMLFormElement>("form");
+  const input = find?.querySelector<HTMLInputElement>("input");
+  const clear = find?.querySelector<HTMLButtonElement>(".clear");
+  const list = find?.querySelector<HTMLElement>(".list");
+  const label = find?.querySelector<HTMLElement>(".label");
+  const status = find?.querySelector<HTMLElement>(".status");
+  const dialog = find?.closest("dialog");
 
-  if (find && open && sheet && input && hits && none) {
-    const d = sheet.dataset;
-    const cities = JSON.parse(d.cities ?? "{}") as Record<string, { slug: string; name: string }>;
+  if (find && form && input && clear && list && label && status && dialog) {
+    const d = find.dataset;
+    const places = JSON.parse(d.places ?? "{}") as Places;
     const levels = JSON.parse(d.levels ?? "{}") as Record<string, string>;
-    const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
-    open.hidden = false;
+    const tops = JSON.parse(d.shortcuts ?? "[]") as Row[];
+    // With a keyboard the first result is highlighted, so Enter visibly opens it. A phone
+    // highlights nothing until it's touched.
+    const narrow = window.matchMedia("(max-width: 48rem)");
 
-    /** Where a hit's page is. An arrondissement's is the page of its city. */
-    const href = (hit: Hit) => {
-      if (hit.level === "commune") return `${d.baseCommune}${hit.slug}/`;
-      if (hit.level === "province") return `${d.baseProvince}${hit.slug}/`;
-      if (hit.level === "region") return `${d.baseRegion}${hit.slug}/`;
-      // 01.511.01.05 is an arrondissement of 01.511.01.0, the commune of Tanger.
-      const city = cities[`${hit.code.split(".").slice(0, 3).join(".")}.0`];
-      return city ? `${d.baseCommune}${city.slug}/` : null;
+    /**
+     * What the list holds: nothing yet, the most looked-up places, results, no match, or
+     * word that the search couldn't be reached. The styles show and hide around it.
+     */
+    type View = "idle" | "shortcuts" | "results" | "none" | "offline";
+    let view: View = "idle";
+    let active = -1;
+    const options = () => [...list.querySelectorAll<HTMLAnchorElement>("a.hit")];
+
+    const select = (i: number, scroll = true) => {
+      const all = options();
+      active = i >= 0 && i < all.length ? i : -1;
+      all.forEach((option, j) => option.setAttribute("aria-selected", String(j === active)));
+      const on = all[active];
+      if (on) {
+        input.setAttribute("aria-activedescendant", on.id);
+        if (scroll) on.scrollIntoView({ block: "nearest" });
+      } else {
+        input.removeAttribute("aria-activedescendant");
+      }
     };
 
-    const cityName = (hit: Hit) => cities[`${hit.code.split(".").slice(0, 3).join(".")}.0`]?.name ?? "";
+    const show = (next: View, rows: Row[] = []) => {
+      view = next;
+      find.dataset.view = next;
+      list.innerHTML = rows.map((row, i) => rowHtml(row, `find-${i}`)).join("");
+      if (next === "shortcuts") list.setAttribute("aria-labelledby", label.id);
+      else list.removeAttribute("aria-labelledby");
+      input.setAttribute("aria-expanded", String(rows.length > 0));
+      status.innerHTML =
+        next === "none"
+          ? `<p>${escape(d.none ?? "")}</p><p><a href="${escape(d.browse ?? "")}">${escape(d.browseLabel ?? "")}</a></p>`
+          : next === "offline"
+            ? `<p>${escape(d.offline ?? "")}</p>`
+            : "";
+      select(next === "results" && !narrow.matches ? 0 : -1);
+    };
+
+    /**
+     * An empty field offers the shortcuts once it's been focused, and keeps them until
+     * something is typed, so a tap on the menu below never lands after the list moved.
+     */
+    const rest = () => {
+      const offer = input.value.trim() === "" && (document.activeElement === input || view === "shortcuts");
+      if (offer && tops.length > 0) show("shortcuts", tops);
+      else if (view !== "idle") show("idle");
+    };
 
     /**
      * A code is not a name, and the name search would answer it with whatever it sounds
@@ -112,16 +159,13 @@ const cities = Object.fromEntries(
       const first = groups === 1 ? "regions" : groups === 2 ? "provinces" : "communes";
       const collections = [...all].sort((a, b) => (a[0] === first ? -1 : b[0] === first ? 1 : 0));
       for (const [collection, level] of collections) {
-        try {
-          const response = await fetch(`/api/${collection}/${encodeURIComponent(q)}`);
-          if (!response.ok) continue;
-          const unit = (await response.json()).data as { code: string; name: { fr: string; ar: string }; slug?: string };
-          // A province and a région carry no slug of their own; their page is under the
-          // same slug the build writes from the French name.
-          return [{ code: unit.code, level, name: unit.name, slug: unit.slug ?? slugify(unit.name.fr) }];
-        } catch {
-          return [];
-        }
+        const response = await fetch(`/api/${collection}/${encodeURIComponent(q)}`);
+        if (response.status === 404 || response.status === 400) continue;
+        if (!response.ok) throw new Error(String(response.status));
+        const unit = (await response.json()).data as { code: string; name: { fr: string; ar: string }; slug?: string };
+        // A province and a région carry no slug of their own; their page is under the
+        // same slug the build writes from the French name.
+        return [{ code: unit.code, level, name: unit.name, slug: unit.slug ?? slugify(unit.name.fr) }];
       }
       return [];
     };
@@ -150,284 +194,345 @@ const cities = Object.fromEntries(
       navigator.sendBeacon("/api/beacon", new Blob([JSON.stringify(body)], { type: "application/json" }));
     };
 
+    // The results on screen stay until the next ones arrive, so the list never blinks
+    // empty between keystrokes. An answer to anything but the latest query is dropped.
     let latest = 0;
-    const search = async (q: string) => {
+    const search = async (text: string) => {
       const mine = ++latest;
+      const q = text.trim();
       shown = null;
-      hits.innerHTML = "";
-      none.hidden = true;
-      if (q.trim().length < 2) return;
-      const code = /^[\d.\s]+$/.test(q.trim());
-      let rows: Hit[] = [];
+      let hits: Hit[];
       try {
-        if (code) {
+        if (/^[\d.\s]+$/.test(q)) {
           // A code typed with spaces, 01 511 01 0, becomes the dotted form byCode expects.
-          rows = await byCode(q.trim().replace(/[.\s]+/g, "."));
+          hits = await byCode(q.replace(/[.\s]+/g, "."));
         } else {
           const response = await fetch(
             `/api/search?q=${encodeURIComponent(q)}&levels=commune,arrondissement,province,region&limit=8`,
           );
           if (!response.ok && response.status !== 404) throw new Error(String(response.status));
-          rows = response.ok ? ((await response.json()).data as Hit[]) : [];
+          hits = response.ok ? ((await response.json()).data as Hit[]) : [];
         }
       } catch {
-        if (mine !== latest) return;
-        hits.innerHTML = "";
-        none.textContent = d.offline ?? "";
-        none.hidden = false;
+        if (mine === latest) show("offline");
         return;
       }
       if (mine !== latest) return;
-      const listed = rows.map((hit) => ({ hit, url: href(hit) })).filter((r) => r.url !== null);
-      hits.innerHTML = listed
-        .map(({ hit, url }) => {
-          const level = levels[hit.level] ?? hit.level;
-          const where = hit.level === "arrondissement" ? ` ${d.in} ${escape(cityName(hit))}` : "";
-          return `<li><a href="${url}"><span class="hit-name">${escape(hit.name.fr)}</span><span class="hit-where">${escape(level)}${where}</span></a></li>`;
-        })
-        .join("");
-      none.textContent = d.none ?? "";
-      none.hidden = listed.length > 0;
-      shown = { text: q.trim(), results: listed.length };
+      const rows = hits.map((hit) => rowOf(hit, places, levels)).filter((row) => row !== null);
+      show(rows.length > 0 ? "results" : "none", rows);
+      shown = { text: q, results: rows.length };
       clearTimeout(settle);
       settle = window.setTimeout(count, 1500);
     };
 
     let timer = 0;
-    input.addEventListener("input", () => {
+    const typed = () => {
+      clear.hidden = input.value === "";
       clearTimeout(timer);
       clearTimeout(settle);
+      if (input.value.trim().length < 2) {
+        latest++;
+        shown = null;
+        rest();
+        return;
+      }
       timer = window.setTimeout(() => void search(input.value), 120);
-    });
-
-    // Opening a result settles its query at once, before the page goes. Enter opens the
-    // first by clicking it, so it arrives here too.
-    hits.addEventListener("click", (event) => {
-      if (event.target instanceof Element && event.target.closest("a")) count();
-    });
-
-    const show = () => {
-      sheet.showModal();
-      input.value = "";
-      hits.innerHTML = "";
-      none.hidden = true;
-      input.focus();
     };
-    open.addEventListener("click", show);
+    input.addEventListener("input", typed);
+    input.addEventListener("focus", rest);
 
-    // The arrows walk the results, and Enter on the input opens the first.
-    sheet.addEventListener("keydown", (event) => {
-      const links = [...hits.querySelectorAll<HTMLAnchorElement>("a")];
-      if (links.length === 0) return;
-      const at = links.indexOf(document.activeElement as HTMLAnchorElement);
-      if (event.key === "ArrowDown") {
+    clear.addEventListener("click", () => {
+      input.value = "";
+      input.focus();
+      typed();
+    });
+
+    // The arrows walk the list and Enter opens what's highlighted, or the first result
+    // when nothing is. The caret stays in the field throughout, so typing carries on.
+    input.addEventListener("keydown", (event) => {
+      if (event.isComposing) return;
+      const all = options();
+      if (event.key === "ArrowDown" && all.length > 0) {
         event.preventDefault();
-        links[Math.min(at + 1, links.length - 1)]?.focus();
-      } else if (event.key === "ArrowUp") {
+        select(Math.min(active + 1, all.length - 1));
+      } else if (event.key === "ArrowUp" && all.length > 0) {
         event.preventDefault();
-        if (at <= 0) input.focus();
-        else links[at - 1]?.focus();
-      } else if (event.key === "Enter" && document.activeElement === input) {
+        select(Math.max(active - 1, -1));
+      } else if (event.key === "Enter") {
         event.preventDefault();
-        links[0]?.click();
+        (all[active] ?? (view === "results" ? all[0] : undefined))?.click();
       }
     });
+    form.addEventListener("submit", (event) => event.preventDefault());
 
-    // A click on the backdrop, which is the dialog's own box outside the sheet.
-    sheet.addEventListener("click", (event) => {
-      if (event.target === sheet) sheet.close();
+    // A mouse moves the highlight with it, so there's only ever one.
+    list.addEventListener("pointermove", (event) => {
+      if (event.pointerType !== "mouse" || !(event.target instanceof Element)) return;
+      const option = event.target.closest<HTMLAnchorElement>("a.hit");
+      const i = option ? options().indexOf(option) : -1;
+      if (i >= 0 && i !== active) select(i, false);
     });
 
-    // "/" anywhere but a field opens it, the way a search box is reached everywhere else.
-    document.addEventListener("keydown", (event) => {
-      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-      const on = document.activeElement;
-      if (on instanceof HTMLInputElement || on instanceof HTMLTextAreaElement || on instanceof HTMLSelectElement) return;
-      if (sheet.open) return;
-      event.preventDefault();
-      show();
+    // Opening a result settles its query at once, before the page goes.
+    list.addEventListener("click", (event) => {
+      if (view === "results" && event.target instanceof Element && event.target.closest("a")) count();
+    });
+
+    // Closed, it's cleared, so it opens empty the next time.
+    dialog.addEventListener("close", () => {
+      input.value = "";
+      clear.hidden = true;
+      clearTimeout(timer);
+      latest++;
+      show("idle");
     });
   }
 </script>
 
 <style>
   .find {
+    flex: 1;
+    min-height: 0;
     display: flex;
+    flex-direction: column;
   }
 
-  .open[hidden] {
-    display: none;
-  }
-
-  .open {
+  .field {
+    flex: none;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.6rem 0.2rem 0.45rem;
-    border: 1px solid var(--rule);
+    gap: 0.6rem;
+    padding-inline: var(--gutter) 0.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .glass {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: var(--quiet);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    min-height: 3.75rem;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    /* 16px at least, or a phone zooms the page in on focus. */
+    font-size: 1.125rem;
+    color: var(--ink);
+    text-overflow: ellipsis;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    appearance: none;
+  }
+
+  input::placeholder {
+    color: var(--quiet);
+    opacity: 1;
+  }
+
+  /* The caret marks where typing goes, and on a wide window the field is the panel. */
+  input:focus-visible {
+    outline: 0;
+  }
+
+  /* The browser's own clear button is drawn in its own colours; this one follows the page. */
+  input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
+  .clear,
+  .close {
+    flex: none;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    display: inline-grid;
+    place-items: center;
+    padding: 0 0.5rem;
+    border: 0;
     border-radius: 999px;
     background: none;
     color: var(--quiet);
     font: inherit;
-    font-size: var(--t-xs);
+    font-size: var(--t-sm);
     cursor: pointer;
   }
 
-  .open:hover {
-    color: var(--ink);
-    border-color: var(--ink);
+  .clear[hidden] {
+    display: none;
   }
 
-  .open svg {
-    width: 0.8rem;
-    height: 0.8rem;
+  .clear:hover,
+  .close:hover {
+    color: var(--ink);
+  }
+
+  .clear svg {
+    width: 1rem;
+    height: 1rem;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.6;
     stroke-linecap: round;
   }
 
-  .sheet {
-    width: min(34rem, calc(100vw - 2rem));
-    margin-top: 12vh;
-    padding: 0;
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    background: var(--paper);
-    color: var(--ink);
+  .body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.5rem var(--gutter) 1rem;
   }
 
-  .sheet::backdrop {
-    background: color-mix(in srgb, var(--ink) 35%, transparent);
+  .label {
+    margin: 0.75rem 0 0.35rem;
+    font-family: var(--sans);
+    font-size: var(--t-xs);
+    font-weight: 400;
+    color: var(--quiet);
   }
 
-  .row {
+  .hint {
+    margin: 0.75rem 0 0.25rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .status :global(p) {
+    margin: 0.75rem 0 0;
+    color: var(--quiet);
+  }
+
+  .status :global(p + p) {
+    margin-top: 0;
+  }
+
+  .status :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  /* What each view shows. The slot, the phone menu, is there until a search answers. */
+  .find:not([data-view="shortcuts"]) .label,
+  .find:not(:is([data-view="shortcuts"], [data-view="results"])) .list,
+  .find:is([data-view="results"], [data-view="none"], [data-view="offline"]) .hint,
+  .find:is([data-view="results"], [data-view="none"], [data-view="offline"]) .body > :global(:not(.label, .list, .status, .hint)) {
+    display: none;
+  }
+
+  /* The rows are written by the script, so they carry none of this component's scope:
+     every rule for them is global, inside .list. A row runs to the edges, so its
+     highlight does, and its text holds the gutter. */
+  .list :global(.hit) {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 0.9rem;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .row label {
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    white-space: nowrap;
-  }
-
-  .row input {
-    flex: 1;
-    min-width: 0;
-    font: inherit;
-    color: var(--ink);
-    background: transparent;
-    border: 0;
-    border-bottom: 1px solid var(--rule);
-    padding: 0.2rem 0;
-  }
-
-  /* The field is the only one here and opens with the caret in it, so it marks focus by
-     its own line rather than a box around it. */
-  .row input:focus-visible {
-    outline: 0;
-    border-bottom-color: var(--brass);
-  }
-
-  .close {
-    font: inherit;
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    background: none;
-    border: 0;
-    cursor: pointer;
-  }
-
-  .close:hover {
-    color: var(--ink);
-  }
-
-  .hint,
-  .none {
-    margin: 0;
-    padding: 0.6rem 0.9rem;
-    font-size: var(--t-xs);
-    color: var(--quiet);
-  }
-
-  .hits {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    max-height: min(24rem, 60vh);
-    overflow-y: auto;
-  }
-
-  /* The hint gives way to results as soon as there are any. */
-  .hits:not(:empty) ~ .hint {
-    display: none;
-  }
-
-  .none[hidden] {
-    display: none;
-  }
-
-  /* The results are written by the script, so they carry none of this component's scope:
-     every rule for them is global, inside .hits. */
-  .hits :global(a) {
-    display: flex;
-    align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.5rem 0.9rem;
+    min-height: 3.75rem;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 0.55rem var(--gutter);
     color: var(--ink);
     text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .list :global(.hit + .hit)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: var(--gutter);
     border-top: 1px solid var(--rule);
   }
 
-  .hits :global(li:first-child a) {
-    border-top: 0;
+  .list :global(.hit[aria-selected="true"]),
+  .list :global(.hit:active) {
+    background: var(--well);
   }
 
-  .hits :global(a:hover),
-  .hits :global(a:focus-visible) {
-    background: var(--rule);
+  /* The highlight a keyboard moves carries the brass the bar marks the current page with. */
+  .list :global(.hit[aria-selected="true"]) {
+    box-shadow: inset 2px 0 0 var(--brass);
   }
 
-  .hits :global(.hit-where) {
+  .list :global(.hit[aria-selected="true"])::before,
+  .list :global(.hit[aria-selected="true"] + .hit)::before,
+  .list :global(.hit:active)::before,
+  .list :global(.hit:active + .hit)::before {
+    border-top-color: transparent;
+  }
+
+  .list :global(.hit:focus-visible) {
+    outline-offset: -2px;
+  }
+
+  .list :global(.hit-text) {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .list :global(.hit-name) {
+    font-family: var(--display);
+    font-size: var(--t-md);
+    line-height: 1.2;
+  }
+
+  .list :global(.hit-meta) {
+    margin-top: 0.15rem;
     font-size: var(--t-xs);
+    line-height: 1.4;
     color: var(--quiet);
-    white-space: nowrap;
   }
 
-  /* On a narrow window the button is the magnifier alone, a circle the size of the menu
-     button beside it. */
+  /* The sans sets its spaces tight, and the dot needs air to read as a divider. */
+  .list :global(.hit-sep) {
+    margin-inline: 0.15em;
+  }
+
+  .list :global(.hit-ar) {
+    flex: none;
+    max-width: 45%;
+    font-size: var(--t-base);
+    line-height: 1.5;
+    color: var(--quiet);
+  }
+
+  /* On a phone the field is a box of its own under the bar, the size of a thumb. */
   @media (max-width: 48rem) {
-    .open {
-      width: 2.4rem;
-      height: 2.4rem;
-      padding: 0;
-      justify-content: center;
-      color: var(--ink);
+    .field {
+      margin: 0.25rem var(--gutter) 0;
+      padding-inline: 0.9rem 0.2rem;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
     }
 
-    .open svg {
-      width: 1rem;
-      height: 1rem;
+    .field:focus-within {
+      border-color: var(--brass);
+      outline: 1px solid var(--brass);
+      outline-offset: 0;
     }
 
-    .open .what {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
+    input {
+      min-height: 3.25rem;
     }
-  }
 
-  @media (max-width: 30rem) {
-    .row label {
+    .close,
+    .hint {
       display: none;
+    }
+
+    .body {
+      padding-top: 0.25rem;
+      padding-bottom: 1.5rem;
     }
   }
 </style>
