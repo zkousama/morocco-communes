@@ -52,9 +52,17 @@ project's host with `/api/public/otel` added, and `OTEL_EXPORTER_OTLP_HEADERS` t
   the model, the stage's own version and the dataset version. Safe to delete: a re-run just
   asks again for whatever's missing.
 - **`.cache/insights/runs/`**: one file per run, named by its `startedAt`, plus
-  `latest.json`, the one `pnpm insights:grade` and `--publish` read.
+  `latest.json`, the one `pnpm insights:grade`, `pnpm insights:score` and `--publish` read.
+  A run file's `runId` is a short hash of when it started, both prompts, the stage versions,
+  the dataset version and the models, and `partial` is true when `--limit` or `--only` left
+  findings out.
 - **`insights/graded.json`**: the owner's blind grades, appended to as `pnpm insights:grade`
-  runs and never overwritten. Deleting it starts grading over.
-- **`insights/metrics.json`**: what `pnpm insights:score` writes, what the site's methods
-  page reads, and what `--publish`'s gate checks a new run against. Its last committed copy
-  is the baseline the gate won't let a new run fall behind.
+  runs and never overwritten. Each grade keeps the `runId` it was drawn from, and grading,
+  scoring and publishing only read the latest run's, so a new run needs its own graded set,
+  whatever changed to make it. Deleting the file starts grading over.
+- **`insights/metrics.json`**: what `pnpm insights:score` writes for the latest run, with its
+  `runId`. `--publish` refuses it for any other run, and refuses a partial run outright.
+- **`insights/published.json`**: written by every publish that passes: the run it published
+  and the metrics it passed with. It's the baseline the gate won't let a new run fall
+  behind, and the numbers the site's methods page quotes, so it's committed with the files
+  under `data/v1/insights/`.

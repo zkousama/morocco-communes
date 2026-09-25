@@ -11,7 +11,7 @@ import type { Data, Unit } from "./data.ts";
 import type { Finding } from "./detect.ts";
 import { familyOf, FIELDS } from "./fields.ts";
 import { linkSchema, type LinkTest } from "./links.ts";
-import type { Runner } from "./model.ts";
+import { hash, type Runner } from "./model.ts";
 import { refusal } from "./safety.ts";
 import { findingLine, subjectOf } from "./text.ts";
 import { CHECK_GRAMMAR, checkSchema, signature, type Check } from "./vocabulary.ts";
@@ -110,6 +110,9 @@ FIELDS
 
 path | what it measures | unit | 2014 if the 2014 census asked it the same way
 ${catalogue}`;
+
+/** Folded into a run's id, so a run under a reworded prompt never shares its grades. */
+export const PROMPT_HASH = hash(SYSTEM);
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);

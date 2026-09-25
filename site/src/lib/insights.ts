@@ -1,8 +1,9 @@
 /**
  * The insights the pipeline published, read once at build time for the région, province
- * and commune pages, and the grading numbers the methods page quotes. Nothing is published
- * on a fresh checkout, so both start empty; only a missing file or directory reads that
- * way, and a file that doesn't parse fails the build, as it does for the API.
+ * and commune pages, and the grading numbers the methods page quotes, the ones the
+ * published run passed with. Nothing is published on a fresh checkout, so both start
+ * empty; only a missing file or directory reads that way, and a file that doesn't parse
+ * fails the build, as it does for the API.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -22,7 +23,7 @@ import { PER_SIDE, REGRADE_N } from "../../../insights/src/grade.ts";
 import { FALSE_DISCOVERY_RATE, MIN_UNITS, PERMUTATION_ROUNDS, PLACEBO_COUNT } from "../../../insights/src/links.ts";
 import { MUTATIONS, NUMBER_SHIFT } from "../../../insights/src/mutate.ts";
 import { SAMPLES } from "../../../insights/src/propose.ts";
-import { PUBLISHED_CAP, type Hypothesis } from "../../../insights/src/run.ts";
+import { PUBLISHED_CAP, type PublishedHypothesis } from "../../../insights/src/run.ts";
 import { PRECISION_FLOOR, type Metrics } from "../../../insights/src/score.ts";
 import type { Check } from "../../../insights/src/vocabulary.ts";
 import { fill, places } from "../i18n/places";
@@ -40,7 +41,7 @@ export interface UnitInsights {
     measure: string;
     line: { en: string; fr: string };
     breakdown: { field: string; label: { en: string; fr: string }; value: number }[] | null;
-    hypotheses: Hypothesis[];
+    hypotheses: PublishedHypothesis[];
   }[];
 }
 
@@ -67,10 +68,10 @@ export function readUnitInsights(dir: string): Map<string, UnitInsights> {
   return out;
 }
 
-/** The last grading's numbers, or null before the first one. */
+/** The numbers the published run passed its gate with, from the record a publish writes, or null before the first publish. */
 export function readMetrics(path: string): Metrics | null {
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as Metrics;
+    return (JSON.parse(readFileSync(path, "utf8")) as { metrics: Metrics }).metrics;
   } catch (error) {
     if (isMissing(error)) return null;
     throw error;
@@ -78,7 +79,7 @@ export function readMetrics(path: string): Metrics | null {
 }
 
 export const insightsOf = readUnitInsights("data/v1/insights");
-export const metrics = readMetrics("insights/metrics.json");
+export const metrics = readMetrics("insights/published.json");
 
 /**
  * The pipeline's own settings, for the methods page to state rather than retype: shares

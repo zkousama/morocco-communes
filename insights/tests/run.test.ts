@@ -6,7 +6,8 @@ import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
-import { aboutThisFinding, pipeline, publishable, publishIfAllowed } from "../src/run.ts";
+import { aboutThisFinding, pipeline, publishable, publishIfAllowed, readBaseline } from "../src/run.ts";
+import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
 const data = loadData();
@@ -23,6 +24,30 @@ describe("the pipeline", () => {
     const file = await pipeline(data, { limit: 3, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
     expect(file.items).toHaveLength(3);
     for (const item of file.items) expect(item.line.en.length).toBeGreaterThan(0);
+  });
+
+  it("names the run, and says when it covered only some findings", async () => {
+    const limited = await pipeline(data, { limit: 1, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
+    const only = await pipeline(data, { only: [limited.items[0]!.finding.code], run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus" });
+    expect(limited.runId).toMatch(/^[0-9a-f]{12}$/);
+    expect(only.runId).not.toBe(limited.runId);
+    expect(limited.partial).toBe(true);
+    expect(only.partial).toBe(true);
+  });
+
+  it("keeps which model answered each proposal and each argument", async () => {
+    // A transport that answers under ids of its own, as claude -p does for an alias.
+    const answeredAs = (id: string) => makeRunner(async (call) => ({ text: answers(call), model: id }), {
+      cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" },
+    });
+    const file = await pipeline(data, { limit: 3, run: answeredAs("proposer-id"), falsifier: answeredAs("adversary-id"), proposer: "sonnet", falsifierModel: "opus" });
+    expect(file.models).toEqual({ propose: "sonnet", falsify: "opus", answered: ["adversary-id", "proposer-id"] });
+
+    const item = file.items.find((i) => i.hypotheses.length > 0)!;
+    expect(item.replies).toHaveLength(5);
+    expect(item.replies[0]).toEqual({ model: "proposer-id", promptHash: expect.stringMatching(/^[0-9a-f]{64}$/) });
+    const argued = item.hypotheses.find((h) => h.stage === "published")!;
+    expect(argued.adversary).toEqual({ model: "adversary-id", reason: "none" });
   });
 
   it("publishes only survivors, one file per unit, with its evidence", async () => {
@@ -246,6 +271,16 @@ describe("how many hypotheses a finding keeps", () => {
     const findingEntry = (body as { findings: { id: string; hypotheses: { support: number }[] }[] }).findings.find((f) => f.id === finding.id)!;
     expect(findingEntry.hypotheses.map((h) => h.support)).toEqual([5, 4, 3]);
   });
+
+  it("leaves the adversary's model and its words out of the published files", async () => {
+    const file = await pipeline(data, { only: [finding.code], run: survivorRunner(), falsifier: survivorRunner(), proposer: "sonnet", falsifierModel: "opus" });
+    expect(file.items.find((i) => i.finding.id === finding.id)!.hypotheses[0]!.adversary).not.toBeNull();
+
+    const [, body] = [...publishable(file, data)].find(([path]) => path.endsWith(`/${finding.code}.json`))!;
+    for (const f of (body as { findings: { hypotheses: object[] }[] }).findings) {
+      for (const h of f.hypotheses) expect(h).not.toHaveProperty("adversary");
+    }
+  });
 });
 
 describe("a call that fails in a way nothing anticipated", () => {
@@ -265,27 +300,71 @@ describe("a call that fails in a way nothing anticipated", () => {
 });
 
 describe("publishing", () => {
-  const passing = {
-    measuredAt: "", published: { yes: 47, graded: 50, low: 0, high: 0, lowOneSided: 0 },
+  const passing: Metrics = {
+    runId: "run-a", measuredAt: "", published: { yes: 47, graded: 50, low: 0, high: 0, lowOneSided: 0 },
     rejectedButSound: { count: 0, byStage: {} }, agreement: null,
     planted: { total: 100, caught: 95, byKind: {} },
   };
+  const run = { runId: "run-a", partial: false };
+  const place = () => {
+    const root = mkdtempSync(join(tmpdir(), "pub-"));
+    return { outDir: join(root, "insights"), publishedPath: join(root, "published.json") };
+  };
 
   it("never writes without a graded set, and leaves what's there alone", async () => {
-    const outDir = join(mkdtempSync(join(tmpdir(), "pub-")), "insights");
-    const result = await publishIfAllowed({ outDir, metrics: null, baseline: null, files: new Map([["index.json", []]]) });
+    const { outDir, publishedPath } = place();
+    const result = await publishIfAllowed({ outDir, publishedPath, run, metrics: null, baseline: null, files: new Map([["index.json", []]]) });
     expect(result.written).toBe(false);
     expect(result.reasons.length).toBeGreaterThan(0);
     expect(existsSync(join(outDir, "index.json"))).toBe(false);
+    expect(existsSync(publishedPath)).toBe(false);
   });
 
   it("replaces the published files when the guard passes, keeping the README", async () => {
-    const outDir = join(mkdtempSync(join(tmpdir(), "pub-")), "insights");
-    await publishIfAllowed({ outDir, metrics: passing, baseline: null, files: new Map([["communes/old.json", {}]]) });
+    const { outDir, publishedPath } = place();
+    await publishIfAllowed({ outDir, publishedPath, run, metrics: passing, baseline: null, files: new Map([["communes/old.json", {}]]) });
     writeFileSync(join(outDir, "README.md"), "readme");
-    const result = await publishIfAllowed({ outDir, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    const result = await publishIfAllowed({ outDir, publishedPath, run, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
     expect(result.written).toBe(true);
     expect(existsSync(join(outDir, "communes", "old.json"))).toBe(false);
     expect(readFileSync(join(outDir, "README.md"), "utf8")).toBe("readme");
+  });
+
+  it("refuses grades made on another run", async () => {
+    const { outDir, publishedPath } = place();
+    const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-b", partial: false }, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(false);
+    expect(result.reasons.join("\n")).toMatch(/run-a/);
+    expect(result.reasons.join("\n")).toMatch(/run-b/);
+    expect(existsSync(join(outDir, "index.json"))).toBe(false);
+  });
+
+  it("refuses a run that covered only some findings", async () => {
+    const { outDir, publishedPath } = place();
+    const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-a", partial: true }, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(false);
+    expect(result.reasons.join("\n")).toMatch(/--limit or --only/);
+  });
+
+  it("records the run it published and the numbers it passed with", async () => {
+    const { outDir, publishedPath } = place();
+    await publishIfAllowed({ outDir, publishedPath, run, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    const record = JSON.parse(readFileSync(publishedPath, "utf8"));
+    expect(record.runId).toBe("run-a");
+    expect(record.metrics).toEqual(passing);
+  });
+
+  it("takes its baseline from the last publish, and has none before the first", async () => {
+    const { outDir, publishedPath } = place();
+    expect(await readBaseline(publishedPath)).toBeNull();
+
+    await publishIfAllowed({ outDir, publishedPath, run, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    const baseline = await readBaseline(publishedPath);
+    expect(baseline).toEqual(passing);
+
+    const worse: Metrics = { ...passing, runId: "run-b", planted: { total: 100, caught: 80, byKind: {} } };
+    const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-b", partial: false }, metrics: worse, baseline, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(false);
+    expect(JSON.parse(readFileSync(publishedPath, "utf8")).runId).toBe("run-a");
   });
 });

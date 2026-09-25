@@ -11,7 +11,7 @@
 import { z } from "zod";
 import type { Data } from "./data.ts";
 import type { Finding } from "./detect.ts";
-import type { Runner } from "./model.ts";
+import { hash, type Runner } from "./model.ts";
 import { catalogue, context, unfence, type Candidate } from "./propose.ts";
 import { refusal } from "./safety.ts";
 import { CHECK_GRAMMAR, checkSchema, evaluate, signature, type Check, type Outcome } from "./vocabulary.ts";
@@ -56,6 +56,9 @@ FIELDS
 
 path | what it measures | unit | 2014 if the 2014 census asked it the same way
 ${catalogue}`;
+
+/** Folded into a run's id, as the proposer's is. */
+export const PROMPT_HASH = hash(SYSTEM);
 
 const replySchema = z.object({
   counter: checkSchema.nullable(),

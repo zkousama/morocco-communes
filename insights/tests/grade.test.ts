@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendGrade, appendRegrade, formatItem, regradeSample, sample, toGraded, ungraded, type Graded, type Sampled } from "../src/grade.ts";
+import { appendGrade, appendRegrade, forRun, formatItem, regradeSample, sample, toGraded, ungraded, type Graded, type Sampled } from "../src/grade.ts";
 import type { Finding } from "../src/detect.ts";
 import type { Hypothesis, RunFile } from "../src/run.ts";
 
@@ -7,7 +7,7 @@ const hyp = (stage: string) => ({ claim: { en: "c", fr: "c" }, link: { en: "l", 
   evidence: { kind: "data", check: { check: "change", of: { unit: "self" }, field: "x", op: ">", value: 0 }, numbers: {} },
   linkTest: null, support: 1, stage, reason: null });
 const file = {
-  startedAt: "", datasetVersion: "", models: { propose: "", falsify: "" }, stageVersions: {},
+  runId: "run-a", startedAt: "", datasetVersion: "", models: { propose: "", falsify: "" }, stageVersions: {},
   items: Array.from({ length: 80 }, (_, i) => ({
     finding: { id: `f${i}` }, line: { en: `line ${i}`, fr: "" }, breakdown: null, entropy: 0, skipped: null,
     hypotheses: [hyp("published"), hyp("published"), hyp("check")],
@@ -35,6 +35,23 @@ describe("the grading sample", () => {
     for (const r of rejected) expect(r.hypothesis.stage).not.toBe("published");
   });
 
+  it("draws the published side from what a page shows, not only the top hypothesis", () => {
+    // 5 published per finding, most supported first: a page shows the first 3.
+    const ranked = [5, 4, 3, 2, 1].map((support) => ({ ...hyp("published"), claim: { en: `support ${support}`, fr: "" }, support }));
+    const many = { ...file, items: file.items.map((item) => ({ ...item, hypotheses: [...ranked, hyp("check")] })) } as unknown as RunFile;
+    const drawn = sample(many, 50, 1).filter((x) => x.gate === "published");
+    const supports = new Set(drawn.map((x) => x.hypothesis.support));
+    expect([...supports].every((support) => support >= 3)).toBe(true);
+    expect(supports.size).toBeGreaterThan(1);
+    expect(sample(many, 50, 1)).toEqual(sample(many, 50, 1));
+  });
+
+  it("carries the run it was drawn from onto every item and every grade", () => {
+    const s = sample(file, 5, 1);
+    expect(s.every((x) => x.runId === "run-a")).toBe(true);
+    expect(toGraded(s[0]!, "yes", "t").runId).toBe("run-a");
+  });
+
   it("falls short of perSide rather than repeating a finding, when there aren't enough", () => {
     const small = { ...file, items: file.items.slice(0, 3) } as unknown as RunFile;
     const s = sample(small, 50, 1);
@@ -46,6 +63,7 @@ describe("the grading sample", () => {
 describe("regradeSample", () => {
   const graded = (i: number, answer: "yes" | "no" | "skip"): Graded => ({
     id: `id${i}`,
+    runId: "run-a",
     findingId: `f${i}`,
     gate: i % 2 === 0 ? "published" : "rejected",
     item: { finding: { id: `f${i}` } as unknown as Finding, line: { en: `line ${i}` }, hypothesis: hyp("published") as unknown as Hypothesis },
@@ -95,6 +113,7 @@ describe("ungraded", () => {
   // Each finding gets its own check (the id depends on the check, not the gate), so 2
   // findings sampled here never collide the way 2 hypotheses sharing one check would.
   const sampledOf = (i: number): Sampled => ({
+    runId: "run-a",
     gate: "published",
     findingId: `f${i}`,
     finding: { id: `f${i}` } as unknown as Finding,
@@ -130,9 +149,19 @@ describe("merging answers", () => {
   it("appends a regrade without disturbing the grades", () => {
     const g = toGraded(sample(file, 1, 1)[0]!, "yes", "t");
     const start = { grades: [g], regrades: [] };
-    const merged = appendRegrade(start, { id: g.id, answer: "no" });
+    const merged = appendRegrade(start, { id: g.id, runId: g.runId, answer: "no" });
     expect(merged.grades).toEqual([g]);
-    expect(merged.regrades).toEqual([{ id: g.id, answer: "no" }]);
+    expect(merged.regrades).toEqual([{ id: g.id, runId: "run-a", answer: "no" }]);
+  });
+});
+
+describe("grades for one run", () => {
+  it("keeps only the grades and regrades made on that run", () => {
+    const a = toGraded(sample(file, 1, 1)[0]!, "yes", "t");
+    const b = { ...a, runId: "run-b", answer: "no" as const };
+    const graded = { grades: [a, b], regrades: [{ id: a.id, runId: "run-a", answer: "yes" as const }, { id: a.id, runId: "run-b", answer: "no" as const }] };
+    expect(forRun(graded, "run-b")).toEqual({ grades: [b], regrades: [{ id: a.id, runId: "run-b", answer: "no" }] });
+    expect(forRun(graded, "run-c")).toEqual({ grades: [], regrades: [] });
   });
 });
 

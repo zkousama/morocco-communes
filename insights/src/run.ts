@@ -6,7 +6,6 @@
  * meaningful against the batch it was corrected within. `pipeline` does the run and returns
  * it as data; `publishable` shapes a finished run into the files a later task writes.
  */
-import { spawnSync } from "node:child_process";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -14,10 +13,10 @@ import { read, sinceDate } from "../../site/scripts/attention.ts";
 import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
-import { falsify, falsifierModel } from "./falsify.ts";
+import { falsify, falsifierModel, PROMPT_HASH as FALSIFY_PROMPT_HASH } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
 import { claudeTransport, hash, makeRunner, ollamaTransport, type Runner } from "./model.ts";
-import { propose, type Candidate } from "./propose.ts";
+import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
@@ -42,6 +41,7 @@ export interface Hypothesis {
   support: number;
   stage: "published" | "check" | "link" | "falsify" | "safety"; // where it stopped, or published
   reason: string | null;
+  adversary: { model: string; reason: string } | null; // the model that argued against it and what it said; null when none did
 }
 
 export interface Item {
@@ -49,14 +49,17 @@ export interface Item {
   line: { en: string; fr: string };
   breakdown: ReturnType<typeof breakdown>;
   entropy: number;
+  replies: Proposal["replies"]; // the model and prompt behind each of the proposal's samples
   hypotheses: Hypothesis[];
   skipped: string | null;
 }
 
 export interface RunFile {
+  runId: string;
   startedAt: string;
+  partial: boolean; // true when --limit or --only left findings out
   datasetVersion: string;
-  models: { propose: string; falsify: string };
+  models: { propose: string; falsify: string; answered: string[] }; // the aliases asked for, and every id that answered
   stageVersions: Record<string, string>;
   items: Item[];
   spans: Span[];
@@ -73,6 +76,7 @@ function buildHypothesis(
   stage: Hypothesis["stage"],
   reason: string | null,
   linkTest: Hypothesis["linkTest"],
+  adversary: Hypothesis["adversary"] = null,
 ): Hypothesis {
   return {
     claim: candidate.claim,
@@ -83,7 +87,17 @@ function buildHypothesis(
     support: candidate.support,
     stage,
     reason,
+    adversary,
   };
+}
+
+/**
+ * A short id for a run, from everything that decides what it could produce: when it
+ * started, both prompts, the stage versions, the dataset and the models asked for. Grades
+ * and metrics carry it, so a graded set is only ever read against the run it was drawn from.
+ */
+function runIdOf(startedAt: string, datasetVersion: string, models: { propose: string; falsify: string }): string {
+  return hash(JSON.stringify([startedAt, [PROPOSE_PROMPT_HASH, FALSIFY_PROMPT_HASH], STAGE_VERSIONS, datasetVersion, models])).slice(0, 12);
 }
 
 /** A link test's own fields, sorted: unlike a `Check`'s signature, none of them are floats that need rounding. */
@@ -105,6 +119,7 @@ interface Pending {
   outcome: Outcome;
   linkOutcomeIndex: number | null;
   linkRefused: string | null; // why its link test was never run, when it has one
+  adversary: Hypothesis["adversary"];
 }
 
 /**
@@ -175,6 +190,8 @@ export async function pipeline(
   },
 ): Promise<RunFile> {
   const startedAt = new Date().toISOString();
+  const models = { propose: options.proposer, falsify: options.falsifierModel };
+  const answered = new Set<string>();
   const { traceId } = newIds();
   const spans: Span[] = [];
   const newSpanId = () => newIds().spanId;
@@ -204,7 +221,7 @@ export async function pipeline(
     const breakdownRows = breakdown(finding, data);
 
     if (finding.kind === "artefact") {
-      items.push({ finding, line, breakdown: breakdownRows, entropy: 0, hypotheses: [], skipped: null });
+      items.push({ finding, line, breakdown: breakdownRows, entropy: 0, replies: [], hypotheses: [], skipped: null });
       decidedByItem.push([]);
       pendingByItem.push([]);
       continue;
@@ -219,6 +236,7 @@ export async function pipeline(
       const tracedRun: Runner = (call) => options.run({ ...call, traceparent: traceparent(traceId, findingProposeId) });
       const proposal = await propose(finding, data, tracedRun, options.proposer);
       const proposeCallEnd = Date.now();
+      for (const reply of proposal.replies) answered.add(reply.model);
       spans.push({
         traceId, spanId: findingProposeId, parentSpanId: proposeStageId, name: "propose",
         start: proposeCallStart, end: proposeCallEnd, attributes: { finding: finding.id },
@@ -255,15 +273,17 @@ export async function pipeline(
         const falsifyStart = Date.now();
         const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.falsifierModel);
         findingFalsify.record(falsifyStart, Date.now());
+        answered.add(verdict.model);
+        const adversary = { model: verdict.model, reason: verdict.reason };
         if (!verdict.survived) {
           // A killed-by-refusal verdict never carries a counter-test; only a counter-test
           // that came out true does, which is what "falsify" means here.
           const stage = verdict.counter ? "falsify" : "safety";
-          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, stage, verdict.reason, null) });
+          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, stage, verdict.reason, null, adversary) });
           continue;
         }
 
-        pending.push({ order, candidate, outcome, linkOutcomeIndex, linkRefused });
+        pending.push({ order, candidate, outcome, linkOutcomeIndex, linkRefused, adversary });
       }
 
       if (findingFalsify.started()) {
@@ -271,7 +291,7 @@ export async function pipeline(
         falsifyStage.record(findingFalsify.range().start, findingFalsify.range().end);
       }
 
-      items.push({ finding, line, breakdown: breakdownRows, entropy: proposal.entropy, hypotheses: [], skipped: proposal.skipped ?? null });
+      items.push({ finding, line, breakdown: breakdownRows, entropy: proposal.entropy, replies: proposal.replies, hypotheses: [], skipped: proposal.skipped ?? null });
       decidedByItem.push(decided);
       pendingByItem.push(pending);
     } catch (error) {
@@ -280,6 +300,7 @@ export async function pipeline(
         line,
         breakdown: breakdownRows,
         entropy: 0,
+        replies: [],
         hypotheses: [],
         skipped: error instanceof Error ? error.message : String(error),
       });
@@ -299,7 +320,7 @@ export async function pipeline(
 
   for (let i = 0; i < items.length; i++) {
     const decided = decidedByItem[i]!;
-    const eligible: { order: number; candidate: Candidate; outcome: Outcome; linkTest: Hypothesis["linkTest"] }[] = [];
+    const eligible: { order: number; candidate: Candidate; outcome: Outcome; linkTest: Hypothesis["linkTest"]; adversary: Hypothesis["adversary"] }[] = [];
 
     for (const entry of pendingByItem[i]!) {
       if (entry.linkOutcomeIndex == null) {
@@ -308,7 +329,7 @@ export async function pipeline(
         const linkTest: LinkResult | null = entry.linkRefused
           ? { ...entry.candidate.linkTest!, verdict: "refused", p: 1, effect: 0, placeboEffects: [], reason: entry.linkRefused }
           : null;
-        eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest });
+        eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest, adversary: entry.adversary });
         continue;
       }
       const outcome = linkOutcomes[entry.linkOutcomeIndex]!;
@@ -322,25 +343,27 @@ export async function pipeline(
         ...(outcome.refused ? { reason: outcome.refused } : {}),
       };
       if (verdict === "not consistent") {
-        decided.push({ order: entry.order, hypothesis: buildHypothesis(entry.candidate, entry.outcome, "link", LINK_NOT_CONSISTENT_REASON, linkTest) });
+        decided.push({ order: entry.order, hypothesis: buildHypothesis(entry.candidate, entry.outcome, "link", LINK_NOT_CONSISTENT_REASON, linkTest, entry.adversary) });
       } else {
-        eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest });
+        eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest, adversary: entry.adversary });
       }
     }
 
     // Every survivor is published here; `publishable()` is what caps what a unit's file
     // shows to the 3 with the highest support.
     for (const e of eligible) {
-      decided.push({ order: e.order, hypothesis: buildHypothesis(e.candidate, e.outcome, "published", null, e.linkTest) });
+      decided.push({ order: e.order, hypothesis: buildHypothesis(e.candidate, e.outcome, "published", null, e.linkTest, e.adversary) });
     }
 
     items[i]!.hypotheses = decided.sort((a, b) => a.order - b.order).map((d) => d.hypothesis);
   }
 
   return {
+    runId: runIdOf(startedAt, data.version, models),
     startedAt,
+    partial: options.limit != null || options.only != null,
     datasetVersion: data.version,
-    models: { propose: options.proposer, falsify: options.falsifierModel },
+    models: { ...models, answered: [...answered].sort() },
     stageVersions: STAGE_VERSIONS,
     items,
     spans,
@@ -354,6 +377,13 @@ const COLLECTION: Record<Level, string> = {
   arrondissement: "arrondissements",
 };
 
+/**
+ * A hypothesis as a unit's file publishes it. The adversary's record stays in the run file:
+ * its reason is the adversary's own English, which no word list has read, and its model is
+ * an id the public text never names.
+ */
+export type PublishedHypothesis = Omit<Hypothesis, "adversary">;
+
 interface UnitFile {
   code: string;
   level: Level;
@@ -366,12 +396,20 @@ interface UnitFile {
     measure: string;
     line: { en: string; fr: string };
     breakdown: ReturnType<typeof breakdown>;
-    hypotheses: Hypothesis[];
+    hypotheses: PublishedHypothesis[];
   }[];
 }
 
 /** A unit's file shows at most this many hypotheses per finding, the ones with the highest support. */
 export const PUBLISHED_CAP = 3;
+
+/** The published hypotheses a page shows for one finding: the `PUBLISHED_CAP` with the most support, the run's own order breaking a tie. */
+export function shown(hypotheses: Hypothesis[]): Hypothesis[] {
+  return hypotheses
+    .filter((h) => h.stage === "published")
+    .sort((a, b) => b.support - a.support)
+    .slice(0, PUBLISHED_CAP);
+}
 
 /**
  * Shapes a finished run into the files `data/v1/insights/` holds: one per unit that has an
@@ -385,7 +423,7 @@ export function publishable(file: RunFile, data: Data = loadData()): Map<string,
 
   const units = new Map<string, UnitFile>();
   for (const item of file.items) {
-    const published = item.hypotheses.filter((h) => h.stage === "published").slice(0, PUBLISHED_CAP);
+    const published = shown(item.hypotheses);
     if (item.finding.kind !== "artefact" && published.length === 0) continue;
 
     const code = item.finding.code;
@@ -409,7 +447,7 @@ export function publishable(file: RunFile, data: Data = loadData()): Map<string,
       measure: item.finding.measure,
       line: item.line,
       breakdown: item.breakdown,
-      hypotheses: published,
+      hypotheses: published.map(({ adversary: _, ...rest }) => rest),
     });
   }
 
@@ -423,21 +461,31 @@ export function publishable(file: RunFile, data: Data = loadData()): Map<string,
 }
 
 /**
- * The one place a finished run reaches `data/v1/insights/`: refuses through `guard` (a
- * null `metrics` counts as no graded set) and, only once it passes, clears everything
- * under `outDir` but `README.md` and writes each file as compact JSON with a trailing
- * newline. `outDir` is created first, so a first-ever publish doesn't need it to exist.
+ * The one place a finished run reaches `data/v1/insights/`. Refuses a partial run, grades
+ * made on another run (or none at all: a null `metrics`), and anything `guard` refuses.
+ * Only once all of that passes does it clear everything under `outDir` but `README.md`,
+ * write each file as compact JSON with a trailing newline, and record at `publishedPath`
+ * the run it published and the metrics it passed with, the baseline the next publish is
+ * held to. `outDir` is created first, so a first-ever publish doesn't need it to exist.
  */
 export async function publishIfAllowed(options: {
   outDir: string;
+  publishedPath: string;
+  run: { runId: string; partial: boolean };
   metrics: Metrics | null;
   baseline: Metrics | null;
   files: Map<string, unknown>;
 }): Promise<{ written: boolean; reasons: string[] }> {
-  if (!options.metrics) return { written: false, reasons: ["no graded set yet: run pnpm insights:grade"] };
-
-  const result = guard(options.metrics, options.baseline);
-  if (!result.ok) return { written: false, reasons: result.reasons };
+  const reasons: string[] = [];
+  if (options.run.partial) reasons.push("the latest run left findings out with --limit or --only: run pnpm insights on all of them first");
+  if (!options.metrics) {
+    reasons.push("no graded set yet: run pnpm insights:grade");
+  } else if (options.metrics.runId !== options.run.runId) {
+    reasons.push(`the grades are for run ${options.metrics.runId}, and the latest run is ${options.run.runId}: grade it and run pnpm insights:score first`);
+  } else {
+    reasons.push(...guard(options.metrics, options.baseline).reasons);
+  }
+  if (reasons.length > 0) return { written: false, reasons };
 
   await mkdir(options.outDir, { recursive: true });
   for (const entry of await readdir(options.outDir)) {
@@ -449,22 +497,33 @@ export async function publishIfAllowed(options: {
     await mkdir(dirname(dest), { recursive: true });
     await writeFile(dest, `${JSON.stringify(body)}\n`);
   }
+  const record = { runId: options.run.runId, publishedAt: new Date().toISOString(), metrics: options.metrics };
+  await writeFile(options.publishedPath, `${JSON.stringify(record, null, 2)}\n`);
 
   return { written: true, reasons: [] };
 }
 
 const RUN_PATH = join(".cache", "insights", "runs", "latest.json");
 const OUT_DIR = "data/v1/insights";
+/** Written on every publish and committed with it: the run that's live and the numbers it passed with. */
+export const PUBLISHED_PATH = "insights/published.json";
 
-/** The last committed `insights/metrics.json`, or null when there isn't one, git can't be read, or it doesn't parse. */
-function readBaselineMetrics(): Metrics | null {
-  const result = spawnSync("git", ["show", "HEAD:insights/metrics.json"], { encoding: "utf8" });
-  if (result.status !== 0) return null;
+/**
+ * The metrics the last published run passed with, which the guard holds a new run to; null
+ * before anything's been published. A record that's there but can't be read throws, so a
+ * broken baseline stops a publish rather than quietly letting a worse run through.
+ */
+export async function readBaseline(path: string): Promise<Metrics | null> {
+  let raw: string;
   try {
-    return JSON.parse(result.stdout) as Metrics;
-  } catch {
-    return null;
+    raw = await readFile(path, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return null;
+    throw error;
   }
+  const record = JSON.parse(raw) as { metrics?: Metrics } | null;
+  if (!record?.metrics) throw new Error(`${path} has no metrics in it`);
+  return record.metrics;
 }
 
 /** `pnpm insights --publish`: publishes the latest run file as it stands, without running the pipeline or calling a model. */
@@ -485,12 +544,19 @@ async function runPublish(): Promise<void> {
     metrics = null;
   }
 
-  const baseline = readBaselineMetrics();
+  let baseline: Metrics | null;
+  try {
+    baseline = await readBaseline(PUBLISHED_PATH);
+  } catch (error) {
+    console.log(`couldn't read ${PUBLISHED_PATH}: ${error instanceof Error ? error.message : String(error)}`);
+    process.exitCode = 1;
+    return;
+  }
   const files = publishable(latest);
 
   const { traceId, spanId } = newIds();
   const start = Date.now();
-  const result = await publishIfAllowed({ outDir: OUT_DIR, metrics, baseline, files });
+  const result = await publishIfAllowed({ outDir: OUT_DIR, publishedPath: PUBLISHED_PATH, run: latest, metrics, baseline, files });
   const span: Span = { traceId, spanId, name: "publish", start, end: Date.now(), attributes: { files: files.size, written: String(result.written) } };
   await exportSpans([span], process.env);
 
@@ -557,6 +623,7 @@ async function main(): Promise<void> {
       else stopped.set(h.stage, (stopped.get(h.stage) ?? 0) + 1);
     }
   }
+  console.log(`run: ${file.runId}${file.partial ? ", partial" : ""}`);
   console.log(`findings: ${file.items.length}`);
   console.log(`candidates: ${candidates}`);
   console.log(`published: ${published}`);

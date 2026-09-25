@@ -4,7 +4,9 @@
  * lean on them. `sample` and `regradeSample` are the pure draw a re-run repeats for the same
  * seed; `pnpm insights:grade` and `pnpm insights:regrade` are the interactive loops that show
  * one item, take an answer and save `insights/graded.json` right away, so quitting loses
- * nothing. Task 10's scoring reads what this writes.
+ * nothing. Every grade carries the id of the run it was drawn from, and both loops only
+ * count and draw the latest run's, so a new run starts a graded set of its own. Scoring
+ * reads what this writes.
  */
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { createInterface } from "node:readline/promises";
@@ -12,11 +14,12 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Finding } from "./detect.ts";
 import { hash } from "./model.ts";
-import type { Hypothesis, Item, RunFile } from "./run.ts";
+import { shown, type Hypothesis, type Item, type RunFile } from "./run.ts";
 import { rng } from "./stats.ts";
 import { signature } from "./vocabulary.ts";
 
 export interface Sampled {
+  runId: string;
   gate: "published" | "rejected";
   findingId: string;
   finding: Finding;
@@ -26,6 +29,7 @@ export interface Sampled {
 
 export interface Graded {
   id: string;
+  runId: string; // the run it was drawn from
   findingId: string;
   gate: "published" | "rejected";
   item: { finding: Finding; line: { en: string }; hypothesis: Hypothesis };
@@ -35,7 +39,7 @@ export interface Graded {
 
 export interface GradedFile {
   grades: Graded[];
-  regrades: { id: string; answer: "yes" | "no" | "skip" }[];
+  regrades: { id: string; runId: string; answer: "yes" | "no" | "skip" }[];
 }
 
 /** Fisher-Yates over a copy of `values`, driven by an already-seeded generator. */
@@ -50,15 +54,17 @@ function shuffled<T>(values: T[], random: () => number): T[] {
   return out;
 }
 
-function toSampled(gate: Sampled["gate"], item: Item, hypothesis: Hypothesis): Sampled {
-  return { gate, findingId: item.finding.id, finding: item.finding, hypothesis, line: { en: item.line.en } };
+function toSampled(runId: string, gate: Sampled["gate"], item: Item, hypothesis: Hypothesis): Sampled {
+  return { runId, gate, findingId: item.finding.id, finding: item.finding, hypothesis, line: { en: item.line.en } };
 }
 
 /**
  * Shuffles the run's findings, then takes at most one published hypothesis per finding
  * until it has `perSide`, and separately at most one rejected hypothesis (any stage but
  * "published") per finding until it has `perSide` more, and shuffles the two sides
- * together so a reader can't tell which is which from where it sits.
+ * together so a reader can't tell which is which from where it sits. A finding's published
+ * hypothesis is picked at random from the ones its page would show, so every one of them
+ * is measured, and never one the page leaves out.
  */
 export function sample(file: RunFile, perSide: number, seed: number): Sampled[] {
   const random = rng(seed);
@@ -67,15 +73,17 @@ export function sample(file: RunFile, perSide: number, seed: number): Sampled[] 
   const published: Sampled[] = [];
   for (const item of findings) {
     if (published.length >= perSide) break;
-    const hypothesis = item.hypotheses.find((h) => h.stage === "published");
-    if (hypothesis) published.push(toSampled("published", item, hypothesis));
+    const onPage = shown(item.hypotheses);
+    if (onPage.length === 0) continue;
+    const hypothesis = onPage[Math.floor(random() * onPage.length)]!;
+    published.push(toSampled(file.runId, "published", item, hypothesis));
   }
 
   const rejected: Sampled[] = [];
   for (const item of findings) {
     if (rejected.length >= perSide) break;
     const hypothesis = item.hypotheses.find((h) => h.stage !== "published");
-    if (hypothesis) rejected.push(toSampled("rejected", item, hypothesis));
+    if (hypothesis) rejected.push(toSampled(file.runId, "rejected", item, hypothesis));
   }
 
   return shuffled([...published, ...rejected], random);
@@ -97,6 +105,7 @@ function gradedId(findingId: string, check: Hypothesis["evidence"]["check"]): st
 export function toGraded(sampled: Sampled, answer: Graded["answer"], gradedAt: string): Graded {
   return {
     id: gradedId(sampled.findingId, sampled.hypothesis.evidence.check),
+    runId: sampled.runId,
     findingId: sampled.findingId,
     gate: sampled.gate,
     item: { finding: sampled.finding, line: sampled.line, hypothesis: sampled.hypothesis },
@@ -109,6 +118,11 @@ export function toGraded(sampled: Sampled, answer: Graded["answer"], gradedAt: s
 export function ungraded(sampled: Sampled[], graded: Graded[]): Sampled[] {
   const seen = new Set(graded.map((g) => g.id));
   return sampled.filter((s) => !seen.has(gradedId(s.findingId, s.hypothesis.evidence.check)));
+}
+
+/** The grades and regrades made on one run. An id alone isn't enough: the same finding and check can come up again in a later run. */
+export function forRun(file: GradedFile, runId: string): GradedFile {
+  return { grades: file.grades.filter((g) => g.runId === runId), regrades: file.regrades.filter((r) => r.runId === runId) };
 }
 
 export function appendGrade(file: GradedFile, graded: Graded): GradedFile {
@@ -172,7 +186,7 @@ type Loaded<T> = { ok: true; value: T } | { ok: false; message: string };
 const isMissing = (error: unknown): boolean => (error as NodeJS.ErrnoException)?.code === "ENOENT";
 
 /** No run file at all gets the usual nudge; one that exists but can't be read or parsed gets its own message, since that's a different problem to fix. */
-async function loadRunFile(): Promise<Loaded<RunFile>> {
+export async function loadRunFile(): Promise<Loaded<RunFile>> {
   let raw: string;
   try {
     raw = await readFile(RUN_PATH, "utf8");
@@ -266,7 +280,9 @@ async function interactiveLoop<T>(
 }
 
 async function runGrade(runFile: RunFile, startFile: GradedFile, gradedPath: string): Promise<void> {
-  const items = ungraded(sample(runFile, PER_SIDE, SEED), startFile.grades);
+  const mine = forRun(startFile, runFile.runId);
+  console.log(`run ${runFile.runId}: ${mine.grades.length} graded so far`);
+  const items = ungraded(sample(runFile, PER_SIDE, SEED), mine.grades);
   if (items.length === 0) {
     console.log("nothing left to grade");
     return;
@@ -276,16 +292,18 @@ async function runGrade(runFile: RunFile, startFile: GradedFile, gradedPath: str
   );
 }
 
-async function runRegrade(startFile: GradedFile, gradedPath: string): Promise<void> {
-  const regradedIds = new Set(startFile.regrades.map((r) => r.id));
-  const eligible = startFile.grades.filter((g) => !regradedIds.has(g.id));
+async function runRegrade(runFile: RunFile, startFile: GradedFile, gradedPath: string): Promise<void> {
+  const mine = forRun(startFile, runFile.runId);
+  console.log(`run ${runFile.runId}: ${mine.regrades.length} regraded so far`);
+  const regradedIds = new Set(mine.regrades.map((r) => r.id));
+  const eligible = mine.grades.filter((g) => !regradedIds.has(g.id));
   const items = regradeSample(eligible, REGRADE_N, REGRADE_SEED);
   if (items.length === 0) {
     console.log("nothing left to regrade");
     return;
   }
   await interactiveLoop(items, startFile, gradedPath, (g) => formatItem(g.item), (file, item, answer) =>
-    appendRegrade(file, { id: item.id, answer }),
+    appendRegrade(file, { id: item.id, runId: runFile.runId, answer }),
   );
 }
 
@@ -305,7 +323,7 @@ async function main(): Promise<void> {
   }
 
   const isRegrade = process.argv.slice(2).includes("--regrade");
-  if (isRegrade) await runRegrade(graded.value, GRADED_PATH);
+  if (isRegrade) await runRegrade(run.value, graded.value, GRADED_PATH);
   else await runGrade(run.value, graded.value, GRADED_PATH);
 }
 

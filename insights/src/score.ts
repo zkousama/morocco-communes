@@ -13,14 +13,15 @@ import { writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
-import type { Graded } from "./grade.ts";
-import { GRADED_PATH, loadGradedFile } from "./grade.ts";
+import type { Graded, GradedFile } from "./grade.ts";
+import { forRun, GRADED_PATH, loadGradedFile, loadRunFile } from "./grade.ts";
 import { hash } from "./model.ts";
 import { mutations } from "./mutate.ts";
 import { cohenKappa, wilson } from "./stats.ts";
 import { evaluate } from "./vocabulary.ts";
 
 export interface Metrics {
+  runId: string; // the run whose grades these are
   measuredAt: string;
   published: { yes: number; graded: number; low: number; high: number; lowOneSided: number };
   rejectedButSound: { count: number; byStage: Record<string, number> };
@@ -36,7 +37,7 @@ export const PRECISION_FLOOR = 0.8;
 const pct = (fraction: number): number => Math.round(fraction * 100);
 
 /** Cohen's kappa over the regraded items' first and second answers, skipping any "skip". Null with nothing to compare. */
-function computeAgreement(graded: Graded[], regrades: { id: string; answer: string }[]): Metrics["agreement"] {
+function computeAgreement(graded: Graded[], regrades: GradedFile["regrades"]): Metrics["agreement"] {
   const firstById = new Map(graded.map((g) => [g.id, g.answer] as const));
   const first: string[] = [];
   const second: string[] = [];
@@ -56,7 +57,7 @@ function computeAgreement(graded: Graded[], regrades: { id: string; answer: stri
  * the sound hypotheses the gate threw away. `planted` is handed over as given: `plantErrors`
  * is what builds it, kept apart since it needs `Data` and this doesn't.
  */
-export function computeMetrics(graded: Graded[], regrades: { id: string; answer: string }[], planted: Metrics["planted"]): Metrics {
+export function computeMetrics(graded: Graded[], regrades: GradedFile["regrades"], planted: Metrics["planted"], runId: string): Metrics {
   const published = graded.filter((g) => g.gate === "published" && g.answer !== "skip");
   const yes = published.filter((g) => g.answer === "yes").length;
   const gradedCount = published.length;
@@ -68,6 +69,7 @@ export function computeMetrics(graded: Graded[], regrades: { id: string; answer:
   for (const g of rejectedYes) byStage[g.item.hypothesis.stage] = (byStage[g.item.hypothesis.stage] ?? 0) + 1;
 
   return {
+    runId,
     measuredAt: new Date().toISOString(),
     published: { yes, graded: gradedCount, low, high, lowOneSided },
     rejectedButSound: { count: rejectedYes.length, byStage },
@@ -145,23 +147,33 @@ export function guard(current: Metrics, baseline: Metrics | null): { ok: boolean
 export const METRICS_PATH = "insights/metrics.json";
 
 async function main(): Promise<void> {
+  const run = await loadRunFile();
+  if (!run.ok) {
+    console.log(run.message);
+    process.exitCode = 1;
+    return;
+  }
   const graded = await loadGradedFile(GRADED_PATH);
   if (!graded.ok) {
     console.log(graded.message);
     process.exitCode = 1;
     return;
   }
-  if (graded.value.grades.length === 0) {
-    console.log("no graded set yet: run pnpm insights:grade");
+  // Only the latest run's grades: an older run's describe hypotheses that run published, not this one's.
+  const { runId } = run.value;
+  const mine = forRun(graded.value, runId);
+  if (mine.grades.length === 0) {
+    console.log(`no graded set for run ${runId} yet: run pnpm insights:grade`);
     process.exitCode = 1;
     return;
   }
 
   const data = loadData();
-  const planted = plantErrors(graded.value.grades, data);
-  const metrics = computeMetrics(graded.value.grades, graded.value.regrades, planted);
+  const planted = plantErrors(mine.grades, data);
+  const metrics = computeMetrics(mine.grades, mine.regrades, planted, runId);
   await writeFile(METRICS_PATH, `${JSON.stringify(metrics, null, 2)}\n`);
 
+  console.log(`run: ${runId}`);
   console.log(`published: ${metrics.published.yes}/${metrics.published.graded} (low ${pct(metrics.published.lowOneSided)}%)`);
   console.log(`rejected but sound: ${metrics.rejectedButSound.count}`);
   if (metrics.agreement) console.log(`agreement: kappa ${metrics.agreement.kappa.toFixed(2)} over ${metrics.agreement.n}`);

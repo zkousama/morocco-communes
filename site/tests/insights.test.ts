@@ -23,8 +23,15 @@ describe("insights on the site", () => {
     expect(read.get("09.581.01.07")).toBeUndefined();
   });
 
-  it("has no grading numbers before the first grading", () => {
-    expect(readMetrics(join(mkdtempSync(join(tmpdir(), "none-")), "metrics.json"))).toBeNull();
+  it("has no grading numbers before the first publish", () => {
+    expect(readMetrics(join(mkdtempSync(join(tmpdir(), "none-")), "published.json"))).toBeNull();
+  });
+
+  it("quotes the numbers the published run passed with", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "pub-")), "published.json");
+    const metrics = { runId: "run-a", measuredAt: "2026-09-24T00:00:00.000Z" };
+    writeFileSync(path, JSON.stringify({ runId: "run-a", publishedAt: "2026-09-25T00:00:00.000Z", metrics }));
+    expect(readMetrics(path)).toEqual(metrics);
   });
 });
 

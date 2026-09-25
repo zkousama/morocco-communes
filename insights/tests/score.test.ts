@@ -5,7 +5,7 @@ import type { Hypothesis } from "../src/run.ts";
 import { computeMetrics, guard, plantErrors, type Metrics } from "../src/score.ts";
 
 const metrics = (yes: number, graded: number, caught = 90): Metrics => ({
-  measuredAt: "", published: { yes, graded, low: 0, high: 0, lowOneSided: 0 },
+  runId: "run-a", measuredAt: "", published: { yes, graded, low: 0, high: 0, lowOneSided: 0 },
   rejectedButSound: { count: 0, byStage: {} }, agreement: null,
   planted: { total: 100, caught, byKind: {} },
 });
@@ -50,12 +50,14 @@ const hyp = (stage: Hypothesis["stage"]): Hypothesis => ({
   support: 1,
   stage,
   reason: null,
+  adversary: null,
 });
 
 const finding = { id: "f0", code: commune.code, level: "commune" as const, measure: "education.higher", kind: "extreme" as const, value: 0, reference: 0, score: 0, direction: "high" as const };
 
 const graded = (id: string, gate: "published" | "rejected", answer: "yes" | "no" | "skip", stage: Hypothesis["stage"] = "published"): Graded => ({
   id,
+  runId: "run-a",
   findingId: finding.id,
   gate,
   item: { finding, line: { en: "line" }, hypothesis: hyp(stage) },
@@ -66,7 +68,7 @@ const graded = (id: string, gate: "published" | "rejected", answer: "yes" | "no"
 describe("computeMetrics", () => {
   it("counts the published side's yes answers out of yes and no, skip left out", () => {
     const g = [graded("1", "published", "yes"), graded("2", "published", "yes"), graded("3", "published", "no"), graded("4", "published", "skip")];
-    const m = computeMetrics(g, [], { total: 0, caught: 0, byKind: {} });
+    const m = computeMetrics(g, [], { total: 0, caught: 0, byKind: {} }, "run-a");
     expect(m.published.yes).toBe(2);
     expect(m.published.graded).toBe(3);
   });
@@ -78,30 +80,34 @@ describe("computeMetrics", () => {
       graded("3", "rejected", "yes", "falsify"),
       graded("4", "rejected", "no", "check"),
     ];
-    const m = computeMetrics(g, [], { total: 0, caught: 0, byKind: {} });
+    const m = computeMetrics(g, [], { total: 0, caught: 0, byKind: {} }, "run-a");
     expect(m.rejectedButSound).toEqual({ count: 3, byStage: { check: 2, falsify: 1 } });
   });
 
   it("has no agreement with no regrades", () => {
-    const m = computeMetrics([], [], { total: 0, caught: 0, byKind: {} });
+    const m = computeMetrics([], [], { total: 0, caught: 0, byKind: {} }, "run-a");
     expect(m.agreement).toBeNull();
   });
 
   it("agrees a regraded item's first and second answers, skipping a skip", () => {
     const g = [graded("1", "published", "yes"), graded("2", "published", "no"), graded("3", "published", "yes")];
     const regrades = [
-      { id: "1", answer: "yes" },
-      { id: "2", answer: "no" },
-      { id: "3", answer: "skip" },
+      { id: "1", runId: "run-a", answer: "yes" as const },
+      { id: "2", runId: "run-a", answer: "no" as const },
+      { id: "3", runId: "run-a", answer: "skip" as const },
     ];
-    const m = computeMetrics(g, regrades, { total: 0, caught: 0, byKind: {} });
+    const m = computeMetrics(g, regrades, { total: 0, caught: 0, byKind: {} }, "run-a");
     expect(m.agreement).toEqual({ kappa: 1, n: 2 });
   });
 
   it("carries the planted figures through unchanged", () => {
     const planted = { total: 40, caught: 35, byKind: { unit: { total: 10, caught: 9 } } };
-    const m = computeMetrics([], [], planted);
+    const m = computeMetrics([], [], planted, "run-a");
     expect(m.planted).toEqual(planted);
+  });
+
+  it("says which run it measured", () => {
+    expect(computeMetrics([], [], { total: 0, caught: 0, byKind: {} }, "run-b").runId).toBe("run-b");
   });
 });
 
