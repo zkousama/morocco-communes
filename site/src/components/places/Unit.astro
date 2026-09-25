@@ -23,6 +23,7 @@ import {
   arrondissementsInPrefecture,
   communeOf,
   communesIn,
+  communesInRegion,
   drawProvince,
   drawRegion,
   inset,
@@ -48,7 +49,7 @@ const api = `/api/${province ? "provinces" : "regions"}/${unit.code}`;
 const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 
-const communes = province ? communesIn(province.code) : provincesIn(region.code).flatMap((pr) => communesIn(pr.code));
+const communes = province ? communesIn(province.code) : communesInRegion(region.code);
 const arrondissements = province?.type === "prefecture_of_arrondissements" ? arrondissementsInPrefecture(province.code) : [];
 const subunits = province ? [] : provincesIn(region.code);
 

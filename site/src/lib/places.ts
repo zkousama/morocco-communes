@@ -111,6 +111,10 @@ export const communesIn = (provinceCode: string) =>
   communes.filter((c) => c.parents.province === provinceCode).sort(byPopulation);
 export const provincesIn = (regionCode: string) =>
   provinces.filter((p) => p.regionCode === regionCode).sort(byPopulation);
+/** Every commune in a région, largest first: joining each province's communes keeps them
+ * sorted within a province but not across them, so this sorts the join again. */
+export const communesInRegion = (regionCode: string) =>
+  provincesIn(regionCode).flatMap((p) => communesIn(p.code)).sort(byPopulation);
 export const arrondissementsOf = (communeCode: string) =>
   arrondissements.filter((a) => a.communeCode === communeCode).sort(byPopulation);
 export const arrondissementsInPrefecture = (code: string) =>
