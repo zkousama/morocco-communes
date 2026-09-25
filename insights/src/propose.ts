@@ -62,13 +62,13 @@ The figure's own field can't appear in a data test, and nor can a field that's p
 
 LINK TESTS
 
-together: whether 2 fields go together across every unit of a level. "year" is 2024, or "change" to pair each unit's change since 2014 (both fields need 2014). "direction" is "positive" or "negative".
+together: whether 2 fields go together across every unit of a level. "year" is 2024, or "change" to pair each unit's change since 2014 (both fields need 2014), which a figure that's a change since 2014 always needs. "direction" is "positive" or "negative".
 {"link":"together","x":"education.higher","y":"fertility.totalFertilityRate","year":2024,"level":"commune","direction":"negative"}
 
 peers: within each région, whether the units above the median on the premise's field show a higher or lower outcome than those below it. It reads 2024 figures. "direction" is "higher" or "lower".
 {"link":"peers","premise":"education.higher","outcome":"fertility.totalFertilityRate","level":"commune","direction":"lower"}
 
-Put the premise's field in "x" or "premise", and the figure's own field in "y" or "outcome". "level" is always the figure's own unit's level: a link test for a commune's figure reads communes, not régions or provinces. Each link test is run again on unrelated fields as placebos, so a link that only reflects how urban a place is won't pass. Use null when no link test fits.
+Put the premise's field in "x" or "premise", and the figure's own field in "y" or "outcome". The premise's field has to be one the hypothesis's own data test reads, and never an "offLimits" field. "level" is always the figure's own unit's level: a link test for a commune's figure reads communes, not régions or provinces. Each link test is run again on unrelated fields as placebos, so a link that only reflects how urban a place is won't pass. Use null when no link test fits.
 
 DATA ARTEFACTS
 

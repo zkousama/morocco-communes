@@ -99,15 +99,27 @@ describe("evaluate", () => {
   it("fails a rank outside the requested share", () => {
     // Touarga (04.421.01.07), Rabat prefecture's other commune, has the lower
     // higher-education share (17.8% against Rabat's 26.9%), so it ranks 2nd of 2 and
-    // misses the top 5%.
+    // misses the top half.
     const touarga: Finding = { ...rabatFertility, code: "04.421.01.07" };
     const check: Check = {
       check: "rank", of: { unit: "self" }, field: "education.higher", year: 2024,
-      within: "province", position: "top", share: 0.05,
+      within: "province", position: "top", share: 0.5,
     };
     const outcome = evaluate(check, touarga, data);
     expect(outcome.status).toBe("failed");
     expect(outcome.numbers).toEqual({ value: 17.8, rank: 2, of: 2 });
+  });
+
+  it("refuses a share too small for the group it ranks in", () => {
+    // 10% of Rabat prefecture's 2 communes is a fifth of one: last of 2 isn't the bottom 10%.
+    const touarga: Finding = { ...rabatFertility, code: "04.421.01.07" };
+    const check: Check = {
+      check: "rank", of: { unit: "self" }, field: "education.higher", year: 2024,
+      within: "province", position: "bottom", share: 0.1,
+    };
+    const outcome = evaluate(check, touarga, data);
+    expect(outcome.status).toBe("refused");
+    expect(outcome.reason).toBe("too few places for that share");
   });
 
   it("puts rank 1 on the highest value, not the lowest", () => {

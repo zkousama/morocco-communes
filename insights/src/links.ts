@@ -223,8 +223,14 @@ function runPeers(test: Extract<LinkTest, { link: "peers" }>, data: Data, seed: 
   return { p, effect, held, placeboEffects, n };
 }
 
-/** Runs one link test across every place of its level, against the data a build reads. */
+/**
+ * Runs one link test across every place of its level, against the data a build reads. A
+ * premise that's the outcome itself, or part of the same whole, is refused first: the two
+ * go together by construction, so a pattern between them says nothing.
+ */
 export function runLink(test: LinkTest, data: Data, seed: number): LinkOutcome {
+  const [premise, outcome] = test.link === "together" ? [test.x, test.y] : [test.premise, test.outcome];
+  if (familyOf(outcome).has(premise)) return refused(0, "tautology");
   return test.link === "together" ? runTogether(test, data, seed) : runPeers(test, data, seed);
 }
 

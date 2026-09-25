@@ -6,7 +6,8 @@ import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
-import { pipeline, publishable, publishIfAllowed } from "../src/run.ts";
+import { aboutThisFinding, pipeline, publishable, publishIfAllowed } from "../src/run.ts";
+import type { Check } from "../src/vocabulary.ts";
 
 const data = loadData();
 const proposal = JSON.stringify({ hypotheses: [{
@@ -46,7 +47,7 @@ const hyp = (claim: string, test: unknown, linkTest: unknown = null) => ({
 /** The only field this test uses whose data test won't pass. */
 const CHECK_FAILS_FIELD = "labour.unemploymentRate";
 /** Fields used by the stage-branching test: it must not sit in the same family as any of them, or its own field. */
-const STAGE_TEST_FIELDS = [CHECK_FAILS_FIELD, "commute.privateCar", "occupancy.tenant", "disability.prevalence", "labour.activityRate"];
+const STAGE_TEST_FIELDS = [CHECK_FAILS_FIELD, "commute.privateCar", "occupancy.tenant", "education.higher", "labour.activityRate"];
 
 function pickIsolatedFinding(usedFields: string[]) {
   const codeCounts = new Map<string, number>();
@@ -69,12 +70,12 @@ describe("where a hypothesis stops", () => {
     hyp("a check fails", alwaysFalse(CHECK_FAILS_FIELD)),
     hyp("b falsify holds", alwaysTrue("commute.privateCar")),
     hyp("c safety kill", alwaysTrue("occupancy.tenant")),
-    // The link test has to be about the finding: its own outcome (finding.measure, at
-    // finding.level) is what a proposed link test is checked against before it's ever run.
-    // The real rank correlation between education.higher and this finding's own measure is
-    // positive; claiming "negative" makes judgeLinks reject it outright, regardless of
-    // significance or its placebos.
-    hyp("d link not consistent", alwaysTrue("disability.prevalence"), {
+    // The link test has to be about the finding: its outcome is finding.measure at
+    // finding.level, and its premise a field d's own data test reads. The real rank
+    // correlation between education.higher and this finding's own measure is positive;
+    // claiming "negative" makes judgeLinks reject it outright, regardless of significance
+    // or its placebos.
+    hyp("d link not consistent", alwaysTrue("education.higher"), {
       link: "together", x: "education.higher", y: finding.measure, year: 2024, level: finding.level, direction: "negative",
     }),
     hyp("e published", alwaysTrue("labour.activityRate")),
@@ -110,8 +111,12 @@ describe("where a hypothesis stops", () => {
 
 describe("a link test that isn't about the finding", () => {
   const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
+  const stubbed = (proposal: string) => {
+    const answers = (call: ModelCall) => (call.stage === "propose" ? proposal : JSON.stringify({ counter: null, reason: "no counter" }));
+    return () => makeRunner(stubTransport(answers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+  };
 
-  it("is refused before it runs, so the hypothesis is published with its link untested", async () => {
+  it("is refused before it runs and recorded as refused, so the hypothesis is published with its link untested", async () => {
     // education.higher and fertility.totalFertilityRate are unrelated to this finding's own
     // measure: neither is what a link test's outcome would have to be for it to be about
     // this figure, so it should never reach judgeLinks or come back "consistent".
@@ -122,15 +127,98 @@ describe("a link test that isn't about the finding", () => {
         }),
       ],
     });
-    const answers = (call: ModelCall) => (call.stage === "propose" ? unrelated : JSON.stringify({ counter: null, reason: "no counter" }));
-    const r = () => makeRunner(stubTransport(answers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+    const r = stubbed(unrelated);
 
     const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
     const item = file.items.find((i) => i.finding.id === finding.id)!;
     const published = item.hypotheses.find((h) => h.claim.en === "unrelated link")!;
 
     expect(published.stage).toBe("published");
-    expect(published.linkTest).toBeNull();
+    expect(published.linkTest).toMatchObject({ verdict: "refused", reason: "not about this figure", x: "education.higher" });
+  });
+
+  it("refuses a figure paired with itself, even when its data test passed", async () => {
+    // Plain households.peoplePerRoom against itself correlates at exactly 1.
+    const all = detect(data);
+    const target = all.find((f) => f.kind === "extreme" && f.measure === "households.peoplePerRoom")!;
+    const itself = JSON.stringify({
+      hypotheses: [
+        hyp("itself", alwaysTrue("labour.activityRate"), {
+          link: "together", x: target.measure, y: target.measure, year: 2024, level: target.level, direction: "positive",
+        }),
+      ],
+    });
+    const r = stubbed(itself);
+
+    const file = await pipeline(data, { only: [target.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const item = file.items.find((i) => i.finding.id === target.id)!;
+    const h = item.hypotheses.find((x) => x.claim.en === "itself")!;
+    expect(h.linkTest).toMatchObject({ verdict: "refused", reason: "not about this figure" });
+  });
+
+  it("still runs a link whose premise is the field the data test read", async () => {
+    const related = JSON.stringify({
+      hypotheses: [
+        hyp("related link", alwaysTrue("education.higher"), {
+          link: "together", x: "education.higher", y: finding.measure, year: 2024, level: finding.level, direction: "positive",
+        }),
+      ],
+    });
+    const r = stubbed(related);
+
+    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+    const item = file.items.find((i) => i.finding.id === finding.id)!;
+    const h = item.hypotheses.find((x) => x.claim.en === "related link")!;
+    expect(h.linkTest?.verdict).not.toBe("refused");
+    expect(h.linkTest?.placeboEffects).toHaveLength(3);
+    expect(h.linkTest?.reason).toBeUndefined();
+  });
+});
+
+describe("what makes a link test about its figure", () => {
+  const base = { id: "t", code: "01.511.01.0", level: "commune", value: 30, reference: 10, score: 4, direction: "high" } as const;
+  const unoccupied = { ...base, measure: "housing.occupancy.unoccupied", kind: "extreme" } as const;
+  const crowding = { ...base, measure: "households.peoplePerRoom", kind: "extreme" } as const;
+  const reads = (field: string): Check => ({ check: "compare", left: { of: { unit: "self" }, field, year: 2024 }, op: ">", right: { value: 0 } });
+
+  it("refuses the 3 pairings the review found consistent", () => {
+    expect(aboutThisFinding(
+      { link: "together", x: crowding.measure, y: crowding.measure, year: 2024, level: "commune", direction: "positive" },
+      reads(crowding.measure), crowding,
+    )).toBe(false);
+    expect(aboutThisFinding(
+      { link: "together", x: "housing.occupancy.seasonal", y: unoccupied.measure, year: 2024, level: "commune", direction: "positive" },
+      reads("housing.occupancy.seasonal"), unoccupied,
+    )).toBe(false);
+    expect(aboutThisFinding(
+      { link: "peers", premise: "housing.occupancy.vacant", outcome: unoccupied.measure, level: "commune", direction: "higher" },
+      reads("housing.occupancy.vacant"), unoccupied,
+    )).toBe(false);
+  });
+
+  it("refuses a premise the data test doesn't read", () => {
+    const test = { link: "together", x: "education.higher", y: crowding.measure, year: 2024, level: "commune", direction: "negative" } as const;
+    expect(aboutThisFinding(test, reads("labour.activityRate"), crowding)).toBe(false);
+    expect(aboutThisFinding(test, reads("education.higher"), crowding)).toBe(true);
+  });
+
+  it("reads both sides of a comparison as fields the data test reads", () => {
+    const test = { link: "together", x: "education.higher", y: crowding.measure, year: 2024, level: "commune", direction: "negative" } as const;
+    const both: Check = { check: "compare", left: { of: { unit: "self" }, field: "labour.activityRate", year: 2024 }, op: ">", right: { of: { unit: "country" }, field: "education.higher", year: 2024 } };
+    expect(aboutThisFinding(test, both, crowding)).toBe(true);
+  });
+
+  it("refuses another outcome, or another level", () => {
+    const test = { link: "together", x: "education.higher", y: "fertility.totalFertilityRate", year: 2024, level: "commune", direction: "negative" } as const;
+    expect(aboutThisFinding(test, reads("education.higher"), crowding)).toBe(false);
+    expect(aboutThisFinding({ ...test, y: crowding.measure, level: "province" }, reads("education.higher"), crowding)).toBe(false);
+  });
+
+  it("asks a change finding's together test to pair changes", () => {
+    const moved = { ...crowding, kind: "change" } as const;
+    const test = { link: "together", x: "education.higher", y: moved.measure, year: 2024, level: "commune", direction: "negative" } as const;
+    expect(aboutThisFinding(test, reads("education.higher"), moved)).toBe(false);
+    expect(aboutThisFinding({ ...test, year: "change" }, reads("education.higher"), moved)).toBe(true);
   });
 });
 

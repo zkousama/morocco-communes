@@ -284,9 +284,18 @@ function evaluateRank(check: Extract<Check, { check: "rank" }>, finding: Finding
   const rank = 1 + values.filter((v) => v > subjectValue).length; // rank 1 is the highest value
   const numbers = { value: subjectValue, rank, of };
 
-  const cutoff = Math.max(1, Math.ceil(check.share * of));
+  // A share of a group smaller than one place can't be met: "the bottom 10%" of 2 isn't
+  // either of them, and a cutoff rounded up to one would pass the last of 2 as if it were.
+  if (check.share * of < 1) return { status: "refused", reason: "too few places for that share", numbers: {} };
+  const cutoff = Math.ceil(check.share * of);
   const passed = check.position === "top" ? rank <= cutoff : rank > of - cutoff;
   return { status: passed ? "passed" : "failed", numbers };
+}
+
+/** Every field a check reads: both sides of a comparison, or the one field a change or a rank reads. */
+export function fieldsRead(check: Check): string[] {
+  if (check.check === "compare") return "field" in check.right ? [check.left.field, check.right.field] : [check.left.field];
+  return [check.field];
 }
 
 export function evaluate(check: Check, finding: Finding, data: Data): Outcome {

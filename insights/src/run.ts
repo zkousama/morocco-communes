@@ -21,15 +21,24 @@ import { propose, type Candidate } from "./propose.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
-import { evaluate, type Check, type Outcome } from "./vocabulary.ts";
-import type { Level } from "./fields.ts";
+import { evaluate, fieldsRead, type Check, type Outcome } from "./vocabulary.ts";
+import { familyOf, type Level } from "./fields.ts";
+
+/** A link test as it was judged: `reason` says why a refused one couldn't be run. */
+export type LinkResult = LinkTest & {
+  verdict: "consistent" | "not consistent" | "refused";
+  p: number;
+  effect: number;
+  placeboEffects: number[];
+  reason?: string;
+};
 
 export interface Hypothesis {
   claim: { en: string; fr: string };
   link: { en: string; fr: string };
   premise: { en: string; fr: string };
   evidence: { kind: "data"; check: Check; numbers: Record<string, number> };
-  linkTest: (LinkTest & { verdict: "consistent" | "not consistent" | "refused"; p: number; effect: number; placeboEffects: number[] }) | null;
+  linkTest: LinkResult | null;
   support: number;
   stage: "published" | "check" | "link" | "falsify" | "safety"; // where it stopped, or published
   reason: string | null;
@@ -95,6 +104,7 @@ interface Pending {
   candidate: Candidate;
   outcome: Outcome;
   linkOutcomeIndex: number | null;
+  linkRefused: string | null; // why its link test was never run, when it has one
 }
 
 /**
@@ -106,10 +116,24 @@ export function orderByDemand<T extends { code: string; score: number }>(finding
   return [...findings].sort((a, b) => (views.get(b.code) ?? 0) - (views.get(a.code) ?? 0) || b.score - a.score);
 }
 
-/** A candidate's link test is refused before it's ever run, "not about this figure", unless its own outcome is the finding's own measure, read at the finding's own level: pairing 2 fields neither of which is the figure itself would test nothing about why the figure is what it is. */
-function aboutThisFinding(test: LinkTest, finding: Finding): boolean {
-  const outcomeField = test.link === "together" ? test.y : test.outcome;
-  return outcomeField === finding.measure && test.level === finding.level;
+const NOT_ABOUT_THIS_FIGURE = "not about this figure";
+
+/**
+ * Whether a candidate's link test is about the figure it's meant to explain, and so worth
+ * running at all; one that isn't is refused, "not about this figure". Its outcome has to be
+ * the finding's own measure, read at the finding's own level. Its premise has to be a field
+ * the candidate's own data test reads, so the link tested is the one the checked premise
+ * stands on, and outside the measure's family, since a figure paired with itself or with
+ * another part of the same whole goes with it by construction. A change finding's
+ * `together` test has to pair changes too: a 2024 pattern says nothing about why a figure
+ * moved.
+ */
+export function aboutThisFinding(test: LinkTest, check: Check, finding: Finding): boolean {
+  const [premise, outcome] = test.link === "together" ? [test.x, test.y] : [test.premise, test.outcome];
+  if (outcome !== finding.measure || test.level !== finding.level) return false;
+  if (!fieldsRead(check).includes(premise) || familyOf(finding.measure).has(premise)) return false;
+  if (finding.kind === "change" && test.link === "together" && test.year !== "change") return false;
+  return true;
 }
 
 /** The earliest start and latest end passed to `record`, for a span with no one call of its own to wrap; `started` says whether anything ever was. */
@@ -218,11 +242,14 @@ export async function pipeline(
         }
 
         let linkOutcomeIndex: number | null = null;
-        if (candidate.linkTest && aboutThisFinding(candidate.linkTest, finding)) {
+        let linkRefused: string | null = null;
+        if (candidate.linkTest && aboutThisFinding(candidate.linkTest, candidate.test, finding)) {
           const linkStart = Date.now();
           linkOutcomeIndex = linkOutcomes.length;
           linkOutcomes.push(runLink(candidate.linkTest, data, linkSeed(finding.id, candidate.linkTest)));
           linksSpan.record(linkStart, Date.now());
+        } else if (candidate.linkTest) {
+          linkRefused = NOT_ABOUT_THIS_FIGURE;
         }
 
         const falsifyStart = Date.now();
@@ -236,7 +263,7 @@ export async function pipeline(
           continue;
         }
 
-        pending.push({ order, candidate, outcome, linkOutcomeIndex });
+        pending.push({ order, candidate, outcome, linkOutcomeIndex, linkRefused });
       }
 
       if (findingFalsify.started()) {
@@ -276,12 +303,24 @@ export async function pipeline(
 
     for (const entry of pendingByItem[i]!) {
       if (entry.linkOutcomeIndex == null) {
-        eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest: null });
+        // Refused before it ran: kept on the hypothesis, so the run file says why its link
+        // is shown as proposed only.
+        const linkTest: LinkResult | null = entry.linkRefused
+          ? { ...entry.candidate.linkTest!, verdict: "refused", p: 1, effect: 0, placeboEffects: [], reason: entry.linkRefused }
+          : null;
+        eligible.push({ order: entry.order, candidate: entry.candidate, outcome: entry.outcome, linkTest });
         continue;
       }
       const outcome = linkOutcomes[entry.linkOutcomeIndex]!;
       const verdict = verdicts[entry.linkOutcomeIndex]!;
-      const linkTest = { ...entry.candidate.linkTest!, verdict, p: outcome.p, effect: outcome.effect, placeboEffects: outcome.placeboEffects };
+      const linkTest: LinkResult = {
+        ...entry.candidate.linkTest!,
+        verdict,
+        p: outcome.p,
+        effect: outcome.effect,
+        placeboEffects: outcome.placeboEffects,
+        ...(outcome.refused ? { reason: outcome.refused } : {}),
+      };
       if (verdict === "not consistent") {
         decided.push({ order: entry.order, hypothesis: buildHypothesis(entry.candidate, entry.outcome, "link", LINK_NOT_CONSISTENT_REASON, linkTest) });
       } else {

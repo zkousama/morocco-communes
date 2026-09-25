@@ -40,6 +40,13 @@ describe("link tests", () => {
     expect(runLink({ ...schooling, y: "nothing.here" }, data, 1).refused).toBeTruthy();
   });
 
+  it("refuses a premise that's the outcome itself or part of the same whole", () => {
+    const itself = runLink({ link: "together", x: "households.peoplePerRoom", y: "households.peoplePerRoom", year: 2024, level: "commune", direction: "positive" }, data, 1);
+    const sibling = runLink({ link: "together", x: "housing.occupancy.seasonal", y: "housing.occupancy.unoccupied", year: 2024, level: "commune", direction: "positive" }, data, 1);
+    const part = runLink({ link: "peers", premise: "housing.occupancy.vacant", outcome: "housing.occupancy.unoccupied", level: "commune", direction: "higher" }, data, 1);
+    for (const outcome of [itself, sibling, part]) expect(outcome.refused).toBe("tautology");
+  });
+
   it("calls a link consistent only when it survives the correction, held, and no unrelated measure does as well", () => {
     const strong = { p: 0.0001, effect: -0.5, held: true, placeboEffects: [0.1, -0.2, 0.05], n: 500 };
     const placeboBeatsIt = { ...strong, placeboEffects: [0.1, -0.6, 0.05] };
