@@ -166,11 +166,11 @@ const themes = [
 
     <footer>
       <div class="credits">
-        <p>{copy.footerData}</p>
-        <p>{copy.footerGeometry}</p>
+        <p class="data">{copy.footerData}</p>
+        <p class="geometry">{copy.footerGeometry}</p>
       </div>
       <div class="made">
-        <p>© {new Date().getFullYear()} <a href={AUTHOR.url}>{AUTHOR.name}</a></p>
+        <p class="by">© {new Date().getFullYear()} <a href={AUTHOR.url}>{AUTHOR.name}</a></p>
         <p class="links">
           <a href={path(locale, "most-looked-up/")}>{copy.attention}</a>
           <a href={path(locale, "docs/privacy/")}>{copy.footerPrivacy}</a>
@@ -843,25 +843,61 @@ const themes = [
         border-top: 1px solid var(--rule);
         color: var(--quiet);
         font-size: var(--t-sm);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem 3rem;
-        justify-content: space-between;
+        /* Two columns read row by row: each credit line sits on the same line as the
+           author or the links beside it. Neither fits on one line beside the other at any
+           width the page reaches, so on a wide screen the credits keep their lines whole
+           and the links take 2; below that, both columns share the width. */
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "data by"
+          "geometry links";
+        gap: 0.35rem 3rem;
+        align-items: first baseline;
       }
 
-      /* Wide enough for the whole credit on one line: at 70ch it overflowed by 10px and
-         dropped the year onto a second line, leaving the credits 3 lines against the 2
-         beside them. */
-      footer p {
-        margin: 0 0 0.35rem;
-        max-width: 74ch;
-      }
-
-      /* When the links don't fit beside the credits they drop below them, and the margin
-         keeps them against the right edge instead of starting a new line at the left. */
+      /* The two groups are for reading the source; the grid places their lines. */
+      footer .credits,
       footer .made {
+        display: contents;
+      }
+
+      /* The page's paragraph measure is 612px and the English credit is 611px, so it
+         wrapped or not by a pixel of rounding. */
+      footer p {
+        margin: 0;
+        max-width: none;
+      }
+
+      footer .data {
+        grid-area: data;
+      }
+
+      footer .geometry {
+        grid-area: geometry;
+      }
+
+      footer .by {
+        grid-area: by;
         text-align: end;
-        margin-inline-start: auto;
+      }
+
+      /* Inline links, so a list that needs 2 lines is balanced across them rather than
+         leaving the last link alone on the second. */
+      footer .links {
+        grid-area: links;
+        text-align: end;
+        text-wrap: balance;
+        margin-inline: -0.375rem;
+      }
+
+      /* Each link a box of its own, so a line breaks between links and never inside one.
+         The build drops the spaces between them, which leaves nothing else to break at.
+         Half the space sits on each side of every link, and the list is drawn out by as
+         much, so a line's ends meet the edge whichever way it's aligned. */
+      footer .links a {
+        display: inline-block;
+        margin-inline: 0.375rem;
       }
 
       footer a {
@@ -872,23 +908,31 @@ const themes = [
         color: var(--ink);
       }
 
-      footer .links {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 0.2rem 1rem;
-      }
 
-      @media (max-width: 40rem) {
-        footer .links {
-          justify-content: flex-start;
+      @media (min-width: 70rem) {
+        footer {
+          grid-template-columns: max-content minmax(0, 1fr);
         }
       }
 
+      /* On a phone the columns stack: the credits, then the author and the links. */
       @media (max-width: 40rem) {
-        footer .made {
+        footer {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-areas:
+            "data"
+            "geometry"
+            "by"
+            "links";
+        }
+
+        footer .by {
+          margin-top: 0.65rem;
           text-align: start;
-          margin-inline-start: 0;
+        }
+
+        footer .links {
+          text-align: start;
         }
       }
 
