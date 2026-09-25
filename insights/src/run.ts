@@ -124,36 +124,53 @@ export async function pipeline(
       continue;
     }
 
-    const proposal = await propose(finding, data, options.run, options.proposer);
-    items.push({ finding, line, breakdown: breakdownRows, entropy: proposal.entropy, hypotheses: [], skipped: proposal.skipped ?? null });
-    const decided: { order: number; hypothesis: Hypothesis }[] = [];
-    const pending: Pending[] = [];
-    decidedByItem.push(decided);
-    pendingByItem.push(pending);
+    // Everything propose.ts, vocabulary.ts, links.ts and falsify.ts do here is written to
+    // never throw on a bad model reply; this is one more net under that, so a bug in any
+    // of them skips one finding with the error recorded, rather than losing the run.
+    try {
+      const proposal = await propose(finding, data, options.run, options.proposer);
+      const decided: { order: number; hypothesis: Hypothesis }[] = [];
+      const pending: Pending[] = [];
 
-    for (const [order, candidate] of proposal.candidates.entries()) {
-      const outcome = evaluate(candidate.test, finding, data);
-      if (outcome.status !== "passed") {
-        decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, "check", outcome.reason ?? "the test failed", null) });
-        continue;
+      for (const [order, candidate] of proposal.candidates.entries()) {
+        const outcome = evaluate(candidate.test, finding, data);
+        if (outcome.status !== "passed") {
+          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, "check", outcome.reason ?? "the test failed", null) });
+          continue;
+        }
+
+        let linkOutcomeIndex: number | null = null;
+        if (candidate.linkTest) {
+          linkOutcomeIndex = linkOutcomes.length;
+          linkOutcomes.push(runLink(candidate.linkTest, data, linkSeed(finding.id, candidate.linkTest)));
+        }
+
+        const verdict = await falsify(candidate, finding, data, options.falsifier, options.falsifierModel);
+        if (!verdict.survived) {
+          // A killed-by-refusal verdict never carries a counter-test; only a counter-test
+          // that came out true does, which is what "falsify" means here.
+          const stage = verdict.counter ? "falsify" : "safety";
+          decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, stage, verdict.reason, null) });
+          continue;
+        }
+
+        pending.push({ order, candidate, outcome, linkOutcomeIndex });
       }
 
-      let linkOutcomeIndex: number | null = null;
-      if (candidate.linkTest) {
-        linkOutcomeIndex = linkOutcomes.length;
-        linkOutcomes.push(runLink(candidate.linkTest, data, linkSeed(finding.id, candidate.linkTest)));
-      }
-
-      const verdict = await falsify(candidate, finding, data, options.falsifier, options.falsifierModel);
-      if (!verdict.survived) {
-        // A killed-by-refusal verdict never carries a counter-test; only a counter-test
-        // that came out true does, which is what "falsify" means here.
-        const stage = verdict.counter ? "falsify" : "safety";
-        decided.push({ order, hypothesis: buildHypothesis(candidate, outcome, stage, verdict.reason, null) });
-        continue;
-      }
-
-      pending.push({ order, candidate, outcome, linkOutcomeIndex });
+      items.push({ finding, line, breakdown: breakdownRows, entropy: proposal.entropy, hypotheses: [], skipped: proposal.skipped ?? null });
+      decidedByItem.push(decided);
+      pendingByItem.push(pending);
+    } catch (error) {
+      items.push({
+        finding,
+        line,
+        breakdown: breakdownRows,
+        entropy: 0,
+        hypotheses: [],
+        skipped: error instanceof Error ? error.message : String(error),
+      });
+      decidedByItem.push([]);
+      pendingByItem.push([]);
     }
   }
 
@@ -178,10 +195,9 @@ export async function pipeline(
       }
     }
 
-    // Already in support order, since propose.ts sorts its merged candidates that way: the
-    // first 3 still standing are the finding's 3 highest-support survivors. The rest are
-    // left out rather than kept under a stage that isn't a failure.
-    for (const e of eligible.slice(0, 3)) {
+    // Every survivor is published here; `publishable()` is what caps what a unit's file
+    // shows to the 3 with the highest support.
+    for (const e of eligible) {
       decided.push({ order: e.order, hypothesis: buildHypothesis(e.candidate, e.outcome, "published", null, e.linkTest) });
     }
 
@@ -220,26 +236,29 @@ interface UnitFile {
   }[];
 }
 
+/** A unit's file shows at most this many hypotheses per finding, the ones with the highest support. */
+const PUBLISHED_CAP = 3;
+
 /**
  * Shapes a finished run into the files `data/v1/insights/` holds: one per unit that has an
  * artefact finding or a finding with at least one published hypothesis, and an index over
- * all of them. Reloads the dataset for the unit names, since a `RunFile` carries a finding's
- * code and level but not its name.
+ * all of them. `data` defaults to a fresh load for a caller that doesn't have one on hand;
+ * a caller that does (the CLI, a test) passes its own rather than paying for a second load.
+ * A finding whose unit isn't in `data` is left out rather than failing the whole run.
  */
-export function publishable(file: RunFile): Map<string, object> {
-  const data = loadData();
+export function publishable(file: RunFile, data: Data = loadData()): Map<string, object> {
   const checkedAt = file.startedAt.slice(0, 10);
 
   const units = new Map<string, UnitFile>();
   for (const item of file.items) {
-    const published = item.hypotheses.filter((h) => h.stage === "published");
+    const published = item.hypotheses.filter((h) => h.stage === "published").slice(0, PUBLISHED_CAP);
     if (item.finding.kind !== "artefact" && published.length === 0) continue;
 
     const code = item.finding.code;
     let unitFile = units.get(code);
     if (!unitFile) {
       const unit = data.units.get(code);
-      if (!unit) throw new Error(`no unit for ${code}`);
+      if (!unit) continue;
       unitFile = {
         code,
         level: item.finding.level,

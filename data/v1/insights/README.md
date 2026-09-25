@@ -43,9 +43,9 @@ checks this build runs.
 - `findings` is a list. Each finding has an `id`; a `kind`, one of `extreme`, `change`,
   `gap` or `artefact`; a `measure`, the field's path, the same one the API sorts communes by;
   a `line`, the sentence stating the figure, in English and French; a `breakdown`, the parts
-  the figure is made of where the dataset has them, or `null`; and `hypotheses`, the ones
-  that survived, sorted by how many of the model's own tries proposed them. An artefact
-  finding has no hypotheses: it's flagged rather than explained.
+  the figure is made of where the dataset has them, or `null`; and `hypotheses`, up to 3 of
+  the ones that survived, the highest-support first. An artefact finding has no hypotheses:
+  it's flagged rather than explained.
 
 ## Reading a hypothesis
 
