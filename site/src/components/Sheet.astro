@@ -24,7 +24,7 @@ const groups = [
 ];
 ---
 
-<button type="button" class="find-open" aria-haspopup="dialog" aria-controls="sheet" aria-expanded="false" hidden>
+<button type="button" class="find-open" aria-haspopup="dialog" aria-controls="sheet" aria-expanded="false">
   <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
     <circle cx="7" cy="7" r="4.5" />
     <line x1="10.4" y1="10.4" x2="14" y2="14" />
@@ -104,7 +104,6 @@ const groups = [
     const root = document.documentElement;
     const narrow = window.matchMedia("(max-width: 48rem)");
     let opener: HTMLButtonElement | null = null;
-    finder.hidden = false;
 
     /**
      * On a phone it opens on the menu, with the field waiting, so the keyboard doesn't
@@ -181,8 +180,10 @@ const groups = [
 <style>
   /* The bar's buttons -------------------------------------------------- */
 
+  /* Both buttons show once the page has a script, from the first paint, so the bar never
+     shifts when this one runs. */
   .find-open {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.35rem;
     padding: 0.2rem 0.6rem 0.2rem 0.45rem;
@@ -195,8 +196,8 @@ const groups = [
     cursor: pointer;
   }
 
-  .find-open[hidden] {
-    display: none;
+  :global(.js) .find-open {
+    display: flex;
   }
 
   .find-open:hover {
