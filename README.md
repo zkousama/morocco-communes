@@ -24,6 +24,7 @@ with no entry in it.
 | `economy/` | the 2024 count of economic establishments for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `housing/` | the 2024 urban housing stock, by dwelling, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
+| `insights/` | possible reasons for the 2024 figures that stand out, each resting on a checked census fact, JSON | HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
 The licences differ by directory and `geometry/` carries its own LICENSE. Five fields on

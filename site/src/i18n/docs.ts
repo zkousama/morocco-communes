@@ -119,7 +119,7 @@ export const SPEC_FR: Record<string, string> = {
 
   "listInsights.summary": "Chaque unité qui a un constat publié",
   "listInsights.description":
-    "Des raisons possibles pour un chiffre du recensement de 2024 qui se détache, proposées par un modèle de langage et vérifiées sur les données ; voir la page méthode pour savoir comment un constat y trouve sa place. " +
+    "Des raisons possibles qu'un modèle de langage a proposées pour un chiffre du recensement de 2024 qui se détache, chacune reposant sur un fait du lieu vérifié dans le recensement ; voir la page méthode pour savoir comment un constat y trouve sa place. " +
     "Chaque ligne donne le code d'une unité, son niveau et le nombre de constats qu'elle a ; lire `/api/{collection}/{code}/insights.json` pour les constats eux-mêmes, `collection` venant du niveau (regions, provinces, communes ou arrondissements). " +
     "La plupart des unités n'y figurent pas : aucun chiffre ne s'y détache chez elles, ou aucun constat n'a passé les vérifications.",
   "listInsights.200": "Chaque unité qui a un constat publié.",

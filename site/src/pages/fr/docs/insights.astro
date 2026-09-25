@@ -27,14 +27,14 @@ const on = (iso: string) =>
   new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-const PLANTED: Record<(typeof method.mutations)[number], string> = {
+const CORRUPTED: Record<(typeof method.mutations)[number], string> = {
   unit: "le lieu remplacé par une commune tirée au hasard",
   year: "l’année remplacée par celle de l’autre recensement",
   direction: "la comparaison inversée",
   number: `le seuil réduit de moitié ou relevé de ${count(method.numberShift)}`,
   field: "la mesure remplacée par une mesure d’un autre thème",
 };
-const ways = method.mutations.map((kind) => PLANTED[kind]);
+const ways = method.mutations.map((kind) => CORRUPTED[kind]);
 const waysInWords = `${ways.slice(0, -1).join(", ")}, et ${ways.at(-1)}`;
 
 const published = metrics && metrics.published.graded > 0 ? metrics.published : null;
@@ -93,6 +93,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       sémantique, calculée sur ces groupes. Une liste de mots écarte ensuite toute hypothèse qui nomme une personne,
       un groupe ethnique ou religieux ou un acteur politique, dans l’une ou l’autre langue.
     </p>
+    <p>
+      Pour une évolution depuis 2014, le modèle peut aussi proposer que le chiffre soit une erreur dans les données,
+      ou un changement dans la façon dont le recensement a posé la question. Cette hypothèse a besoin d’une prémisse
+      et d’un test comme les autres, et la page la présente comme une erreur possible dans les données.
+    </p>
   </section>
 
   <section id="premise">
@@ -116,7 +121,10 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <h2>Le lien</h2>
     <p>
       Le lien est une affirmation de cause, que le recensement seul ne peut pas trancher. Quand un test de lien s’y
-      prête, le modèle en propose un, qui porte sur tous les lieux du même niveau. Le premier type classe les lieux
+      prête, le modèle en propose un, qui porte sur tous les lieux du niveau du chiffre. Il doit associer une mesure
+      lue par le test de la prémisse à celle du chiffre, et associer des évolutions quand le chiffre est une évolution
+      depuis 2014 ; un test qui associe autre chose, ou le chiffre à une autre part du même tout, est refusé. Le
+      premier type classe les lieux
       selon la mesure de la prémisse et selon celle du chiffre, en 2024 ou selon leur évolution depuis 2014, et
       mesure à quel point les classements vont ensemble, avec une valeur p tirée de {count(method.shuffles)}{" "}
       permutations. Le second coupe les lieux de chaque région à leur médiane pour la mesure de la prémisse, et
@@ -149,7 +157,8 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
     <p>
       Un contre-test qui échoue ou qui est refusé laisse l’hypothèse en place, tout comme une réponse sans
-      contre-test. Chaque chiffre montre ensuite jusqu’à {count(method.shown)} des hypothèses restantes, les plus
+      contre-test. Un adversaire qui ne répond pas, ou dont la réponse ne peut pas être lue, écarte l’hypothèse,
+      puisque rien n’a été discuté. Chaque chiffre montre ensuite jusqu’à {count(method.shown)} des hypothèses restantes, les plus
       soutenues d’abord. Un chiffre sans hypothèse restante n’apparaît pas sur la page.
     </p>
   </section>
@@ -157,23 +166,26 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   <section id="grading">
     <h2>La notation</h2>
     <p>
-      Une personne note à la main un échantillon de la dernière exécution : jusqu’à {count(method.perSide)}{" "}
-      hypothèses qui ont passé toutes les vérifications et {count(method.perSide)} qui se sont arrêtées en route, au
-      plus une de chaque par chiffre, mélangées. Elle voit le chiffre, l’affirmation, la prémisse avec ses nombres,
+      Une personne note à la main un échantillon de la dernière exécution, et chaque exécution a le sien : jusqu’à{" "}
+      {count(method.perSide)} hypothèses qui ont passé toutes les vérifications et {count(method.perSide)} qui se
+      sont arrêtées en route, au plus une de chaque par chiffre, mélangées. Celle qui a passé est tirée au hasard
+      parmi celles que montre la page du chiffre. Elle voit le chiffre, l’affirmation, la prémisse avec ses nombres,
       le lien et les nombres de son test, et rien qui dise si l’hypothèse est passée ni où elle s’est arrêtée. Elle
       répond oui ou non, selon que l’hypothèse tient ou pas. Jusqu’à {count(method.regraded)} réponses sont notées
       une seconde fois, à l’aveugle, et le kappa de Cohen mesure l’accord du second passage avec le premier.
     </p>
     <p>
-      Chaque hypothèse publiée notée oui voit ensuite son test faussé de chacune des{" "}
-      {count(method.mutations.length)} façons qui s’y appliquent, puis relancé : {waysInWords}. Une erreur
-      introduite est repérée quand le test faussé ne passe plus.
+      Chaque hypothèse publiée notée oui voit ensuite le test de sa prémisse faussé de chacune des{" "}
+      {count(method.mutations.length)} façons qui s’y appliquent, puis relancé seul : {waysInWords}. On mesure à
+      quelle fréquence un test de prémisse faussé cesse de passer. Cela montre à quel point un test tient aux
+      chiffres qu’il a lus ; l’adversaire et le test de lien n’y jouent aucun rôle.
     </p>
     <p>
-      La part des hypothèses publiées notées oui reçoit un intervalle de Wilson à 95 %. Rien n’est publié tant que
-      la borne basse de cet intervalle, pris en unilatéral, est sous {whole(method.precisionFloor)}, tant qu’aucune
-      erreur introduite n’a été mesurée, ou tant qu’elles sont repérées moins souvent qu’à la dernière notation
-      gardée dans le dépôt.
+      La part des hypothèses publiées notées oui reçoit un intervalle de Wilson à 95 %. Une exécution n’est publiée
+      que si les notes sont les siennes et qu’elle a couvert tous les chiffres. Elle est retenue tant que la borne
+      basse de cet intervalle, pris en unilatéral, est sous {whole(method.precisionFloor)}, tant qu’aucun test de
+      prémisse faussé n’a été relancé, ou tant que les tests de prémisse faussés cessent de passer moins souvent
+      que pour la dernière exécution publiée.
     </p>
     {metrics ? (
       <>
@@ -192,16 +204,16 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
         )}
         {planted && (
           <>
-            <p>{count(planted.caught)} des {count(planted.total)} erreurs introduites ont été repérées.</p>
+            <p>{count(planted.caught)} des {count(planted.total)} tests de prémisse faussés ont cessé de passer.</p>
             <div class="scroll" tabindex="0">
               <table>
                 <thead>
-                  <tr><th>L’erreur introduite</th><th class="num">Repérée</th></tr>
+                  <tr><th>Ce qui a été faussé</th><th class="num">A cessé de passer</th></tr>
                 </thead>
                 <tbody>
                   {kinds.map((kind) => (
                     <tr>
-                      <td>{capital(PLANTED[kind])}</td>
+                      <td>{capital(CORRUPTED[kind])}</td>
                       <td class="num">{count(planted.byKind[kind]!.caught)} sur {count(planted.byKind[kind]!.total)}</td>
                     </tr>
                   ))}
@@ -213,7 +225,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
         <p class="note">Ces nombres datent du {on(metrics.measuredAt)}.</p>
       </>
     ) : (
-      <p class="note">Les nombres apparaîtront ici après la première notation.</p>
+      <p class="note">Les nombres apparaîtront ici après la première publication.</p>
     )}
   </section>
 

@@ -14,7 +14,7 @@ INSIGHTS_LIVE=1 pnpm insights --demand               # orders findings by what p
 pnpm insights:grade                                  # grades a blind sample, yes or no
 pnpm insights:regrade                                # regrades some of the same items, for agreement
 pnpm insights:score                                  # turns the grades into insights/metrics.json
-INSIGHTS_LIVE=1 pnpm insights --publish              # writes data/v1/insights/ if the gate passes
+pnpm insights --publish                              # writes data/v1/insights/ if the gate passes
 ```
 
 It needs Node, pnpm and the `claude` command-line tool signed in: every proposal is a
@@ -35,7 +35,8 @@ in your shell.
   call a model at all.
 - **`INSIGHTS_FALSIFIER`**: which model argues against a proposal. `"ollama:<model>"` or
   `"claude:<model>"`, split at the first colon; left unset, the adversary is always a
-  different model from the proposer, run through the same `claude` command-line tool.
+  different model from the proposer, run through the same `claude` command-line tool. A
+  `claude:` setting that names the proposer's own model stops the run before it starts.
 - **`INSIGHTS_DEMAND`**: `"remote"` lets `pnpm insights --demand` read the site's own demand
   log, the last 30 days of page views, and order findings by what people actually open
   before it orders them by score. The same double opt-in the site build uses for
@@ -61,7 +62,9 @@ project's host with `/api/public/otel` added, and `OTEL_EXPORTER_OTLP_HEADERS` t
   `latest.json`, the one `pnpm insights:grade`, `pnpm insights:score` and `--publish` read.
   A run file's `runId` is a short hash of when it started, both prompts, the stage versions,
   the dataset version and the models, and `partial` is true when `--limit` or `--only` left
-  findings out.
+  findings out. A run also stops early when 3 proposer or adversary calls fail in a row, as
+  they do once a subscription's limit is reached. Its file is still written, with `partial`
+  true and `stopped` saying why.
 - **`insights/graded.json`**: the owner's blind grades, appended to as `pnpm insights:grade`
   runs and never overwritten. Each grade keeps the `runId` it was drawn from, and grading,
   scoring and publishing only read the latest run's, so a new run needs its own graded set,
@@ -72,3 +75,21 @@ project's host with `/api/public/otel` added, and `OTEL_EXPORTER_OTLP_HEADERS` t
   and the metrics it passed with. It's the baseline the gate won't let a new run fall
   behind, and the numbers the site's methods page quotes, so it's committed with the files
   under `data/v1/insights/`.
+
+## What `insights/metrics.json` holds
+
+- **`runId`**: the run whose grades these are.
+- **`measuredAt`**: when `pnpm insights:score` wrote the file.
+- **`published`**: the published side's yes answers, `yes`, out of its yes and no answers,
+  `graded`, with the 95% Wilson interval's `low` and `high`, and `lowOneSided`, the one-sided
+  lower bound the gate reads.
+- **`rejectedButSound`**: rejected hypotheses graded yes, `count`, and `byStage`, where each
+  one stopped.
+- **`agreement`**: Cohen's `kappa` between the first grades and the regrades, over `n` pairs,
+  or `null` before any regrading.
+- **`planted`**: how often a corrupted premise test stops passing. Every published hypothesis
+  graded yes has its premise's data test corrupted each way that fits it, and each corrupted
+  test is run again on its own: `total` counts them, `caught` counts the ones that stopped
+  passing, and `byKind` splits both by the kind of corruption. The adversary and the link
+  test play no part in it. The gate refuses a run whose rate is lower than the last
+  published run's.

@@ -333,7 +333,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "listInsights",
           summary: "Every unit with a published insight",
           description:
-            "Possible reasons for a 2024 census figure that stands out, proposed by a language model and checked against the data; see the methods page for how one earns a place here. " +
+            "Possible reasons a language model proposed for a 2024 census figure that stands out, each resting on a fact about the place that was checked against the census; see the methods page for how one earns a place here. " +
             "Each row is a unit's code, its level and how many findings it has; read `/api/{collection}/{code}/insights.json` for the findings themselves, with `collection` from the level (regions, provinces, communes or arrondissements). " +
             "Most units aren't listed: they have no figure that stood out, or none survived the checks.",
           responses: { "200": ok("Every unit with a published insight.", { type: "array", items: { type: "object" } }) },

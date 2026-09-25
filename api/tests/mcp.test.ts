@@ -556,11 +556,11 @@ describe("get_insights", () => {
     expect(found(r).findings[0]).toMatchObject({ kind: "extreme", measure: "fertility.totalFertilityRate" });
   });
 
-  it("says nothing stood out for a place with none, without an error", async () => {
+  it("says no reasons are published for a place with none, without an error", async () => {
     const r = await call("get_insights", { unit: "tiznit" });
     expect(r.isError).toBeFalsy();
     expect(found(r).findings).toEqual([]);
-    expect(text(r)).toMatch(/nothing/i);
+    expect(text(r)).toContain("No possible reasons are published for Tiznit.");
   });
 });
 

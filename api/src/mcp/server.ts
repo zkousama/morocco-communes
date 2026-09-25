@@ -57,7 +57,7 @@ const INSTRUCTIONS =
   "get_economy gives the 2024 count of economic establishments for the same units: businesses by sector, by size and by when they were founded, " +
   "and the permanent jobs they hold. " +
   "get_housing gives the 2024 urban housing stock: how many dwellings a town has, how many stand empty, what kind they are and what they are made of. " +
-  "get_insights gives possible reasons a language model proposed for a 2024 census figure that stands out, each checked against the census and tested for consistency across places where that fits, or marked as proposed only.";
+  "get_insights gives possible reasons a language model proposed for a 2024 census figure that stands out. Each rests on a fact about the place that was checked against the census, and its link to the figure is tested for consistency across places where a test fits, or marked as proposed only.";
 
 /** Where each level's files live. */
 const COLLECTION: Record<Level, string> = {
@@ -837,7 +837,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           name_fr: z.string(),
           name_ar: z.string().nullable(),
         }),
-        message: z.string().optional().describe("Present, and says so, when nothing stood out here."),
+        message: z.string().optional().describe("Present when no reasons are published for this place."),
         findings: z.array(
           z.object({
             kind: z
@@ -873,7 +873,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       };
       const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/insights.json`);
       if (!body) {
-        return ok({ unit: unitOut, findings: [], message: `Nothing stood out for ${unitOut.name_fr} in the figures checked so far.` });
+        return ok({ unit: unitOut, findings: [], message: `No possible reasons are published for ${unitOut.name_fr}.` });
       }
       const record = body.data as unknown as {
         findings: {

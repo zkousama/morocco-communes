@@ -18,14 +18,16 @@ describe("the guard", () => {
     expect(guard(metrics(40, 50), null).ok).toBe(false);
     expect(guard(metrics(46, 50), null).ok).toBe(true);
   });
-  it("refuses when planted errors are caught less often than before", () => {
-    expect(guard(metrics(46, 50, 80), metrics(46, 50, 90)).ok).toBe(false);
+  it("refuses when a corrupted premise test stops passing less often than before, and says it that way", () => {
+    const result = guard(metrics(46, 50, 80), metrics(46, 50, 90));
+    expect(result.ok).toBe(false);
+    expect(result.reasons).toEqual(["corrupted premise tests stop passing less often than for the last published run: 80% now, 90% then"]);
   });
-  it("refuses when no planted errors were measured at all, rather than dividing 0 by 0", () => {
+  it("refuses when no corrupted premise test was run at all, rather than dividing 0 by 0", () => {
     const noPlanted: Metrics = { ...metrics(46, 50), planted: { total: 0, caught: 0, byKind: {} } };
     const result = guard(noPlanted, null);
     expect(result.ok).toBe(false);
-    expect(result.reasons.some((r) => r.includes("no planted errors were measured"))).toBe(true);
+    expect(result.reasons).toEqual(["no corrupted premise test was run: grade some published hypotheses yes first"]);
   });
   it("treats a baseline with no planted errors measured as no baseline, for that comparison", () => {
     const current = metrics(46, 50, 10); // a low catch rate that would fail against almost any real baseline

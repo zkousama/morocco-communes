@@ -1,13 +1,15 @@
 /**
  * Turns a graded set into the numbers the gate is judged by: the owner's blind yes/no
  * answers become published precision with a Wilson interval, a re-grade's agreement with
- * the first pass becomes a kappa, and every published hypothesis graded yes gets corrupted
- * by `mutate.mutations` and re-checked with `evaluate` to see how often the checks still
- * catch a wrong claim. `guard` is the one gate everything else here feeds: no publish
- * without a graded set, without at least 80% precision at its interval's low end, or with
- * planted errors caught less often than the last published run. `pnpm insights:score`
- * reads `insights/graded.json` and writes `insights/metrics.json`; the site's methods page
- * reads that file, and `run.ts --publish` reads it back to decide whether to publish at all.
+ * the first pass becomes a kappa, and every published hypothesis graded yes has its
+ * premise's data test corrupted by `mutate.mutations` and re-run with `evaluate`, to see
+ * how often a corrupted premise test stops passing. That's the data test alone: the
+ * adversary and the link test play no part in it. `guard` is the one gate everything else
+ * here feeds: no publish without a graded set, without at least 80% precision at its
+ * interval's low end, or with corrupted premise tests stopping less often than for the last
+ * published run. `pnpm insights:score` reads the latest run's grades from
+ * `insights/graded.json` and writes `insights/metrics.json`, which `run.ts --publish` reads
+ * back to decide whether to publish at all.
  */
 import { writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
@@ -82,9 +84,9 @@ export function computeMetrics(graded: Graded[], regrades: GradedFile["regrades"
 const plantSeed = (id: string): number => parseInt(hash(id).slice(0, 8), 16);
 
 /**
- * Every published hypothesis the owner graded yes, corrupted every way `mutations` finds
- * for its check and re-checked with `evaluate` against its own finding: a mutant is caught
- * when the check no longer reports it passed (a refusal counts as caught too).
+ * Every published hypothesis the owner graded yes, its premise's data test corrupted every
+ * way `mutations` finds for it and re-run with `evaluate` against its own finding: a mutant
+ * is `caught` when the corrupted test stops passing (a refusal counts too).
  */
 export function plantErrors(graded: Graded[], data: Data): Metrics["planted"] {
   const byKind: Record<string, { total: number; caught: number }> = {};
@@ -111,9 +113,9 @@ export function plantErrors(graded: Graded[], data: Data): Metrics["planted"] {
 
 /**
  * Refuses without a graded set, when the published precision's one-sided lower bound falls
- * under 80%, when no planted errors were measured at all, or when a baseline exists (and
- * itself has planted errors measured) and the current run catches them less often than it
- * did. Works out the lower bound itself from `published.yes`/`published.graded` rather than
+ * under 80%, when no corrupted premise test was run at all, or when a baseline exists (and
+ * ran some itself) and the current run's corrupted premise tests stop passing less often
+ * than its did. Works out the lower bound itself from `published.yes`/`published.graded` rather than
  * trusting a stored `lowOneSided`, so a stale or hand-edited metrics file can't talk its way
  * past the gate. `planted.total` is never trusted as a divisor either: a run (current or
  * baseline) with nothing planted can't feed a catch-rate comparison, only a 0/0.
@@ -132,12 +134,12 @@ export function guard(current: Metrics, baseline: Metrics | null): { ok: boolean
   }
 
   if (current.planted.total === 0) {
-    reasons.push("no planted errors were measured: grade some published hypotheses yes first");
+    reasons.push("no corrupted premise test was run: grade some published hypotheses yes first");
   } else if (baseline && baseline.planted.total > 0) {
     const currentRate = current.planted.caught / current.planted.total;
     const baselineRate = baseline.planted.caught / baseline.planted.total;
     if (currentRate < baselineRate) {
-      reasons.push(`planted errors are caught less often than before: ${pct(currentRate)}% now, ${pct(baselineRate)}% before`);
+      reasons.push(`corrupted premise tests stop passing less often than for the last published run: ${pct(currentRate)}% now, ${pct(baselineRate)}% then`);
     }
   }
 
@@ -177,7 +179,7 @@ async function main(): Promise<void> {
   console.log(`published: ${metrics.published.yes}/${metrics.published.graded} (low ${pct(metrics.published.lowOneSided)}%)`);
   console.log(`rejected but sound: ${metrics.rejectedButSound.count}`);
   if (metrics.agreement) console.log(`agreement: kappa ${metrics.agreement.kappa.toFixed(2)} over ${metrics.agreement.n}`);
-  console.log(`planted errors caught: ${metrics.planted.caught}/${metrics.planted.total}`);
+  console.log(`corrupted premise tests that stopped passing: ${metrics.planted.caught}/${metrics.planted.total}`);
 }
 
 // Runs the CLI when this file is the entry point, not when a test imports it.

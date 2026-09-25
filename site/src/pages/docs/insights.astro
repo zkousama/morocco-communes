@@ -5,8 +5,8 @@
  * insights/src/: detect.ts, propose.ts, vocabulary.ts, links.ts, falsify.ts, run.ts,
  * grade.ts, mutate.ts and score.ts. Their numbers come from `method`, read from that
  * code, and the few written out here are pinned to it by site/tests/insights.test.ts. The
- * grading numbers come from insights/metrics.json when it exists, and the mirror of this
- * page under /fr/ says the same in French.
+ * grading numbers are the ones the published run passed with, from insights/published.json
+ * when it exists, and the mirror of this page under /fr/ says the same in French.
  */
 import Docs from "../../layouts/Docs.astro";
 import { REPO_URL } from "../../i18n/ui";
@@ -32,14 +32,14 @@ const on = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-const PLANTED: Record<(typeof method.mutations)[number], string> = {
+const CORRUPTED: Record<(typeof method.mutations)[number], string> = {
   unit: "the place swapped for a commune picked at random",
   year: "the census year swapped for the other one",
   direction: "the comparison turned round",
   number: `the threshold halved or raised by ${count(method.numberShift)}`,
   field: "the measure swapped for one from another topic",
 };
-const ways = method.mutations.map((kind) => PLANTED[kind]);
+const ways = method.mutations.map((kind) => CORRUPTED[kind]);
 const waysInWords = `${ways.slice(0, -1).join(", ")}, and ${ways.at(-1)}`;
 
 const published = metrics && metrics.published.graded > 0 ? metrics.published : null;
@@ -98,6 +98,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       groups. A word list then drops any hypothesis that names a person, an ethnic or religious group or a political
       actor, in either language.
     </p>
+    <p>
+      For a change since 2014, the model can also propose that the figure is an error in the data, or a change in
+      how the census asked. That hypothesis needs a premise and a data test like any other, and the page labels it
+      as a possible error in the data.
+    </p>
   </section>
 
   <section id="premise">
@@ -119,9 +124,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     <h2>The link</h2>
     <p>
       The link is a claim about cause, and the census alone can’t settle it. Where a link test fits, the model
-      proposes one, and it runs across every place of that level. One kind ranks the places on the premise’s
-      measure and on the figure’s, in 2024 or by how each changed since 2014, and reads how closely the rankings go
-      together, with a p-value from {count(method.shuffles)} shuffles. The other splits each région’s places at
+      proposes one, and it runs across every place of the figure’s level. It has to pair a measure the premise’s
+      data test read with the figure’s own, and pair changes when the figure is a change since 2014; a test that
+      pairs anything else, or the figure with another part of the same whole, is refused. One kind ranks the places
+      on the premise’s measure and on the figure’s, in 2024 or by how each changed since 2014, and reads how
+      closely the rankings go together, with a p-value from {count(method.shuffles)} shuffles. The other splits each région’s places at
       their median on the premise’s measure and compares the figure’s median between the upper and lower halves,
       with a Mann-Whitney test.
     </p>
@@ -149,7 +156,8 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       with a hypothesis that names a person, a group or a political actor, which drops it too.
     </p>
     <p>
-      A counter-test that fails or is refused leaves the hypothesis standing, and so does an answer without one.
+      A counter-test that fails or is refused leaves the hypothesis standing, and so does an answer without one. An
+      adversary that doesn’t answer, or whose answer can’t be read, drops the hypothesis, since nothing was argued.
       Each figure then shows up to {count(method.shown)} of the hypotheses left, those with the most support first.
       A figure with none left is kept off the page.
     </p>
@@ -158,22 +166,25 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   <section id="grading">
     <h2>Grading</h2>
     <p>
-      A person grades a sample of the latest run by hand: up to {count(method.perSide)} hypotheses that passed every
-      check and {count(method.perSide)} that stopped somewhere, at most one of each from a figure, shuffled together.
-      The grader sees the figure, the claim, the premise with its numbers, the link and its test’s numbers, and
+      A person grades a sample of the latest run by hand, and every run gets a sample of its own: up to{" "}
+      {count(method.perSide)} hypotheses that passed every check and {count(method.perSide)} that stopped somewhere,
+      at most one of each from a figure, shuffled together. The one that passed is picked at random from those the
+      figure’s page shows. The grader sees the figure, the claim, the premise with its numbers, the link and its test’s numbers, and
       nothing that says whether the hypothesis passed or where it stopped. The answer is yes or no: whether the
       hypothesis holds up. Up to {count(method.regraded)} of the answers are graded again, blind, and Cohen’s kappa
       measures how far the second pass agrees with the first.
     </p>
     <p>
-      Every published hypothesis graded yes then has its data test corrupted in each of the{" "}
-      {count(method.mutations.length)} ways that fit it, and run again: {waysInWords}. A planted error is caught
-      when the corrupted test no longer passes.
+      Every published hypothesis graded yes then has its premise’s data test corrupted in each of the{" "}
+      {count(method.mutations.length)} ways that fit it, and run again on its own: {waysInWords}. What’s measured is
+      how often a corrupted premise test stops passing. It shows how closely a test is tied to the figures it read;
+      the adversary and the link test play no part in it.
     </p>
     <p>
-      The share of published hypotheses graded yes gets a 95% Wilson interval. Nothing is published while the lower
-      end of that interval, taken one-sided, is under {whole(method.precisionFloor)}, while no planted errors were
-      measured, or while they’re caught less often than at the last grading kept in the repository.
+      The share of published hypotheses graded yes gets a 95% Wilson interval. A run is published only when the
+      grades are its own and it covered every figure. It’s held back while the lower end of that interval, taken
+      one-sided, is under {whole(method.precisionFloor)}, while no corrupted premise test was run, or while
+      corrupted premise tests stop passing less often than they did for the last published run.
     </p>
     {metrics ? (
       <>
@@ -192,16 +203,16 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
         )}
         {planted && (
           <>
-            <p>{count(planted.caught)} of {count(planted.total)} planted errors were caught.</p>
+            <p>{count(planted.caught)} of {count(planted.total)} corrupted premise tests stopped passing.</p>
             <div class="scroll" tabindex="0">
               <table>
                 <thead>
-                  <tr><th>The error planted</th><th class="num">Caught</th></tr>
+                  <tr><th>What was corrupted</th><th class="num">Stopped passing</th></tr>
                 </thead>
                 <tbody>
                   {kinds.map((kind) => (
                     <tr>
-                      <td>{capital(PLANTED[kind])}</td>
+                      <td>{capital(CORRUPTED[kind])}</td>
                       <td class="num">{count(planted.byKind[kind]!.caught)} of {count(planted.byKind[kind]!.total)}</td>
                     </tr>
                   ))}
@@ -213,7 +224,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
         <p class="note">These numbers are from {on(metrics.measuredAt)}.</p>
       </>
     ) : (
-      <p class="note">The numbers appear here after the first grading.</p>
+      <p class="note">The numbers appear here after the first publish.</p>
     )}
   </section>
 
