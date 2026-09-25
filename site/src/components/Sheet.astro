@@ -269,15 +269,10 @@ const groups = [
   .sheet[open] {
     display: flex;
     flex-direction: column;
-    animation: sheet-in 0.2s ease-out;
   }
 
   .sheet::backdrop {
     background: rgb(12 15 12 / 0.4);
-  }
-
-  .sheet[open]::backdrop {
-    animation: sheet-veil 0.2s ease-out;
   }
 
   /* The panel holds the search alone; the bar beside it has the rest. */
@@ -289,25 +284,6 @@ const groups = [
 
   :global(html.sheet-open) {
     overflow: hidden;
-  }
-
-  @keyframes sheet-in {
-    from {
-      opacity: 0;
-      transform: translateY(-0.5rem);
-    }
-  }
-
-  @keyframes sheet-veil {
-    from {
-      opacity: 0;
-    }
-  }
-
-  @keyframes sheet-fade {
-    from {
-      opacity: 0;
-    }
   }
 
   /* The phone menu's groups: small quiet labels, and the sections large in the serif. */
@@ -376,14 +352,6 @@ const groups = [
       border-radius: 0;
     }
 
-    .sheet[open] {
-      animation-name: sheet-fade;
-    }
-
-    .sheet[open] > :global(:not(.top)) {
-      animation: sheet-in 0.2s ease-out;
-    }
-
     .sheet::backdrop {
       background: transparent;
     }
@@ -433,11 +401,40 @@ const groups = [
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .sheet[open],
-    .sheet[open]::backdrop,
-    .sheet[open] > :global(*) {
-      animation: none;
+  /* Opening takes a fifth of a second: the panel fades in and drops into place, and on a
+     phone the sheet fades in while what's under its top row drops. The top row stays
+     still, since it stands where the bar was. With less motion asked for, it's there at
+     once. */
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  @keyframes sheet-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet[open] {
+      animation: sheet-in 0.2s ease-out;
+    }
+
+    .sheet[open]::backdrop {
+      animation: sheet-fade 0.2s ease-out;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (max-width: 48rem) {
+    .sheet[open] {
+      animation-name: sheet-fade;
+    }
+
+    .sheet[open] > :global(:not(.top)) {
+      animation: sheet-in 0.2s ease-out;
     }
   }
 </style>
