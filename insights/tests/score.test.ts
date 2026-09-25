@@ -21,6 +21,17 @@ describe("the guard", () => {
   it("refuses when planted errors are caught less often than before", () => {
     expect(guard(metrics(46, 50, 80), metrics(46, 50, 90)).ok).toBe(false);
   });
+  it("refuses when no planted errors were measured at all, rather than dividing 0 by 0", () => {
+    const noPlanted: Metrics = { ...metrics(46, 50), planted: { total: 0, caught: 0, byKind: {} } };
+    const result = guard(noPlanted, null);
+    expect(result.ok).toBe(false);
+    expect(result.reasons.some((r) => r.includes("no planted errors were measured"))).toBe(true);
+  });
+  it("treats a baseline with no planted errors measured as no baseline, for that comparison", () => {
+    const current = metrics(46, 50, 10); // a low catch rate that would fail against almost any real baseline
+    const zeroBaseline: Metrics = { ...metrics(46, 50), planted: { total: 0, caught: 0, byKind: {} } };
+    expect(guard(current, zeroBaseline).ok).toBe(true);
+  });
 });
 
 const data = loadData();

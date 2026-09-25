@@ -109,10 +109,12 @@ export function plantErrors(graded: Graded[], data: Data): Metrics["planted"] {
 
 /**
  * Refuses without a graded set, when the published precision's one-sided lower bound falls
- * under 80%, or when a baseline exists and planted errors are now caught less often than it
- * caught them. Works out the lower bound itself from `published.yes`/`published.graded`
- * rather than trusting a stored `lowOneSided`, so a stale or hand-edited metrics file can't
- * talk its way past the gate.
+ * under 80%, when no planted errors were measured at all, or when a baseline exists (and
+ * itself has planted errors measured) and the current run catches them less often than it
+ * did. Works out the lower bound itself from `published.yes`/`published.graded` rather than
+ * trusting a stored `lowOneSided`, so a stale or hand-edited metrics file can't talk its way
+ * past the gate. `planted.total` is never trusted as a divisor either: a run (current or
+ * baseline) with nothing planted can't feed a catch-rate comparison, only a 0/0.
  */
 export function guard(current: Metrics, baseline: Metrics | null): { ok: boolean; reasons: string[] } {
   const reasons: string[] = [];
@@ -127,7 +129,9 @@ export function guard(current: Metrics, baseline: Metrics | null): { ok: boolean
     }
   }
 
-  if (baseline) {
+  if (current.planted.total === 0) {
+    reasons.push("no planted errors were measured: grade some published hypotheses yes first");
+  } else if (baseline && baseline.planted.total > 0) {
     const currentRate = current.planted.caught / current.planted.total;
     const baselineRate = baseline.planted.caught / baseline.planted.total;
     if (currentRate < baselineRate) {
@@ -138,7 +142,7 @@ export function guard(current: Metrics, baseline: Metrics | null): { ok: boolean
   return { ok: reasons.length === 0, reasons };
 }
 
-const METRICS_PATH = "insights/metrics.json";
+export const METRICS_PATH = "insights/metrics.json";
 
 async function main(): Promise<void> {
   const graded = await loadGradedFile(GRADED_PATH);

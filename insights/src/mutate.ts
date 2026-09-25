@@ -37,6 +37,8 @@ function flipChangeOp(op: Extract<Check, { check: "change" }>["op"]): typeof op 
   return op === ">" ? "<" : ">";
 }
 
+const flipPosition = (position: "top" | "bottom"): "top" | "bottom" => (position === "top" ? "bottom" : "top");
+
 /** A random field whose topic differs from `path`'s own, so the corruption can't land back on a sibling reading the same thing. */
 function randomOtherField(path: string, random: () => number): string | null {
   const current = field(path);
@@ -103,16 +105,32 @@ function rankMutations(check: Extract<Check, { check: "rank" }>, data: Data, ran
 
   if (check.of.unit === "self") out.push({ kind: "unit", check: { ...check, of: randomCommune(data, random) } });
   if (field(check.field)?.comparable) out.push({ kind: "year", check: { ...check, year: swapYear(check.year) } });
-  // No direction or number mutant: rank has no op to flip, and share is a 0-0.5 fraction, not a points value.
+  // A rank has no op to flip, but "top" versus "bottom" is its direction: flipping it is
+  // the same corruption as flipping > and < elsewhere.
+  out.push({ kind: "direction", check: { ...check, position: flipPosition(check.position) } });
+  // No number mutant: share is a 0-0.5 fraction, not a points value in the field's own unit.
   const otherField = randomOtherField(check.field, random);
   if (otherField) out.push({ kind: "field", check: { ...check, field: otherField } });
 
   return out;
 }
 
+/** Drops a mutant whose check is identical to one already kept - `numberMutants` can hand back the same value twice (halving -40 and shifting it by 20 both land on -20). */
+function dedupe(mutants: Mutant[]): Mutant[] {
+  const seen = new Set<string>();
+  const out: Mutant[] = [];
+  for (const m of mutants) {
+    const key = JSON.stringify(m.check);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(m);
+  }
+  return out;
+}
+
 export function mutations(check: Check, data: Data, seed: number): Mutant[] {
   const random = rng(seed);
-  if (check.check === "compare") return compareMutations(check, data, random);
-  if (check.check === "change") return changeMutations(check, data, random);
-  return rankMutations(check, data, random);
+  if (check.check === "compare") return dedupe(compareMutations(check, data, random));
+  if (check.check === "change") return dedupe(changeMutations(check, data, random));
+  return dedupe(rankMutations(check, data, random));
 }

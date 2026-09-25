@@ -17,7 +17,7 @@ import { falsify, falsifierModel } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
 import { claudeTransport, hash, makeRunner, ollamaTransport, type Runner } from "./model.ts";
 import { propose, type Candidate } from "./propose.ts";
-import { guard, type Metrics } from "./score.ts";
+import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { evaluate, type Check, type Outcome } from "./vocabulary.ts";
 import type { Level } from "./fields.ts";
@@ -322,7 +322,6 @@ export async function publishIfAllowed(options: {
 }
 
 const RUN_PATH = join(".cache", "insights", "runs", "latest.json");
-const METRICS_PATH = "insights/metrics.json";
 const OUT_DIR = "data/v1/insights";
 
 /** The last committed `insights/metrics.json`, or null when there isn't one, git can't be read, or it doesn't parse. */

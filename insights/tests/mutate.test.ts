@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { mutations } from "../src/mutate.ts";
-import type { Check } from "../src/vocabulary.ts";
+import { evaluate, type Check } from "../src/vocabulary.ts";
 
 const data = loadData();
 // a literal on the right, so there's a number to corrupt
@@ -35,13 +35,38 @@ describe("planted errors", () => {
     expect(kinds.has("number")).toBe(false);
   });
 
-  it("gives no direction or number mutant for a rank check, which has neither an op nor a points value", () => {
+  it("gives a rank check a direction mutant that flips top and bottom, but no number mutant", () => {
     const rank: Check = { check: "rank", of: { unit: "self" }, field: "commute.privateCar", year: 2024, within: "province", position: "top", share: 0.1 };
     const kinds = new Set(mutations(rank, data, 1).map((m) => m.kind));
-    expect(kinds.has("direction")).toBe(false);
+    expect(kinds.has("direction")).toBe(true);
     expect(kinds.has("number")).toBe(false);
     expect(kinds.has("unit")).toBe(true);
     expect(kinds.has("field")).toBe(true);
+
+    const flipped = mutations(rank, data, 1).find((m) => m.kind === "direction")!;
+    expect(flipped.check).toEqual({ ...rank, position: "bottom" });
+  });
+
+  it("makes a real passing rank check fail once its direction mutant flips it", () => {
+    // The commune with the highest share of a field within its province: always the top
+    // by any share, however narrow.
+    const communes = data.byLevel.get("commune")!;
+    const byProvince = new Map<string, { code: string; value: number }[]>();
+    for (const c of communes) {
+      const v = c.figures.y2024["commute.privateCar"];
+      if (v == null || !Number.isFinite(v)) continue;
+      byProvince.set(c.parent!, [...(byProvince.get(c.parent!) ?? []), { code: c.code, value: v }]);
+    }
+    const [, list] = [...byProvince].find(([, l]) => l.length >= 8)!;
+    const top = list.reduce((a, b) => (b.value > a.value ? b : a));
+
+    const rank: Check = { check: "rank", of: { unit: "self" }, field: "commute.privateCar", year: 2024, within: "province", position: "top", share: 0.1 };
+    // measure differs from the check's field, or evaluate refuses it as a tautology
+    const finding = { id: "f0", code: top.code, level: "commune" as const, measure: "education.higher", kind: "extreme" as const, value: 0, reference: 0, score: 0, direction: "high" as const };
+
+    expect(evaluate(rank, finding, data).status).toBe("passed");
+    const flipped = mutations(rank, data, 1).find((m) => m.kind === "direction")!;
+    expect(evaluate(flipped.check, finding, data).status).not.toBe("passed");
   });
 
   it("gives no year mutant for a change check, which has none to swap", () => {
