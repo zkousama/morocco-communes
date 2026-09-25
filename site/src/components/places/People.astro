@@ -218,6 +218,11 @@ const empty = views.length === 0;
                 <p class="note">{p.ageBody}</p>
                 <table class="pyramid">
                   <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
+                  <colgroup>
+                    <col />
+                    <col class="ages" />
+                    <col />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th scope="col" class="men">{p.men}</th>
@@ -439,9 +444,12 @@ const empty = views.length === 0;
   }
 
   /* The pyramid: a table, so it reads as one, with each share drawn as a bar out from the
-     ages in the middle. The numbers show on hover. */
+     ages in the middle. The numbers show on hover. A fixed layout gives both sides the same
+     width; left to the automatic one, a side grew with its heading, and "Women" is longer
+     than "Men". */
   .pyramid {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: var(--t-xs);
     font-variant-numeric: tabular-nums;
@@ -468,8 +476,11 @@ const empty = views.length === 0;
     text-align: start;
   }
 
-  .pyramid tbody th {
+  .pyramid .ages {
     width: 6.5rem;
+  }
+
+  .pyramid tbody th {
     padding: 0 0.6rem;
     text-align: center;
     font-weight: 400;
@@ -479,7 +490,6 @@ const empty = views.length === 0;
 
   .pyramid td {
     position: relative;
-    width: calc(50% - 3.25rem);
   }
 
   .pyramid td .bar {
