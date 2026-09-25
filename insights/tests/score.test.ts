@@ -63,7 +63,7 @@ const graded = (id: string, gate: "published" | "rejected", answer: "yes" | "no"
   runId: "run-a",
   findingId: finding.id,
   gate,
-  item: { finding, line: { en: "line" }, hypothesis: hyp(stage) },
+  item: { finding, line: { en: "line", fr: "line" }, hypothesis: hyp(stage) },
   answer,
   gradedAt: "",
 });

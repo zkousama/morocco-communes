@@ -24,7 +24,7 @@ export interface Sampled {
   findingId: string;
   finding: Finding;
   hypothesis: Hypothesis;
-  line: { en: string };
+  line: { en: string; fr: string };
 }
 
 export interface Graded {
@@ -32,7 +32,7 @@ export interface Graded {
   runId: string; // the run it was drawn from
   findingId: string;
   gate: "published" | "rejected";
-  item: { finding: Finding; line: { en: string }; hypothesis: Hypothesis };
+  item: { finding: Finding; line: { en: string; fr: string }; hypothesis: Hypothesis };
   answer: "yes" | "no" | "skip";
   gradedAt: string;
 }
@@ -55,7 +55,7 @@ function shuffled<T>(values: T[], random: () => number): T[] {
 }
 
 function toSampled(runId: string, gate: Sampled["gate"], item: Item, hypothesis: Hypothesis): Sampled {
-  return { runId, gate, findingId: item.finding.id, finding: item.finding, hypothesis, line: { en: item.line.en } };
+  return { runId, gate, findingId: item.finding.id, finding: item.finding, hypothesis, line: { en: item.line.en, fr: item.line.fr } };
 }
 
 /**
@@ -82,7 +82,7 @@ export function sample(file: RunFile, perSide: number, seed: number): Sampled[] 
   const rejected: Sampled[] = [];
   for (const item of findings) {
     if (rejected.length >= perSide) break;
-    const hypothesis = item.hypotheses.find((h) => h.stage !== "published");
+    const hypothesis = item.hypotheses.find((h) => h.stage === "check" || h.stage === "falsify" || h.stage === "link");
     if (hypothesis) rejected.push(toSampled(file.runId, "rejected", item, hypothesis));
   }
 
@@ -148,27 +148,36 @@ function formatNumbers(numbers: Record<string, number>): string {
  * The link test's numbers only, never its verdict: "consistent" only ever sits on a
  * published hypothesis and "not consistent" only ever sits on a rejected one, so the word
  * would give the gate away on its own. p is shown to 4 decimals, so a small but real p
- * (0.0032, say) doesn't round away to "0".
+ * (0.0032, say) doesn't round away to "0". Never called for a refused test: `formatItem`
+ * leaves that one out entirely, since a link test only reaches "refused" (as opposed to
+ * never running at all) on a hypothesis that still goes on to be published, so showing it
+ * would give the gate away just as the verdict word would.
  */
 function formatLinkTest(linkTest: NonNullable<Hypothesis["linkTest"]>): string {
-  if (linkTest.verdict === "refused") return "couldn't be tested";
   const placebos = linkTest.placeboEffects.map((e) => round(e, 2)).join(", ");
   return `effect ${round(linkTest.effect, 2)}, p ${round(linkTest.p, 4)}; unrelated measures: ${placebos}`;
 }
 
 /**
  * What the owner sees for one item: the finding line, the claim, the premise with its
- * numbers, the link, and the link test's result when there is one. Never the gate, the
- * stage or the reason - grading is blind to all 3.
+ * numbers, the link, and the link test's result when there is one - each in English, with
+ * its French on the next line indented 2 spaces. Never the gate, the stage or the reason -
+ * grading is blind to all 3. A refused link test gets no line at all, the same as no test:
+ * only a published hypothesis can carry that verdict, so showing it would leak the gate as
+ * surely as the verdict word would.
  */
-export function formatItem(item: { finding: Finding; line: { en: string }; hypothesis: Hypothesis }): string {
+export function formatItem(item: { finding: Finding; line: { en: string; fr: string }; hypothesis: Hypothesis }): string {
   const lines = [
     item.line.en,
+    `  ${item.line.fr}`,
     `claim: ${item.hypothesis.claim.en}`,
+    `  ${item.hypothesis.claim.fr}`,
     `premise: ${item.hypothesis.premise.en} (${formatNumbers(item.hypothesis.evidence.numbers)})`,
+    `  ${item.hypothesis.premise.fr}`,
     `link: ${item.hypothesis.link.en}`,
+    `  ${item.hypothesis.link.fr}`,
   ];
-  if (item.hypothesis.linkTest) lines.push(`link test: ${formatLinkTest(item.hypothesis.linkTest)}`);
+  if (item.hypothesis.linkTest && item.hypothesis.linkTest.verdict !== "refused") lines.push(`link test: ${formatLinkTest(item.hypothesis.linkTest)}`);
   return lines.join("\n");
 }
 
@@ -280,6 +289,7 @@ async function interactiveLoop<T>(
 }
 
 async function runGrade(runFile: RunFile, startFile: GradedFile, gradedPath: string): Promise<void> {
+  if (runFile.partial || runFile.stopped) console.error(`this run can't be published (${runFile.stopped ?? "it left findings out"}), so grades on it won't count toward a publish`);
   const mine = forRun(startFile, runFile.runId);
   console.log(`run ${runFile.runId}: ${mine.grades.length} graded so far`);
   const items = ungraded(sample(runFile, PER_SIDE, SEED), mine.grades);

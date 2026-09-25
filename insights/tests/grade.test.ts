@@ -61,6 +61,15 @@ describe("the grading sample", () => {
     expect(s.filter((x) => x.gate === "published")).toHaveLength(3);
     expect(s.filter((x) => x.gate === "rejected")).toHaveLength(3);
   });
+
+  it("never draws a hypothesis stopped for safety, so its text never reaches graded.json", () => {
+    const safetyOnly = { ...file, items: file.items.map((i) => ({ ...i, hypotheses: [hyp("published"), hyp("safety")] })) } as unknown as RunFile;
+    expect(sample(safetyOnly, 50, 1).filter((s) => s.gate === "rejected")).toHaveLength(0);
+  });
+  it("draws the rejected side from a link stop and a falsify stop as well as a check", () => {
+    const mixed = { ...file, items: file.items.map((i, n) => ({ ...i, hypotheses: [hyp(["check", "link", "falsify"][n % 3]!)] })) } as unknown as RunFile;
+    expect(new Set(sample(mixed, 50, 1).map((s) => s.hypothesis.stage))).toEqual(new Set(["check", "link", "falsify"]));
+  });
 });
 
 describe("regradeSample", () => {
@@ -69,7 +78,7 @@ describe("regradeSample", () => {
     runId: "run-a",
     findingId: `f${i}`,
     gate: i % 2 === 0 ? "published" : "rejected",
-    item: { finding: { id: `f${i}` } as unknown as Finding, line: { en: `line ${i}` }, hypothesis: hyp("published") as unknown as Hypothesis },
+    item: { finding: { id: `f${i}` } as unknown as Finding, line: { en: `line ${i}`, fr: `line ${i}` }, hypothesis: hyp("published") as unknown as Hypothesis },
     answer,
     gradedAt: "",
   });
@@ -120,7 +129,7 @@ describe("ungraded", () => {
     gate: "published",
     findingId: `f${i}`,
     finding: { id: `f${i}` } as unknown as Finding,
-    line: { en: `line ${i}` },
+    line: { en: `line ${i}`, fr: `line ${i}` },
     hypothesis: {
       ...hyp("published"),
       evidence: { kind: "data", check: { check: "change", of: { unit: "self" }, field: `x${i}`, op: ">", value: 0 }, numbers: {} },
@@ -171,11 +180,11 @@ describe("grades for one run", () => {
 describe("formatItem", () => {
   const item = {
     finding: { id: "f1" } as unknown as Finding,
-    line: { en: "the finding line" },
+    line: { en: "the finding line", fr: "la ligne du constat" },
     hypothesis: {
-      claim: { en: "the claim", fr: "" },
-      link: { en: "the link", fr: "" },
-      premise: { en: "the premise", fr: "" },
+      claim: { en: "the claim", fr: "l'affirmation" },
+      link: { en: "the link", fr: "le lien" },
+      premise: { en: "the premise", fr: "la prémisse" },
       evidence: { kind: "data", check: { check: "change", of: { unit: "self" }, field: "x", op: ">", value: 0 }, numbers: { change: 3.456 } },
       linkTest: null,
       support: 1,
@@ -232,17 +241,17 @@ describe("formatItem", () => {
     expect(formatItem(withLink)).toContain("p 0.0032");
   });
 
-  it("says a refused link test couldn't be tested, without the word 'refused'", () => {
-    const withLink = {
-      ...item,
-      hypothesis: {
-        ...item.hypothesis,
-        linkTest: { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "refused", p: 1, effect: 0, placeboEffects: [] },
-      } as unknown as Hypothesis,
-    };
-    const text = formatItem(withLink);
-    expect(text).toContain("link test: couldn't be tested");
-    expect(text).not.toContain("refused");
+  it("shows no link-test line for a refused link test, the same as for none", () => {
+    const refusedTest = { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "refused", p: 1, effect: 0, placeboEffects: [], reason: "not about this figure" };
+    const refused = formatItem({ ...item, hypothesis: { ...item.hypothesis, linkTest: refusedTest } as unknown as Hypothesis });
+    expect(refused).toBe(formatItem(item));
+  });
+  it("shows the French under each English line", () => {
+    const lines = formatItem(item).split("\n");
+    expect(lines[lines.indexOf("claim: the claim") + 1]).toBe("  l'affirmation");
+    expect(lines).toContain("  la ligne du constat");
+    expect(lines).toContain("  la prémisse");
+    expect(lines).toContain("  le lien");
   });
 
   it("never shows the verdict word, for a consistent, a not-consistent or a refused link test", () => {
