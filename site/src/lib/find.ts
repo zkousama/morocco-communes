@@ -92,9 +92,13 @@ export const isolate = (text: string) =>
 
 export const escape = (text: string) => text.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
 
-/** A row as the list draws it, an option of the list box the field controls. */
+/**
+ * A row as the list draws it, an option of the list box the field controls. The spaces
+ * between its parts draw nothing in the row's flex box, and keep the words apart when a
+ * screen reader reads the option out as one name.
+ */
 export const rowHtml = (row: Row, id: string) =>
   `<a class="hit" role="option" tabindex="-1" aria-selected="false" id="${escape(id)}" href="${escape(row.href)}">` +
-  `<span class="hit-text"><span class="hit-name">${escape(row.name)}</span>` +
-  `<span class="hit-meta">${escape(row.meta).replace(" · ", ' <span class="hit-sep">·</span> ')}</span></span>` +
+  `<span class="hit-text"><span class="hit-name">${escape(row.name)}</span> ` +
+  `<span class="hit-meta">${escape(row.meta).replace(" · ", ' <span class="hit-sep">·</span> ')}</span></span> ` +
   `<span class="hit-ar" lang="ar" dir="rtl">${escape(row.ar)}</span></a>`;

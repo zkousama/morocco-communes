@@ -108,6 +108,12 @@ describe("a row", () => {
     expect(html).toContain('<span class="hit-ar" lang="ar" dir="rtl">فاس</span>');
     expect(html).toContain('role="option"');
   });
+
+  it("reads as words, with a space between the name, the line under it and the Arabic", () => {
+    const html = rowHtml({ href: "/", name: "Fès", meta: "Commune · Fès-Meknès", ar: "فاس" }, "hit-2");
+    const text = html.replace(/<[^>]+>/g, "");
+    expect(text).toBe("Fès Commune · Fès-Meknès فاس");
+  });
 });
 
 describe("what the build hands the search", () => {
