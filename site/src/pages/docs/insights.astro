@@ -102,8 +102,8 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       The same question is asked {count(method.samples)} times. The answers are merged by what their data tests
       check, and a hypothesis’s support is how many of the {count(method.samples)} proposed it. How much the{" "}
       {count(method.samples)} disagree is recorded for each figure as its semantic entropy, taken over those merged
-      groups. A word list then drops any hypothesis that names a person, an ethnic or religious group or a political
-      actor, in either language.
+      groups. Every reason may describe an action but never judge one: it can name a public programme or a
+      documented public action, and it never blames anyone, names a private person or generalises about a group.
     </p>
     <p>
       For a change since 2014, the model can also propose that the figure is an error in the data, or a change in
@@ -163,8 +163,8 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       A hypothesis whose premise passed goes to a second language model, a different one from the model that
       proposed it. It sees the same figures and the hypothesis, and tries to break it with a counter-test in the
       same vocabulary, one that would come out true if the premise didn’t explain the figure. The counter-test is
-      run the same way, and one that comes out true drops the hypothesis. The adversary can also decline to argue
-      with a hypothesis that names a person, a group or a political actor, which drops it too.
+      run the same way, and one that comes out true drops the hypothesis. The adversary also declines to argue with
+      a reason that breaks that rule, which drops it.
     </p>
     <p>
       A counter-test that fails or is refused leaves the hypothesis standing, and so does an answer without one. An

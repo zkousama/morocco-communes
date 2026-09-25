@@ -7,6 +7,7 @@
  */
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -80,6 +81,49 @@ function requireLive(name: string): void {
  */
 export const CHILD_ENV_DROP = (key: string): boolean =>
   key === "ANTHROPIC_API_KEY" || key === "CLAUDECODE" || key === "CLAUDE_EFFORT" || key.startsWith("CLAUDE_CODE_");
+
+/** Private settings read from outside the repository: extra terms the safety check also refuses, and keys for optional transports. */
+export interface Local {
+  terms: string[];
+  keys: Record<string, string>;
+}
+
+/** A file's text, or "" when it's missing; anything else reading it still throws. */
+function readOrEmpty(path: string): string {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return "";
+    throw error;
+  }
+}
+
+/**
+ * The private folder `env.INSIGHTS_LOCAL` names, or null when that variable isn't set: this
+ * is the only place that name is read, and it's never logged or printed, path or content.
+ * `terms.txt` holds one term per line, blank lines and lines starting `#` ignored; `keys.env`
+ * holds `NAME=value` lines for optional transports. Either file missing reads as empty.
+ */
+export function readLocal(env: NodeJS.ProcessEnv): Local | null {
+  const dir = env.INSIGHTS_LOCAL;
+  if (!dir) return null;
+
+  const terms = readOrEmpty(join(dir, "terms.txt"))
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+
+  const keys: Record<string, string> = {};
+  for (const rawLine of readOrEmpty(join(dir, "keys.env")).split("\n")) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const at = line.indexOf("=");
+    if (at <= 0) continue;
+    keys[line.slice(0, at)] = line.slice(at + 1);
+  }
+
+  return { terms, keys };
+}
 
 /**
  * How `claude -p` is started for one call, kept apart from the spawn so a test can read

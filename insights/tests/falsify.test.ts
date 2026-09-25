@@ -7,6 +7,7 @@ import type { Finding } from "../src/detect.ts";
 import { falsifierModel, falsify } from "../src/falsify.ts";
 import { makeRunner, stubTransport } from "../src/model.ts";
 import type { Candidate } from "../src/propose.ts";
+import { termsPattern } from "../src/safety.ts";
 
 const data = loadData();
 const finding: Finding = { id: "f1", code: "04.421.01.0", level: "commune", measure: "fertility.totalFertilityRate", kind: "extreme", value: 1.19, reference: 2, score: 4, direction: "low" };
@@ -31,7 +32,14 @@ describe("falsify", () => {
   });
 
   it("kills a candidate the adversary refuses on safety grounds", async () => {
-    expect((await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "r", refuse: "political" })), "opus")).survived).toBe(false);
+    expect((await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "r", refuse: "blame" })), "opus")).survived).toBe(false);
+  });
+
+  it("refuses a candidate that trips a private term, even when the adversary lets it through", async () => {
+    const v = await falsify({ ...candidate, claim: { en: "The Zorblat did it", fr: "c" } }, finding, data, run(JSON.stringify({ counter: null, reason: "none" })), "opus", termsPattern(["zorblat"]));
+    expect(v.survived).toBe(false);
+    expect(v.stage).toBe("safety");
+    expect(v.reason).toBe("refused: terms");
   });
 
   it("won't argue with the proposer's own model", () => {
@@ -80,9 +88,11 @@ describe("falsify", () => {
     expect(v.counterOutcome?.status).toBe("refused");
   });
 
-  it("kills a candidate whose own text trips the word list, even with no counter-test", async () => {
-    const bad: Candidate = { ...candidate, claim: { en: "The ministry's neglect lowered fertility", fr: "c" } };
+  it("kills a candidate whose own text trips the safety check, even with no counter-test", async () => {
+    const bad: Candidate = { ...candidate, claim: { en: "Mr Alami closed the clinic", fr: "c" } };
     const v = await falsify(bad, finding, data, run(JSON.stringify({ counter: null, reason: "nothing breaks it" })), "opus");
     expect(v.survived).toBe(false);
+    expect(v.stage).toBe("safety");
+    expect(v.reason).toBe("refused: individuals");
   });
 });

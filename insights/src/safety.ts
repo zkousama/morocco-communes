@@ -1,38 +1,11 @@
 /**
- * The last word on what a hypothesis may say. The prompts already rule out claims about
- * individuals, about ethnic or religious groups, and blame on a political actor; this word
- * list catches what a model lets through anyway. A match only ever drops a hypothesis, so
- * a word that's sometimes innocent costs one candidate, never a published claim.
+ * The last word on what a hypothesis may say. The models apply the policy in their
+ * instructions: a reason may describe an action but never judge one, and it never names a
+ * private person or generalises about an ethnic, religious or regional group. This file
+ * catches a named person in code, and any private terms the run was given.
  */
 
-type Refusal = "individuals" | "groups" | "political";
-
-/**
- * Each listed word, with the plurals and feminines that mean the same thing. A bare "parti"
- * is also how French says someone left ("il est parti vers la ville"), the commonest reason
- * offered for a change, so a party is caught by name or as "parti politique".
- */
-const POLITICAL = [
-  "government", "governments", "ministry", "ministries", "minister", "ministers", "mayor's decision",
-  "parliament", "parliaments", "party", "parties", "PJD", "RNI", "PAM", "Istiqlal", "USFP", "makhzen",
-  "palace", "palaces", "corruption",
-  "gouvernement", "gouvernements", "ministère", "ministères", "ministre", "ministres",
-  "parti politique", "partis politiques", "négligence de l'État",
-];
-
-// "arabe" and "berbère" in the singular also name a language in French ("l'arabe"), and a
-// language named as a language isn't a group, so only their plurals are listed. The Sahara
-// is a place, so only the words for its people are, never "Sahara" or "Saharan".
-const GROUPS = [
-  "berber", "berbers", "amazigh people", "arab", "arabs", "jew", "jews", "jewish", "muslim", "muslims",
-  "christian", "christians", "sub-saharan", "subsaharan", "migrant", "migrants", "refugee", "refugees",
-  "sahrawi", "sahrawis", "tribe", "tribes",
-  "berbères", "arabes", "juif", "juifs", "juive", "juives", "musulman", "musulmans", "musulmane",
-  "musulmanes", "chrétien", "chrétiens", "chrétienne", "chrétiennes", "subsaharien", "subsahariens",
-  "subsaharienne", "subsahariennes", "sub-saharien", "sub-sahariens", "migrante", "migrantes",
-  "réfugié", "réfugiés", "réfugiée", "réfugiées", "sahraoui", "sahraouis", "sahraouie", "sahraouies",
-  "tribu", "tribus",
-];
+export type Refusal = "individuals" | "groups" | "blame" | "terms";
 
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -43,8 +16,10 @@ const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\
 const wholeWords = (words: string[]): RegExp =>
   new RegExp(`(?<!\\p{L})(?:${words.map((w) => escape(w).replace(/ /g, "\\s+")).join("|")})(?!\\p{L})`, "iu");
 
-const political = wholeWords(POLITICAL);
-const groups = wholeWords(GROUPS);
+/** `terms`, as `refusal` matches them: whole words, case aside; null when there's nothing to match. */
+export function termsPattern(terms: string[]): RegExp | null {
+  return terms.length === 0 ? null : wholeWords(terms);
+}
 
 // Case matters here, since the name after the title is what makes it a person: "Mr Alami",
 // "M. Alami", "the mayor, Ahmed Benali". Without the capital it's a role, not someone.
@@ -57,11 +32,10 @@ const individuals = [
 /** Curly apostrophes read as straight ones, so "l’État" matches "l'État". */
 const normalise = (text: string): string => text.replace(/[‘’ʼ]/g, "'");
 
-/** Which rule `text` breaks, checked political, then groups, then individuals; null when none. */
-export function refusal(text: string): Refusal | null {
+/** Which rule `text` breaks: a private term first, then a named person; null when neither. The model applies the rest of the policy. */
+export function refusal(text: string, terms: RegExp | null = null): Refusal | null {
   const t = normalise(text);
-  if (political.test(t)) return "political";
-  if (groups.test(t)) return "groups";
+  if (terms && terms.test(t)) return "terms";
   if (individuals.some((pattern) => pattern.test(t))) return "individuals";
   return null;
 }

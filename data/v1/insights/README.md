@@ -27,6 +27,9 @@ fits, its link tested across places, all by this repository's own build. Nothing
 premise or a consistent link doesn't make a hypothesis true, only one that survived the
 checks this build runs.
 
+A reason may describe an action, such as a public programme, but never judge one, and it
+never names a private person or generalises about a group.
+
 ## Files
 
 - `regions/<code>.json`, `provinces/<code>.json`, `communes/<code>.json` and

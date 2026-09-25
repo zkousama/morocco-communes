@@ -1,52 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { refusal } from "../src/safety.ts";
+import { refusal, termsPattern } from "../src/safety.ts";
 
 describe("refusal", () => {
-  it("refuses blame on a political actor", () => {
-    expect(refusal("The ministry's neglect emptied the town")).toBe("political");
-    expect(refusal("Le gouvernement a abandonné la commune")).toBe("political");
-  });
-  it("refuses claims about ethnic or religious groups", () => {
-    expect(refusal("Berbers left for the cities")).toBe("groups");
-    expect(refusal("Les juifs de la ville sont partis")).toBe("groups");
-  });
-  it("refuses claims about a named person", () => {
+  it("refuses a named person", () => {
     expect(refusal("The mayor, Mr Alami, closed the market")).toBe("individuals");
+    expect(refusal("Le maire Ahmed Benali a fermé le souk")).toBe("individuals");
+    expect(refusal("Mme Tazi a ouvert une école")).toBe("individuals");
   });
-  it("refuses Sahrawis and tribes as groups, in either language", () => {
-    expect(refusal("Sahrawi families settled in the new districts")).toBe("groups");
-    expect(refusal("Les Sahraouis sont venus s'installer en ville")).toBe("groups");
-    expect(refusal("Une famille sahraouie a quitté le quartier")).toBe("groups");
-    expect(refusal("The tribes of the plain moved to the town")).toBe("groups");
-    expect(refusal("Les terres de la tribu ont été vendues")).toBe("groups");
-    expect(refusal("Plusieurs tribus se partagent les pâturages")).toBe("groups");
-  });
-  it("keeps the Sahara as a place", () => {
-    expect(refusal("The provinces of the Sahara grew fastest")).toBeNull();
-    expect(refusal("Les provinces du Sahara ont le plus grandi")).toBeNull();
-    expect(refusal("A Saharan climate leaves little farmland")).toBeNull();
+  it("needs a capitalised name after a title", () => {
+    expect(refusal("The mayor of the town opened a school")).toBeNull();
   });
   it("lets a claim about places and figures through", () => {
     expect(refusal("Families moved to the suburbs, which doubled in size")).toBeNull();
-    expect(refusal("Tamazight is used by fewer people than in 2014")).toBeNull();
+    expect(refusal("Slum-clearance and rehousing programmes moved households out of these districts")).toBeNull();
   });
+});
 
-  it("matches accented words whole, with either apostrophe", () => {
-    expect(refusal("Les réfugiés sont arrivés après 2015")).toBe("groups");
-    expect(refusal("La négligence de l’État a vidé le village")).toBe("political");
+describe("private terms", () => {
+  const terms = termsPattern(["zorblat", "quix vane"]);
+  it("refuses a listed term, whole, in any case", () => {
+    expect(refusal("The Zorblat moved the market", terms)).toBe("terms");
+    expect(refusal("a quix   vane was built", terms)).toBe("terms");
   });
-  it("doesn't find a listed word inside a longer one", () => {
-    expect(refusal("Une partie des familles est partie vers la côte")).toBeNull();
-    expect(refusal("More people read and write Arabic than in 2014")).toBeNull();
+  it("doesn't find a listed term inside a longer word", () => {
+    expect(refusal("zorblatism rose", terms)).toBeNull();
   });
-  it("reads someone leaving as leaving, and a political party only when it says so", () => {
-    expect(refusal("Il est parti vers la ville pour trouver du travail")).toBeNull();
-    expect(refusal("Les jeunes sont partis travailler à Casablanca")).toBeNull();
-    expect(refusal("Un parti politique a bloqué le projet")).toBe("political");
-  });
-  it("needs a capitalised name after a title", () => {
-    expect(refusal("Le maire Ahmed Benali a fermé le souk")).toBe("individuals");
-    expect(refusal("Mme Tazi a ouvert une école")).toBe("individuals");
-    expect(refusal("The mayor of the town opened a school")).toBeNull();
+  it("has nothing to match without terms", () => {
+    expect(termsPattern([])).toBeNull();
+    expect(refusal("The Zorblat moved the market", null)).toBeNull();
   });
 });

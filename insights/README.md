@@ -42,6 +42,9 @@ in your shell.
   before it orders them by score. The same double opt-in the site build uses for
   `ATTENTION=remote`: without `--demand` on the command line, or with this unset, nothing is
   queried and findings are ordered by score alone.
+- **`INSIGHTS_LOCAL`**: a folder for local settings. A `terms.txt` there (one term per line)
+  adds terms that drop any reason naming them; a `keys.env` there (`NAME=value` lines) holds
+  keys for optional transports. Unset, a live run warns and checks no extra terms.
 - **`OTEL_EXPORTER_OTLP_ENDPOINT`**: traces a run when it's set. A span opens per stage
   (detect, propose, check, links, falsify, publish) and one per finding under propose and
   falsify, and `claude -p`'s own spans nest under those. Left unset, nothing is traced and no

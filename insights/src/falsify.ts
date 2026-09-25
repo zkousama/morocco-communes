@@ -46,12 +46,16 @@ The request's "offLimits" fields are the finding's own measure and its siblings:
 
 WHAT YOU MAY NOT ARGUE WITH
 
-Some hypotheses shouldn't be countered at all. If the hypothesis names an individual, an ethnic or religious group, or blames a political actor, don't write a counter-test: set "refuse" to "individuals", "groups" or "political" and leave "counter" as null.
+Some hypotheses shouldn't be countered at all. Set "refuse" and leave "counter" as null when the hypothesis:
+- blames anyone, or attributes wrongdoing or motives to anyone: "blame";
+- names a private person, or an official picked out by title: "individuals";
+- generalises about an ethnic, religious or regional group: "groups".
+A hypothesis that names a public programme or a documented public action in neutral words is fine to argue with.
 
 ANSWER
 
 Answer with JSON only, nothing before or after it:
-{"counter": <data test or null>, "reason": "...", "refuse": "individuals" | "groups" | "political"}
+{"counter": <data test or null>, "reason": "...", "refuse": "individuals" | "groups" | "blame"}
 Leave "refuse" out unless it applies.
 
 THE REQUEST
@@ -69,7 +73,7 @@ export const PROMPT_HASH = hash(SYSTEM);
 const replySchema = z.object({
   counter: checkSchema.nullable(),
   reason: z.string().trim().min(1),
-  refuse: z.enum(["individuals", "groups", "political"]).optional(),
+  refuse: z.enum(["individuals", "groups", "blame"]).optional(),
 });
 
 /** A reply's parsed verdict fields, or null when the text isn't valid JSON in the expected shape. */
@@ -85,9 +89,9 @@ function readReply(text: string): z.infer<typeof replySchema> | null {
 }
 
 /** The first rule any of the candidate's 6 texts breaks, or null. */
-function refusedCandidate(candidate: Candidate): ReturnType<typeof refusal> {
+function refusedCandidate(candidate: Candidate, terms: RegExp | null): ReturnType<typeof refusal> {
   for (const text of [candidate.claim, candidate.link, candidate.premise].flatMap((t) => [t.en, t.fr])) {
-    const rule = refusal(text);
+    const rule = refusal(text, terms);
     if (rule) return rule;
   }
   return null;
@@ -99,7 +103,7 @@ function refusedCandidate(candidate: Candidate): ReturnType<typeof refusal> {
  * a call that fails stops the candidate with `NO_ANSWER` and no model, and a reply that
  * can't be parsed or validated stops it with `UNREADABLE`, and is never cached.
  */
-export async function falsify(candidate: Candidate, finding: Finding, data: Data, run: Runner, model: string): Promise<Verdict> {
+export async function falsify(candidate: Candidate, finding: Finding, data: Data, run: Runner, model: string, terms: RegExp | null = null): Promise<Verdict> {
   const key = `${finding.id}:${signature(candidate.test)}`;
   const hypothesis = { claim: candidate.claim, link: candidate.link, premise: candidate.premise, test: candidate.test };
   const prompt = `${context(finding, data).slice(0, -1)},"hypothesis":${JSON.stringify(hypothesis)}}`;
@@ -132,7 +136,7 @@ export async function falsify(candidate: Candidate, finding: Finding, data: Data
   }
 
   if (verdict.survived) {
-    const rule = refusedCandidate(candidate);
+    const rule = refusedCandidate(candidate, terms);
     if (rule) return { survived: false, stage: "safety", counter: null, counterOutcome: null, reason: `refused: ${rule}`, model: answered };
   }
   return verdict;

@@ -83,7 +83,7 @@ describe("propose", () => {
 
   it("drops a candidate the safety check refuses", async () => {
     const bad = JSON.parse(good);
-    bad.hypotheses[0].claim.en = "The ministry's neglect lowered fertility";
+    bad.hypotheses[0].claim.en = "Mr Alami closed the clinic";
     const p = await propose(finding, data, runner(JSON.stringify(bad)));
     expect(p.candidates).toEqual([]);
   });

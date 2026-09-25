@@ -137,7 +137,7 @@ describe("where a hypothesis stops", () => {
       return JSON.stringify({ counter: alwaysTrue("commute.privateCar"), reason: "true everywhere" });
     }
     if (call.key.includes('"occupancy.tenant"')) {
-      return JSON.stringify({ counter: null, reason: "not arguable", refuse: "political" });
+      return JSON.stringify({ counter: null, reason: "not arguable", refuse: "blame" });
     }
     return JSON.stringify({ counter: null, reason: "no counter" });
   };
@@ -151,7 +151,7 @@ describe("where a hypothesis stops", () => {
     expect(byClaim.get("a check fails")?.stage).toBe("check");
     expect(byClaim.get("b falsify holds")?.stage).toBe("falsify");
     expect(byClaim.get("c safety kill")?.stage).toBe("safety");
-    expect(byClaim.get("c safety kill")?.reason).toBe("refused: political");
+    expect(byClaim.get("c safety kill")?.reason).toBe("refused: blame");
     expect(byClaim.get("d link not consistent")?.stage).toBe("link");
     expect(byClaim.get("e published")?.stage).toBe("published");
     expect(byClaim.get("e published")?.reason).toBeNull();

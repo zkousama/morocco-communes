@@ -3,7 +3,7 @@
  * a data test checks, and a link a link test may check across places. The same question is
  * asked 5 times; the answers are merged by what their data tests check, and how much the 5
  * disagree is kept as the finding's semantic entropy. A reply that can't be read, a call
- * that fails, a hypothesis in the wrong shape or one the word list refuses is dropped, and
+ * that fails, a hypothesis in the wrong shape or one the safety check refuses is dropped, and
  * a finding left with nothing says why rather than stopping the run. A link test in the
  * wrong shape only costs its hypothesis the link test.
  */
@@ -77,11 +77,12 @@ For a change since 2014, one hypothesis can be that the figure is an error, or a
 
 WHAT HYPOTHESES MAY SAY
 
-Hypotheses are about places and figures. Leave out:
-- individuals: names, and officials picked out by title, such as a mayor or a governor;
-- ethnic or religious groups, and words for people by origin or status such as Berbers, Arabs, sub-Saharans, migrants or refugees. Languages are fine to name as languages;
-- blame on a political actor, such as the government, a ministry, a party or the makhzen, and talk of corruption.
-A word check drops any hypothesis that mentions these, in either language. Write about people moving as families, households or young people moving, and about public spending as the roads, schools or housing that were built.
+A hypothesis may describe an action; it never judges one.
+- Name a public programme or a documented public action in plain, neutral words when it's a likely reason, such as slum-clearance and rehousing programmes, new roads, or schools that opened.
+- Leave out blame, wrongdoing and motives attributed to anyone.
+- Leave out private people: names, and officials picked out by title.
+- Leave out generalisations about ethnic, religious or regional groups. Languages are fine to name as languages.
+Write about people moving as families, households or young people moving.
 
 WRITING
 
@@ -206,9 +207,9 @@ function readReply(text: string): { hypotheses: Hypothesis[]; problem: string | 
 }
 
 /** The first rule any of a hypothesis's 6 texts breaks, or null. */
-function refused(h: Hypothesis): ReturnType<typeof refusal> {
+function refused(h: Hypothesis, terms: RegExp | null): ReturnType<typeof refusal> {
   for (const text of [h.claim, h.link, h.premise].flatMap((t) => [t.en, t.fr])) {
-    const rule = refusal(text);
+    const rule = refusal(text, terms);
     if (rule) return rule;
   }
   return null;
@@ -228,7 +229,7 @@ export function semanticEntropy(signaturesPerSample: string[][]): number {
   return sum === 0 ? 0 : -sum;
 }
 
-export async function propose(finding: Finding, data: Data, run: Runner, model = "sonnet"): Promise<Proposal> {
+export async function propose(finding: Finding, data: Data, run: Runner, model = "sonnet", terms: RegExp | null = null): Promise<Proposal> {
   const prompt = context(finding, data);
   const replies: Proposal["replies"] = [];
   const samples: Hypothesis[][] = [];
@@ -279,7 +280,7 @@ export async function propose(finding: Finding, data: Data, run: Runner, model =
   const refusals: string[] = [];
   const candidates: Candidate[] = [];
   for (const { hypothesis, support } of [...merged.values()].sort((a, b) => b.support - a.support || a.order - b.order)) {
-    const rule = refused(hypothesis);
+    const rule = refused(hypothesis, terms);
     if (rule) refusals.push(rule);
     else candidates.push({ ...hypothesis, support });
   }

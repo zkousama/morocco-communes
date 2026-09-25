@@ -25,6 +25,7 @@ import {
   messageOf,
   NO_USAGE,
   ollamaTransport,
+  readLocal,
   RETRY_DEFAULTS,
   withRetries,
   type Runner,
@@ -32,6 +33,7 @@ import {
 } from "./model.ts";
 import { mapPool } from "./pool.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
+import { termsPattern } from "./safety.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
@@ -99,7 +101,7 @@ export interface RunFile {
 }
 
 /** Bumped by hand when a prompt's parsing or merging changes, not when its wording does: the cache key already carries the prompt's own hash. */
-const STAGE_VERSIONS: Record<string, string> = { propose: "2", falsify: "1" };
+const STAGE_VERSIONS: Record<string, string> = { propose: "3", falsify: "2" };
 
 const LINK_NOT_CONSISTENT_REASON = "the link wasn't consistent across places";
 
@@ -284,7 +286,8 @@ function spanAccumulator() {
  *
  * Traces itself as it goes: a span per stage, and one per finding under `propose` and
  * `falsify`, since those are the stages a `claude -p` call happens in. `options.views`, when
- * given, reorders the findings by demand before any of it runs. Nothing here sends a span
+ * given, reorders the findings by demand before any of it runs. `options.terms`, when given,
+ * is passed to both the proposer and the adversary's safety check. Nothing here sends a span
  * anywhere; that's `exportSpans`'s job, left to the caller.
  *
  * When `STOP_AFTER_FAILURES` proposer or adversary calls fail in a row, the run stops: the
@@ -302,6 +305,7 @@ export async function pipeline(
     falsifierModel: string;
     views?: Map<string, number>;
     concurrency?: number;
+    terms?: RegExp | null;
   },
 ): Promise<RunFile> {
   const startedAt = new Date().toISOString();
@@ -356,7 +360,7 @@ export async function pipeline(
       const findingProposeId = newSpanId();
       const proposeCallStart = Date.now();
       const tracedRun: Runner = (call) => proposer({ ...call, traceparent: traceparent(traceId, findingProposeId) });
-      const proposal = await propose(finding, data, tracedRun, options.proposer);
+      const proposal = await propose(finding, data, tracedRun, options.proposer, options.terms ?? null);
       const proposeCallEnd = Date.now();
       for (const reply of proposal.replies) answered.add(reply.model);
       if (halt.reason) return stoppedHere();
@@ -396,7 +400,7 @@ export async function pipeline(
         }
 
         const falsifyStart = Date.now();
-        const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.falsifierModel);
+        const verdict = await falsify(candidate, finding, data, tracedFalsifier, options.falsifierModel, options.terms ?? null);
         findingFalsify.record(falsifyStart, Date.now());
         if (verdict.model) answered.add(verdict.model);
         const argued = verdict.model ? { model: verdict.model, reason: verdict.reason } : null;
@@ -834,7 +838,11 @@ async function main(): Promise<void> {
   const falsifierTransport = falsifierChoice.transport === "ollama" ? ollamaTransport() : claudeTransport();
   const falsifier = makeRunner(withRetries(falsifierTransport, retryOptions), cacheOptions);
 
-  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views, concurrency });
+  const local = readLocal(process.env);
+  if (!local) console.error("insights: INSIGHTS_LOCAL isn't set, so no private terms are checked");
+  const terms = termsPattern(local?.terms ?? []);
+
+  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views, concurrency, terms });
   await exportSpans(file.spans, process.env);
 
   const runsDir = ".cache/insights/runs";
