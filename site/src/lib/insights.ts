@@ -6,10 +6,24 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Kind } from "../../../insights/src/detect.ts";
+import {
+  ARTEFACT_POPULATION_CHANGE_CEILING,
+  CHANGE_MIN_LEVEL_SIZE,
+  DEFAULT_CAP,
+  DEFAULT_PER_UNIT,
+  EXTREME_POPULATION_FLOOR,
+  EXTREME_TAIL_SHARE,
+  GAP_MIN_GROUP_SIZE,
+  Z_THRESHOLD,
+  type Kind,
+} from "../../../insights/src/detect.ts";
 import { field, type Level } from "../../../insights/src/fields.ts";
-import type { Hypothesis } from "../../../insights/src/run.ts";
-import type { Metrics } from "../../../insights/src/score.ts";
+import { PER_SIDE, REGRADE_N } from "../../../insights/src/grade.ts";
+import { FALSE_DISCOVERY_RATE, MIN_UNITS, PERMUTATION_ROUNDS, PLACEBO_COUNT } from "../../../insights/src/links.ts";
+import { MUTATIONS, NUMBER_SHIFT } from "../../../insights/src/mutate.ts";
+import { SAMPLES } from "../../../insights/src/propose.ts";
+import { PUBLISHED_CAP, type Hypothesis } from "../../../insights/src/run.ts";
+import { PRECISION_FLOOR, type Metrics } from "../../../insights/src/score.ts";
 import type { Check } from "../../../insights/src/vocabulary.ts";
 import { fill, places } from "../i18n/places";
 import type { Locale } from "../i18n/ui";
@@ -65,6 +79,33 @@ export function readMetrics(path: string): Metrics | null {
 
 export const insightsOf = readUnitInsights("data/v1/insights");
 export const metrics = readMetrics("insights/metrics.json");
+
+/**
+ * The pipeline's own settings, for the methods page to state rather than retype: shares
+ * as fractions, the rest as counts. A number the code only writes inline is pinned to the
+ * page by site/tests/insights.test.ts instead.
+ */
+export const method = {
+  extremeFloor: EXTREME_POPULATION_FLOOR,
+  extremeTail: EXTREME_TAIL_SHARE,
+  deviations: Z_THRESHOLD,
+  changeLevelSize: CHANGE_MIN_LEVEL_SIZE,
+  gapGroupSize: GAP_MIN_GROUP_SIZE,
+  artefactCeiling: ARTEFACT_POPULATION_CHANGE_CEILING,
+  kept: DEFAULT_CAP,
+  perPlace: DEFAULT_PER_UNIT,
+  samples: SAMPLES,
+  shuffles: PERMUTATION_ROUNDS,
+  placebos: PLACEBO_COUNT,
+  fewestPlaces: MIN_UNITS,
+  falseDiscoveryRate: FALSE_DISCOVERY_RATE,
+  shown: PUBLISHED_CAP,
+  perSide: PER_SIDE,
+  regraded: REGRADE_N,
+  precisionFloor: PRECISION_FLOOR,
+  mutations: MUTATIONS,
+  numberShift: NUMBER_SHIFT,
+};
 
 /** A figure at the precision the census publishes it: shares to one decimal, fertility to 2. */
 function figure(locale: Locale, path: string, value: number): string {

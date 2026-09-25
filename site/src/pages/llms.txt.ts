@@ -46,6 +46,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Python package](${at("/docs/python/")}): \`morocco-communes\` on PyPI, every table as a pandas DataFrame, offline
 - [Glossary](${at("/docs/glossary/")}): what the units, the census terms, the establishments and the dwelling types mean, with HCP's own wording where it defines one
 - [Census figures](${at("/docs/indicators/")}): every census indicator from 2024 and 2014, with HCP's heading for it, its unit, its path and CSV column, and how to read it
+- [How the insights are made](${at("/docs/insights/")}): how a figure that stands out is picked, how each possible reason a language model proposes for it is checked, and how the checks are graded
 
 ## Data
 

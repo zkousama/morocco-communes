@@ -29,8 +29,8 @@ export interface Metrics {
 }
 
 /** The one-sided lower bound `guard` judges precision by: the same Wilson interval, z for 95% one-sided. */
-const ONE_SIDED_Z = 1.645;
-const PRECISION_FLOOR = 0.8;
+export const ONE_SIDED_Z = 1.645;
+export const PRECISION_FLOOR = 0.8;
 
 /** A fraction as a whole percent, for a reason a person reads in the terminal. */
 const pct = (fraction: number): number => Math.round(fraction * 100);

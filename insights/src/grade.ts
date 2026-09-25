@@ -160,10 +160,11 @@ export function formatItem(item: { finding: Finding; line: { en: string }; hypot
 
 const RUN_PATH = ".cache/insights/runs/latest.json";
 export const GRADED_PATH = "insights/graded.json";
-// 50 per side, the size the brief's own sample() test draws.
-const PER_SIDE = 50;
+// 50 per side, the size the brief's own sample() test draws. This and REGRADE_N are
+// stated on the site's methods page, which reads them from here.
+export const PER_SIDE = 50;
 const SEED = 1;
-const REGRADE_N = 25;
+export const REGRADE_N = 25;
 const REGRADE_SEED = 1;
 
 type Loaded<T> = { ok: true; value: T } | { ok: false; message: string };

@@ -239,7 +239,7 @@ interface UnitFile {
 }
 
 /** A unit's file shows at most this many hypotheses per finding, the ones with the highest support. */
-const PUBLISHED_CAP = 3;
+export const PUBLISHED_CAP = 3;
 
 /**
  * Shapes a finished run into the files `data/v1/insights/` holds: one per unit that has an

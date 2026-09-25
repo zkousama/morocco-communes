@@ -22,14 +22,15 @@ export interface Finding {
   direction: "high" | "low";
 }
 
-const DEFAULT_CAP = 300;
-const DEFAULT_PER_UNIT = 3;
-const Z_THRESHOLD = 3;
-const EXTREME_POPULATION_FLOOR = 5000;
-const EXTREME_TAIL_SHARE = 0.01;
-const CHANGE_MIN_LEVEL_SIZE = 10;
-const GAP_MIN_GROUP_SIZE = 8;
-const ARTEFACT_POPULATION_CHANGE_CEILING = 0.1;
+// Exported for the site's methods page, which states each of them.
+export const DEFAULT_CAP = 300;
+export const DEFAULT_PER_UNIT = 3;
+export const Z_THRESHOLD = 3;
+export const EXTREME_POPULATION_FLOOR = 5000;
+export const EXTREME_TAIL_SHARE = 0.01;
+export const CHANGE_MIN_LEVEL_SIZE = 10;
+export const GAP_MIN_GROUP_SIZE = 8;
+export const ARTEFACT_POPULATION_CHANGE_CEILING = 0.1;
 
 const LEVELS: Level[] = ["region", "province", "commune", "arrondissement"];
 

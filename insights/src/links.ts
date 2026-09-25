@@ -45,10 +45,12 @@ export interface LinkOutcome {
   refused?: string;
 }
 
-const MIN_UNITS = 30;
+// All but MIN_HALF are stated on the site's methods page, which reads them from here.
+export const MIN_UNITS = 30;
 const MIN_HALF = 10; // peers: the smaller of its 2 halves must reach this, or a lopsided (or empty) split slips through
-const PERMUTATION_ROUNDS = 999;
-const PLACEBO_COUNT = 3;
+export const PERMUTATION_ROUNDS = 999;
+export const PLACEBO_COUNT = 3;
+export const FALSE_DISCOVERY_RATE = 0.05;
 
 const refused = (n: number, reason: string): LinkOutcome => ({ p: 1, effect: 0, held: false, placeboEffects: [], n, refused: reason });
 
@@ -231,7 +233,7 @@ export function runLink(test: LinkTest, data: Data, seed: number): LinkOutcome {
  * passed in, held in its claimed direction, and beat every one of its own placebos; a
  * refused outcome is left out of the correction and reported back as `"refused"`.
  */
-export function judgeLinks(outcomes: LinkOutcome[], q = 0.05): ("consistent" | "not consistent" | "refused")[] {
+export function judgeLinks(outcomes: LinkOutcome[], q = FALSE_DISCOVERY_RATE): ("consistent" | "not consistent" | "refused")[] {
   const consideredAt: number[] = [];
   const ps: number[] = [];
   outcomes.forEach((outcome, i) => {

@@ -6,7 +6,7 @@
 import Docs from "../../../layouts/Docs.astro";
 import { REPO_URL } from "../../../i18n/ui";
 import { numbers, percent } from "../../../lib/format";
-import { metrics } from "../../../lib/insights";
+import { method, metrics } from "../../../lib/insights";
 
 const locale = "fr";
 
@@ -21,21 +21,26 @@ const toc = [
 ];
 
 const n = numbers(locale);
+const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
 const on = (iso: string) =>
   new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+const PLANTED: Record<(typeof method.mutations)[number], string> = {
+  unit: "le lieu remplacé par une commune tirée au hasard",
+  year: "l’année remplacée par celle de l’autre recensement",
+  direction: "la comparaison inversée",
+  number: `le seuil réduit de moitié ou relevé de ${count(method.numberShift)}`,
+  field: "la mesure remplacée par une mesure d’un autre thème",
+};
+const ways = method.mutations.map((kind) => PLANTED[kind]);
+const waysInWords = `${ways.slice(0, -1).join(", ")}, et ${ways.at(-1)}`;
 
 const published = metrics && metrics.published.graded > 0 ? metrics.published : null;
 const agreement = metrics?.agreement ?? null;
 const planted = metrics && metrics.planted.total > 0 ? metrics.planted : null;
-const KINDS: [string, string][] = [
-  ["unit", "Le lieu remplacé par une commune tirée au hasard"],
-  ["year", "L’autre année de recensement lue"],
-  ["direction", "La comparaison inversée"],
-  ["number", "Le seuil divisé par 2, ou relevé de 20"],
-  ["field", "La mesure remplacée par une mesure d’un autre thème"],
-];
-const kinds = planted ? KINDS.filter(([kind]) => (planted.byKind[kind]?.total ?? 0) > 0) : [];
+const kinds = planted ? method.mutations.filter((kind) => (planted.byKind[kind]?.total ?? 0) > 0) : [];
 
 const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
 ---
@@ -51,24 +56,25 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   <section id="stands-out">
     <h2>Ce qui se détache</h2>
     <p>
-      Un chiffre peut se détacher de 3 façons. Une commune de 5 000 habitants ou plus figure parmi les 1 % les plus
-      hauts ou les plus bas de ces communes pour une mesure. L’évolution d’une unité depuis 2014 s’écarte d’au moins
-      3 écarts-types de l’évolution moyenne de son niveau, pour un niveau d’au moins 10 unités et une mesure que le
-      recensement de 2014 posait de la même façon. Ou l’écart d’une commune ou d’une province au chiffre de sa
-      province ou de sa région s’éloigne d’au moins 3 écarts-types de l’écart moyen sous ce même parent, quand
-      celui-ci compte au moins 8 unités.
+      Une commune de {count(method.extremeFloor)} habitants ou plus se détache quand elle figure parmi les{" "}
+      {whole(method.extremeTail)} les plus hauts ou les plus bas de ces communes pour une mesure. Une unité se
+      détache quand son évolution depuis 2014 s’écarte d’au moins {count(method.deviations)} écarts-types de
+      l’évolution moyenne de son niveau, pour un niveau d’au moins {count(method.changeLevelSize)} unités et une
+      mesure que le recensement de 2014 posait de la même façon. Une commune ou une province se détache aussi quand
+      son écart au chiffre de sa province ou de sa région s’éloigne d’au moins {count(method.deviations)} écarts-types
+      de l’écart moyen sous ce même parent, quand celui-ci compte au moins {count(method.gapGroupSize)} unités.
     </p>
     <p>
       Chaque mesure est un taux, une part ou une moyenne, car un effectif brut ferait ressortir une grande unité
       du seul fait de sa taille. Une commune rapprochée de 2014 par la table de correspondance n’a pas d’évolution
-      à comparer, puisque son chiffre de 2014 porte sur un autre territoire. Les 300 chiffres qui se détachent le
-      plus sont retenus, au plus 3 par lieu.
+      à comparer, puisque son chiffre de 2014 porte sur un autre territoire. Les {count(method.kept)} chiffres qui se
+      détachent le plus sont retenus, au plus {count(method.perPlace)} par lieu.
     </p>
     <p>
       Les langues parlées, lues et écrites, le niveau d’études et l’analphabétisme évoluent lentement. Quand l’une de
-      ces mesures bascule dans un lieu dont la population a varié de moins de 10 %, sans qu’aucun voisin ait bougé
-      dans le même sens d’au moins la moitié, le chiffre est signalé comme une erreur possible dans les données. Il
-      est affiché avec ce seul signalement, et aucune raison n’est proposée pour lui.
+      ces mesures bascule dans un lieu dont la population a varié de moins de {whole(method.artefactCeiling)}, sans
+      qu’aucun voisin ait bougé dans le même sens d’au moins la moitié, le chiffre est signalé comme une erreur
+      possible dans les données. Il est affiché avec ce seul signalement, et aucune raison n’est proposée pour lui.
     </p>
   </section>
 
@@ -81,11 +87,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       données peut vérifier ; et un lien, ce qui ferait que ce fait explique le chiffre.
     </p>
     <p>
-      La même question est posée 5 fois. Les réponses sont regroupées selon ce que vérifient leurs tests, et le
-      soutien d’une hypothèse est le nombre de réponses sur les 5 qui l’ont proposée. Le désaccord entre les 5 est
-      enregistré pour chaque chiffre comme son entropie sémantique, calculée sur ces groupes. Une liste de mots
-      écarte ensuite toute hypothèse qui nomme une personne, un groupe ethnique ou religieux ou un acteur politique,
-      dans l’une ou l’autre langue.
+      La même question est posée {count(method.samples)} fois. Les réponses sont regroupées selon ce que vérifient
+      leurs tests, et le soutien d’une hypothèse est le nombre de réponses sur les {count(method.samples)} qui l’ont
+      proposée. Le désaccord entre les {count(method.samples)} est enregistré pour chaque chiffre comme son entropie
+      sémantique, calculée sur ces groupes. Une liste de mots écarte ensuite toute hypothèse qui nomme une personne,
+      un groupe ethnique ou religieux ou un acteur politique, dans l’une ou l’autre langue.
     </p>
   </section>
 
@@ -112,22 +118,23 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       Le lien est une affirmation de cause, que le recensement seul ne peut pas trancher. Quand un test de lien s’y
       prête, le modèle en propose un, qui porte sur tous les lieux du même niveau. Le premier type classe les lieux
       selon la mesure de la prémisse et selon celle du chiffre, en 2024 ou selon leur évolution depuis 2014, et
-      mesure à quel point les 2 classements vont ensemble, avec une valeur p tirée de 999 permutations. Le second
-      coupe les lieux de chaque région à leur médiane pour la mesure de la prémisse, et compare la médiane du
-      chiffre entre les 2 moitiés avec un test de Mann-Whitney.
+      mesure à quel point les classements vont ensemble, avec une valeur p tirée de {count(method.shuffles)}{" "}
+      permutations. Le second coupe les lieux de chaque région à leur médiane pour la mesure de la prémisse, et
+      compare la médiane du chiffre entre la moitié haute et la moitié basse avec un test de Mann-Whitney.
     </p>
     <p>
-      Chaque test est refait avec 3 mesures de thèmes sans rapport à la place de celle de la prémisse, comme
-      placebos, et la prémisse doit aller avec le chiffre plus nettement que chacun des 3. Les valeurs p de tous les
-      tests de lien d’une même exécution sont corrigées ensemble, par la procédure de Benjamini-Hochberg, à un taux
-      de fausses découvertes de 5 %.
+      Chaque test est refait avec {count(method.placebos)} mesures de thèmes sans rapport à la place de celle de la
+      prémisse, comme placebos, et la prémisse doit aller avec le chiffre plus nettement que chacun des{" "}
+      {count(method.placebos)}. Les valeurs p de tous les tests de lien d’une même exécution sont corrigées
+      ensemble, par la procédure de Benjamini-Hochberg, à un taux de fausses découvertes de{" "}
+      {whole(method.falseDiscoveryRate)}.
     </p>
     <p>
       Un lien qui passe, bat ses placebos et va dans le sens annoncé est présenté comme cohérent avec ce qu’on
       observe d’un lieu à l’autre. C’est un motif que la prémisse et le chiffre partagent, ce qui est moins fort
       qu’une cause. Un test de lien qui échoue écarte son hypothèse. Quand aucun test de lien ne s’y prête, ou qu’il
-      ne peut pas tourner, par exemple avec moins de 30 lieux à comparer, le lien est présenté comme proposé, non
-      testé.
+      ne peut pas tourner, par exemple avec moins de {count(method.fewestPlaces)} lieux à comparer, le lien est
+      présenté comme proposé, non testé.
     </p>
   </section>
 
@@ -142,60 +149,60 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
     <p>
       Un contre-test qui échoue ou qui est refusé laisse l’hypothèse en place, tout comme une réponse sans
-      contre-test. Chaque chiffre montre ensuite jusqu’à 3 des hypothèses restantes, les plus soutenues d’abord. Un
-      chiffre sans hypothèse restante n’apparaît pas sur la page.
+      contre-test. Chaque chiffre montre ensuite jusqu’à {count(method.shown)} des hypothèses restantes, les plus
+      soutenues d’abord. Un chiffre sans hypothèse restante n’apparaît pas sur la page.
     </p>
   </section>
 
   <section id="grading">
     <h2>La notation</h2>
     <p>
-      Une personne note à la main un échantillon de la dernière exécution : jusqu’à 50 hypothèses qui ont passé
-      toutes les vérifications et 50 qui se sont arrêtées en route, au plus une de chaque par chiffre, mélangées.
-      Elle voit le chiffre, l’affirmation, la prémisse avec ses nombres, le lien et les nombres de son test, et rien
-      qui dise si l’hypothèse est passée ni où elle s’est arrêtée. Elle répond oui ou non, selon que l’hypothèse
-      tient ou pas. Jusqu’à 25 réponses sont notées une seconde fois, à l’aveugle, et le kappa de Cohen mesure
-      l’accord entre les 2 passages.
+      Une personne note à la main un échantillon de la dernière exécution : jusqu’à {count(method.perSide)}{" "}
+      hypothèses qui ont passé toutes les vérifications et {count(method.perSide)} qui se sont arrêtées en route, au
+      plus une de chaque par chiffre, mélangées. Elle voit le chiffre, l’affirmation, la prémisse avec ses nombres,
+      le lien et les nombres de son test, et rien qui dise si l’hypothèse est passée ni où elle s’est arrêtée. Elle
+      répond oui ou non, selon que l’hypothèse tient ou pas. Jusqu’à {count(method.regraded)} réponses sont notées
+      une seconde fois, à l’aveugle, et le kappa de Cohen mesure l’accord du second passage avec le premier.
     </p>
     <p>
-      Chaque hypothèse publiée notée oui voit ensuite son test faussé de chacune des 5 façons qui s’y appliquent,
-      puis relancé : le lieu remplacé par une commune tirée au hasard, l’autre année de recensement, la comparaison
-      inversée, le seuil divisé par 2 ou relevé de 20, et la mesure remplacée par une mesure d’un autre thème. Une
-      erreur introduite est repérée quand le test faussé ne passe plus.
+      Chaque hypothèse publiée notée oui voit ensuite son test faussé de chacune des{" "}
+      {count(method.mutations.length)} façons qui s’y appliquent, puis relancé : {waysInWords}. Une erreur
+      introduite est repérée quand le test faussé ne passe plus.
     </p>
     <p>
       La part des hypothèses publiées notées oui reçoit un intervalle de Wilson à 95 %. Rien n’est publié tant que
-      la borne basse de cet intervalle, pris en unilatéral, est sous 80 %, tant qu’aucune erreur introduite n’a été
-      mesurée, ou tant qu’elles sont repérées moins souvent qu’à la dernière notation gardée dans le dépôt.
+      la borne basse de cet intervalle, pris en unilatéral, est sous {whole(method.precisionFloor)}, tant qu’aucune
+      erreur introduite n’a été mesurée, ou tant qu’elles sont repérées moins souvent qu’à la dernière notation
+      gardée dans le dépôt.
     </p>
     {metrics ? (
       <>
         {published && (
           <p>
-            {n.format(published.yes)} des {n.format(published.graded)} hypothèses publiées ont été notées oui : entre{" "}
+            {count(published.yes)} des {count(published.graded)} hypothèses publiées ont été notées oui : entre{" "}
             {whole(published.low)} et {whole(published.high)} de ce qui est publié tient donc, avec une confiance de
             95 %. La borne basse unilatérale que lit le garde-fou est de {whole(published.lowOneSided)}.
           </p>
         )}
         {agreement && (
           <p>
-            Sur les {n.format(agreement.n)} réponses notées une seconde fois, les 2 passages s’accordent avec un kappa
-            de Cohen de {numbers(locale, 2, true).format(agreement.kappa)}.
+            Sur les {count(agreement.n)} réponses notées une seconde fois, l’accord entre le premier et le second
+            passage atteint un kappa de Cohen de {numbers(locale, 2, true).format(agreement.kappa)}.
           </p>
         )}
         {planted && (
           <>
-            <p>{n.format(planted.caught)} des {n.format(planted.total)} erreurs introduites ont été repérées.</p>
+            <p>{count(planted.caught)} des {count(planted.total)} erreurs introduites ont été repérées.</p>
             <div class="scroll" tabindex="0">
               <table>
                 <thead>
                   <tr><th>L’erreur introduite</th><th class="num">Repérée</th></tr>
                 </thead>
                 <tbody>
-                  {kinds.map(([kind, label]) => (
+                  {kinds.map((kind) => (
                     <tr>
-                      <td>{label}</td>
-                      <td class="num">{n.format(planted.byKind[kind]!.caught)} sur {n.format(planted.byKind[kind]!.total)}</td>
+                      <td>{capital(PLANTED[kind])}</td>
+                      <td class="num">{count(planted.byKind[kind]!.caught)} sur {count(planted.byKind[kind]!.total)}</td>
                     </tr>
                   ))}
                 </tbody>

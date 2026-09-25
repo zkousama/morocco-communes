@@ -1,7 +1,12 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { Data } from "../../insights/src/data.ts";
+import { mutations } from "../../insights/src/mutate.ts";
+import { ONE_SIDED_Z } from "../../insights/src/score.ts";
+import { wilson } from "../../insights/src/stats.ts";
+import { CHECK_GRAMMAR, type Check } from "../../insights/src/vocabulary.ts";
 import { evidenceNumbers, readMetrics, readUnitInsights } from "../src/lib/insights.ts";
 
 describe("insights on the site", () => {
@@ -50,5 +55,87 @@ describe("the numbers beside a checked premise", () => {
         { value: 11, rank: 2, of: 40 },
       ),
     ).toBe("11.0%, ranked 2 of 40");
+  });
+
+  it("gives nothing when a figure the test read is missing", () => {
+    const check = { check: "change", of: self, field: "education.higher", op: ">", value: 5 } as const;
+    expect(evidenceNumbers("en", check, { y2024: 11 })).toBeNull();
+  });
+});
+
+/**
+ * The numbers the methods page states, against the code that decides them.
+ *
+ * Most come straight from insights/src as constants the pages format. The rest are
+ * pinned here: each is read from the code, and the page must say it in those words.
+ * Once they and the years are taken out, no digit may be left in either page.
+ */
+describe("the methods page's numbers", () => {
+  const source = (path: string) => readFileSync(path, "utf8");
+  const pages = { en: source("site/src/pages/docs/insights.astro"), fr: source("site/src/pages/fr/docs/insights.astro") };
+
+  /** A page's reader-facing text: its markup, with every expression, code span and tag taken out. */
+  const prose = (page: string) => {
+    let body = page.split("---")[2]!.replace(/<style>[\s\S]*<\/style>/, "").replace(/<code>[\s\S]*?<\/code>/g, " ");
+    while (/\{[^{}<>]*\}/.test(body)) body = body.replace(/\{[^{}<>]*\}/g, " ");
+    // Not \s, which would also collapse the narrow no-break space French puts before a %.
+    return body.replace(/<[^>]*>/g, " ").replace(/[ \t\r\n]+/g, " ");
+  };
+
+  /** The standard normal CDF, from Abramowitz and Stegun's 7.1.26 approximation of erf. */
+  const phi = (z: number) => {
+    const x = Math.abs(z) / Math.SQRT2;
+    const t = 1 / (1 + 0.3275911 * x);
+    const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+    const erf = 1 - poly * Math.exp(-x * x);
+    return z >= 0 ? (1 + erf) / 2 : (1 - erf) / 2;
+  };
+
+  const [, fewest, most] = /Propose (\d+) to (\d+) hypotheses/.exec(source("insights/src/propose.ts")) ?? [];
+  const checks = new Set([...CHECK_GRAMMAR.matchAll(/"check":"(\w+)"/g)].map((m) => m[1])).size;
+  const confidence = Math.round((2 * phi(1.96) - 1) * 100);
+
+  it("reads the confidence the intervals are taken at", () => {
+    expect(wilson(45, 50)).toEqual(wilson(45, 50, 1.96));
+    expect(Math.round(phi(ONE_SIDED_Z) * 100)).toBe(confidence);
+    expect(confidence).toBe(95);
+  });
+
+  it("says how many hypotheses are asked for, how many checks a data test has, and at what confidence", () => {
+    expect(fewest).toBeDefined();
+    const en = prose(pages.en);
+    const fr = prose(pages.fr);
+    expect(en).toContain(`asked for ${fewest} to ${most} hypotheses`);
+    expect(fr).toContain(`proposer ${fewest} à ${most} hypothèses`);
+    expect(en).toContain(`a vocabulary of ${checks} checks`);
+    expect(fr).toContain(`un vocabulaire de ${checks} vérifications`);
+    expect(en).toContain(`a ${confidence}% Wilson interval`);
+    expect(fr).toContain(`un intervalle de Wilson à ${confidence}\u202f%`);
+  });
+
+  it("says half where the code halves", () => {
+    expect(source("insights/src/detect.ts")).toContain("const halfMagnitude = Math.abs(change) / 2;");
+    expect(pages.en).toContain("at least half as much");
+    expect(pages.fr).toContain("d’au moins la moitié");
+
+    const literal = { check: "change", of: { unit: "code", code: "04.421.01.0" }, field: "education.higher", op: ">", value: 30 } as const;
+    const moved = mutations(literal, {} as Data, 1).filter((m) => m.kind === "number").map((m) => (m.check as Extract<Check, { check: "change" }>).value);
+    expect(moved).toContain(literal.value / 2);
+    expect(pages.en).toContain("halved");
+    expect(pages.fr).toContain("réduit de moitié");
+  });
+
+  it("leaves no other number typed into either page", () => {
+    const pinned = {
+      en: [`${fewest} to ${most}`, `of ${checks} checks`, `${confidence}%`],
+      fr: [`${fewest} à ${most}`, `de ${checks} vérifications`, `${confidence}\u202f%`],
+    };
+    for (const locale of ["en", "fr"] as const) {
+      let text = prose(pages[locale]);
+      for (const phrase of pinned[locale]) text = text.split(phrase).join(" ");
+      // The census years, and the years of the work cited.
+      text = text.replace(/\b(2014|2024|2025)\b/g, " ");
+      expect(text.match(/.{0,30}\d.{0,30}/g), locale).toBeNull();
+    }
   });
 });

@@ -12,7 +12,11 @@ import { field, FIELDS } from "./fields.ts";
 import { rng } from "./stats.ts";
 import type { Check, Subject, Year } from "./vocabulary.ts";
 
-export type Mutation = "unit" | "year" | "direction" | "number" | "field";
+export const MUTATIONS = ["unit", "year", "direction", "number", "field"] as const;
+export type Mutation = (typeof MUTATIONS)[number];
+
+/** How far a `number` mutant moves a literal, besides halving it. */
+export const NUMBER_SHIFT = 20;
 
 interface Mutant {
   kind: Mutation;
@@ -48,9 +52,9 @@ function randomOtherField(path: string, random: () => number): string | null {
   return others[Math.floor(random() * others.length)]!.path;
 }
 
-/** Halved and shifted by 20 points, minus whichever of those lands back on the original value. */
+/** Halved and shifted by `NUMBER_SHIFT` points, minus whichever of those lands back on the original value. */
 function numberMutants(value: number): number[] {
-  return [value / 2, value + 20].filter((v) => v !== value);
+  return [value / 2, value + NUMBER_SHIFT].filter((v) => v !== value);
 }
 
 function compareMutations(check: Extract<Check, { check: "compare" }>, data: Data, random: () => number): Mutant[] {
