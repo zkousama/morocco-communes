@@ -73,7 +73,7 @@ const communesRoute = path(locale, "communes/");
   data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}
   data-gap={copy.gapAny} data-gap-03={copy.gap03} data-gap-04={copy.gap04}>
   <div class="frame">
-    <svg viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={markup} />
+    <svg class="map" viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={markup} />
     <div class="tip" hidden></div>
   </div>
   <figcaption>
@@ -100,6 +100,22 @@ const communesRoute = path(locale, "communes/");
 </figure>
 
 <script>
+  import {
+    MIN_ZOOM,
+    between,
+    panBy,
+    parseBox,
+    pinch,
+    toMap,
+    toScreen,
+    viewBoxOf,
+    wheelZoom,
+    whole,
+    zoomAt,
+    type Point,
+    type View,
+  } from "../lib/zoom";
+
   type Row = [
     slug: string,
     name: string,
@@ -111,12 +127,13 @@ const communesRoute = path(locale, "communes/");
   ];
 
   const atlas = document.querySelector<HTMLElement>(".atlas");
-  const svg = atlas?.querySelector("svg");
+  const frame = atlas?.querySelector<HTMLElement>(".frame");
+  const svg = atlas?.querySelector<SVGSVGElement>("svg.map");
   const tip = atlas?.querySelector<HTMLElement>(".tip");
-  if (atlas && svg && tip) {
+  if (atlas && frame && svg && tip) {
     const d = atlas.dataset;
     const number = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
-    const whole = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 0 });
+    const rounded = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 0 });
     const tenths = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     let rows: Record<string, Row> | null = null;
     let loading: Promise<void> | null = null;
@@ -128,11 +145,37 @@ const communesRoute = path(locale, "communes/");
         })
         .catch(() => undefined));
 
+    // What the map shows, in its own units. Every gesture below works out a new view, and
+    // draw() writes it to the viewBox, at most once a frame.
+    const box = parseBox(svg.getAttribute("viewBox") ?? "");
+    let view: View = whole(box);
+    const bounds = () => svg.getBoundingClientRect();
+
     // The shape under the pointer is drawn again on top, so its outline isn't hidden under
     // its neighbours.
     const focus = document.createElementNS("http://www.w3.org/2000/svg", "path");
     focus.setAttribute("class", "focus");
     svg.append(focus);
+
+    // The tooltip remembers the map point it was opened at, so it moves with the map when
+    // the map is zoomed or dragged under it.
+    let anchor: Point | null = null;
+    let tipWidth = 0;
+    let tipHeight = 0;
+    const place = (x: number, y: number, frameBox: DOMRect) => {
+      const left = Math.min(Math.max(x - frameBox.left + 14, 0), frameBox.width - tipWidth);
+      const below = y - frameBox.top + 14;
+      const top = below + tipHeight > frameBox.height ? y - frameBox.top - tipHeight - 14 : below;
+      tip.style.transform = `translate(${left}px, ${Math.max(top, 0)}px)`;
+    };
+    const open = (x: number, y: number) => {
+      tip.hidden = false;
+      tipWidth = tip.offsetWidth;
+      tipHeight = tip.offsetHeight;
+      const frameBox = bounds();
+      anchor = toMap(view, box, frameBox, { x, y });
+      place(x, y, frameBox);
+    };
 
     const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
     const show = (shape: SVGPathElement, x: number, y: number, pinned: boolean) => {
@@ -147,16 +190,12 @@ const communesRoute = path(locale, "communes/");
       tip.innerHTML =
         `<strong>${escape(name)}</strong><span>${type === "urban" ? d.urban : d.rural}</span>` +
         `<span>${number.format(people)} ${d.people}</span>` +
-        (density === null ? "" : `<span>${(density >= 100 ? whole : number).format(density)} ${d.density}</span>`) +
+        (density === null ? "" : `<span>${(density >= 100 ? rounded : number).format(density)} ${d.density}</span>`) +
         (signed ? `<span>${signed} ${d.change}</span>` : "") +
         (illiteracy === null ? "" : `<span>${tenths.format(illiteracy)}${d.lang === "fr" ? "\u202f%" : "%"} ${d.illiteracy}</span>`) +
         (pinned ? `<a href="${d.base}${slug}/">${d.open}</a>` : "");
       tip.dataset.slug = slug;
-      tip.hidden = false;
-      const box = atlas.querySelector(".frame")!.getBoundingClientRect();
-      const left = Math.min(Math.max(x - box.left + 14, 0), box.width - tip.offsetWidth);
-      const top = y - box.top + 14 + tip.offsetHeight > box.height ? y - box.top - tip.offsetHeight - 14 : y - box.top + 14;
-      tip.style.transform = `translate(${left}px, ${Math.max(top, 0)}px)`;
+      open(x, y);
     };
     // Land no commune covers says what it is instead of naming a commune.
     const showGap = (shape: SVGPathElement, x: number, y: number) => {
@@ -164,19 +203,203 @@ const communesRoute = path(locale, "communes/");
       const region = shape.dataset.gap ?? "";
       // data-gap-03 is dataset["gap-03"]: a dash before a digit isn't camel-cased.
       tip.textContent = (d as Record<string, string | undefined>)[`gap-${region}`] ?? d.gap ?? "";
-      tip.hidden = false;
-      const box = atlas.querySelector(".frame")!.getBoundingClientRect();
-      const left = Math.min(Math.max(x - box.left + 14, 0), box.width - tip.offsetWidth);
-      tip.style.transform = `translate(${left}px, ${Math.max(y - box.top + 14, 0)}px)`;
+      open(x, y);
     };
     const hide = () => {
       tip.hidden = true;
       focus.setAttribute("d", "");
+      anchor = null;
     };
+
+    // Drawing -----------------------------------------------------------------------------
+
+    const hatch = svg.querySelector("pattern");
+    let drawnK = MIN_ZOOM;
+    let pending = 0;
+    const draw = () => {
+      pending = 0;
+      const frameBox = bounds();
+      svg.setAttribute("viewBox", viewBoxOf(view, box));
+      // The hatching is drawn in map units, so it's shrunk by the zoom to keep its spacing
+      // on screen. The lines are measured on screen already; see the styles.
+      if (view.k !== drawnK) {
+        drawnK = view.k;
+        hatch?.setAttribute("patternTransform", `rotate(45) scale(${1 / view.k})`);
+      }
+      frame.classList.toggle("zoomed", view.k > MIN_ZOOM);
+      if (anchor && !tip.hidden) {
+        const p = toScreen(view, box, frameBox, anchor);
+        const inside = p.x >= frameBox.left && p.x <= frameBox.right && p.y >= frameBox.top && p.y <= frameBox.bottom;
+        if (inside) place(p.x, p.y, frameBox);
+        else hide();
+      }
+    };
+    const go = (next: View) => {
+      if (![next.k, next.x, next.y].every(Number.isFinite)) return;
+      view = next;
+      pending ||= requestAnimationFrame(draw);
+    };
+
+    // A double-click eases to its view; a hand on the map follows the hand.
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let aim: View | null = null;
+    let flight = 0;
+    const land = () => {
+      cancelAnimationFrame(flight);
+      flight = 0;
+      aim = null;
+    };
+    const glide = (target: View) => {
+      land();
+      if (still.matches) return go(target);
+      const from = view;
+      const start = performance.now();
+      aim = target;
+      const step = (now: number) => {
+        const t = Math.min((now - start) / 240, 1);
+        view = between(from, target, box, 1 - (1 - t) ** 3);
+        cancelAnimationFrame(pending);
+        draw();
+        if (t < 1) flight = requestAnimationFrame(step);
+        else land();
+      };
+      flight = requestAnimationFrame(step);
+    };
+    const zoomBy = (factor: number, p: Point) => {
+      const base = aim ?? view;
+      glide(zoomAt(base, box, bounds(), p, base.k * factor));
+    };
+    // A pinch that ends a hair past 1x goes back to the whole map rather than leave it
+    // almost still and unscrollable.
+    const settle = () => {
+      if (view.k > MIN_ZOOM && view.k < 1.05) glide(whole(box));
+    };
+
+    // Pointers ----------------------------------------------------------------------------
+
+    // Fingers, the mouse and pens on the map, where each is now.
+    const down = new Map<number, Point>();
+    // One pointer drags. Two pinch, from the view and positions they started with.
+    let drag: { id: number; from: Point; start: View; moved: boolean } | null = null;
+    let pair: { ids: [number, number]; from: [Point, Point]; start: View } | null = null;
+    // Set once a press moves past a tap or a second finger lands; its click is dropped.
+    let dragged = false;
+    let lastType = "mouse";
+    const slop = (type: string) => (type === "mouse" ? 4 : 8);
+
+    // Whenever a pointer comes or goes, the gesture starts again from where things are, so
+    // lifting one finger of a pinch carries on as a drag without a jump.
+    const regrip = () => {
+      const held = [...down.entries()];
+      drag = null;
+      pair = null;
+      if (held.length >= 2) {
+        const [a, b] = held as [[number, Point], [number, Point]];
+        pair = { ids: [a[0], b[0]], from: [{ ...a[1] }, { ...b[1] }], start: view };
+      } else if (held.length === 1) {
+        const [id, p] = held[0]!;
+        drag = { id, from: { ...p }, start: view, moved: dragged };
+      }
+    };
+
+    svg.addEventListener("pointerdown", (event) => {
+      lastType = event.pointerType;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      // A mouse released outside the page leaves no pointerup behind.
+      if (event.pointerType === "mouse") down.clear();
+      if (down.size === 0) dragged = false;
+      land();
+      down.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (down.size >= 2) dragged = true;
+      if (down.size <= 2) regrip();
+    });
+
+    svg.addEventListener("pointermove", (event) => {
+      const p = down.get(event.pointerId);
+      if (!p) return;
+      p.x = event.clientX;
+      p.y = event.clientY;
+      if (pair) {
+        const a = down.get(pair.ids[0]);
+        const b = down.get(pair.ids[1]);
+        if (a && b) go(pinch(pair.start, box, bounds(), pair.from, [a, b]));
+      } else if (drag && drag.id === event.pointerId) {
+        const dx = p.x - drag.from.x;
+        const dy = p.y - drag.from.y;
+        if (!drag.moved && Math.hypot(dx, dy) > slop(event.pointerType)) {
+          drag.moved = true;
+          dragged = true;
+          if (event.pointerType === "mouse") {
+            svg.setPointerCapture(event.pointerId);
+            frame.classList.toggle("dragging", view.k > MIN_ZOOM);
+          }
+        }
+        if (drag.moved) go(panBy(drag.start, box, bounds(), dx, dy));
+      }
+    });
+
+    const lift = (event: PointerEvent) => {
+      if (!down.delete(event.pointerId)) return;
+      regrip();
+      if (down.size === 0) {
+        frame.classList.remove("dragging");
+        settle();
+      }
+    };
+    // On the window, since a mouse can be let go of anywhere once it's left the map.
+    window.addEventListener("pointerup", lift);
+    window.addEventListener("pointercancel", lift);
+
+    // At 1x a finger scrolls the page, so the map only asks the browser to keep off 2
+    // fingers, which would otherwise scroll it or zoom the page. Zoomed in, touch-action in
+    // the styles hands every touch to the map.
+    const twoFingers = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault();
+    };
+    svg.addEventListener("touchstart", twoFingers, { passive: false });
+    svg.addEventListener("touchmove", twoFingers, { passive: false });
+
+    // Ctrl or ⌘ with the wheel, and a trackpad pinch, which arrives as the same. A wheel on
+    // its own scrolls the page.
+    let wheelEnd = 0;
+    svg.addEventListener(
+      "wheel",
+      (event) => {
+        if (!event.ctrlKey && !event.metaKey) return;
+        event.preventDefault();
+        land();
+        go(zoomAt(view, box, bounds(), { x: event.clientX, y: event.clientY }, view.k * wheelZoom(event.deltaY, event.deltaMode)));
+        clearTimeout(wheelEnd);
+        wheelEnd = window.setTimeout(settle, 200);
+      },
+      { passive: false },
+    );
+
+    // Safari sends a trackpad pinch as gesture events instead. On a phone it sends them for
+    // a pinch too, which the pointers above already follow.
+    type Gesture = Event & { scale: number; clientX: number; clientY: number };
+    let gestureStart: View | null = null;
+    svg.addEventListener("gesturestart", (event) => {
+      event.preventDefault();
+      gestureStart = down.size === 0 ? view : null;
+    });
+    svg.addEventListener("gesturechange", (event) => {
+      event.preventDefault();
+      const g = event as Gesture;
+      if (!gestureStart || down.size > 0 || !Number.isFinite(g.scale)) return;
+      go(zoomAt(gestureStart, box, bounds(), { x: g.clientX, y: g.clientY }, gestureStart.k * g.scale));
+    });
+    svg.addEventListener("gestureend", (event) => {
+      event.preventDefault();
+      if (gestureStart) settle();
+      gestureStart = null;
+    });
+
+    // Tooltip and clicks ------------------------------------------------------------------
 
     svg.addEventListener("pointerenter", () => void load());
     svg.addEventListener("pointermove", (event) => {
-      if (event.pointerType !== "mouse") return;
+      if (event.pointerType !== "mouse" || drag?.moved) return;
       const target = event.target as Element;
       const shape = target.closest<SVGPathElement>("path[data-c]");
       const gap = target.closest<SVGPathElement>("path[data-gap]");
@@ -188,8 +411,14 @@ const communesRoute = path(locale, "communes/");
       if (event.pointerType === "mouse") hide();
     });
     // A mouse click opens the commune. A tap shows it first, with a link, since there's no
-    // hover to read it by.
+    // hover to read it by. The page opens a moment after the click, in case it's the first
+    // of a double-click, which zooms in instead.
+    let clicks = 0;
     svg.addEventListener("click", async (event) => {
+      if (dragged) return;
+      const mouse = ((event as PointerEvent).pointerType || lastType) === "mouse";
+      const ticket = ++clicks;
+      if (mouse && event.detail > 1) return;
       const gap = (event.target as Element).closest<SVGPathElement>("path[data-gap]");
       if (gap) return showGap(gap, event.clientX, event.clientY);
       const shape = (event.target as Element).closest<SVGPathElement>("path[data-c]");
@@ -197,8 +426,15 @@ const communesRoute = path(locale, "communes/");
       await load();
       const row = rows?.[shape.dataset.c ?? ""];
       if (!row) return;
-      if ((event as PointerEvent).pointerType === "mouse") window.location.href = `${d.base}${row[0]}/`;
-      else show(shape, event.clientX, event.clientY, true);
+      if (!mouse) return show(shape, event.clientX, event.clientY, true);
+      window.setTimeout(() => {
+        if (ticket === clicks) window.location.href = `${d.base}${row[0]}/`;
+      }, 300);
+    });
+    svg.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      clicks++;
+      if (!dragged) zoomBy(2, { x: event.clientX, y: event.clientY });
     });
 
     const views = atlas.querySelector<HTMLElement>(".views");
@@ -223,16 +459,31 @@ const communesRoute = path(locale, "communes/");
     position: relative;
   }
 
-  svg {
+  .map {
     display: block;
     width: 100%;
     height: auto;
     overflow: visible;
+    /* At 1x a finger scrolls the page past the map; 2 fingers are the map's. */
+    touch-action: pan-x pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Zoomed in, the map keeps to its frame and takes every touch, so a finger drags it. */
+  .frame.zoomed .map {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .frame.dragging .map,
+  .frame.dragging .map :global(path) {
+    cursor: grabbing;
   }
 
   /* Every commune is filled by the class it falls in for the view shown, and separated from
      its neighbours by a hairline of the page. */
-  svg :global(.communes path) {
+  .map :global(.communes path) {
     fill: var(--map-none);
     fill-rule: evenodd;
     stroke: var(--paper);
@@ -241,19 +492,19 @@ const communesRoute = path(locale, "communes/");
     cursor: pointer;
   }
 
-  svg :global(.gap) {
+  .map :global(.gap) {
     fill: url(#gap-hatch);
     stroke: var(--quiet);
     stroke-width: 0.5;
     cursor: help;
   }
 
-  svg :global(.hatch) {
+  .map :global(.hatch) {
     stroke: var(--quiet);
     stroke-width: 1.2;
   }
 
-  svg :global(.regions) {
+  .map :global(.regions) {
     fill: none;
     stroke: var(--paper);
     stroke-width: 1.8;
@@ -262,12 +513,43 @@ const communesRoute = path(locale, "communes/");
     pointer-events: none;
   }
 
-  svg :global(.focus) {
+  .map :global(.focus) {
     fill: none;
     stroke: var(--ink);
     stroke-width: 1.6;
     stroke-linejoin: round;
     pointer-events: none;
+  }
+
+  /* Zoomed in, lines in map units would thicken with the map, so they're measured on the
+     screen instead, as a share of the frame's width. The map is 1000 units across (WIDTH in
+     site/scripts/map.ts), so 0.035cqw is 0.35 units at 1x, and the map at 1x looks as it
+     did. This costs the browser nothing per frame, where changing the widths as the map
+     zooms would restyle every commune. Without container units, lines stay in map units. */
+  @supports (width: 1cqw) {
+    .frame {
+      container-type: inline-size;
+    }
+
+    .map :global(path) {
+      vector-effect: non-scaling-stroke;
+    }
+
+    .map :global(.communes path) {
+      stroke-width: 0.035cqw;
+    }
+
+    .map :global(.gap) {
+      stroke-width: 0.05cqw;
+    }
+
+    .map :global(.regions) {
+      stroke-width: 0.18cqw;
+    }
+
+    .map :global(.focus) {
+      stroke-width: 0.16cqw;
+    }
   }
 
   .atlas[data-view="density"] :global([data-d="0"]),
