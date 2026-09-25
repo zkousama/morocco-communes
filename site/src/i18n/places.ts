@@ -138,6 +138,9 @@ export const places = {
     commuteNames: {
       walking: "On foot", privateCar: "Private car", taxi: "Taxi", bus: "Bus",
       bikeOrMotorcycle: "Bike or motorcycle", employerTransport: "Employer’s transport",
+      train: "Train", tram: "Tram", informalTransport: "Informal transport", animal: "Animal",
+      other: "Another way", noTravel: "Doesn’t travel to work", worksAtHome: "Works at home",
+      undetermined: "Not stated",
     },
     profession: "What people did",
     professionBody: "The work employed people did in 2014. The 2024 census doesn’t publish this by commune.",
@@ -362,6 +365,9 @@ export const places = {
     commuteNames: {
       walking: "À pied", privateCar: "Voiture privée", taxi: "Taxi", bus: "Bus",
       bikeOrMotorcycle: "Vélo ou moto", employerTransport: "Transport de l’employeur",
+      train: "Train", tram: "Tram", informalTransport: "Transport informel", animal: "Animaux",
+      other: "Autre", noTravel: "Ne se déplace pas", worksAtHome: "Travaille à domicile",
+      undetermined: "Non déterminé",
     },
     profession: "Ce que faisaient les gens",
     professionBody: "Le travail des actifs occupés en 2014. Le recensement de 2024 ne le publie pas par commune.",

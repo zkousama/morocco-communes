@@ -38,7 +38,11 @@ const professionNames = p.professionNames as Record<string, string>;
 const diplomaNames = p.diplomaNames as Record<string, string>;
 const PROFESSIONS = ["managersAndProfessionals", "technicians", "clerks", "traders", "farmers", "artisans", "farmLabourers", "machineOperators", "labourers", "unclassified"];
 const DIPLOMAS = ["none", "primary", "lowerSecondary", "upperSecondary", "bachelor", "masterOrDoctorate", "undeclared"];
-const MODES = ["walking", "privateCar", "taxi", "bus", "bikeOrMotorcycle", "employerTransport"];
+// Every mode either census asks about: 2024 has 12, 2014 has 11, and the two overlap on 8.
+const MODES = [
+  "walking", "bikeOrMotorcycle", "privateCar", "bus", "taxi", "employerTransport", "train", "tram",
+  "informalTransport", "animal", "other", "noTravel", "worksAtHome", "undetermined",
+];
 
 interface Figure {
   label: string;
