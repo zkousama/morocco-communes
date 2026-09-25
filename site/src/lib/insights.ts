@@ -25,9 +25,9 @@ import { field, type Level } from "../../../insights/src/fields.ts";
 import { PER_SIDE, REGRADE_N } from "../../../insights/src/grade.ts";
 import { EFFECT_FLOOR, FALSE_DISCOVERY_RATE, MIN_UNITS, PERMUTATION_ROUNDS, PLACEBO_COUNT } from "../../../insights/src/links.ts";
 import { MUTATIONS, NUMBER_SHIFT } from "../../../insights/src/mutate.ts";
-import { SAMPLES } from "../../../insights/src/propose.ts";
 import { PUBLISHED_CAP, type PublishedHypothesis } from "../../../insights/src/run.ts";
 import { PRECISION_FLOOR, type Metrics } from "../../../insights/src/score.ts";
+import { readSetup } from "../../../insights/src/setup.ts";
 import type { Check } from "../../../insights/src/vocabulary.ts";
 import { fill, places } from "../i18n/places";
 import type { Locale } from "../i18n/ui";
@@ -83,11 +83,14 @@ export function readMetrics(path: string): Metrics | null {
 
 export const insightsOf = readUnitInsights("data/v1/insights");
 export const metrics = readMetrics("insights/published.json");
+const setup = readSetup();
 
 /**
  * The pipeline's own settings, for the methods page to state rather than retype: shares
  * as fractions, the rest as counts. A number the code only writes inline is pinned to the
- * page by site/tests/insights.test.ts instead.
+ * page by site/tests/insights.test.ts instead. `samples` and `attackShownOnly` come from
+ * the committed `insights/setup.json` rather than a constant, since the pilot can change
+ * either.
  */
 export const method = {
   extremeFloor: EXTREME_POPULATION_FLOOR,
@@ -101,13 +104,14 @@ export const method = {
   householdSize: MAX_HOUSEHOLD_SIZE,
   kept: DEFAULT_CAP,
   perPlace: DEFAULT_PER_UNIT,
-  samples: SAMPLES,
+  samples: setup.propose.samples,
   shuffles: PERMUTATION_ROUNDS,
   placebos: PLACEBO_COUNT,
   fewestPlaces: MIN_UNITS,
   falseDiscoveryRate: FALSE_DISCOVERY_RATE,
   effectFloor: EFFECT_FLOOR,
   shown: PUBLISHED_CAP,
+  attackShownOnly: setup.attackShownOnly,
   perSide: PER_SIDE,
   regraded: REGRADE_N,
   precisionFloor: PRECISION_FLOOR,

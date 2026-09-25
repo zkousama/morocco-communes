@@ -846,8 +846,8 @@ async function main(): Promise<void> {
     refuseToStart(error);
     return;
   }
-  // The Gemini transport arrives with the pilot's connector (Task 11): the schema accepts
-  // "gemini" already, but a run asked for one today has nothing to call it with.
+  // The schema accepts "gemini" already, but the gemini transport isn't wired in yet: a
+  // run asked for one today has nothing to call it with.
   if (setup.propose.transport === "gemini" || setup.falsify.transport === "gemini") {
     refuseToStart(new Error("the gemini transport arrives with the pilot's connector"));
     return;

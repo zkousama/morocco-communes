@@ -166,6 +166,12 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       same vocabulary, one that would come out true if the premise didn’t explain the figure. The counter-test is
       run the same way, and one that comes out true drops the hypothesis. The adversary also declines to argue with
       a reason that breaks the rule on what a reason may say, which drops it.
+      {method.attackShownOnly && (
+        <>
+          {" "}Only the reasons a page would show, the {count(method.shown)} with the most support for each figure,
+          go to the adversary; the rest aren’t shown.
+        </>
+      )}
     </p>
     <p>
       A counter-test that fails or is refused leaves the hypothesis standing, and so does an answer without one. An

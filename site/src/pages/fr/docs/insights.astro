@@ -168,6 +168,12 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       dans le même vocabulaire, qui serait vrai si la prémisse n’expliquait pas le chiffre. Le contre-test est
       calculé de la même façon, et s’il est vrai, l’hypothèse est écartée. L’adversaire refuse aussi de discuter
       une raison qui enfreint la règle sur ce que peut dire une raison, ce qui l’écarte.
+      {method.attackShownOnly && (
+        <>
+          {" "}Seules les raisons qu’une page montrerait, les {count(method.shown)} les plus soutenues pour chaque
+          chiffre, passent devant l’adversaire ; les autres ne sont pas montrées.
+        </>
+      )}
     </p>
     <p>
       Un contre-test qui échoue ou qui est refusé laisse l’hypothèse en place, tout comme une réponse sans

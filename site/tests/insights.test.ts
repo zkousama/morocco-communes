@@ -7,7 +7,8 @@ import { mutations } from "../../insights/src/mutate.ts";
 import { ONE_SIDED_Z } from "../../insights/src/score.ts";
 import { wilson } from "../../insights/src/stats.ts";
 import { CHECK_GRAMMAR, type Check } from "../../insights/src/vocabulary.ts";
-import { evidenceNumbers, flagOf, introOf, readMetrics, readUnitInsights, type UnitInsights } from "../src/lib/insights.ts";
+import { readSetup } from "../../insights/src/setup.ts";
+import { evidenceNumbers, flagOf, introOf, method, readMetrics, readUnitInsights, type UnitInsights } from "../src/lib/insights.ts";
 import { places } from "../src/i18n/places.ts";
 
 describe("insights on the site", () => {
@@ -128,6 +129,10 @@ describe("the methods page's numbers", () => {
     expect(wilson(45, 50)).toEqual(wilson(45, 50, 1.96));
     expect(Math.round(phi(ONE_SIDED_Z) * 100)).toBe(confidence);
     expect(confidence).toBe(95);
+  });
+
+  it("takes its sample count from the committed setup, not a constant", () => {
+    expect(method.samples).toBe(readSetup().propose.samples);
   });
 
   it("says how many hypotheses are asked for, how many checks a data test has, and at what confidence", () => {
