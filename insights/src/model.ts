@@ -70,8 +70,22 @@ export function claudeTransport(options?: { timeoutMs?: number }): Transport {
       timedOut = true;
       child.kill("SIGTERM");
     }, timeoutMs);
-    const code = await new Promise<number | null>((resolve) => child.on("close", resolve));
-    clearTimeout(timer);
+    // A spawn failure (the binary missing from PATH, say) fires 'error', never 'close';
+    // a normal exit fires 'close', never 'error'. Either settles this promise once, so
+    // the other can't resolve or reject it again.
+    const code = await new Promise<number | null>((resolve, reject) => {
+      let settled = false;
+      child.once("error", (e) => {
+        if (settled) return;
+        settled = true;
+        reject(new Error(`couldn't start claude: ${e.message}`));
+      });
+      child.once("close", (code) => {
+        if (settled) return;
+        settled = true;
+        resolve(code);
+      });
+    }).finally(() => clearTimeout(timer));
 
     if (timedOut) throw new Error(`claude timed out after ${timeoutMs}ms`);
     if (code !== 0) throw new Error(`claude exited ${code}: ${err.trim().split("\n").slice(-2).join(" ")}`);

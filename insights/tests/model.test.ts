@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -52,5 +52,41 @@ describe("the runner", () => {
     await expect(claudeTransport()(call)).rejects.toThrow(/INSIGHTS_LIVE/);
     await expect(ollamaTransport()(call)).rejects.toThrow(/INSIGHTS_LIVE/);
     if (before !== undefined) process.env.INSIGHTS_LIVE = before;
+  });
+
+  it("keeps the original call's ms on a cache hit", async () => {
+    const transport = stubTransport(() => {
+      // slow enough that a cache hit recomputing ms, instead of keeping the stored
+      // one, would show up as a difference rather than noise
+      const until = Date.now() + 20;
+      while (Date.now() < until) {
+        // busy-wait
+      }
+      return '{"ok":true}';
+    });
+    const cacheDir = mkdtempSync(join(tmpdir(), "insights-cache-"));
+    const runner = makeRunner(transport, { cacheDir, datasetVersion: "1.8.0", stageVersions: { propose: "1" } });
+    const first = await runner(call);
+    const second = await runner(call);
+    expect(first.ms).toBeGreaterThanOrEqual(20);
+    expect(second.cached).toBe(true);
+    expect(second.ms).toBe(first.ms);
+  });
+
+  it("treats a corrupt cache file as a miss", async () => {
+    let calls = 0;
+    const transport = stubTransport(() => { calls += 1; return '{"ok":true}'; });
+    const cacheDir = mkdtempSync(join(tmpdir(), "insights-cache-"));
+    const runner = makeRunner(transport, { cacheDir, datasetVersion: "1.8.0", stageVersions: { propose: "1" } });
+    await runner(call);
+
+    // the runner just wrote the one cache file for this stage; break it
+    const stageDir = join(cacheDir, "propose");
+    const [file] = readdirSync(stageDir);
+    writeFileSync(join(stageDir, file!), "not json");
+
+    const second = await runner(call);
+    expect(calls).toBe(2);
+    expect(second.cached).toBe(false);
   });
 });
