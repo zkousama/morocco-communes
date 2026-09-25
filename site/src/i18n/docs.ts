@@ -117,12 +117,12 @@ export const SPEC_FR: Record<string, string> = {
   "getNationalHousing.description": "Les mêmes chiffres pour toutes les villes du pays réunies.",
   "getNationalHousing.200": "Le parc logement urbain du Maroc.",
 
-  "listInsights.summary": "Chaque unité qui a un résultat publié",
+  "listInsights.summary": "Chaque unité qui a un constat publié",
   "listInsights.description":
-    "Des raisons possibles pour un chiffre du recensement de 2024 qui se détache, proposées par un modèle de langage et vérifiées sur les données ; voir la page méthode pour savoir comment un résultat y trouve sa place. " +
-    "Chaque ligne donne le code d'une unité, son niveau et le nombre de résultats qu'elle a ; lire `/api/{collection}/{code}/insights.json` pour les résultats eux-mêmes, `collection` venant du niveau (regions, provinces, communes ou arrondissements). " +
-    "La plupart des unités n'y figurent pas : aucun chiffre ne s'y détache chez elles, ou aucun n'a passé les vérifications.",
-  "listInsights.200": "Chaque unité qui a un résultat publié.",
+    "Des raisons possibles pour un chiffre du recensement de 2024 qui se détache, proposées par un modèle de langage et vérifiées sur les données ; voir la page méthode pour savoir comment un constat y trouve sa place. " +
+    "Chaque ligne donne le code d'une unité, son niveau et le nombre de constats qu'elle a ; lire `/api/{collection}/{code}/insights.json` pour les constats eux-mêmes, `collection` venant du niveau (regions, provinces, communes ou arrondissements). " +
+    "La plupart des unités n'y figurent pas : aucun chiffre ne s'y détache chez elles, ou aucun constat n'a passé les vérifications.",
+  "listInsights.200": "Chaque unité qui a un constat publié.",
 
   "listRegions.summary": "Les 12 régions",
   "listRegions.200": "Toutes les régions.",
