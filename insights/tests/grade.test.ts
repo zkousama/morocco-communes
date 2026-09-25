@@ -172,15 +172,18 @@ describe("formatItem", () => {
     expect(formatItem(item)).not.toContain("link test:");
   });
 
-  it("shows the link test's result when there is one", () => {
+  it("shows the link test's numbers when there is one: effect, p and the 3 placebo effects", () => {
     const withLink = {
       ...item,
       hypothesis: {
         ...item.hypothesis,
-        linkTest: { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "consistent", p: 0.01234, effect: 0.5678 },
+        linkTest: {
+          link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive",
+          verdict: "consistent", p: 0.01234, effect: 0.5678, placeboEffects: [0.12, -0.34, 0.05],
+        },
       } as unknown as Hypothesis,
     };
-    expect(formatItem(withLink)).toContain("link test: consistent, p=0.0123, effect=0.57");
+    expect(formatItem(withLink)).toContain("link test: effect 0.57, p 0.0123; unrelated measures: 0.12, -0.34, 0.05");
   });
 
   it("keeps a small p readable rather than rounding it away to 0", () => {
@@ -188,10 +191,41 @@ describe("formatItem", () => {
       ...item,
       hypothesis: {
         ...item.hypothesis,
-        linkTest: { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "consistent", p: 0.0032, effect: -0.281 },
+        linkTest: {
+          link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive",
+          verdict: "consistent", p: 0.0032, effect: -0.281, placeboEffects: [0.02, -0.15, 0.33],
+        },
       } as unknown as Hypothesis,
     };
-    expect(formatItem(withLink)).toContain("p=0.0032");
-    expect(formatItem(withLink)).not.toContain("p=0,");
+    expect(formatItem(withLink)).toContain("p 0.0032");
+  });
+
+  it("says a refused link test couldn't be tested, without the word 'refused'", () => {
+    const withLink = {
+      ...item,
+      hypothesis: {
+        ...item.hypothesis,
+        linkTest: { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive", verdict: "refused", p: 1, effect: 0, placeboEffects: [] },
+      } as unknown as Hypothesis,
+    };
+    const text = formatItem(withLink);
+    expect(text).toContain("link test: couldn't be tested");
+    expect(text).not.toContain("refused");
+  });
+
+  it("never shows the verdict word, for a consistent, a not-consistent or a refused link test", () => {
+    const base = { link: "together", x: "a", y: "b", year: 2024, level: "commune", direction: "positive" };
+    const linkTests = [
+      { ...base, verdict: "consistent", p: 0.01, effect: 0.5, placeboEffects: [0.1, 0.2, 0.3] },
+      { ...base, verdict: "not consistent", p: 0.2, effect: 0.1, placeboEffects: [0.05, 0.06, 0.07] },
+      { ...base, verdict: "refused", p: 1, effect: 0, placeboEffects: [] },
+    ];
+    for (const linkTest of linkTests) {
+      const withLink = { ...item, hypothesis: { ...item.hypothesis, linkTest } as unknown as Hypothesis };
+      const text = formatItem(withLink);
+      // "not consistent" contains "consistent", so this one check rules out both.
+      expect(text).not.toContain("consistent");
+      expect(text).not.toContain("refused");
+    }
   });
 });

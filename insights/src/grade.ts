@@ -130,9 +130,16 @@ function formatNumbers(numbers: Record<string, number>): string {
   return keys.map((key) => `${key}=${round(numbers[key]!, 2)}`).join(", ");
 }
 
-/** p to 4 decimals, so a small but real p (0.0032, say) doesn't round away to "0". */
+/**
+ * The link test's numbers only, never its verdict: "consistent" only ever sits on a
+ * published hypothesis and "not consistent" only ever sits on a rejected one, so the word
+ * would give the gate away on its own. p is shown to 4 decimals, so a small but real p
+ * (0.0032, say) doesn't round away to "0".
+ */
 function formatLinkTest(linkTest: NonNullable<Hypothesis["linkTest"]>): string {
-  return `${linkTest.verdict}, p=${round(linkTest.p, 4)}, effect=${round(linkTest.effect, 2)}`;
+  if (linkTest.verdict === "refused") return "couldn't be tested";
+  const placebos = linkTest.placeboEffects.map((e) => round(e, 2)).join(", ");
+  return `effect ${round(linkTest.effect, 2)}, p ${round(linkTest.p, 4)}; unrelated measures: ${placebos}`;
 }
 
 /**
@@ -159,21 +166,49 @@ const SEED = 1;
 const REGRADE_N = 25;
 const REGRADE_SEED = 1;
 
-async function loadRunFile(): Promise<RunFile | null> {
+type Loaded<T> = { ok: true; value: T } | { ok: false; message: string };
+
+const isMissing = (error: unknown): boolean => (error as NodeJS.ErrnoException)?.code === "ENOENT";
+
+/** No run file at all gets the usual nudge; one that exists but can't be read or parsed gets its own message, since that's a different problem to fix. */
+async function loadRunFile(): Promise<Loaded<RunFile>> {
+  let raw: string;
   try {
-    return JSON.parse(await readFile(RUN_PATH, "utf8")) as RunFile;
-  } catch {
-    return null;
+    raw = await readFile(RUN_PATH, "utf8");
+  } catch (error) {
+    if (isMissing(error)) return { ok: false, message: "no run yet: run `pnpm insights` first" };
+    return { ok: false, message: `couldn't read ${RUN_PATH}: ${error instanceof Error ? error.message : String(error)}` };
+  }
+  try {
+    return { ok: true, value: JSON.parse(raw) as RunFile };
+  } catch (error) {
+    return { ok: false, message: `${RUN_PATH} isn't valid JSON: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
 
-async function loadGradedFile(path: string): Promise<GradedFile> {
+/**
+ * A missing graded.json is the normal first run and starts empty; one that exists but can't
+ * be read, parsed or doesn't hold the shape it should is reported and stops the run, rather
+ * than silently starting over on top of it, which would lose every grade already saved.
+ */
+async function loadGradedFile(path: string): Promise<Loaded<GradedFile>> {
+  let raw: string;
   try {
-    const parsed = JSON.parse(await readFile(path, "utf8")) as Partial<GradedFile>;
-    return { grades: parsed.grades ?? [], regrades: parsed.regrades ?? [] };
-  } catch {
-    return { grades: [], regrades: [] };
+    raw = await readFile(path, "utf8");
+  } catch (error) {
+    if (isMissing(error)) return { ok: true, value: { grades: [], regrades: [] } };
+    return { ok: false, message: `couldn't read ${path}: ${error instanceof Error ? error.message : String(error)}` };
   }
+  let parsed: Partial<GradedFile>;
+  try {
+    parsed = JSON.parse(raw) as Partial<GradedFile>;
+  } catch (error) {
+    return { ok: false, message: `${path} isn't valid JSON: ${error instanceof Error ? error.message : String(error)}` };
+  }
+  if (!Array.isArray(parsed.grades) || !Array.isArray(parsed.regrades)) {
+    return { ok: false, message: `${path} isn't shaped like a graded file: it needs grades and regrades arrays` };
+  }
+  return { ok: true, value: { grades: parsed.grades, regrades: parsed.regrades } };
 }
 
 /** Writes to a temporary name in the same directory, then renames it into place, so a quit or a crash mid-write never leaves a half-written file to be read back. */
@@ -196,31 +231,48 @@ async function askAnswer(rl: ReturnType<typeof createInterface>): Promise<"yes" 
   }
 }
 
-async function runGrade(runFile: RunFile, startFile: GradedFile, gradedPath: string): Promise<void> {
-  const items = ungraded(sample(runFile, PER_SIDE, SEED), startFile.grades);
-  if (items.length === 0) {
-    console.log("nothing left to grade");
-    return;
-  }
-
+/**
+ * The interactive loop both commands run: show each item, read an answer, fold it into the
+ * file and save right away. `render` and `merge` are what tells a grading run from a
+ * regrading one apart; `q` (or a crash) stops the loop but never loses an answer already
+ * saved.
+ */
+async function interactiveLoop<T>(
+  items: T[],
+  startFile: GradedFile,
+  gradedPath: string,
+  render: (item: T) => string,
+  merge: (file: GradedFile, item: T, answer: "yes" | "no" | "skip") => GradedFile,
+): Promise<void> {
   let file = startFile;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
     for (const [i, item] of items.entries()) {
       console.log(`\n[${i + 1}/${items.length}]`);
-      console.log(formatItem(item));
+      console.log(render(item));
       const answer = await askAnswer(rl);
       if (answer === "quit") {
         console.log("saved, quitting");
         return;
       }
-      file = appendGrade(file, toGraded(item, answer, new Date().toISOString()));
+      file = merge(file, item, answer);
       await saveGradedFile(gradedPath, file);
     }
     console.log("done");
   } finally {
     rl.close();
   }
+}
+
+async function runGrade(runFile: RunFile, startFile: GradedFile, gradedPath: string): Promise<void> {
+  const items = ungraded(sample(runFile, PER_SIDE, SEED), startFile.grades);
+  if (items.length === 0) {
+    console.log("nothing left to grade");
+    return;
+  }
+  await interactiveLoop(items, startFile, gradedPath, formatItem, (file, item, answer) =>
+    appendGrade(file, toGraded(item, answer, new Date().toISOString())),
+  );
 }
 
 async function runRegrade(startFile: GradedFile, gradedPath: string): Promise<void> {
@@ -231,39 +283,29 @@ async function runRegrade(startFile: GradedFile, gradedPath: string): Promise<vo
     console.log("nothing left to regrade");
     return;
   }
-
-  let file = startFile;
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    for (const [i, graded] of items.entries()) {
-      console.log(`\n[${i + 1}/${items.length}]`);
-      console.log(formatItem(graded.item));
-      const answer = await askAnswer(rl);
-      if (answer === "quit") {
-        console.log("saved, quitting");
-        return;
-      }
-      file = appendRegrade(file, { id: graded.id, answer });
-      await saveGradedFile(gradedPath, file);
-    }
-    console.log("done");
-  } finally {
-    rl.close();
-  }
+  await interactiveLoop(items, startFile, gradedPath, (g) => formatItem(g.item), (file, item, answer) =>
+    appendRegrade(file, { id: item.id, answer }),
+  );
 }
 
 async function main(): Promise<void> {
-  const runFile = await loadRunFile();
-  if (!runFile) {
-    console.log("no run yet: run `pnpm insights` first");
+  const run = await loadRunFile();
+  if (!run.ok) {
+    console.log(run.message);
     process.exitCode = 1;
     return;
   }
 
-  const file = await loadGradedFile(GRADED_PATH);
+  const graded = await loadGradedFile(GRADED_PATH);
+  if (!graded.ok) {
+    console.log(graded.message);
+    process.exitCode = 1;
+    return;
+  }
+
   const isRegrade = process.argv.slice(2).includes("--regrade");
-  if (isRegrade) await runRegrade(file, GRADED_PATH);
-  else await runGrade(runFile, file, GRADED_PATH);
+  if (isRegrade) await runRegrade(graded.value, GRADED_PATH);
+  else await runGrade(run.value, graded.value, GRADED_PATH);
 }
 
 // Runs the CLI when this file is the entry point, not when a test imports it.

@@ -25,7 +25,7 @@ export interface Hypothesis {
   link: { en: string; fr: string };
   premise: { en: string; fr: string };
   evidence: { kind: "data"; check: Check; numbers: Record<string, number> };
-  linkTest: (LinkTest & { verdict: "consistent" | "not consistent" | "refused"; p: number; effect: number }) | null;
+  linkTest: (LinkTest & { verdict: "consistent" | "not consistent" | "refused"; p: number; effect: number; placeboEffects: number[] }) | null;
   support: number;
   stage: "published" | "check" | "link" | "falsify" | "safety"; // where it stopped, or published
   reason: string | null;
@@ -187,7 +187,7 @@ export async function pipeline(
       }
       const outcome = linkOutcomes[entry.linkOutcomeIndex]!;
       const verdict = verdicts[entry.linkOutcomeIndex]!;
-      const linkTest = { ...entry.candidate.linkTest!, verdict, p: outcome.p, effect: outcome.effect };
+      const linkTest = { ...entry.candidate.linkTest!, verdict, p: outcome.p, effect: outcome.effect, placeboEffects: outcome.placeboEffects };
       if (verdict === "not consistent") {
         decided.push({ order: entry.order, hypothesis: buildHypothesis(entry.candidate, entry.outcome, "link", LINK_NOT_CONSISTENT_REASON, linkTest) });
       } else {
