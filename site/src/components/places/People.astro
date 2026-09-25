@@ -219,29 +219,31 @@ const empty = views.length === 0;
                 <table class="pyramid">
                   <caption class="sr-only">{fill(p.ageCaption, { name })}</caption>
                   <colgroup>
+                    <col class="value" />
                     <col />
                     <col class="ages" />
                     <col />
+                    <col class="value" />
                   </colgroup>
                   <thead>
                     <tr>
-                      <th scope="col" class="men">{p.men}</th>
+                      <th scope="col" class="men" colspan="2">{p.men}</th>
                       <th scope="col"><span class="sr-only">{p.age}</span></th>
-                      <th scope="col" class="women">{p.women}</th>
+                      <th scope="col" class="women" colspan="2">{p.women}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {v.ages.map((r) => (
                       <tr>
+                        <td class="value men">{pct(r.men)}</td>
                         <td class="men">
                           <span class="bar" style={`--w: ${width(r.men)}`} />
-                          <span class="value">{pct(r.men)}</span>
                         </td>
                         <th scope="row">{band(r.key)}</th>
                         <td class="women">
                           <span class="bar" style={`--w: ${width(r.women)}`} />
-                          <span class="value">{pct(r.women)}</span>
                         </td>
+                        <td class="value women">{pct(r.women)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -480,6 +482,11 @@ const empty = views.length === 0;
     width: 6.5rem;
   }
 
+  /* Wide enough for "100,0 %", the longest a share gets. */
+  .pyramid col.value {
+    width: 2.9rem;
+  }
+
   .pyramid tbody th {
     padding: 0 0.6rem;
     text-align: center;
@@ -511,21 +518,22 @@ const empty = views.length === 0;
     border-radius: 0 3px 3px 0;
   }
 
-  .pyramid .value {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+  /* Its own column outside the bar, so a long bar never draws under it: on the page
+     ground rather than the bar's fill, the value reads at full contrast in either theme. */
+  .pyramid td.value {
     color: var(--ink);
     opacity: 0;
     transition: opacity 0.12s;
   }
 
-  .pyramid td.men .value {
-    left: 0;
+  .pyramid td.value.men {
+    text-align: end;
+    padding-inline-end: 0.4rem;
   }
 
-  .pyramid td.women .value {
-    right: 0;
+  .pyramid td.value.women {
+    text-align: start;
+    padding-inline-start: 0.4rem;
   }
 
   .pyramid tbody tr:hover .value {
