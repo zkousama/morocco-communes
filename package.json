@@ -27,6 +27,8 @@
     "py:build": "python3 packages/morocco-communes-py/build_data.py",
     "eval": "node --experimental-strip-types evals/run.ts",
     "insights": "node --experimental-strip-types insights/src/run.ts",
+    "insights:grade": "node --experimental-strip-types insights/src/grade.ts",
+    "insights:regrade": "node --experimental-strip-types insights/src/grade.ts --regrade",
     "stats": "node --experimental-strip-types scripts/stats.ts",
     "demand": "node --experimental-strip-types scripts/demand.ts"
   },
