@@ -113,6 +113,9 @@ const spoken = (row: (typeof spread)[number]) =>
         <div>
           <dt>{row.label}</dt>
           <dd>
+            {/* A 3px floor, kept: each row has its own full-width track, so it's never next
+                to another row's fill at the same scale, and the printed value beside it is
+                exact either way. Without it, 0.45% is under 2px and reads as an empty track. */}
             <span class="share-track" aria-hidden="true">
               <span class="share-fill" style={`width:max(${row.share}%, 3px)`}></span>
             </span>
@@ -415,7 +418,7 @@ const spoken = (row: (typeof spread)[number]) =>
     top: 50%;
     height: 2px;
     transform: translateY(-50%);
-    background: var(--rule);
+    background: var(--quiet);
   }
 
   .dot {
@@ -435,9 +438,12 @@ const spoken = (row: (typeof spread)[number]) =>
     background: var(--quiet);
   }
 
-  /* The legend's marks are the chart's marks: round here, square where the chart's are. */
-  .key.then,
-  .key.now {
+  /* The legend's marks are the chart's marks: round here, square where the chart's are.
+     Astro scopes both rules to the component, which adds a selector to every compound
+     here: that gives the descendant selector below more weight than a plain ".key.then",
+     so the round rule is written the same way, as a descendant of ".legend-row", to win. */
+  .legend-row .key.then,
+  .legend-row .key.now {
     border-radius: 50%;
   }
 
@@ -525,11 +531,13 @@ const spoken = (row: (typeof spread)[number]) =>
     background: var(--rule);
   }
 
+  /* No floor: régions sit on one shared scale here, so inflating the smallest bar would
+     misstate it against the others. The printed value beside it still carries the exact
+     figure. */
   .bar {
     position: absolute;
     top: 0;
     bottom: 0;
-    min-width: 2px;
   }
 
   /* Rounded at the data end, flat where the bar leaves the zero axis. */
