@@ -38,6 +38,8 @@ const professionNames = p.professionNames as Record<string, string>;
 const diplomaNames = p.diplomaNames as Record<string, string>;
 const PROFESSIONS = ["managersAndProfessionals", "technicians", "clerks", "traders", "farmers", "artisans", "farmLabourers", "machineOperators", "labourers", "unclassified"];
 const DIPLOMAS = ["none", "primary", "lowerSecondary", "upperSecondary", "bachelor", "masterOrDoctorate", "undeclared"];
+// The 2014 workbook's 8 answers for where people work, "undetermined" included.
+const WORKPLACES = ["ownNeighbourhood", "otherNeighbourhood", "otherCommune", "otherProvince", "noFixedPlace", "atHome", "elsewhere", "undetermined"];
 // Every mode either census asks about: 2024 has 12, 2014 has 11, and the two overlap on 8.
 const MODES = [
   "walking", "bikeOrMotorcycle", "privateCar", "bus", "taxi", "employerTransport", "train", "tram",
@@ -131,10 +133,7 @@ function view(census: Census, other: Census | null, year: "2024" | "2014") {
         : bars("languageCombinations", ["arabicOnly", "arabicAndFrench", "arabicFrenchEnglish", "other"], combinationNames),
     readBody: year === "2024" ? p.languagesReadBody : p.combinationsBody,
     commute: bars("commute", MODES, commuteNames),
-    workplace:
-      year === "2014"
-        ? bars("workplace", ["ownNeighbourhood", "otherNeighbourhood", "otherCommune", "otherProvince", "noFixedPlace", "atHome", "elsewhere"], workplaceNames)
-        : [],
+    workplace: year === "2014" ? bars("workplace", WORKPLACES, workplaceNames) : [],
     // The 2014 census is the only one that publishes these by commune.
     profession: year === "2014" ? bars("profession", PROFESSIONS, professionNames) : [],
     diploma: year === "2014" ? bars("diploma", DIPLOMAS, diplomaNames) : [],

@@ -128,7 +128,7 @@ export const places = {
     workplaceNames: {
       ownNeighbourhood: "Their own neighbourhood", otherNeighbourhood: "Another in the commune",
       otherCommune: "Another commune", otherProvince: "Another province", noFixedPlace: "No fixed place",
-      atHome: "At home", elsewhere: "Somewhere else",
+      atHome: "At home", elsewhere: "Somewhere else", undetermined: "Not stated",
     },
     combinationsBody: "Each person who can read counts once, under what they read and write.",
     combinationNames: {
@@ -355,7 +355,7 @@ export const places = {
     workplaceNames: {
       ownNeighbourhood: "Leur quartier ou douar", otherNeighbourhood: "Un autre dans la commune",
       otherCommune: "Une autre commune", otherProvince: "Une autre province", noFixedPlace: "Lieu non fixe",
-      atHome: "À domicile", elsewhere: "Ailleurs",
+      atHome: "À domicile", elsewhere: "Ailleurs", undetermined: "Non déterminé",
     },
     combinationsBody: "Chaque personne alphabétisée compte une fois, selon ce qu’elle lit et écrit.",
     combinationNames: {
