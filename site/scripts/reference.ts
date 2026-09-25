@@ -8,10 +8,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildIndex } from "../../api/src/emit/searchIndex.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitTree } from "../../api/src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree } from "../../api/src/emit/static.ts";
 import { readIndicators } from "../../api/src/emit/indicators.ts";
 import { readEconomy } from "../../api/src/emit/economy.ts";
 import { readHousing } from "../../api/src/emit/housing.ts";
+import { readInsights } from "../../api/src/emit/insights.ts";
 import { buildIndicatorTable, type IndicatorRecord, type Topics } from "../../api/src/lib/indicators.ts";
 import { envelope, PROBLEMS, problem, type Envelope } from "../../api/src/lib/envelope.ts";
 import { listCommunes, parseFilter } from "../../api/src/lib/list.ts";
@@ -49,6 +50,7 @@ emitIndicators(tree, indicatorRecords);
 const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree, economyRecords);
 emitHousing(tree, await readHousing("data/v1"));
+emitInsights(tree, await readInsights("data/v1"));
 const indicators = buildIndicatorTable(
   indicatorRecords.filter((r) => r.level === "commune"),
   economyRecords.filter((r) => r.level === "commune"),
@@ -170,6 +172,7 @@ const examples: Record<string, Example> = {
   getHousing: { request: "/api/communes/tiznit/housing", body: file("/api/communes/09.581.01.07/housing.json") },
   listNeighbours: { request: "/api/communes/tiznit/neighbours", body: file("/api/communes/09.581.01.07/neighbours.json") },
   getNationalHousing: { request: "/api/housing.json", body: file("/api/housing.json") },
+  listInsights: { request: "/api/insights.json", body: file("/api/insights.json") },
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },
 };
 

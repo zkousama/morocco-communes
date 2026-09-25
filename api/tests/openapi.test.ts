@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildOpenApi } from "../src/openapi.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitTree } from "../src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree } from "../src/emit/static.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
 import { readEconomy } from "../src/emit/economy.ts";
 import { readHousing } from "../src/emit/housing.ts";
+import { readInsights } from "../src/emit/insights.ts";
 import { LIMIT, PAGE, RADIUS_KM } from "../src/lib/params.ts";
 import type { Dataset } from "../src/lib/dataset.ts";
 
@@ -22,6 +23,7 @@ const tree = emitTree({
 emitIndicators(tree, await readIndicators("data/v1"));
 emitEconomy(tree, await readEconomy("data/v1"));
 emitHousing(tree, await readHousing("data/v1"));
+emitInsights(tree, await readInsights("data/v1"));
 
 type Param = { name: string; schema: Record<string, unknown> };
 const paramsOf = (path: string) =>

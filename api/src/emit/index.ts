@@ -1,11 +1,12 @@
 import { existsSync } from "node:fs";
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { emitEconomy, emitHousing, emitIndicators, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
 import { buildIndicatorTable } from "../lib/indicators.ts";
 import { readIndicators } from "./indicators.ts";
 import { readEconomy } from "./economy.ts";
 import { readHousing } from "./housing.ts";
+import { readInsights } from "./insights.ts";
 import { buildIndex } from "./searchIndex.ts";
 import { buildOpenApi } from "../openapi.ts";
 import { buildGeometry, outlineCollections } from "./geometry.ts";
@@ -56,6 +57,7 @@ emitIndicators(tree, indicators);
 const economy = await readEconomy(DATA);
 emitEconomy(tree, economy);
 emitHousing(tree, await readHousing(DATA));
+emitInsights(tree, await readInsights(DATA));
 // Committed like the search index: the figures a list of communes can be sorted by, which
 // the Worker holds in memory.
 await writeFile(

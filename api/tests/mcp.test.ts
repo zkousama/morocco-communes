@@ -4,7 +4,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer, TOOL_NAMES } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitTree } from "../src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree } from "../src/emit/static.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
 import { readEconomy } from "../src/emit/economy.ts";
 import { readHousing } from "../src/emit/housing.ts";
@@ -40,6 +40,17 @@ emitIndicators(tree as never, indicatorRecords);
 const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree as never, economyRecords);
 emitHousing(tree as never, await readHousing("data/v1"));
+// No insights are published yet, so a hand-written unit stands in for one: Rabat, with a
+// single finding and no hypotheses that survived.
+emitInsights(tree as never, {
+  units: [{
+    code: "04.421.01.0", level: "commune", datasetVersion: "1.8.0", checkedAt: "2026-09-24",
+    findings: [{ id: "abc123def456", kind: "extreme", measure: "fertility.totalFertilityRate",
+      line: { en: "Fertility is 1.19 children per woman", fr: "La fécondité est de 1,19 enfant par femme" },
+      breakdown: null, hypotheses: [] }],
+  }],
+  index: [{ code: "04.421.01.0", level: "commune", findings: 1 }],
+});
 const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 for (const [code, group] of geometry.arrondissementsByCommune) tree.set(`/api/communes/${code}/arrondissements.geojson`, group);
@@ -71,10 +82,10 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 9 read-only tools", async () => {
+  it("offers 10 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_economy", "get_housing", "get_indicators", "get_unit", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_economy", "get_housing", "get_indicators", "get_insights", "get_unit", "list_communes", "search",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
@@ -526,6 +537,25 @@ describe("get_housing", () => {
     const r = await call("get_housing", { unit: "12.066.03.07" });
     expect(r.isError).toBe(true);
     expect(text(r)).toContain("no urban dwellings");
+  });
+});
+
+describe("get_insights", () => {
+  type Found = { unit: Record<string, unknown>; findings: { line: { en: string } }[] };
+  const found = (r: Result) => r.structuredContent as unknown as Found;
+
+  it("gives a place's findings", async () => {
+    const r = await call("get_insights", { unit: "rabat" });
+    expect(r.isError).toBeFalsy();
+    expect(found(r).unit).toMatchObject({ code: "04.421.01.0" });
+    expect(found(r).findings[0]!.line.en).toContain("1.19");
+  });
+
+  it("says nothing stood out for a place with none, without an error", async () => {
+    const r = await call("get_insights", { unit: "tiznit" });
+    expect(r.isError).toBeFalsy();
+    expect(found(r).findings).toEqual([]);
+    expect(text(r)).toMatch(/nothing/i);
   });
 });
 

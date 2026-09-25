@@ -254,6 +254,28 @@ export function emitHousing(tree: Tree, records: HousingRecord[]): void {
   }
 }
 
+/**
+ * The insights the pipeline has published: a file per unit with at least one finding worth
+ * showing, at `/api/{collection}/{code}/insights.json`, and the index of them all at
+ * `/api/insights.json`. Nothing is published on a fresh checkout, so only the index, empty,
+ * is written until the pipeline's first run clears its gate.
+ */
+export function emitInsights(tree: Tree, insights: { units: Record<string, unknown>[]; index: unknown[] }): void {
+  const put = (path: string, data: unknown) => {
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    tree.set(path, envelope(data, { self: path }));
+  };
+  for (const unit of insights.units) {
+    const { level, code } = unit as { level: string; code: string };
+    const collection = COLLECTION[level];
+    if (!collection) throw new Error(`no collection for ${level}`);
+    put(api(`${collection}/${code}/insights.json`), unit);
+  }
+  const path = api("insights.json");
+  if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+  tree.set(path, envelope(insights.index, { self: path }, { total: insights.index.length }));
+}
+
 export function buildVersion(d: Dataset): Envelope<unknown> {
   return envelope(
     {

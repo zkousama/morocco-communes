@@ -270,8 +270,9 @@ session: each request gets a fresh server that answers in plain JSON.
 | `get_indicators` | HCP's 2024 census figures for Morocco, any unit, or every région or province at once, by topic, area and sex |
 | `get_economy` | the 2024 count of economic establishments for Morocco, any unit, or every région or province at once |
 | `get_housing` | the 2024 urban housing stock: dwellings, how many stand empty, what kind they are and what they're made of |
+| `get_insights` | possible reasons a language model proposed for a census figure that stands out, each checked against the data |
 
-All nine are read-only and say so in their annotations, so a client can call them without
+All 10 are read-only and say so in their annotations, so a client can call them without
 asking each time. A commune comes back with its région, province and cercle named, not just
 coded, and a tool that cannot answer says why and what to call instead: asking
 `get_commune` for a province's code gets pointed to `list_communes`.

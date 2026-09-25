@@ -126,9 +126,9 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 9 read-only tools (`search`, `get_commune`, `get_unit`,
+- **`/mcp`**: an MCP server with 10 read-only tools (`search`, `get_commune`, `get_unit`,
   `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`,
-  `get_housing`), so
+  `get_housing`, `get_insights`), so
   Claude, Claude Code and other MCP clients can query the data directly, census figures
   included. The site's `/docs/mcp/` page has the setup for each client.
 

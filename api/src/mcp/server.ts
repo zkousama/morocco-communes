@@ -39,6 +39,7 @@ export const TOOL_NAMES: ReadonlySet<string> = new Set([
   "get_indicators",
   "get_economy",
   "get_housing",
+  "get_insights",
 ]);
 
 /** Read-only, closed-world and repeatable, which lets a client call these without asking. */
@@ -55,7 +56,8 @@ const INSTRUCTIONS =
   "from 2024, from 2014, or both to see what changed, and list_communes can rank communes by any of them or by the change since 2014. " +
   "get_economy gives the 2024 count of economic establishments for the same units: businesses by sector, by size and by when they were founded, " +
   "and the permanent jobs they hold. " +
-  "get_housing gives the 2024 urban housing stock: how many dwellings a town has, how many stand empty, what kind they are and what they are made of.";
+  "get_housing gives the 2024 urban housing stock: how many dwellings a town has, how many stand empty, what kind they are and what they are made of. " +
+  "get_insights gives possible reasons a language model proposed for a 2024 census figure that stands out, each checked against the census and tested for consistency across places where that fits, or marked as proposed only.";
 
 /** Where each level's files live. */
 const COLLECTION: Record<Level, string> = {
@@ -128,6 +130,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
   // Parent codes are named from the search index, which already holds every unit, so a
   // model can say which province a commune is in without a second call.
   const nameOf = new Map(index.entries.map(([code, , fr]) => [code, fr]));
+  const arNameOf = new Map(index.entries.map(([code, , , ar]) => [code, ar]));
   const ref = (code: string) => ({ code, name: nameOf.get(code) ?? code });
   const trim = (c: CommuneRecord) => ({
     code: c.code,
@@ -805,6 +808,93 @@ export function createMcpServer(deps: McpDeps): McpServer {
         results: records.map((record) => ({
           unit: { code: record.code, level: record.level, name_fr: record.name.fr, name_ar: record.name.ar },
           figures: pick(record.topics),
+        })),
+      });
+    },
+  );
+
+  server.registerTool(
+    "get_insights",
+    {
+      title: "Possible reasons for a figure that stands out",
+      description:
+        "For a place with a 2024 census figure that stands out, up to 3 possible reasons a language model proposed. " +
+        "Each rests on a fact about the place, checked against the census, and a link between that fact and the figure, " +
+        "tested for consistency across places of the same level where a test fits it, and marked proposed only otherwise. " +
+        "This explains a figure rather than stating it; get_indicators, get_economy and get_housing give the figures themselves. " +
+        "Most places have nothing here yet.",
+      inputSchema: {
+        unit: z.string().min(1).describe("A région, province, commune or arrondissement, by code or slug."),
+        level: z
+          .enum(LEVELS)
+          .optional()
+          .describe("The level, where a name is shared: Tiznit is a commune and a province, and a name alone means the commune."),
+      },
+      outputSchema: {
+        unit: z.object({
+          code: z.string(),
+          level: z.string(),
+          name_fr: z.string(),
+          name_ar: z.string().nullable(),
+        }),
+        message: z.string().optional().describe("Present, and says so, when nothing stood out here."),
+        findings: z.array(
+          z.object({
+            line: z.object({ en: z.string(), fr: z.string() }),
+            breakdown: z.unknown().nullable().describe("The parts the figure is made of, where the dataset has them."),
+            hypotheses: z.array(
+              z.object({
+                claim: z.object({ en: z.string(), fr: z.string() }),
+                link: z.object({ en: z.string(), fr: z.string() }),
+                premise: z.object({ en: z.string(), fr: z.string() }),
+                evidence: z.object({ kind: z.string(), check: z.unknown(), numbers: z.record(z.string(), z.number()) }),
+                linkTest: z.unknown().nullable().describe("null where no link test fits or was proposed; otherwise its verdict, p-value and effect."),
+              }),
+            ),
+          }),
+        ),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ unit, level }) => {
+      const found = resolve(lookup, unit, level);
+      if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
+      if (found.kind === "absent") return fail(`No unit has the identifier ${unit}. Call search to find its code.`);
+      const unitOut = {
+        code: found.code,
+        level: found.level,
+        name_fr: nameOf.get(found.code) ?? found.code,
+        name_ar: arNameOf.get(found.code) ?? null,
+      };
+      const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/insights.json`);
+      if (!body) {
+        return ok({ unit: unitOut, findings: [], message: `Nothing stood out for ${unitOut.name_fr} in the figures checked so far.` });
+      }
+      const record = body.data as unknown as {
+        findings: {
+          line: { en: string; fr: string };
+          breakdown: unknown;
+          hypotheses: {
+            claim: { en: string; fr: string };
+            link: { en: string; fr: string };
+            premise: { en: string; fr: string };
+            evidence: { kind: string; check: unknown; numbers: Record<string, number> };
+            linkTest: unknown;
+          }[];
+        }[];
+      };
+      return ok({
+        unit: unitOut,
+        findings: record.findings.map((f) => ({
+          line: f.line,
+          breakdown: f.breakdown,
+          hypotheses: f.hypotheses.map((h) => ({
+            claim: h.claim,
+            link: h.link,
+            premise: h.premise,
+            evidence: h.evidence,
+            linkTest: h.linkTest,
+          })),
         })),
       });
     },
