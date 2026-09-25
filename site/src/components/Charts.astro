@@ -133,9 +133,13 @@ const spoken = (row: (typeof spread)[number]) =>
         <div>
           <dt>{row.type === "urban" ? copy.shrankUrban : copy.shrankRural}</dt>
           <dd>
-            <span class="stack" style={`width:${((row.shrank + row.grew) / shrinkMax) * 100}%`} aria-hidden="true">
-              <span class="lost" style={`flex:${row.shrank}`}>{group.format(row.shrank)}</span>
-              <span class="gained" style={`flex:${row.grew}`}>{group.format(row.grew)}</span>
+            <span
+              class="stack"
+              style={`width:${((row.shrank + row.grew) / shrinkMax) * 100}%;grid-template-columns:minmax(0,${row.shrank}fr) minmax(0,${row.grew}fr)`}
+              aria-hidden="true"
+            >
+              <span class:list={["lost", { small: row.shrank <= row.grew }]}>{group.format(row.shrank)}</span>
+              <span class:list={["gained", { small: row.grew < row.shrank }]}>{group.format(row.grew)}</span>
             </span>
             <span class="sr-only">{fillIn(copy.srShrank, { lost: row.shrank, gained: row.grew })}</span>
           </dd>
@@ -317,9 +321,12 @@ const spoken = (row: (typeof spread)[number]) =>
     font-variant-numeric: tabular-nums;
   }
 
-  /* Two segments separated by a gap of the page, each labelled with its count. */
+  /* Two segments separated by a gap of the page, each sized by "fr" against the other's
+     count rather than grown from padded boxes, so the split reads true at every width: a
+     flex box with padding gives a segment a content-based floor before flex-grow shares
+     out what's left, which skews a narrow share on top of a wide one. */
   .stack {
-    display: flex;
+    display: grid;
     gap: 2px;
     height: 1.6rem;
     font-size: var(--t-xs);
@@ -333,6 +340,15 @@ const spoken = (row: (typeof spread)[number]) =>
     color: var(--paper);
     white-space: nowrap;
     overflow: hidden;
+  }
+
+  /* The smaller segment's count can be wider than its own box. Let it spill onto the
+     other segment's fill rather than clip, since both fills carry the same paper text, and
+     paint it on top so the wider segment's own fill doesn't cover it. */
+  .stack .small {
+    position: relative;
+    z-index: 1;
+    overflow: visible;
   }
 
   /* The deepest classes of the map's ramps, dark enough to carry text in the page's colour. */
