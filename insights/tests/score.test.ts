@@ -47,6 +47,7 @@ const hyp = (stage: Hypothesis["stage"]): Hypothesis => ({
     numbers: {},
   },
   linkTest: null,
+  artefact: false,
   support: 1,
   stage,
   reason: null,

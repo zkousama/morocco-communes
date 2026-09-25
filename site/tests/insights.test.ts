@@ -7,7 +7,8 @@ import { mutations } from "../../insights/src/mutate.ts";
 import { ONE_SIDED_Z } from "../../insights/src/score.ts";
 import { wilson } from "../../insights/src/stats.ts";
 import { CHECK_GRAMMAR, type Check } from "../../insights/src/vocabulary.ts";
-import { evidenceNumbers, readMetrics, readUnitInsights } from "../src/lib/insights.ts";
+import { evidenceNumbers, flagOf, introOf, readMetrics, readUnitInsights, type UnitInsights } from "../src/lib/insights.ts";
+import { places } from "../src/i18n/places.ts";
 
 describe("insights on the site", () => {
   it("reads nothing, without failing, when none are published", () => {
@@ -32,6 +33,27 @@ describe("insights on the site", () => {
     const metrics = { runId: "run-a", measuredAt: "2026-09-24T00:00:00.000Z" };
     writeFileSync(path, JSON.stringify({ runId: "run-a", publishedAt: "2026-09-25T00:00:00.000Z", metrics }));
     expect(readMetrics(path)).toEqual(metrics);
+  });
+});
+
+describe("the section on a place page", () => {
+  const finding = (kind: string, hypotheses: unknown[]) => ({ id: "f", kind, measure: "m", line: { en: "", fr: "" }, breakdown: null, hypotheses });
+  const record = (...findings: ReturnType<typeof finding>[]) => ({ code: "c", level: "commune", checkedAt: "2026-09-24", findings }) as unknown as UnitInsights;
+
+  it("opens on the reasons when there are some, and on the flag when a figure only looks like an error", () => {
+    const withReasons = record(finding("artefact", []), finding("extreme", [{}]));
+    const flaggedOnly = record(finding("artefact", []));
+    for (const locale of ["en", "fr"] as const) {
+      expect(introOf(locale, withReasons)).toBe(places[locale].insightsBody);
+      expect(introOf(locale, flaggedOnly)).toBe(places[locale].insightsBodyFlagged);
+    }
+    expect(places.en.insightsBodyFlagged).not.toBe(places.en.insightsBody);
+  });
+
+  it("marks a reason that the figure is an error in the data", () => {
+    expect(flagOf("en", { artefact: true })).toBe(places.en.insightsArtefact);
+    expect(flagOf("fr", { artefact: true })).toBe(places.fr.insightsArtefact);
+    expect(flagOf("en", { artefact: false })).toBeNull();
   });
 });
 

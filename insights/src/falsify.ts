@@ -142,7 +142,8 @@ export async function falsify(candidate: Candidate, finding: Finding, data: Data
  * The model that argues against `proposer`'s hypotheses: `INSIGHTS_FALSIFIER` as
  * "ollama:<model>" or "claude:<model>" when one is set up, split at its first colon; an
  * unrecognised prefix is ignored. Otherwise Claude's "opus" answers a "sonnet" proposer,
- * and "sonnet" answers any other proposer, so the 2 are always different models.
+ * and "sonnet" answers any other proposer, so the 2 are always different models. A
+ * setting that names the proposer's own model through claude throws, before a run starts.
  */
 export function falsifierModel(env: NodeJS.ProcessEnv, proposer: string): { transport: "claude" | "ollama"; model: string } {
   const raw = env.INSIGHTS_FALSIFIER;
@@ -151,6 +152,9 @@ export function falsifierModel(env: NodeJS.ProcessEnv, proposer: string): { tran
     if (at > 0) {
       const prefix = raw.slice(0, at);
       const model = raw.slice(at + 1);
+      if (prefix === "claude" && model === proposer) {
+        throw new Error(`INSIGHTS_FALSIFIER=${raw} is the proposer's own model, ${proposer}: the adversary has to be a different model`);
+      }
       if (prefix === "ollama" || prefix === "claude") return { transport: prefix, model };
     }
   }

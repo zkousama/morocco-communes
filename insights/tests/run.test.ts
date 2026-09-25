@@ -6,7 +6,7 @@ import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
-import { aboutThisFinding, pipeline, publishable, publishIfAllowed, readBaseline, summary } from "../src/run.ts";
+import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
@@ -131,6 +131,35 @@ describe("where a hypothesis stops", () => {
     expect(byClaim.get("d link not consistent")?.stage).toBe("link");
     expect(byClaim.get("e published")?.stage).toBe("published");
     expect(byClaim.get("e published")?.reason).toBeNull();
+  });
+});
+
+describe("a hypothesis that the figure is an error in the data", () => {
+  it("is published flagged as one", async () => {
+    const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
+    const flagged = JSON.stringify({ hypotheses: [{ ...hyp("an error in the data", alwaysTrue("labour.activityRate")), artefact: true }] });
+    const answers = (call: ModelCall) => (call.stage === "propose" ? flagged : JSON.stringify({ counter: null, reason: "no counter" }));
+    const r = () => makeRunner(stubTransport(answers), { cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+    const file = await pipeline(data, { only: [finding.code], run: r(), falsifier: r(), proposer: "sonnet", falsifierModel: "opus" });
+
+    const [, body] = [...publishable(file, data)].find(([path]) => path.endsWith(`/${finding.code}.json`))!;
+    const h = (body as { findings: { hypotheses: { artefact: boolean }[] }[] }).findings[0]!.hypotheses[0]!;
+    expect(h.artefact).toBe(true);
+  });
+});
+
+describe("the command line", () => {
+  it("reads --limit as a number and --only as codes", () => {
+    expect(parseArgs(["--limit", "5", "--only", "01.511.01.0,04.421.01.0"])).toEqual({
+      publish: false, demand: false, limit: 5, only: ["01.511.01.0", "04.421.01.0"],
+    });
+    expect(parseArgs(["--publish"])).toMatchObject({ publish: true, limit: undefined, only: undefined });
+  });
+
+  it("stops at a --limit with no number after it", () => {
+    for (const args of [["--limit"], ["--limit", "five"], ["--limit", "--demand"], ["--limit", "0"], ["--limit", "2.5"]]) {
+      expect(() => parseArgs(args), args.join(" ")).toThrow(/--limit needs a whole number/);
+    }
   });
 });
 

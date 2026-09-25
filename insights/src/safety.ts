@@ -21,14 +21,17 @@ const POLITICAL = [
 ];
 
 // "arabe" and "berbère" in the singular also name a language in French ("l'arabe"), and a
-// language named as a language isn't a group, so only their plurals are listed.
+// language named as a language isn't a group, so only their plurals are listed. The Sahara
+// is a place, so only the words for its people are, never "Sahara" or "Saharan".
 const GROUPS = [
   "berber", "berbers", "amazigh people", "arab", "arabs", "jew", "jews", "jewish", "muslim", "muslims",
   "christian", "christians", "sub-saharan", "subsaharan", "migrant", "migrants", "refugee", "refugees",
+  "sahrawi", "sahrawis", "tribe", "tribes",
   "berbères", "arabes", "juif", "juifs", "juive", "juives", "musulman", "musulmans", "musulmane",
   "musulmanes", "chrétien", "chrétiens", "chrétienne", "chrétiennes", "subsaharien", "subsahariens",
   "subsaharienne", "subsahariennes", "sub-saharien", "sub-sahariens", "migrante", "migrantes",
-  "réfugié", "réfugiés", "réfugiée", "réfugiées",
+  "réfugié", "réfugiés", "réfugiée", "réfugiées", "sahraoui", "sahraouis", "sahraouie", "sahraouies",
+  "tribu", "tribus",
 ];
 
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

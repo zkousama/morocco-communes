@@ -132,9 +132,9 @@ function collectPlacebos(candidates: Field[], effectOf: (path: string) => number
 }
 
 /**
- * Every région's units at or above its own median of `premisePath` (excluding units
- * exactly at the median), and those below it, pooled into 2 arrays of `outcomePath`
- * values. Only units with both figures present count towards the median or the split.
+ * Every région's units above its own median of `premisePath`, and those below it, pooled
+ * into 2 arrays of `outcomePath` values; a unit exactly at the median goes in neither.
+ * Only units with both figures present count towards the median or the split.
  */
 function splitByPeers(units: Unit[], premisePath: string, outcomePath: string): { a: number[]; b: number[] } {
   const byRegion = new Map<string, { premise: number; outcome: number }[]>();

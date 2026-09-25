@@ -1,5 +1,8 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { appendGrade, appendRegrade, forRun, formatItem, regradeSample, sample, toGraded, ungraded, type Graded, type Sampled } from "../src/grade.ts";
+import { appendGrade, appendRegrade, forRun, formatItem, loadGradedFile, regradeSample, sample, toGraded, ungraded, type Graded, type Sampled } from "../src/grade.ts";
 import type { Finding } from "../src/detect.ts";
 import type { Hypothesis, RunFile } from "../src/run.ts";
 
@@ -256,5 +259,15 @@ describe("formatItem", () => {
       expect(text).not.toContain("consistent");
       expect(text).not.toContain("refused");
     }
+  });
+});
+
+describe("loadGradedFile", () => {
+  it("says a file holding null isn't shaped like a graded file, rather than throwing", async () => {
+    const path = join(mkdtempSync(join(tmpdir(), "graded-")), "graded.json");
+    writeFileSync(path, "null");
+    const loaded = await loadGradedFile(path);
+    expect(loaded.ok).toBe(false);
+    expect(loaded.ok ? "" : loaded.message).toMatch(/isn't shaped like a graded file/);
   });
 });

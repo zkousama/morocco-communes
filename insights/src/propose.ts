@@ -4,7 +4,8 @@
  * asked 5 times; the answers are merged by what their data tests check, and how much the 5
  * disagree is kept as the finding's semantic entropy. A reply that can't be read, a call
  * that fails, a hypothesis in the wrong shape or one the word list refuses is dropped, and
- * a finding left with nothing says why rather than stopping the run.
+ * a finding left with nothing says why rather than stopping the run. A link test in the
+ * wrong shape only costs its hypothesis the link test.
  */
 import { z } from "zod";
 import type { Data, Unit } from "./data.ts";
@@ -171,7 +172,7 @@ const hypothesisSchema = z.object({
   link: words,
   premise: words,
   test: checkSchema,
-  linkTest: linkSchema.nullish(),
+  linkTest: z.unknown().optional(), // read on its own below: a wrong one costs the link test, never the hypothesis
   artefact: z.boolean().optional(),
 });
 
@@ -198,7 +199,8 @@ function readReply(text: string): { hypotheses: Hypothesis[]; problem: string | 
     const result = hypothesisSchema.safeParse(item);
     if (!result.success) continue;
     const h = result.data;
-    hypotheses.push({ claim: h.claim, link: h.link, premise: h.premise, test: h.test, linkTest: h.linkTest ?? null, artefact: h.artefact ?? false });
+    const linkTest = linkSchema.safeParse(h.linkTest);
+    hypotheses.push({ claim: h.claim, link: h.link, premise: h.premise, test: h.test, linkTest: linkTest.success ? linkTest.data : null, artefact: h.artefact ?? false });
   }
   return { hypotheses, problem: hypotheses.length === 0 ? `no hypothesis in the expected shape, of ${list.length}` : null };
 }

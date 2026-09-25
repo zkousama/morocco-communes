@@ -31,7 +31,8 @@ export async function readInsights(dataDir: string): Promise<Insights> {
       if (isMissing(error)) continue;
       throw new Error(`could not read ${join(dir, level)}: ${(error as Error).message}`);
     }
-    for (const name of names) {
+    // Only the unit files: a stray .DS_Store or a note beside them isn't one.
+    for (const name of names.filter((n) => n.endsWith(".json"))) {
       units.push(JSON.parse(await readFile(join(dir, level, name), "utf8")));
     }
   }

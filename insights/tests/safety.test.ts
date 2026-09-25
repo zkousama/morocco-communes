@@ -13,6 +13,19 @@ describe("refusal", () => {
   it("refuses claims about a named person", () => {
     expect(refusal("The mayor, Mr Alami, closed the market")).toBe("individuals");
   });
+  it("refuses Sahrawis and tribes as groups, in either language", () => {
+    expect(refusal("Sahrawi families settled in the new districts")).toBe("groups");
+    expect(refusal("Les Sahraouis sont venus s'installer en ville")).toBe("groups");
+    expect(refusal("Une famille sahraouie a quitté le quartier")).toBe("groups");
+    expect(refusal("The tribes of the plain moved to the town")).toBe("groups");
+    expect(refusal("Les terres de la tribu ont été vendues")).toBe("groups");
+    expect(refusal("Plusieurs tribus se partagent les pâturages")).toBe("groups");
+  });
+  it("keeps the Sahara as a place", () => {
+    expect(refusal("The provinces of the Sahara grew fastest")).toBeNull();
+    expect(refusal("Les provinces du Sahara ont le plus grandi")).toBeNull();
+    expect(refusal("A Saharan climate leaves little farmland")).toBeNull();
+  });
   it("lets a claim about places and figures through", () => {
     expect(refusal("Families moved to the suburbs, which doubled in size")).toBeNull();
     expect(refusal("Tamazight is used by fewer people than in 2014")).toBeNull();

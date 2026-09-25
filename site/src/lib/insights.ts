@@ -108,6 +108,17 @@ export const method = {
   numberShift: NUMBER_SHIFT,
 };
 
+/** The section's opening line: the one about reasons, or, when every finding is only flagged as a possible error in the data, one that says there are none. */
+export function introOf(locale: Locale, record: UnitInsights): string {
+  const p = places[locale];
+  return record.findings.some((f) => f.hypotheses.length > 0) ? p.insightsBody : p.insightsBodyFlagged;
+}
+
+/** The label a reason gets when what it proposes is that the figure is an error in the data, or null for an ordinary one. */
+export function flagOf(locale: Locale, hypothesis: { artefact?: boolean }): string | null {
+  return hypothesis.artefact ? places[locale].insightsArtefact : null;
+}
+
 /** A figure at the precision the census publishes it: shares to one decimal, fertility to 2. */
 function figure(locale: Locale, path: string, value: number): string {
   const unit = field(path)?.unit;

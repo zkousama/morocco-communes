@@ -5,7 +5,7 @@
  */
 import { numbers, percent } from "../../site/src/lib/format.ts";
 import type { Data, Unit } from "./data.ts";
-import type { Finding } from "./detect.ts";
+import { EXTREME_POPULATION_FLOOR, EXTREME_TAIL_SHARE, type Finding } from "./detect.ts";
 import { breakdownOf, field, FIELDS, type Level } from "./fields.ts";
 
 type Locale = "en" | "fr";
@@ -289,9 +289,9 @@ const NO_NEIGHBOUR: Record<Level, Words> = {
   arrondissement: w("no other arrondissement in its city", "aucun autre arrondissement de sa ville"),
 };
 
-// detect.ts picks extremes from the top and bottom 1% of communes of 5,000 people or more.
-const EXTREME_TAIL = w("1%", "1 %");
-const EXTREME_FLOOR = w("5,000", numbers("fr").format(5000));
+// The tail and the population floor detect.ts picks extremes from, as the site writes them.
+const EXTREME_TAIL = w(percent("en", EXTREME_TAIL_SHARE * 100, { digits: 0 }), percent("fr", EXTREME_TAIL_SHARE * 100, { digits: 0 }));
+const EXTREME_FLOOR = w(numbers("en").format(EXTREME_POPULATION_FLOOR), numbers("fr").format(EXTREME_POPULATION_FLOOR));
 
 /**
  * The mean change since 2014 across a level, taken over the same units detect.ts scores a

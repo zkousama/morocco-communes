@@ -3,11 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
-import { detect, type Finding } from "../src/detect.ts";
+import { detect, EXTREME_POPULATION_FLOOR, EXTREME_TAIL_SHARE, type Finding } from "../src/detect.ts";
 import { FIELDS } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
 import { context, propose, semanticEntropy } from "../src/propose.ts";
 import { breakdown, findingLine, subjectOf } from "../src/text.ts";
+import { numbers, percent } from "../../site/src/lib/format.ts";
 
 const data = loadData();
 const finding: Finding = {
@@ -70,6 +71,14 @@ describe("propose", () => {
     await propose(finding, data, counting(good));
     await propose(finding, data, counting(good));
     expect(calls).toBe(15);
+  });
+
+  it("keeps a hypothesis whose link test is the wrong shape, with no link test", async () => {
+    const parsed = JSON.parse(good);
+    parsed.hypotheses[0].linkTest = { link: "together", x: "education.higher" };
+    const p = await propose(finding, data, runner(JSON.stringify(parsed)));
+    expect(p.candidates).toHaveLength(1);
+    expect(p.candidates[0]!.linkTest).toBeNull();
   });
 
   it("drops a candidate the safety check refuses", async () => {
@@ -146,6 +155,12 @@ describe("the finding's line", () => {
     expect(line.en).toBe("Fertility is 1.19 children per woman, among the lowest 1% of communes of 5,000 people or more.");
     // French groups digits and sets off % with a narrow no-break space, as the site does.
     expect(line.fr).toBe("La fécondité est de 1,19 enfant par femme, parmi les 1 % les plus bas des communes de 5 000 habitants ou plus.");
+  });
+
+  it("takes an extreme's tail and population floor from detect's own settings", () => {
+    const line = findingLine(finding, data);
+    expect(line.en).toContain(`lowest ${percent("en", EXTREME_TAIL_SHARE * 100, { digits: 0 })} of communes of ${numbers("en").format(EXTREME_POPULATION_FLOOR)} people`);
+    expect(line.fr).toContain(`les ${percent("fr", EXTREME_TAIL_SHARE * 100, { digits: 0 })} les plus bas des communes de ${numbers("fr").format(EXTREME_POPULATION_FLOOR)} habitants`);
   });
 
   it("says a lone swing on a slow measure may be an error in the data", () => {

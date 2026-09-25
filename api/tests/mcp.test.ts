@@ -551,6 +551,11 @@ describe("get_insights", () => {
     expect(found(r).findings[0]!.line.en).toContain("1.19");
   });
 
+  it("says what kind of figure each finding is, and which measure", async () => {
+    const r = await call("get_insights", { unit: "rabat" });
+    expect(found(r).findings[0]).toMatchObject({ kind: "extreme", measure: "fertility.totalFertilityRate" });
+  });
+
   it("says nothing stood out for a place with none, without an error", async () => {
     const r = await call("get_insights", { unit: "tiznit" });
     expect(r.isError).toBeFalsy();

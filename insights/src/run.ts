@@ -38,6 +38,7 @@ export interface Hypothesis {
   premise: { en: string; fr: string };
   evidence: { kind: "data"; check: Check; numbers: Record<string, number> };
   linkTest: LinkResult | null;
+  artefact: boolean; // the proposer's own call that the figure is an error in the data, rather than a reason for it
   support: number;
   stage: "published" | "check" | "link" | "falsify" | "safety"; // where it stopped, or published
   reason: string | null;
@@ -67,7 +68,7 @@ export interface RunFile {
 }
 
 /** Bumped by hand when a prompt's parsing or merging changes, not when its wording does: the cache key already carries the prompt's own hash. */
-const STAGE_VERSIONS: Record<string, string> = { propose: "1", falsify: "1" };
+const STAGE_VERSIONS: Record<string, string> = { propose: "2", falsify: "1" };
 
 const LINK_NOT_CONSISTENT_REASON = "the link wasn't consistent across places";
 
@@ -85,6 +86,7 @@ function buildHypothesis(
     premise: candidate.premise,
     evidence: { kind: "data", check: candidate.test, numbers: outcome.numbers },
     linkTest,
+    artefact: candidate.artefact,
     support: candidate.support,
     stage,
     reason,
@@ -646,9 +648,49 @@ async function runPublish(): Promise<void> {
   console.log(`published ${files.size} files`);
 }
 
+/**
+ * `pnpm insights`'s flags. A `--limit` or `--only` with nothing usable after it is an
+ * error that says so, rather than a run over every finding the flag was meant to narrow.
+ */
+export function parseArgs(args: string[]): { publish: boolean; demand: boolean; limit: number | undefined; only: string[] | undefined } {
+  const value = (name: string): string | undefined => {
+    const i = args.indexOf(`--${name}`);
+    if (i < 0) return undefined;
+    const next = args[i + 1];
+    return next === undefined || next.startsWith("--") ? "" : next;
+  };
+
+  const rawLimit = value("limit");
+  if (rawLimit !== undefined && !/^[1-9]\d*$/.test(rawLimit)) {
+    throw new Error(`--limit needs a whole number of findings, such as --limit 5${rawLimit ? `, not ${rawLimit}` : ""}`);
+  }
+  const rawOnly = value("only");
+  if (rawOnly === "") throw new Error("--only needs unit codes, comma-separated, such as --only 01.511.01.0");
+
+  return {
+    publish: args.includes("--publish"),
+    demand: args.includes("--demand"),
+    limit: rawLimit === undefined ? undefined : Number(rawLimit),
+    only: rawOnly?.split(","),
+  };
+}
+
+/** A mistake in how the run was started: said in one line, with nothing run. */
+function refuseToStart(error: unknown): void {
+  console.log(messageOf(error));
+  process.exitCode = 1;
+}
+
 async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-  if (args.includes("--publish")) {
+  let args: ReturnType<typeof parseArgs>;
+  try {
+    args = parseArgs(process.argv.slice(2));
+  } catch (error) {
+    refuseToStart(error);
+    return;
+  }
+  const { publish, demand, limit, only } = args;
+  if (publish) {
     await runPublish();
     return;
   }
@@ -657,25 +699,25 @@ async function main(): Promise<void> {
     throw new Error("pnpm insights needs INSIGHTS_LIVE=1: it would spend real calls against a subscription");
   }
 
-  const option = (name: string): string | undefined => {
-    const i = args.indexOf(`--${name}`);
-    return i >= 0 ? args[i + 1] : undefined;
-  };
-  const limit = option("limit") ? Number(option("limit")) : undefined;
-  const only = option("only")?.split(",");
+  const proposer = "sonnet";
+  let falsifierChoice: ReturnType<typeof falsifierModel>;
+  try {
+    falsifierChoice = falsifierModel(process.env, proposer);
+  } catch (error) {
+    refuseToStart(error);
+    return;
+  }
 
   // Reuses the site's own demand log reader: the same "remote" opt-in, under its own name
   // here, so a run never queries the owner's database unless it's asked to twice over.
   let views: Map<string, number> | undefined;
-  if (args.includes("--demand")) {
+  if (demand) {
     const env = { ATTENTION: process.env.INSIGHTS_DEMAND === "remote" ? "remote" : undefined };
     const rows = read(sinceDate(), env);
     views = new Map(rows.map((r) => [r.code, r.n]));
   }
 
   const data = loadData();
-  const proposer = "sonnet";
-  const falsifierChoice = falsifierModel(process.env, proposer);
   const cacheDir = ".cache/insights/cache";
   const cacheOptions = { cacheDir, datasetVersion: data.version, stageVersions: STAGE_VERSIONS };
   const run = makeRunner(claudeTransport(), cacheOptions);

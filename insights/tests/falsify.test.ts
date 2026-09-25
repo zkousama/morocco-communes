@@ -34,6 +34,11 @@ describe("falsify", () => {
     expect((await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "r", refuse: "political" })), "opus")).survived).toBe(false);
   });
 
+  it("won't argue with the proposer's own model", () => {
+    expect(() => falsifierModel({ INSIGHTS_FALSIFIER: "claude:sonnet" }, "sonnet")).toThrow(/INSIGHTS_FALSIFIER.*sonnet.*different model/);
+    expect(falsifierModel({ INSIGHTS_FALSIFIER: "ollama:sonnet" }, "sonnet")).toEqual({ transport: "ollama", model: "sonnet" });
+  });
+
   it("uses another family where one is set up, and another Claude model otherwise", () => {
     expect(falsifierModel({ INSIGHTS_FALSIFIER: "ollama:qwen3:4b" }, "sonnet")).toEqual({ transport: "ollama", model: "qwen3:4b" });
     expect(falsifierModel({}, "sonnet")).toEqual({ transport: "claude", model: "opus" });

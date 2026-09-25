@@ -214,13 +214,13 @@ export async function loadGradedFile(path: string): Promise<Loaded<GradedFile>> 
     if (isMissing(error)) return { ok: true, value: { grades: [], regrades: [] } };
     return { ok: false, message: `couldn't read ${path}: ${error instanceof Error ? error.message : String(error)}` };
   }
-  let parsed: Partial<GradedFile>;
+  let parsed: Partial<GradedFile> | null;
   try {
-    parsed = JSON.parse(raw) as Partial<GradedFile>;
+    parsed = JSON.parse(raw) as Partial<GradedFile> | null;
   } catch (error) {
     return { ok: false, message: `${path} isn't valid JSON: ${error instanceof Error ? error.message : String(error)}` };
   }
-  if (!Array.isArray(parsed.grades) || !Array.isArray(parsed.regrades)) {
+  if (!parsed || !Array.isArray(parsed.grades) || !Array.isArray(parsed.regrades)) {
     return { ok: false, message: `${path} isn't shaped like a graded file: it needs grades and regrades arrays` };
   }
   return { ok: true, value: { grades: parsed.grades, regrades: parsed.regrades } };

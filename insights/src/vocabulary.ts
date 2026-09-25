@@ -1,9 +1,9 @@
 /**
  * The vocabulary a data test is written in, and the arithmetic that decides one. `evaluate`
  * reads a check's subject off the same data the pipeline built, using only `field` and
- * `familyOf` to know what's askable. A check that can't be read at all — an unknown field,
+ * `familyOf` to know what's askable. A check that can't be read at all (an unknown field,
  * a unit that isn't there, a year the census never asked, or a field too close to the
- * finding's own measure to prove anything — is refused. A check that can be read but whose
+ * finding's own measure to prove anything) is refused. A check that can be read but whose
  * figure is missing fails outright; nothing here lets a null pass by looking like a pass.
  */
 import { z } from "zod";

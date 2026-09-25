@@ -17,6 +17,16 @@ describe("insights files", () => {
     expect(tree.has("/api/insights.json")).toBe(true);
   });
 
+  it("reads only the JSON files in a level's folder", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "stray-"));
+    mkdirSync(join(dir, "insights", "communes"), { recursive: true });
+    writeFileSync(join(dir, "insights", "communes", "04.421.01.0.json"), JSON.stringify({ code: "04.421.01.0", level: "commune", findings: [] }));
+    writeFileSync(join(dir, "insights", "communes", ".DS_Store"), "\u0000\u0001");
+    writeFileSync(join(dir, "insights", "communes", "notes.txt"), "not json");
+    const read = await readInsights(dir);
+    expect(read.units.map((u) => u.code)).toEqual(["04.421.01.0"]);
+  });
+
   it("emits nothing when no insights are published yet", async () => {
     const tree = new Map();
     emitInsights(tree, await readInsights(mkdtempSync(join(tmpdir(), "none-"))));

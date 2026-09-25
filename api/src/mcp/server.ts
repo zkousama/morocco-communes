@@ -840,6 +840,10 @@ export function createMcpServer(deps: McpDeps): McpServer {
         message: z.string().optional().describe("Present, and says so, when nothing stood out here."),
         findings: z.array(
           z.object({
+            kind: z
+              .enum(["extreme", "change", "gap", "artefact"])
+              .describe("extreme: among the highest or lowest communes; change: moved far more or less than others since 2014; gap: far from its parent's figure; artefact: may be an error in the data."),
+            measure: z.string().describe("The figure's field, as get_indicators, get_economy and get_housing name it."),
             line: z.object({ en: z.string(), fr: z.string() }),
             breakdown: z.unknown().nullable().describe("The parts the figure is made of, where the dataset has them."),
             hypotheses: z.array(
@@ -849,6 +853,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
                 premise: z.object({ en: z.string(), fr: z.string() }),
                 evidence: z.object({ kind: z.string(), check: z.unknown(), numbers: z.record(z.string(), z.number()) }),
                 linkTest: z.unknown().nullable().describe("null where no link test fits or was proposed; otherwise its verdict, p-value and effect."),
+                artefact: z.boolean().describe("true when the reason given is that the figure may be an error in the data."),
               }),
             ),
           }),
@@ -872,6 +877,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
       }
       const record = body.data as unknown as {
         findings: {
+          kind: "extreme" | "change" | "gap" | "artefact";
+          measure: string;
           line: { en: string; fr: string };
           breakdown: unknown;
           hypotheses: {
@@ -880,12 +887,15 @@ export function createMcpServer(deps: McpDeps): McpServer {
             premise: { en: string; fr: string };
             evidence: { kind: string; check: unknown; numbers: Record<string, number> };
             linkTest: unknown;
+            artefact?: boolean;
           }[];
         }[];
       };
       return ok({
         unit: unitOut,
         findings: record.findings.map((f) => ({
+          kind: f.kind,
+          measure: f.measure,
           line: f.line,
           breakdown: f.breakdown,
           hypotheses: f.hypotheses.map((h) => ({
@@ -894,6 +904,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             premise: h.premise,
             evidence: h.evidence,
             linkTest: h.linkTest,
+            artefact: h.artefact ?? false,
           })),
         })),
       });
