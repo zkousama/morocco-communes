@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
-import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
-import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary } from "../src/run.ts";
+import { hash, LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
+import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
@@ -74,15 +74,20 @@ const CHECK_FAILS_FIELD = "labour.unemploymentRate";
 /** Fields used by the stage-branching test: it must not sit in the same family as any of them, or its own field. */
 const STAGE_TEST_FIELDS = [CHECK_FAILS_FIELD, "commute.privateCar", "occupancy.tenant", "education.higher", "labour.activityRate"];
 
-function pickIsolatedFinding(usedFields: string[]) {
+/** The first `n` findings that aren't artefacts, each the only one on its unit, so `only` with their codes picks out exactly them, in this order. */
+function isolatedFindings(usedFields: string[], n: number) {
   const codeCounts = new Map<string, number>();
   const all = detect(data);
   for (const f of all) codeCounts.set(f.code, (codeCounts.get(f.code) ?? 0) + 1);
-  const found = all.find(
-    (f) => f.kind !== "artefact" && codeCounts.get(f.code) === 1 && !usedFields.some((x) => familyOf(f.measure).has(x)),
-  );
-  if (!found) throw new Error("no finding isolated enough for this fixture");
+  const found = all
+    .filter((f) => f.kind !== "artefact" && codeCounts.get(f.code) === 1 && !usedFields.some((x) => familyOf(f.measure).has(x)))
+    .slice(0, n);
+  if (found.length < n) throw new Error("too few findings isolated enough for this fixture");
   return found;
+}
+
+function pickIsolatedFinding(usedFields: string[]) {
+  return isolatedFindings(usedFields, 1)[0]!;
 }
 
 describe("tokens and cost", () => {
@@ -208,7 +213,7 @@ describe("an adversary that doesn't answer", () => {
       calls++;
       throw new Error("claude exited 1: something broke");
     }, cache());
-    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
 
     expect(calls).toBe(3);
     expect(file.partial).toBe(true);
@@ -220,7 +225,7 @@ describe("an adversary that doesn't answer", () => {
   it("stops at once when a usage limit outlasts its wait, and says so", async () => {
     // a runner that throws the LimitError withRetries throws after its wait
     const limited = makeRunner(async () => { throw new LimitError("the usage limit didn't reset within 6 hours", null); }, cache());
-    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier: limited, proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier: limited, proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
     expect(file.stopped).toMatch(/usage limit/);
     expect(file.partial).toBe(true);
   });
@@ -231,12 +236,100 @@ describe("an adversary that doesn't answer", () => {
       calls++;
       throw new Error("claude exited 1: usage limit reached");
     }, cache());
-    const file = await pipeline(data, { limit: 3, run: failing, falsifier: proposer(), proposer: "sonnet", falsifierModel: "opus" });
+    const file = await pipeline(data, { limit: 3, run: failing, falsifier: proposer(), proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
 
     expect(calls).toBe(3);
     expect(file.stopped).toMatch(/^3 proposer calls in a row failed/);
     expect(file.items.length).toBeLessThan(3);
     expect(file.items.at(-1)!.skipped).toMatch(/^the run stopped/);
+  });
+});
+
+describe("running findings at the same time", () => {
+  const strip = (f: RunFile) => ({ items: f.items, stopped: f.stopped, partial: f.partial });
+  const cache = () => ({ cacheDir: mkdtempSync(join(tmpdir(), "r-")), datasetVersion: "t", stageVersions: { propose: "1", falsify: "1" } });
+  // The finding a propose call is for: its key is the finding's id, then the sample's index.
+  const idOf = (call: ModelCall) => call.key.slice(0, call.key.lastIndexOf(":"));
+
+  it("gives the same run file at concurrency 1 and 3", async () => {
+    const only = isolatedFindings([], 6).map((f) => f.code);
+    const one = await pipeline(data, { only, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus", concurrency: 1 });
+    const three = await pipeline(data, { only, run: runner(), falsifier: runner(), proposer: "sonnet", falsifierModel: "opus", concurrency: 3 });
+    expect(strip(three)).toEqual(strip(one));
+  });
+
+  it("keeps every link verdict with the finding it was tested for", async () => {
+    // Each finding gets a link test about its own figure, and every call waits a few ms keyed
+    // on what it asks, so 3 at once finish in a different order from one at a time.
+    const linked = isolatedFindings(["education.higher"], 4);
+    const byId = new Map(linked.map((f) => [f.id, f]));
+    const answer = (call: ModelCall) => {
+      if (call.stage !== "propose") return JSON.stringify({ counter: null, reason: "no counter" });
+      const f = byId.get(idOf(call))!;
+      return JSON.stringify({ hypotheses: [hyp("linked", alwaysTrue("education.higher"), {
+        link: "together", x: "education.higher", y: f.measure, year: f.kind === "change" ? "change" : 2024, level: f.level, direction: "positive",
+      })] });
+    };
+    const scrambled = () => makeRunner(async (call) => {
+      await new Promise((r) => setTimeout(r, parseInt(hash(call.key).slice(0, 2), 16) % 8));
+      return { text: answer(call), model: call.model, usage: NO_USAGE };
+    }, cache());
+    const at = (concurrency: number, only = linked.map((f) => f.code)) =>
+      pipeline(data, { only, run: scrambled(), falsifier: scrambled(), proposer: "sonnet", falsifierModel: "opus", concurrency });
+
+    const one = await at(1);
+    const three = await at(3);
+    expect(strip(three)).toEqual(strip(one));
+
+    // A link test's own numbers don't depend on what else the run tested, so each finding's
+    // have to match a run of that finding alone.
+    const numbers = (item: Item) =>
+      item.hypotheses.map((h) => h.linkTest && { p: h.linkTest.p, effect: h.linkTest.effect, placeboEffects: h.linkTest.placeboEffects });
+    for (const item of three.items) {
+      const alone = await at(1, [item.finding.code]);
+      expect(numbers(item), item.finding.code).toEqual(numbers(alone.items[0]!));
+    }
+    expect(three.items.filter((i) => i.hypotheses.some((h) => h.linkTest && h.linkTest.verdict !== "refused")).length).toBeGreaterThan(1);
+  });
+
+  it("keeps what finished before a stop, skips what was running and leaves out the rest", async () => {
+    // The first 3 findings answer. The others' calls wait until 3 of them are waiting, which
+    // only happens once the first 3 have finished and every slot holds one, then all fail:
+    // 3 in a row stop the run with 3 findings in flight and one never started.
+    const seven = isolatedFindings([], 7);
+    const answering = new Set(seven.slice(0, 3).map((f) => f.id));
+    const proposal = JSON.stringify({ hypotheses: [hyp("a", alwaysTrue("labour.activityRate"))] });
+    const waiting = new Set<string>();
+    let open!: () => void;
+    const gate = new Promise<void>((resolve) => (open = resolve));
+    const proposer = makeRunner(async (call) => {
+      if (!answering.has(idOf(call))) {
+        waiting.add(idOf(call));
+        if (waiting.size === 3) open();
+        await gate;
+        throw new Error("claude exited 1: something broke");
+      }
+      return { text: proposal, model: call.model, usage: NO_USAGE };
+    }, cache());
+    const file = await pipeline(data, { only: seven.map((f) => f.code), run: proposer, falsifier: runner(), proposer: "sonnet", falsifierModel: "opus", concurrency: 3 });
+
+    expect(file.stopped).toMatch(/^3 proposer calls in a row failed.*something broke/);
+    expect(file.partial).toBe(true);
+    expect(file.items.map((i) => i.finding.id)).toEqual(seven.slice(0, 6).map((f) => f.id));
+    for (const item of file.items.slice(0, 3)) {
+      expect(item.skipped).toBeNull();
+      expect(item.hypotheses.map((h) => h.stage)).toEqual(["published"]);
+    }
+    for (const item of file.items.slice(3)) {
+      expect(item.skipped).toMatch(/^the run stopped/);
+      expect(item.hypotheses).toEqual([]);
+    }
+  });
+
+  it("reads --concurrency as a whole number and refuses anything else", () => {
+    expect(parseArgs(["--concurrency", "2"]).concurrency).toBe(2);
+    expect(() => parseArgs(["--concurrency", "0"])).toThrow(/--concurrency/);
+    expect(() => parseArgs(["--concurrency"])).toThrow(/--concurrency/);
   });
 });
 

@@ -1,10 +1,11 @@
 /**
  * Runs the whole pipeline over the dataset's findings and shapes what survives into the
- * files the API and site read. A finding is proposed, checked, tested across places and
- * argued against one after another; nothing about a hypothesis's fate is final until the
- * whole run's link tests have been judged together, since a link's p-value is only
- * meaningful against the batch it was corrected within. `pipeline` does the run and returns
- * it as data; `publishable` shapes a finished run into the files a later task writes.
+ * files the API and site read. A few findings at a time are proposed, checked, tested
+ * across places and argued against, each finding's own calls in order; nothing about a
+ * hypothesis's fate is final until the whole run's link tests have been judged together,
+ * since a link's p-value is only meaningful against the batch it was corrected within.
+ * `pipeline` does the run and returns it as data; `publishable` shapes a finished run into
+ * the files a later task writes.
  */
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -29,6 +30,7 @@ import {
   type Runner,
   type Usage,
 } from "./model.ts";
+import { mapPool } from "./pool.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
@@ -154,6 +156,20 @@ interface Pending {
 }
 
 /**
+ * One finding's share of a run, kept whole until the run is put together in finding order.
+ * Its pending entries' `linkOutcomeIndex` points into its own `linkOutcomes`, not the run's.
+ */
+interface FindingRun {
+  item: Item;
+  decided: { order: number; hypothesis: Hypothesis }[];
+  pending: Pending[];
+  linkOutcomes: LinkOutcome[];
+}
+
+/** How many findings a run works on at once, unless it's told otherwise. A finding's own calls still go one after another. */
+export const DEFAULT_CONCURRENCY = 3;
+
+/**
  * Orders findings by what people open: the page views their unit had in the last 30 days,
  * most first, then by score, so a batch that can't run everything spends its calls on the
  * places people actually look at. A unit with no rows in `views` counts as 0.
@@ -189,6 +205,8 @@ export const STOP_AFTER_FAILURES = 3;
  * `run`, counting the calls that fail in a row. The one that makes `STOP_AFTER_FAILURES`
  * sets `halt.reason`, and from then on nothing is called at all, by this runner or any
  * other sharing the same `halt`: each call fails straight away with that reason instead.
+ * With findings running at once, "in a row" is across all of them, in the order their
+ * calls come back.
  *
  * A `LimitError` halts at once, on the first one: by the time it reaches here, `withRetries`
  * has already waited out any limit it could, so seeing one means the wait ran out. It's
@@ -236,14 +254,18 @@ function trackUsage(run: Runner, totals: Map<string, UsageTotal>): Runner {
   };
 }
 
-/** The earliest start and latest end passed to `record`, for a span with no one call of its own to wrap; `started` says whether anything ever was. */
+/**
+ * The earliest start and latest end passed to `record`, for a span with no one call of its
+ * own to wrap; `started` says whether anything ever was. Findings running at once record in
+ * any order, so it keeps the extremes rather than the first and the last.
+ */
 function spanAccumulator() {
   let start: number | null = null;
   let end = 0;
   return {
     record(t0: number, t1: number): void {
-      if (start === null) start = t0;
-      end = t1;
+      start = start === null ? t0 : Math.min(start, t0);
+      end = Math.max(end, t1);
     },
     started: (): boolean => start !== null,
     range: (): { start: number; end: number } => ({ start: start ?? 0, end }),
@@ -252,10 +274,12 @@ function spanAccumulator() {
 
 /**
  * Runs `detect`, then proposes, checks, link-tests and argues against every finding's
- * candidates in turn. Every link test in the run is collected as it comes up and judged
- * once, together, after the last finding, since `judgeLinks`'s correction only means
- * anything read across the whole batch; a hypothesis's stage and any link verdict are
- * settled only once that judgement is in.
+ * candidates, `options.concurrency` findings at once (`DEFAULT_CONCURRENCY` unless it's
+ * given), each finding's own calls in order. Each finding keeps its own link tests; once the
+ * last is done, they're put together in finding order, whatever order the findings finished
+ * in, and judged once, together, since `judgeLinks`'s correction only means anything read
+ * across the whole batch. A hypothesis's stage and any link verdict are settled only once
+ * that judgement is in, so the items come out the same at any concurrency.
  *
  * Traces itself as it goes: a span per stage, and one per finding under `propose` and
  * `falsify`, since those are the stages a `claude -p` call happens in. `options.views`, when
@@ -263,8 +287,8 @@ function spanAccumulator() {
  * anywhere; that's `exportSpans`'s job, left to the caller.
  *
  * When `STOP_AFTER_FAILURES` proposer or adversary calls fail in a row, the run stops: the
- * finding it was on is kept as skipped, the rest are left out, and the file says why in
- * `stopped`.
+ * findings it was on are kept as skipped, the ones it hadn't started are left out, and the
+ * file says why in `stopped`.
  */
 export async function pipeline(
   data: Data,
@@ -276,6 +300,7 @@ export async function pipeline(
     proposer: string;
     falsifierModel: string;
     views?: Map<string, number>;
+    concurrency?: number;
   },
 ): Promise<RunFile> {
   const startedAt = new Date().toISOString();
@@ -297,11 +322,6 @@ export async function pipeline(
   if (options.limit != null) findings = findings.slice(0, options.limit);
   spans.push({ traceId, spanId: detectSpanId, name: "detect", start: detectStart, end: Date.now(), attributes: { findings: findings.length } });
 
-  const items: Item[] = [];
-  const decidedByItem: { order: number; hypothesis: Hypothesis }[][] = [];
-  const pendingByItem: Pending[][] = [];
-  const linkOutcomes: LinkOutcome[] = [];
-
   const proposeStageId = newSpanId();
   const falsifyStageId = newSpanId();
   const proposeStage = spanAccumulator();
@@ -309,21 +329,24 @@ export async function pipeline(
   const checkSpan = spanAccumulator();
   const linksSpan = spanAccumulator();
 
-  for (const finding of findings) {
+  const oneFinding = async (finding: Finding): Promise<FindingRun | null> => {
+    // Not started before the run stopped: left out, as one finding at a time leaves out
+    // every finding after the one it stopped on.
+    if (halt.reason) return null;
+
     const line = findingLine(finding, data);
     const breakdownRows = breakdown(finding, data);
-    const stoppedHere = (): void => {
-      items.push({ finding, line, breakdown: breakdownRows, entropy: 0, replies: [], hypotheses: [], skipped: `the run stopped: ${halt.reason}` });
-      decidedByItem.push([]);
-      pendingByItem.push([]);
-    };
+    const bare = (skipped: string | null): FindingRun => ({
+      item: { finding, line, breakdown: breakdownRows, entropy: 0, replies: [], hypotheses: [], skipped },
+      decided: [],
+      pending: [],
+      linkOutcomes: [],
+    });
+    // On the go when the run stopped: kept as skipped, and whatever it had found so far,
+    // link tests included, is dropped with it.
+    const stoppedHere = (): FindingRun => bare(`the run stopped: ${halt.reason}`);
 
-    if (finding.kind === "artefact") {
-      items.push({ finding, line, breakdown: breakdownRows, entropy: 0, replies: [], hypotheses: [], skipped: null });
-      decidedByItem.push([]);
-      pendingByItem.push([]);
-      continue;
-    }
+    if (finding.kind === "artefact") return bare(null);
 
     // Everything propose.ts, vocabulary.ts, links.ts and falsify.ts do here is written to
     // never throw on a bad model reply; this is one more net under that, so a bug in any
@@ -335,18 +358,16 @@ export async function pipeline(
       const proposal = await propose(finding, data, tracedRun, options.proposer);
       const proposeCallEnd = Date.now();
       for (const reply of proposal.replies) answered.add(reply.model);
-      if (halt.reason) {
-        stoppedHere();
-        break;
-      }
+      if (halt.reason) return stoppedHere();
       spans.push({
         traceId, spanId: findingProposeId, parentSpanId: proposeStageId, name: "propose",
         start: proposeCallStart, end: proposeCallEnd, attributes: { finding: finding.id },
       });
       proposeStage.record(proposeCallStart, proposeCallEnd);
 
-      const decided: { order: number; hypothesis: Hypothesis }[] = [];
+      const decided: FindingRun["decided"] = [];
       const pending: Pending[] = [];
+      const linkOutcomes: LinkOutcome[] = [];
 
       const findingFalsifyId = newSpanId();
       const findingFalsify = spanAccumulator();
@@ -386,32 +407,39 @@ export async function pipeline(
         pending.push({ order, candidate, outcome, linkOutcomeIndex, linkRefused, adversary: argued });
       }
 
-      if (halt.reason) {
-        stoppedHere();
-        break;
-      }
+      if (halt.reason) return stoppedHere();
 
       if (findingFalsify.started()) {
         spans.push({ traceId, spanId: findingFalsifyId, parentSpanId: falsifyStageId, name: "falsify", attributes: { finding: finding.id }, ...findingFalsify.range() });
         falsifyStage.record(findingFalsify.range().start, findingFalsify.range().end);
       }
 
-      items.push({ finding, line, breakdown: breakdownRows, entropy: proposal.entropy, replies: proposal.replies, hypotheses: [], skipped: proposal.skipped ?? null });
-      decidedByItem.push(decided);
-      pendingByItem.push(pending);
+      return {
+        item: { finding, line, breakdown: breakdownRows, entropy: proposal.entropy, replies: proposal.replies, hypotheses: [], skipped: proposal.skipped ?? null },
+        decided,
+        pending,
+        linkOutcomes,
+      };
     } catch (error) {
-      items.push({
-        finding,
-        line,
-        breakdown: breakdownRows,
-        entropy: 0,
-        replies: [],
-        hypotheses: [],
-        skipped: error instanceof Error ? error.message : String(error),
-      });
-      decidedByItem.push([]);
-      pendingByItem.push([]);
+      return bare(messageOf(error));
     }
+  };
+
+  const results = await mapPool(findings, options.concurrency ?? DEFAULT_CONCURRENCY, oneFinding);
+
+  // In finding order, whatever order they finished in: each finding's link tests go after
+  // every earlier finding's, and its pending entries' indexes move up by as many, so
+  // `judgeLinks` reads the same list at any concurrency.
+  const kept: FindingRun[] = [];
+  const linkOutcomes: LinkOutcome[] = [];
+  for (const result of results) {
+    if (result === null) continue;
+    const offset = linkOutcomes.length;
+    kept.push({
+      ...result,
+      pending: result.pending.map((entry) => (entry.linkOutcomeIndex == null ? entry : { ...entry, linkOutcomeIndex: entry.linkOutcomeIndex + offset })),
+    });
+    linkOutcomes.push(...result.linkOutcomes);
   }
 
   const linksJudgeStart = Date.now();
@@ -423,11 +451,10 @@ export async function pipeline(
   if (proposeStage.started()) spans.push({ traceId, spanId: proposeStageId, name: "propose", attributes: {}, ...proposeStage.range() });
   if (falsifyStage.started()) spans.push({ traceId, spanId: falsifyStageId, name: "falsify", attributes: {}, ...falsifyStage.range() });
 
-  for (let i = 0; i < items.length; i++) {
-    const decided = decidedByItem[i]!;
+  for (const { item, decided, pending } of kept) {
     const eligible: { order: number; candidate: Candidate; outcome: Outcome; linkTest: Hypothesis["linkTest"]; adversary: Hypothesis["adversary"] }[] = [];
 
-    for (const entry of pendingByItem[i]!) {
+    for (const entry of pending) {
       if (entry.linkOutcomeIndex == null) {
         // Refused before it ran: kept on the hypothesis, so the run file says why its link
         // is shown as proposed only.
@@ -460,7 +487,7 @@ export async function pipeline(
       decided.push({ order: e.order, hypothesis: buildHypothesis(e.candidate, e.outcome, "published", null, e.linkTest, e.adversary) });
     }
 
-    items[i]!.hypotheses = decided.sort((a, b) => a.order - b.order).map((d) => d.hypothesis);
+    item.hypotheses = decided.sort((a, b) => a.order - b.order).map((d) => d.hypothesis);
   }
 
   return {
@@ -471,7 +498,7 @@ export async function pipeline(
     datasetVersion: data.version,
     models: { ...models, answered: [...answered].sort() },
     stageVersions: STAGE_VERSIONS,
-    items,
+    items: kept.map((result) => result.item),
     spans,
     usage: [...usageTotals.values()].sort((a, b) => a.stage.localeCompare(b.stage) || a.model.localeCompare(b.model)),
   };
@@ -718,10 +745,16 @@ async function runPublish(): Promise<void> {
 }
 
 /**
- * `pnpm insights`'s flags. A `--limit` or `--only` with nothing usable after it is an
- * error that says so, rather than a run over every finding the flag was meant to narrow.
+ * `pnpm insights`'s flags. A `--limit`, `--only` or `--concurrency` with nothing usable
+ * after it is an error that says so, rather than a run that quietly does without it.
  */
-export function parseArgs(args: string[]): { publish: boolean; demand: boolean; limit: number | undefined; only: string[] | undefined } {
+export function parseArgs(args: string[]): {
+  publish: boolean;
+  demand: boolean;
+  limit: number | undefined;
+  only: string[] | undefined;
+  concurrency: number | undefined;
+} {
   const value = (name: string): string | undefined => {
     const i = args.indexOf(`--${name}`);
     if (i < 0) return undefined;
@@ -735,12 +768,17 @@ export function parseArgs(args: string[]): { publish: boolean; demand: boolean; 
   }
   const rawOnly = value("only");
   if (rawOnly === "") throw new Error("--only needs unit codes, comma-separated, such as --only 01.511.01.0");
+  const rawConcurrency = value("concurrency");
+  if (rawConcurrency !== undefined && !/^[1-9]\d*$/.test(rawConcurrency)) {
+    throw new Error(`--concurrency needs a whole number of findings at once, such as --concurrency 3${rawConcurrency ? `, not ${rawConcurrency}` : ""}`);
+  }
 
   return {
     publish: args.includes("--publish"),
     demand: args.includes("--demand"),
     limit: rawLimit === undefined ? undefined : Number(rawLimit),
     only: rawOnly?.split(","),
+    concurrency: rawConcurrency === undefined ? undefined : Number(rawConcurrency),
   };
 }
 
@@ -758,7 +796,7 @@ async function main(): Promise<void> {
     refuseToStart(error);
     return;
   }
-  const { publish, demand, limit, only } = args;
+  const { publish, demand, limit, only, concurrency } = args;
   if (publish) {
     await runPublish();
     return;
@@ -794,7 +832,7 @@ async function main(): Promise<void> {
   const falsifierTransport = falsifierChoice.transport === "ollama" ? ollamaTransport() : claudeTransport();
   const falsifier = makeRunner(withRetries(falsifierTransport, retryOptions), cacheOptions);
 
-  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views });
+  const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views, concurrency });
   await exportSpans(file.spans, process.env);
 
   const runsDir = ".cache/insights/runs";
