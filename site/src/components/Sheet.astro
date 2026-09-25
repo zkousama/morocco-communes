@@ -119,6 +119,12 @@ const groups = [
       if (window.innerWidth > root.clientWidth) root.style.scrollbarGutter = "stable";
       root.classList.add("sheet-open");
       sheet.showModal();
+      // The cross lands on the menu button. The layout puts it there, except when the page
+      // is wider than the window: then a phone widens the fixed sheet with it, and the bar
+      // stays the window's width.
+      shut.style.translate = "";
+      const dx = menu.getBoundingClientRect().left - shut.getBoundingClientRect().left;
+      if (narrow.matches && Math.abs(dx) > 0.5) shut.style.translate = `${dx}px 0`;
       from.setAttribute("aria-expanded", "true");
       (typing || !narrow.matches ? input : shut).focus();
     };
