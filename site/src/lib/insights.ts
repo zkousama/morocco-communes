@@ -23,7 +23,7 @@ import {
 } from "../../../insights/src/detect.ts";
 import { field, type Level } from "../../../insights/src/fields.ts";
 import { PER_SIDE, REGRADE_N } from "../../../insights/src/grade.ts";
-import { FALSE_DISCOVERY_RATE, MIN_UNITS, PERMUTATION_ROUNDS, PLACEBO_COUNT } from "../../../insights/src/links.ts";
+import { EFFECT_FLOOR, FALSE_DISCOVERY_RATE, MIN_UNITS, PERMUTATION_ROUNDS, PLACEBO_COUNT } from "../../../insights/src/links.ts";
 import { MUTATIONS, NUMBER_SHIFT } from "../../../insights/src/mutate.ts";
 import { SAMPLES } from "../../../insights/src/propose.ts";
 import { PUBLISHED_CAP, type PublishedHypothesis } from "../../../insights/src/run.ts";
@@ -106,6 +106,7 @@ export const method = {
   placebos: PLACEBO_COUNT,
   fewestPlaces: MIN_UNITS,
   falseDiscoveryRate: FALSE_DISCOVERY_RATE,
+  effectFloor: EFFECT_FLOOR,
   shown: PUBLISHED_CAP,
   perSide: PER_SIDE,
   regraded: REGRADE_N,

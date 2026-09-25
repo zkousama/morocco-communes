@@ -23,6 +23,7 @@ const toc = [
 const n = numbers(locale);
 const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
+const decimal = (value: number) => numbers(locale, 1, true).format(value);
 const on = (iso: string) =>
   new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -143,6 +144,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       {count(method.placebos)}. Les valeurs p de tous les tests de lien d’une même exécution sont corrigées
       ensemble, par la procédure de Benjamini-Hochberg, à un taux de fausses découvertes de{" "}
       {whole(method.falseDiscoveryRate)}.
+    </p>
+    <p>
+      Il doit aussi être assez marqué pour compter : une corrélation d’au moins {decimal(method.effectFloor)} en
+      valeur absolue, ou, pour les pairs, un écart d’au moins {decimal(method.effectFloor)} de la dispersion
+      habituelle du chiffre.
     </p>
     <p>
       Un lien qui passe, bat ses placebos et va dans le sens annoncé est présenté comme cohérent avec ce qu’on

@@ -28,6 +28,7 @@ const toc = [
 const n = numbers(locale);
 const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
+const decimal = (value: number) => numbers(locale, 1, true).format(value);
 const on = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -143,6 +144,10 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       as placebos, and the premise has to go with the figure more strongly than all {count(method.placebos)} do.
       The p-values of every link test in a run are corrected together, with the Benjamini-Hochberg procedure at a
       false discovery rate of {whole(method.falseDiscoveryRate)}.
+    </p>
+    <p>
+      It also has to be strong enough to matter: a correlation of at least {decimal(method.effectFloor)} in
+      size, or for peers, a difference of at least {decimal(method.effectFloor)} of the figure’s usual spread.
     </p>
     <p>
       A link that passes, beats its placebos and goes the way it claimed is shown as consistent with the pattern

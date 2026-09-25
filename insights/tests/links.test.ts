@@ -48,11 +48,27 @@ describe("link tests", () => {
   });
 
   it("calls a link consistent only when it survives the correction, held, and no unrelated measure does as well", () => {
-    const strong = { p: 0.0001, effect: -0.5, held: true, placeboEffects: [0.1, -0.2, 0.05], n: 500 };
+    const strong = { p: 0.0001, effect: -0.5, size: 0.5, held: true, placeboEffects: [0.1, -0.2, 0.05], n: 500 };
     const placeboBeatsIt = { ...strong, placeboEffects: [0.1, -0.6, 0.05] };
     const wrongWay = { ...strong, held: false };
-    const weak = { ...strong, p: 0.3, effect: 0.05 };
+    const weak = { ...strong, p: 0.3, effect: 0.05, size: 0.05 };
     expect(judgeLinks([strong, placeboBeatsIt, wrongWay, weak])).toEqual(["consistent", "not consistent", "not consistent", "not consistent"]);
+  });
+});
+
+describe("the effect floor", () => {
+  const base = { p: 0.0001, held: true, placeboEffects: [0.01, 0.02, 0.03], n: 500 };
+  it("calls a real but thin link not consistent", () => {
+    expect(judgeLinks([{ ...base, effect: 0.14, size: 0.14 }])).toEqual(["not consistent"]);
+  });
+  it("calls a link at the floor consistent", () => {
+    expect(judgeLinks([{ ...base, effect: 0.2, size: 0.2 }])).toEqual(["consistent"]);
+  });
+  it("measures a peers link against the outcome's spread", () => {
+    const outcome = runLink({ link: "peers", premise: "education.higher", outcome: "fertility.totalFertilityRate", level: "commune", direction: "lower" }, data, 1);
+    expect(outcome.refused).toBeUndefined();
+    expect(outcome.size).toBeGreaterThan(0);
+    expect(outcome.size).toBeLessThan(5);
   });
 });
 

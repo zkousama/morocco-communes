@@ -17,8 +17,9 @@ the figure. The premise is always checked: a data test reads one figure or more 
 census and comes out true or false, and only a premise whose test passed makes it here. The
 link is different, since it's a claim about cause that the census alone can't settle. Where a
 link test fits, it checks whether the premise goes with the outcome across every place of
-that level, more closely than 3 unrelated measures do, and the link is shown as tested for
-consistency. Otherwise it's shown as proposed only, with no test behind it.
+that level, more closely than 3 unrelated measures do and by enough to matter, and the link
+is shown as tested for consistency. Otherwise it's shown as proposed only, with no test
+behind it.
 
 Every claim, premise and link here was written by a language model. Each premise was then
 checked, each hypothesis argued against by a second model trying to break it, and, where it

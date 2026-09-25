@@ -39,6 +39,7 @@ export const linkSchema: z.ZodType<LinkTest> = z.discriminatedUnion("link", [
 export interface LinkOutcome {
   p: number;
   effect: number;
+  size: number; // how strong the effect is, on a scale a placebo doesn't move: |rho| for together, the peers gap over the outcome's spread
   held: boolean; // the effect has the claimed sign
   placeboEffects: number[];
   n: number;
@@ -51,13 +52,21 @@ const MIN_HALF = 10; // peers: the smaller of its 2 halves must reach this, or a
 export const PERMUTATION_ROUNDS = 999;
 export const PLACEBO_COUNT = 3;
 export const FALSE_DISCOVERY_RATE = 0.05;
+export const EFFECT_FLOOR = 0.2; // consistent needs size at least this large: with ~1,500 communes, a tiny effect clears every other bar
 
-const refused = (n: number, reason: string): LinkOutcome => ({ p: 1, effect: 0, held: false, placeboEffects: [], n, refused: reason });
+const refused = (n: number, reason: string): LinkOutcome => ({ p: 1, effect: 0, size: 0, held: false, placeboEffects: [], n, refused: reason });
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 1 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+}
+
+/** The population standard deviation of `values`: how far they typically sit from their own mean. */
+function standardDeviation(values: number[]): number {
+  const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
 }
 
 /** Every value in the array is the same; a correlation over it isn't computable. */
@@ -188,7 +197,7 @@ function runTogether(test: Extract<LinkTest, { link: "together" }>, data: Data, 
   });
   if (!placeboEffects) return refused(pair.n, "too few computable placebos");
 
-  return { p, effect: rho, held, placeboEffects, n: pair.n };
+  return { p, effect: rho, size: Math.abs(rho), held, placeboEffects, n: pair.n };
 }
 
 /** The `premisePath`/`outcomePath` peer split over `units`, and whether it's usable: at least 30 units pooled, and neither half under 10 (an empty or lopsided half breaks the median difference and the Mann-Whitney test alike). */
@@ -220,7 +229,10 @@ function runPeers(test: Extract<LinkTest, { link: "peers" }>, data: Data, seed: 
   });
   if (!placeboEffects) return refused(n, "too few computable placebos");
 
-  return { p, effect, held, placeboEffects, n };
+  const spread = standardDeviation([...a, ...b]);
+  const size = spread > 0 ? Math.abs(effect) / spread : 0;
+
+  return { p, effect, size, held, placeboEffects, n };
 }
 
 /**
@@ -236,8 +248,9 @@ export function runLink(test: LinkTest, data: Data, seed: number): LinkOutcome {
 
 /**
  * `"consistent"` for an outcome that's a Benjamini-Hochberg discovery among the p-values
- * passed in, held in its claimed direction, and beat every one of its own placebos; a
- * refused outcome is left out of the correction and reported back as `"refused"`.
+ * passed in, held in its claimed direction, beat every one of its own placebos, and is at
+ * least as strong as `EFFECT_FLOOR`; a refused outcome is left out of the correction and
+ * reported back as `"refused"`.
  */
 export function judgeLinks(outcomes: LinkOutcome[], q = FALSE_DISCOVERY_RATE): ("consistent" | "not consistent" | "refused")[] {
   const consideredAt: number[] = [];
@@ -253,6 +266,6 @@ export function judgeLinks(outcomes: LinkOutcome[], q = FALSE_DISCOVERY_RATE): (
   return outcomes.map((outcome, i) => {
     if (outcome.refused) return "refused";
     const beatsPlacebos = outcome.placeboEffects.every((placebo) => Math.abs(outcome.effect) > Math.abs(placebo));
-    return isDiscovery.get(i) && outcome.held && beatsPlacebos ? "consistent" : "not consistent";
+    return isDiscovery.get(i) && outcome.held && beatsPlacebos && outcome.size >= EFFECT_FLOOR ? "consistent" : "not consistent";
   });
 }
