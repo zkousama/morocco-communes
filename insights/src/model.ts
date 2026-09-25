@@ -11,6 +11,8 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
+export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
+
 export interface ModelCall {
   model: string;
   system: string;
@@ -19,6 +21,8 @@ export interface ModelCall {
   key: string;
   traceparent?: string; // left out of the cache id, so tracing never invalidates a cached answer
   accept?: (text: string) => boolean; // whether the stage can read an answer: one it can't is handed back but never cached, so a re-run asks again
+  effort?: Effort; // the thinking effort, pinned per stage so nothing is inherited from where a run starts
+  label?: string; // tells apart a deliberate repeat of the same calls, such as the pilot's noise floor
 }
 
 export interface ModelReply {
@@ -47,6 +51,13 @@ function requireLive(name: string): void {
 }
 
 /**
+ * Determines whether an environment variable should not be passed to the child process.
+ * Filters out API keys and session-specific settings from the parent.
+ */
+export const CHILD_ENV_DROP = (key: string): boolean =>
+  key === "ANTHROPIC_API_KEY" || key === "CLAUDECODE" || key === "CLAUDE_EFFORT" || key.startsWith("CLAUDE_CODE_");
+
+/**
  * How `claude -p` is started for one call, kept apart from the spawn so a test can read
  * it. As `evals/run.ts` does, the child reads local settings only, gets no tools and saves
  * no session; it also gets no MCP servers (`--strict-mcp-config` with no config beside it)
@@ -55,7 +66,7 @@ function requireLive(name: string): void {
  * the signed-in subscription, never on a key billed per call.
  */
 export function claudeInvocation(call: ModelCall, parentEnv: NodeJS.ProcessEnv): { args: string[]; cwd: string; env: NodeJS.ProcessEnv } {
-  const { ANTHROPIC_API_KEY: _, ...env } = parentEnv;
+  const env: NodeJS.ProcessEnv = Object.fromEntries(Object.entries(parentEnv).filter(([key]) => !CHILD_ENV_DROP(key)));
 
   // Nothing here reaches a collector unless the pipeline's own environment already names
   // one: without it, the child gets no telemetry env at all, traceparent included, so
@@ -71,6 +82,7 @@ export function claudeInvocation(call: ModelCall, parentEnv: NodeJS.ProcessEnv):
   const args = [
     "-p", call.prompt,
     "--model", call.model,
+    ...(call.effort ? ["--effort", call.effort] : []),
     "--setting-sources", "local",
     "--strict-mcp-config",
     "--tools", "",
@@ -168,6 +180,8 @@ function cacheId(call: ModelCall, datasetVersion: string, stageVersions: Record<
       stageVersions[call.stage] ?? "",
       datasetVersion,
       call.model,
+      call.effort ?? "",
+      call.label ?? "",
       hash(call.system),
       hash(call.prompt),
       call.key,

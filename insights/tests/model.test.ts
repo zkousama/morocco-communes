@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { claudeInvocation, claudeTransport, makeRunner, ollamaTransport, stubTransport, type ModelCall } from "../src/model.ts";
+import { claudeInvocation, claudeTransport, makeRunner, ollamaTransport, stubTransport, type Effort, type ModelCall } from "../src/model.ts";
 import { newIds, traceparent } from "../src/trace.ts";
 
 const call: ModelCall = { model: "sonnet", system: "s", prompt: "p", stage: "propose", key: "finding-1:0" };
@@ -18,6 +18,16 @@ function setup() {
 }
 
 describe("the runner", () => {
+  it("asks again when the effort or the label changes", async () => {
+    const s = setup();
+    await s.runner()(call);
+    await s.runner()({ ...call, effort: "high" });
+    await s.runner()({ ...call, effort: "high", label: "repeat" });
+    expect(s.count()).toBe(3);
+    await s.runner()({ ...call, effort: "high", label: "repeat" });
+    expect(s.count()).toBe(3);
+  });
+
   it("answers from the cache the second time", async () => {
     const s = setup();
     const first = await s.runner()(call);
@@ -154,5 +164,30 @@ describe("the claude child", () => {
     const traced = claudeInvocation(withTrace, { OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector.test" }).env;
     expect(traced.TRACEPARENT).toBe(withTrace.traceparent);
     expect(traced.CLAUDE_CODE_ENABLE_TELEMETRY).toBe("1");
+  });
+
+  it("passes the effort it was given, and none when it wasn't", () => {
+    const withEffort = claudeInvocation({ ...call, effort: "medium" }, {});
+    expect(withEffort.args).toContain("--effort");
+    expect(withEffort.args[withEffort.args.indexOf("--effort") + 1]).toBe("medium");
+    expect(claudeInvocation(call, {}).args).not.toContain("--effort");
+  });
+
+  it("never hands the child the parent session's own settings", () => {
+    const parent = {
+      PATH: "/usr/bin", HOME: "/home/x",
+      CLAUDECODE: "1", CLAUDE_CODE_SESSION_ID: "s", CLAUDE_CODE_MESSAGING_SOCKET: "/tmp/s",
+      CLAUDE_CODE_EFFORT_LEVEL: "xhigh", CLAUDE_EFFORT: "xhigh", CLAUDE_CODE_CHILD_SESSION: "1",
+    };
+    const { env } = claudeInvocation(call, parent);
+    expect(env.PATH).toBe("/usr/bin");
+    expect(env.HOME).toBe("/home/x");
+    for (const key of Object.keys(env)) expect(key === "CLAUDECODE" || key.startsWith("CLAUDE_CODE_") || key === "CLAUDE_EFFORT").toBe(false);
+  });
+
+  it("keeps telemetry switches it sets itself, even though they start CLAUDE_CODE_", () => {
+    const { env } = claudeInvocation({ ...call, traceparent: "00-a-b-01" }, { OTEL_EXPORTER_OTLP_ENDPOINT: "http://x", CLAUDE_CODE_SESSION_ID: "s" });
+    expect(env.CLAUDE_CODE_ENABLE_TELEMETRY).toBe("1");
+    expect(env.CLAUDE_CODE_SESSION_ID).toBeUndefined();
   });
 });
