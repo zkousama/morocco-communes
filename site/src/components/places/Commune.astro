@@ -7,9 +7,11 @@ import ChangeChart from "./ChangeChart.astro";
 import People from "./People.astro";
 import Economy from "./Economy.astro";
 import Housing from "./Housing.astro";
+import Insights from "./Insights.astro";
 import { indicatorsOf } from "../../lib/indicators";
 import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
+import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
 import { density, percent } from "../../lib/format";
@@ -85,6 +87,7 @@ const bordering = (neighbours.get(c.code) ?? [])
 const census = indicatorsOf.get(c.code);
 const economy = economyOf.get(c.code);
 const housing = housingOf.get(c.code);
+const insights = insightsOf.get(c.code);
 const arrondissements = arrondissementsOf(c.code);
 const cityDrawing = drawArrondissements(c.code);
 // Every arrondissement in Casablanca is past the top national break, so the city is shaded
@@ -224,6 +227,8 @@ getCommune("${c.slug}");`;
 
   {economy && <Economy locale={locale} record={economy} population={people.total} />}
 
+  {insights && <Insights locale={locale} record={insights} />}
+
   {c.urbanCentres.length > 0 && (
     <section>
       <h2>{p.urbanCentres}</h2>
@@ -298,6 +303,9 @@ getCommune("${c.slug}");`;
       )}
       {housing && (
         <div><dt>{p.dwellingsTitle}</dt><dd><a href={`/api/communes/${c.code}/housing.json`}><code>/api/communes/{c.code}/housing.json</code></a></dd></div>
+      )}
+      {insights && (
+        <div><dt>{p.insightsTitle}</dt><dd><a href={`/api/communes/${c.code}/insights.json`}><code>/api/communes/{c.code}/insights.json</code></a></dd></div>
       )}
       {bordering.length > 0 && (
         <div><dt>{p.bordering}</dt><dd><a href={`/api/communes/${c.code}/neighbours.json`}><code>/api/communes/{c.code}/neighbours.json</code></a></dd></div>

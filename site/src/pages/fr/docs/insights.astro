@@ -1,0 +1,245 @@
+---
+/**
+ * La version française de /docs/insights/. Même contenu, même code : voir ce fichier pour
+ * le commentaire qui dit d’où chaque phrase vient.
+ */
+import Docs from "../../../layouts/Docs.astro";
+import { REPO_URL } from "../../../i18n/ui";
+import { numbers, percent } from "../../../lib/format";
+import { metrics } from "../../../lib/insights";
+
+const locale = "fr";
+
+const toc = [
+  { id: "stands-out", label: "Ce qui se détache" },
+  { id: "proposed", label: "Les raisons proposées" },
+  { id: "premise", label: "La prémisse" },
+  { id: "link", label: "Le lien" },
+  { id: "adversary", label: "L’adversaire" },
+  { id: "grading", label: "La notation" },
+  { id: "sources", label: "D’où vient la méthode" },
+];
+
+const n = numbers(locale);
+const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
+const on = (iso: string) =>
+  new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+
+const published = metrics && metrics.published.graded > 0 ? metrics.published : null;
+const agreement = metrics?.agreement ?? null;
+const planted = metrics && metrics.planted.total > 0 ? metrics.planted : null;
+const KINDS: [string, string][] = [
+  ["unit", "Le lieu remplacé par une commune tirée au hasard"],
+  ["year", "L’autre année de recensement lue"],
+  ["direction", "La comparaison inversée"],
+  ["number", "Le seuil divisé par 2, ou relevé de 20"],
+  ["field", "La mesure remplacée par une mesure d’un autre thème"],
+];
+const kinds = planted ? KINDS.filter(([kind]) => (planted.byKind[kind]?.total ?? 0) > 0) : [];
+
+const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
+---
+
+<Docs
+  locale={locale}
+  route="docs/insights/"
+  title="Comment les constats sont établis"
+  description="Comment un chiffre qui se détache reçoit des raisons possibles sur la page d’un lieu, et comment chacune est vérifiée."
+  lede="La page d’un lieu peut montrer un chiffre qui se détache, avec des raisons possibles qu’un modèle de langage a proposées. Voici comment ces chiffres sont choisis et comment chaque raison est vérifiée avant d’être affichée."
+  toc={toc}
+>
+  <section id="stands-out">
+    <h2>Ce qui se détache</h2>
+    <p>
+      Un chiffre peut se détacher de 3 façons. Une commune de 5 000 habitants ou plus figure parmi les 1 % les plus
+      hauts ou les plus bas de ces communes pour une mesure. L’évolution d’une unité depuis 2014 s’écarte d’au moins
+      3 écarts-types de l’évolution moyenne de son niveau, pour un niveau d’au moins 10 unités et une mesure que le
+      recensement de 2014 posait de la même façon. Ou l’écart d’une commune ou d’une province au chiffre de sa
+      province ou de sa région s’éloigne d’au moins 3 écarts-types de l’écart moyen sous ce même parent, quand
+      celui-ci compte au moins 8 unités.
+    </p>
+    <p>
+      Chaque mesure est un taux, une part ou une moyenne, car un effectif brut ferait ressortir une grande unité
+      du seul fait de sa taille. Une commune rapprochée de 2014 par la table de correspondance n’a pas d’évolution
+      à comparer, puisque son chiffre de 2014 porte sur un autre territoire. Les 300 chiffres qui se détachent le
+      plus sont retenus, au plus 3 par lieu.
+    </p>
+    <p>
+      Les langues parlées, lues et écrites, le niveau d’études et l’analphabétisme évoluent lentement. Quand l’une de
+      ces mesures bascule dans un lieu dont la population a varié de moins de 10 %, sans qu’aucun voisin ait bougé
+      dans le même sens d’au moins la moitié, le chiffre est signalé comme une erreur possible dans les données. Il
+      est affiché avec ce seul signalement, et aucune raison n’est proposée pour lui.
+    </p>
+  </section>
+
+  <section id="proposed">
+    <h2>Les raisons proposées</h2>
+    <p>
+      Chaque autre chiffre est confié à un modèle de langage, avec toutes les mesures du lieu, de sa province ou de
+      sa région, de ses voisins et du Maroc, et le modèle doit proposer 2 à 4 hypothèses. Une hypothèse a une
+      affirmation, la raison possible en quelques mots ; une prémisse, un fait sur le lieu qu’un test sur les
+      données peut vérifier ; et un lien, ce qui ferait que ce fait explique le chiffre.
+    </p>
+    <p>
+      La même question est posée 5 fois. Les réponses sont regroupées selon ce que vérifient leurs tests, et le
+      soutien d’une hypothèse est le nombre de réponses sur les 5 qui l’ont proposée. Le désaccord entre les 5 est
+      enregistré pour chaque chiffre comme son entropie sémantique, calculée sur ces groupes. Une liste de mots
+      écarte ensuite toute hypothèse qui nomme une personne, un groupe ethnique ou religieux ou un acteur politique,
+      dans l’une ou l’autre langue.
+    </p>
+  </section>
+
+  <section id="premise">
+    <h2>La prémisse</h2>
+    <p>
+      Une prémisse s’accompagne d’un test sur les données, écrit dans un vocabulaire de 3 vérifications : un
+      chiffre comparé à un autre ou à un nombre, l’évolution d’un chiffre depuis 2014, et le rang d’un lieu dans sa
+      province, sa région ou le Maroc. Le test lit les chiffres du recensement et c’est l’arithmétique qui tranche.
+      Il est vrai ou faux, et les nombres qu’il a lus sont gardés à côté, pour que chacun puisse vérifier le
+      résultat.
+    </p>
+    <p>
+      Un test qui utilise la mesure du chiffre lui-même, ou une autre part du même tout, comme une autre tranche
+      d’âge quand le chiffre est une tranche d’âge, est refusé, et son hypothèse avec lui : une prémisse doit être
+      un autre fait que le chiffre qu’elle explique. Un chiffre manquant fait échouer le test. Seule une prémisse
+      dont le test a réussi va plus loin.
+    </p>
+  </section>
+
+  <section id="link">
+    <h2>Le lien</h2>
+    <p>
+      Le lien est une affirmation de cause, que le recensement seul ne peut pas trancher. Quand un test de lien s’y
+      prête, le modèle en propose un, qui porte sur tous les lieux du même niveau. Le premier type classe les lieux
+      selon la mesure de la prémisse et selon celle du chiffre, en 2024 ou selon leur évolution depuis 2014, et
+      mesure à quel point les 2 classements vont ensemble, avec une valeur p tirée de 999 permutations. Le second
+      coupe les lieux de chaque région à leur médiane pour la mesure de la prémisse, et compare la médiane du
+      chiffre entre les 2 moitiés avec un test de Mann-Whitney.
+    </p>
+    <p>
+      Chaque test est refait avec 3 mesures de thèmes sans rapport à la place de celle de la prémisse, comme
+      placebos, et la prémisse doit aller avec le chiffre plus nettement que chacun des 3. Les valeurs p de tous les
+      tests de lien d’une même exécution sont corrigées ensemble, par la procédure de Benjamini-Hochberg, à un taux
+      de fausses découvertes de 5 %.
+    </p>
+    <p>
+      Un lien qui passe, bat ses placebos et va dans le sens annoncé est présenté comme cohérent avec ce qu’on
+      observe d’un lieu à l’autre. C’est un motif que la prémisse et le chiffre partagent, ce qui est moins fort
+      qu’une cause. Un test de lien qui échoue écarte son hypothèse. Quand aucun test de lien ne s’y prête, ou qu’il
+      ne peut pas tourner, par exemple avec moins de 30 lieux à comparer, le lien est présenté comme proposé, non
+      testé.
+    </p>
+  </section>
+
+  <section id="adversary">
+    <h2>L’adversaire</h2>
+    <p>
+      Une hypothèse dont la prémisse a été vérifiée passe ensuite à un second modèle de langage, différent de celui
+      qui l’a proposée. Il voit les mêmes chiffres et l’hypothèse, et cherche à la faire tomber avec un contre-test
+      dans le même vocabulaire, qui serait vrai si la prémisse n’expliquait pas le chiffre. Le contre-test est
+      calculé de la même façon, et s’il est vrai, l’hypothèse est écartée. L’adversaire peut aussi refuser de
+      discuter une hypothèse qui nomme une personne, un groupe ou un acteur politique, ce qui l’écarte également.
+    </p>
+    <p>
+      Un contre-test qui échoue ou qui est refusé laisse l’hypothèse en place, tout comme une réponse sans
+      contre-test. Chaque chiffre montre ensuite jusqu’à 3 des hypothèses restantes, les plus soutenues d’abord. Un
+      chiffre sans hypothèse restante n’apparaît pas sur la page.
+    </p>
+  </section>
+
+  <section id="grading">
+    <h2>La notation</h2>
+    <p>
+      Une personne note à la main un échantillon de la dernière exécution : jusqu’à 50 hypothèses qui ont passé
+      toutes les vérifications et 50 qui se sont arrêtées en route, au plus une de chaque par chiffre, mélangées.
+      Elle voit le chiffre, l’affirmation, la prémisse avec ses nombres, le lien et les nombres de son test, et rien
+      qui dise si l’hypothèse est passée ni où elle s’est arrêtée. Elle répond oui ou non, selon que l’hypothèse
+      tient ou pas. Jusqu’à 25 réponses sont notées une seconde fois, à l’aveugle, et le kappa de Cohen mesure
+      l’accord entre les 2 passages.
+    </p>
+    <p>
+      Chaque hypothèse publiée notée oui voit ensuite son test faussé de chacune des 5 façons qui s’y appliquent,
+      puis relancé : le lieu remplacé par une commune tirée au hasard, l’autre année de recensement, la comparaison
+      inversée, le seuil divisé par 2 ou relevé de 20, et la mesure remplacée par une mesure d’un autre thème. Une
+      erreur introduite est repérée quand le test faussé ne passe plus.
+    </p>
+    <p>
+      La part des hypothèses publiées notées oui reçoit un intervalle de Wilson à 95 %. Rien n’est publié tant que
+      la borne basse de cet intervalle, pris en unilatéral, est sous 80 %, tant qu’aucune erreur introduite n’a été
+      mesurée, ou tant qu’elles sont repérées moins souvent qu’à la dernière notation gardée dans le dépôt.
+    </p>
+    {metrics ? (
+      <>
+        {published && (
+          <p>
+            {n.format(published.yes)} des {n.format(published.graded)} hypothèses publiées ont été notées oui : entre{" "}
+            {whole(published.low)} et {whole(published.high)} de ce qui est publié tient donc, avec une confiance de
+            95 %. La borne basse unilatérale que lit le garde-fou est de {whole(published.lowOneSided)}.
+          </p>
+        )}
+        {agreement && (
+          <p>
+            Sur les {n.format(agreement.n)} réponses notées une seconde fois, les 2 passages s’accordent avec un kappa
+            de Cohen de {numbers(locale, 2, true).format(agreement.kappa)}.
+          </p>
+        )}
+        {planted && (
+          <>
+            <p>{n.format(planted.caught)} des {n.format(planted.total)} erreurs introduites ont été repérées.</p>
+            <div class="scroll" tabindex="0">
+              <table>
+                <thead>
+                  <tr><th>L’erreur introduite</th><th class="num">Repérée</th></tr>
+                </thead>
+                <tbody>
+                  {kinds.map(([kind, label]) => (
+                    <tr>
+                      <td>{label}</td>
+                      <td class="num">{n.format(planted.byKind[kind]!.caught)} sur {n.format(planted.byKind[kind]!.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+        <p class="note">Ces nombres datent du {on(metrics.measuredAt)}.</p>
+      </>
+    ) : (
+      <p class="note">Les nombres apparaîtront ici après la première notation.</p>
+    )}
+  </section>
+
+  <section id="sources">
+    <h2>D’où vient la méthode</h2>
+    <p>
+      <a href="https://arxiv.org/abs/2502.09858">POPPER</a> (Huang et al., ICML 2025) fait concevoir par un modèle
+      de langage des expériences qui réfuteraient une hypothèse, et les exécute en gardant le taux d’erreur sous
+      contrôle. Les contre-tests de l’adversaire suivent cette idée.
+    </p>
+    <p>
+      <a href="https://aclanthology.org/2025.acl-long.12/">Literature Meets Data</a> (Liu et al., ACL 2025) fait
+      proposer des hypothèses à un modèle de langage à partir de ce que l’on sait déjà d’un sujet et des données
+      disponibles. Ici, le modèle propose à partir de ce qu’il sait des lieux, avec les chiffres du recensement sous
+      les yeux.
+    </p>
+    <p>
+      <a href="https://www.nature.com/articles/s41586-024-07421-0">L’entropie sémantique</a> (Farquhar et al.,
+      Nature, 2024) mesure à quel point les réponses répétées d’un modèle divergent sur le sens. Sa forme discrète,
+      sur des groupes de réponses, est celle qui est enregistrée pour chaque chiffre, un test sur les données tenant
+      lieu de sens.
+    </p>
+    <p>
+      Le pipeline se trouve dans <a href={file("insights/")}><code>insights/</code></a>, et ce qu’il publie dans{" "}
+      <a href={file("data/v1/insights/")}><code>data/v1/insights/</code></a>.
+    </p>
+  </section>
+</Docs>
+
+<style>
+  .doc :global(#grading td.num),
+  .doc :global(#grading th.num) {
+    text-align: end;
+    white-space: nowrap;
+  }
+</style>

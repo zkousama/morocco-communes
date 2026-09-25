@@ -1,0 +1,134 @@
+---
+/**
+ * The figures of a unit that stand out, and possible reasons for them, as the insights
+ * pipeline published them in data/v1/insights/.
+ *
+ * Every reason here was written by a language model, so the first line says so, and each
+ * one sits with the census fact it rests on and the numbers its test read. A link is only
+ * called consistent when its test across places judged it so; otherwise it's proposed. A
+ * finding flagged as a possible error in the data has its line and nothing else.
+ *
+ * A unit with nothing published has no file, and no section.
+ */
+import { fill, places } from "../../i18n/places";
+import { path, type Locale } from "../../i18n/ui";
+import { percent } from "../../lib/format";
+import { evidenceNumbers, type UnitInsights } from "../../lib/insights";
+
+interface Props {
+  locale: Locale;
+  record: UnitInsights;
+}
+const { locale, record } = Astro.props;
+const p = places[locale];
+const share = (v: number) => percent(locale, v, { fixed: true });
+const checkedOn = new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+}).format(new Date(`${record.checkedAt}T00:00:00Z`));
+---
+
+<section class="insights">
+  <h2>{p.insightsTitle}</h2>
+  <p>{p.insightsBody}</p>
+
+  {record.findings.map((f) => (
+    <div class="finding">
+      <p class="line">{f.line[locale]}</p>
+      {f.kind !== "artefact" && (
+        <>
+          {f.breakdown && (
+            <p class="note">
+              {fill(p.insightsMadeOf, { parts: f.breakdown.map((b) => `${b.label[locale]} ${share(b.value)}`).join(" · ") })}
+            </p>
+          )}
+          {f.hypotheses.length > 0 && (
+            <ol class="hypotheses">
+              {f.hypotheses.map((h) => {
+                const read = evidenceNumbers(locale, h.evidence.check, h.evidence.numbers);
+                return (
+                  <li>
+                    <h3>{h.claim[locale]}</h3>
+                    <p>
+                      <span class="quiet">{p.insightsChecked}</span> {h.premise[locale]}
+                      {read && <span class="quiet"> ({read})</span>}
+                    </p>
+                    <p>
+                      {h.link[locale]}
+                      <small>{h.linkTest?.verdict === "consistent" ? p.insightsConsistent : p.insightsProposed}</small>
+                    </p>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </>
+      )}
+    </div>
+  ))}
+
+  <p class="checked">
+    {fill(p.insightsCheckedOn, { date: checkedOn })}{" · "}<a href={path(locale, "docs/insights/")}>{p.insightsMore}</a>
+  </p>
+</section>
+
+<style>
+  .finding {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    max-width: 68ch;
+  }
+
+  .line {
+    margin: 0;
+  }
+
+  .note {
+    margin: 0.35rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .hypotheses {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* As the smaller headings in the sections above. */
+  h3 {
+    font-size: var(--t-sm);
+    font-weight: 500;
+    margin: 1.25rem 0 0.2rem;
+  }
+
+  .hypotheses p {
+    margin: 0.2rem 0 0;
+    font-size: var(--t-sm);
+  }
+
+  .quiet {
+    color: var(--quiet);
+  }
+
+  .hypotheses small {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .checked {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-size: var(--t-xs);
+  }
+
+  .checked a {
+    color: var(--quiet);
+  }
+</style>

@@ -9,9 +9,11 @@ import Inset from "./Inset.astro";
 import People from "./People.astro";
 import Economy from "./Economy.astro";
 import Housing from "./Housing.astro";
+import Insights from "./Insights.astro";
 import { indicatorsOf } from "../../lib/indicators";
 import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
+import { insightsOf } from "../../lib/insights";
 import { de, fill, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
 import { density, percent } from "../../lib/format";
@@ -38,6 +40,7 @@ const unit = province ?? region;
 const census = indicatorsOf.get(unit.code);
 const economy = economyOf.get(unit.code);
 const housing = housingOf.get(unit.code);
+const insights = insightsOf.get(unit.code);
 // Where the unit's own files are. A préfecture d'arrondissements has no communes of its
 // own, so no list of them and no boundary drawn from them.
 const api = `/api/${province ? "provinces" : "regions"}/${unit.code}`;
@@ -195,6 +198,8 @@ const standouts = [
 
   {economy && <Economy locale={locale} record={economy} population={unit.population["2024"].total} />}
 
+  {insights && <Insights locale={locale} record={insights} />}
+
   {subunits.length > 0 && (
     <section>
       <h2>{p.provinces}</h2>
@@ -286,6 +291,9 @@ const standouts = [
       )}
       {housing && (
         <div><dt>{p.dwellingsTitle}</dt><dd><a href={`${api}/housing.json`}><code>{api}/housing.json</code></a></dd></div>
+      )}
+      {insights && (
+        <div><dt>{p.insightsTitle}</dt><dd><a href={`${api}/insights.json`}><code>{api}/insights.json</code></a></dd></div>
       )}
     </dl>
     <p class="report"><a href={`${REPO_URL}/issues/new?template=data-error.yml&title=${encodeURIComponent(`${title} (${unit.code})`)}`}>{p.report}</a></p>
