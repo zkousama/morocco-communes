@@ -192,9 +192,10 @@ export const RETRY_DEFAULTS: Omit<RetryOptions, "sleep"> = {
  * Wraps a transport so a hiccup retries and a usage limit waits, leaving only a real
  * failure to reach the caller. A transient error backs off `backoffMs[i]` and retries, up
  * to `tries` times, then throws as itself. A limit sleeps `retryAfterMs` (when the error
- * said how long) or `limitPollMs`, and tries again; once the time already spent waiting
- * has reached `limitMaxMs`, it gives up without waiting again and throws a `LimitError`
- * saying the limit never reset in time. A fatal error throws at once, on the first try.
+ * said how long) or `limitPollMs`, clamped to whatever's left of `limitMaxMs`, so the total
+ * time waited never runs past it; once none is left, it gives up without waiting again and
+ * throws a `LimitError` saying the limit never reset in time. A fatal error throws at once,
+ * on the first try.
  */
 export function withRetries(transport: Transport, o: RetryOptions): Transport {
   return async (call) => {
@@ -210,7 +211,8 @@ export function withRetries(transport: Transport, o: RetryOptions): Transport {
           if (waited >= o.limitMaxMs) {
             throw new LimitError(`the usage limit didn't reset within ${Math.round(o.limitMaxMs / 3_600_000)} hours: ${messageOf(error)}`, null);
           }
-          const wait = (error instanceof LimitError && error.retryAfterMs) || o.limitPollMs;
+          const asked = (error instanceof LimitError && error.retryAfterMs) || o.limitPollMs;
+          const wait = Math.min(asked, o.limitMaxMs - waited);
           o.log?.(`limit reached, waiting ${Math.round(wait / 60_000)} min: ${messageOf(error)}`);
           await o.sleep(wait);
           waited += wait;

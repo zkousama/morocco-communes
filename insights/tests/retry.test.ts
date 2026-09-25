@@ -82,6 +82,7 @@ describe("withRetries", () => {
     const s = scripted([new Error("claude reported an error: You've hit your weekly limit")]);
     await expect(withRetries(s.transport, { tries: 3, backoffMs: [5], limitPollMs: 4000, limitMaxMs: 10_000, sleep: c.sleep })(call)).rejects.toBeInstanceOf(LimitError);
     expect(c.now()).toBeGreaterThanOrEqual(10_000);
+    expect(c.waits).toEqual([4000, 4000, 2000]);
   });
   it("never retries a missing binary", async () => {
     const c = clock();
