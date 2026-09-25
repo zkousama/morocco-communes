@@ -6,8 +6,9 @@
  * meaningful against the batch it was corrected within. `pipeline` does the run and returns
  * it as data; `publishable` shapes a finished run into the files a later task writes.
  */
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { spawnSync } from "node:child_process";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
@@ -16,6 +17,7 @@ import { falsify, falsifierModel } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
 import { claudeTransport, hash, makeRunner, ollamaTransport, type Runner } from "./model.ts";
 import { propose, type Candidate } from "./propose.ts";
+import { guard, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { evaluate, type Check, type Outcome } from "./vocabulary.ts";
 import type { Level } from "./fields.ts";
@@ -288,12 +290,92 @@ export function publishable(file: RunFile, data: Data = loadData()): Map<string,
   return out;
 }
 
+/**
+ * The one place a finished run reaches `data/v1/insights/`: refuses through `guard` (a
+ * null `metrics` counts as no graded set) and, only once it passes, clears everything
+ * under `outDir` but `README.md` and writes each file as compact JSON with a trailing
+ * newline. `outDir` is created first, so a first-ever publish doesn't need it to exist.
+ */
+export async function publishIfAllowed(options: {
+  outDir: string;
+  metrics: Metrics | null;
+  baseline: Metrics | null;
+  files: Map<string, unknown>;
+}): Promise<{ written: boolean; reasons: string[] }> {
+  if (!options.metrics) return { written: false, reasons: ["no graded set yet: run pnpm insights:grade"] };
+
+  const result = guard(options.metrics, options.baseline);
+  if (!result.ok) return { written: false, reasons: result.reasons };
+
+  await mkdir(options.outDir, { recursive: true });
+  for (const entry of await readdir(options.outDir)) {
+    if (entry === "README.md") continue;
+    await rm(join(options.outDir, entry), { recursive: true, force: true });
+  }
+  for (const [path, body] of options.files) {
+    const dest = join(options.outDir, path);
+    await mkdir(dirname(dest), { recursive: true });
+    await writeFile(dest, `${JSON.stringify(body)}\n`);
+  }
+
+  return { written: true, reasons: [] };
+}
+
+const RUN_PATH = join(".cache", "insights", "runs", "latest.json");
+const METRICS_PATH = "insights/metrics.json";
+const OUT_DIR = "data/v1/insights";
+
+/** The last committed `insights/metrics.json`, or null when there isn't one, git can't be read, or it doesn't parse. */
+function readBaselineMetrics(): Metrics | null {
+  const result = spawnSync("git", ["show", "HEAD:insights/metrics.json"], { encoding: "utf8" });
+  if (result.status !== 0) return null;
+  try {
+    return JSON.parse(result.stdout) as Metrics;
+  } catch {
+    return null;
+  }
+}
+
+/** `pnpm insights --publish`: publishes the latest run file as it stands, without running the pipeline or calling a model. */
+async function runPublish(): Promise<void> {
+  let latest: RunFile;
+  try {
+    latest = JSON.parse(await readFile(RUN_PATH, "utf8")) as RunFile;
+  } catch {
+    console.log("no run yet: run `pnpm insights` first");
+    process.exitCode = 1;
+    return;
+  }
+
+  let metrics: Metrics | null;
+  try {
+    metrics = JSON.parse(await readFile(METRICS_PATH, "utf8")) as Metrics;
+  } catch {
+    metrics = null;
+  }
+
+  const baseline = readBaselineMetrics();
+  const files = publishable(latest);
+  const result = await publishIfAllowed({ outDir: OUT_DIR, metrics, baseline, files });
+  if (!result.written) {
+    for (const reason of result.reasons) console.log(reason);
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`published ${files.size} files`);
+}
+
 async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  if (args.includes("--publish")) {
+    await runPublish();
+    return;
+  }
+
   if (process.env.INSIGHTS_LIVE !== "1") {
     throw new Error("pnpm insights needs INSIGHTS_LIVE=1: it would spend real calls against a subscription");
   }
 
-  const args = process.argv.slice(2);
   const option = (name: string): string | undefined => {
     const i = args.indexOf(`--${name}`);
     return i >= 0 ? args[i + 1] : undefined;

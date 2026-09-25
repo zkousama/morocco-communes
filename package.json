@@ -29,6 +29,7 @@
     "insights": "node --experimental-strip-types insights/src/run.ts",
     "insights:grade": "node --experimental-strip-types insights/src/grade.ts",
     "insights:regrade": "node --experimental-strip-types insights/src/grade.ts --regrade",
+    "insights:score": "node --experimental-strip-types insights/src/score.ts",
     "stats": "node --experimental-strip-types scripts/stats.ts",
     "demand": "node --experimental-strip-types scripts/demand.ts"
   },

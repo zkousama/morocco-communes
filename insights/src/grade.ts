@@ -159,7 +159,7 @@ export function formatItem(item: { finding: Finding; line: { en: string }; hypot
 }
 
 const RUN_PATH = ".cache/insights/runs/latest.json";
-const GRADED_PATH = "insights/graded.json";
+export const GRADED_PATH = "insights/graded.json";
 // 50 per side, the size the brief's own sample() test draws.
 const PER_SIDE = 50;
 const SEED = 1;
@@ -191,7 +191,7 @@ async function loadRunFile(): Promise<Loaded<RunFile>> {
  * be read, parsed or doesn't hold the shape it should is reported and stops the run, rather
  * than silently starting over on top of it, which would lose every grade already saved.
  */
-async function loadGradedFile(path: string): Promise<Loaded<GradedFile>> {
+export async function loadGradedFile(path: string): Promise<Loaded<GradedFile>> {
   let raw: string;
   try {
     raw = await readFile(path, "utf8");

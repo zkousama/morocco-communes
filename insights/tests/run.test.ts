@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -6,7 +6,7 @@ import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
-import { pipeline, publishable } from "../src/run.ts";
+import { pipeline, publishable, publishIfAllowed } from "../src/run.ts";
 
 const data = loadData();
 const proposal = JSON.stringify({ hypotheses: [{
@@ -144,5 +144,31 @@ describe("a call that fails in a way nothing anticipated", () => {
     expect(file.items).toHaveLength(1);
     expect(file.items[0]!.hypotheses).toEqual([]);
     expect(file.items[0]!.skipped).toBeTruthy();
+  });
+});
+
+describe("publishing", () => {
+  const passing = {
+    measuredAt: "", published: { yes: 47, graded: 50, low: 0, high: 0, lowOneSided: 0 },
+    rejectedButSound: { count: 0, byStage: {} }, agreement: null,
+    planted: { total: 100, caught: 95, byKind: {} },
+  };
+
+  it("never writes without a graded set, and leaves what's there alone", async () => {
+    const outDir = join(mkdtempSync(join(tmpdir(), "pub-")), "insights");
+    const result = await publishIfAllowed({ outDir, metrics: null, baseline: null, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(false);
+    expect(result.reasons.length).toBeGreaterThan(0);
+    expect(existsSync(join(outDir, "index.json"))).toBe(false);
+  });
+
+  it("replaces the published files when the guard passes, keeping the README", async () => {
+    const outDir = join(mkdtempSync(join(tmpdir(), "pub-")), "insights");
+    await publishIfAllowed({ outDir, metrics: passing, baseline: null, files: new Map([["communes/old.json", {}]]) });
+    writeFileSync(join(outDir, "README.md"), "readme");
+    const result = await publishIfAllowed({ outDir, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(true);
+    expect(existsSync(join(outDir, "communes", "old.json"))).toBe(false);
+    expect(readFileSync(join(outDir, "README.md"), "utf8")).toBe("readme");
   });
 });
