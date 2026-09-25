@@ -555,10 +555,12 @@ const spoken = (row: (typeof spread)[number]) =>
 
   /* Histogram --------------------------------------------------------------- */
 
+  /* minmax(0, 1fr): plain "1fr" columns still take their minimum from the widest label's
+     min-content, so a bucket with a longer label got a wider column and a wider bar. */
   .histogram {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 1fr;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 0.5rem;
     align-items: end;
     flex: 1 1 auto;
@@ -599,10 +601,15 @@ const spoken = (row: (typeof spread)[number]) =>
     min-height: 2px;
   }
 
+  /* Wraps instead of forcing its column wide: the column is equal width by count, not by
+     what the label needs. Every label reserves the same two lines, wrapped or not, so a
+     bucket that wraps doesn't leave its bar less room to grow in than the others'. */
   .hlabel {
     font-size: var(--t-xs);
     color: var(--quiet);
-    white-space: nowrap;
+    line-height: 1.25;
+    min-height: 2.5em;
+    overflow-wrap: anywhere;
   }
 
   /* Box and whisker --------------------------------------------------------- */
