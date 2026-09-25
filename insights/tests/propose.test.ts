@@ -179,10 +179,12 @@ describe("the finding's line", () => {
   });
 
   it("sets a gap against its parent", () => {
-    const gap = pick("09.541.03.11", "economy.perBusiness.jobs");
+    // Imider (08.577.07.19), not Imi N'tayart (09.541.03.11, population 973): a gap needs
+    // a commune of CHANGE_GAP_POPULATION_FLOOR people or more.
+    const gap = pick("08.577.07.19", "economy.perBusiness.jobs");
     const line = findingLine(gap, data);
-    expect(line.en).toBe("The number of permanent jobs per business is 78.0, against 1.9 across its province.");
-    expect(line.fr).toBe("Le nombre d’emplois permanents par entreprise est de 78,0, contre 1,9 dans sa province.");
+    expect(line.en).toBe("The number of permanent jobs per business is 23.1, against 1.6 across its province.");
+    expect(line.fr).toBe("Le nombre d’emplois permanents par entreprise est de 23,1, contre 1,6 dans sa province.");
   });
 
   it("has a phrase for every field, and never prints a missing number", () => {

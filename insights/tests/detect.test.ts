@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
-import { detect } from "../src/detect.ts";
+import { CHANGE_GAP_POPULATION_FLOOR, detect, implausibleYears } from "../src/detect.ts";
 
 const data = loadData();
 const findings = detect(data);
@@ -50,6 +50,54 @@ describe("detect", () => {
     for (const f of detect(data, { cap: 100_000, perUnit: 100 })) {
       expect(Number.isFinite(f.value)).toBe(true);
       expect(Number.isFinite(f.score)).toBe(true);
+    }
+  });
+});
+
+describe("records that can't be right", () => {
+  it("flags Gleibat El Foula's 2014 record for its 32 people per room", () => {
+    const why = implausibleYears(data.units.get("12.391.05.03")!);
+    expect(why.y2014).toMatch(/people per room/);
+    expect(why.y2024).toBeNull();
+  });
+  it("flags Touizgui's 2024 record for its 15.4 people per room", () => {
+    expect(implausibleYears(data.units.get("10.071.03.05")!).y2024).toMatch(/people per room/);
+  });
+  it("leaves unusual places alone: the palace communes and the earthquake zone", () => {
+    for (const code of ["04.421.01.07", "06.141.01.81", "09.541.04.67"]) {
+      expect(implausibleYears(data.units.get(code)!)).toEqual({ y2014: null, y2024: null });
+    }
+  });
+  it("treats a housing shortfall over 100 as a ratio, not an error", () => {
+    expect(implausibleYears(data.units.get("01.405.09.05")!).y2024).toBeNull(); // Brikcha
+  });
+  it("leaves the Talat N'yaaqoub earthquake-zone commune alone too", () => {
+    expect(implausibleYears(data.units.get("07.041.07.13")!)).toEqual({ y2014: null, y2024: null });
+  });
+  it("turns a change resting on an implausible 2014 into a possible data error, and leaves that unit's 2024 extremes alone", () => {
+    const all = detect(data, { cap: 100_000, perUnit: 100 });
+    const gleibat = all.filter((f) => f.code === "12.391.05.03");
+    expect(gleibat.some((f) => f.kind === "artefact" && f.measure === "households.peoplePerRoom")).toBe(true);
+    expect(gleibat.some((f) => f.kind === "change")).toBe(false);
+    expect(gleibat.some((f) => f.kind === "extreme")).toBe(true); // its 2024 record (4.9 per room) is plausible
+  });
+  it("turns every finding on an implausible 2024 into a possible data error", () => {
+    const touizgui = detect(data, { cap: 100_000, perUnit: 100 }).filter((f) => f.code === "10.071.03.05");
+    expect(touizgui.length).toBeGreaterThan(0);
+    for (const f of touizgui) expect(f.kind).toBe("artefact");
+  });
+  it("never gives 2 findings the same id, even when an extreme and a change on one figure both become artefacts", () => {
+    const all = detect(data, { cap: 100_000, perUnit: 100 });
+    expect(new Set(all.map((f) => f.id)).size).toBe(all.length);
+    expect(all.filter((f) => f.code === "10.071.03.05" && f.measure === "households.peoplePerRoom")).toHaveLength(1);
+  });
+});
+
+describe("the population floors", () => {
+  it("gives no change or gap finding to a commune under 2,000 people", () => {
+    for (const f of detect(data, { cap: 100_000, perUnit: 100 })) {
+      if (f.level !== "commune" || (f.kind !== "change" && f.kind !== "gap")) continue;
+      expect(data.units.get(f.code)!.population.y2024).toBeGreaterThanOrEqual(CHANGE_GAP_POPULATION_FLOOR);
     }
   });
 });

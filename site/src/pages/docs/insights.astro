@@ -67,7 +67,8 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       level of {count(method.changeLevelSize)} units or more and a measure the 2014 census asked the same way. A
       commune or a province also stands out when its gap from its province’s or région’s figure is{" "}
       {count(method.deviations)} standard deviations or more from the average gap under that parent, where the
-      parent holds {count(method.gapGroupSize)} units or more.
+      parent holds {count(method.gapGroupSize)} units or more. Changes and gaps count only for communes of{" "}
+      {count(method.changeGapFloor)} people or more, where a few households can’t swing a share on their own.
     </p>
     <p>
       Every measure is a rate, a share or an average, since a raw count would pick out a big place for being big.
@@ -80,6 +81,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       place whose population moved by less than {whole(method.artefactCeiling)}, and no neighbour moved the same
       way by at least half as much, the figure is flagged as a possible error in the data. It’s shown with that flag
       alone, and no reasons are proposed for it.
+    </p>
+    <p>
+      A figure that can’t be right, such as more than {count(method.peoplePerRoom)} people per room or a household
+      of more than {count(method.householdSize)}, marks its record as a possible error in the data, and nothing is
+      proposed for it.
     </p>
   </section>
 

@@ -362,9 +362,9 @@ describe("a link test that isn't about the finding", () => {
   });
 
   it("refuses a figure paired with itself, even when its data test passed", async () => {
-    // Plain households.peoplePerRoom against itself correlates at exactly 1.
+    // Any figure, paired with itself, correlates at exactly 1.
     const all = detect(data);
-    const target = all.find((f) => f.kind === "extreme" && f.measure === "households.peoplePerRoom")!;
+    const target = all.find((f) => f.kind === "extreme")!;
     const itself = JSON.stringify({
       hypotheses: [
         hyp("itself", alwaysTrue("labour.activityRate"), {

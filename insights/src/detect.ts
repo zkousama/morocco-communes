@@ -31,6 +31,16 @@ export const EXTREME_TAIL_SHARE = 0.01;
 export const CHANGE_MIN_LEVEL_SIZE = 10;
 export const GAP_MIN_GROUP_SIZE = 8;
 export const ARTEFACT_POPULATION_CHANGE_CEILING = 0.1;
+export const CHANGE_GAP_POPULATION_FLOOR = 2000;
+export const MAX_PEOPLE_PER_ROOM = 8;
+export const MAX_HOUSEHOLD_SIZE = 15;
+export const AGE_SUM_RANGE = [95, 105] as const;
+
+/** A percent field's plausible slack, for a published figure rounded to one decimal. */
+const PERCENT_SLACK = 0.5;
+
+/** Every age band field's path, "age.0-4" through "age.75+". */
+const AGE_FIELDS = FIELDS.filter((f) => f.path.startsWith("age."));
 
 const LEVELS: Level[] = ["region", "province", "commune", "arrondissement"];
 
@@ -111,17 +121,56 @@ function isArtefact(unit: Unit, field: Field, change: number, data: Data): boole
   return !corroborated;
 }
 
+/** One year's reason a unit's record can't be right, or null when nothing in it is implausible. */
+function implausibleReason(figures: Record<string, number | null>): string | null {
+  const room = figures["households.peoplePerRoom"];
+  if (room != null && room > MAX_PEOPLE_PER_ROOM) return `${room} people per room`;
+
+  const householdSize = figures["households.averageSize"];
+  if (householdSize != null && householdSize > MAX_HOUSEHOLD_SIZE) return `${householdSize} people per household`;
+
+  for (const f of FIELDS) {
+    if (f.unit !== "percent" || f.path === "housing.dwellings.deficitRate") continue;
+    const value = figures[f.path];
+    if (value == null) continue;
+    if (value < -PERCENT_SLACK || value > 100 + PERCENT_SLACK) return `${value}% for ${f.label.en}`;
+  }
+
+  const ages = AGE_FIELDS.map((f) => figures[f.path]);
+  if (ages.every((v) => v != null)) {
+    const sum = ages.reduce((total, v) => total + (v as number), 0);
+    if (sum < AGE_SUM_RANGE[0] || sum > AGE_SUM_RANGE[1]) return `ages summing to ${sum}%`;
+  }
+
+  return null;
+}
+
+/**
+ * Whether each of a unit's 2 census years holds a record that can't be right: more people
+ * per room or per household than physically fits, a percent field outside 0 to 100 (except
+ * the housing deficit rate, which is a ratio that can run past 100), or its 16 age bands,
+ * when every one of them is present, not summing to close to 100%. A short reason per year,
+ * or null when that year's record is plausible.
+ */
+export function implausibleYears(unit: Unit): { y2014: string | null; y2024: string | null } {
+  return { y2014: implausibleReason(unit.figures.y2014), y2024: implausibleReason(unit.figures.y2024) };
+}
+
 /**
  * Comparable fields, every level with 10 or more units: a unit whose measure moved with
  * |z| >= 3 against its level's own change distribution. A crosswalk-matched commune is
  * left out, since its 2014 figure isn't its own boundary's. A slow field's lone,
- * uncorroborated swing on a population that barely moved becomes an artefact instead.
+ * uncorroborated swing on a population that barely moved becomes an artefact instead. A
+ * commune under `CHANGE_GAP_POPULATION_FLOOR` is left out, since a few households there can
+ * swing a share on their own; a province or région has no floor.
  */
 function detectChanges(data: Data): Finding[] {
   const out: Finding[] = [];
 
   for (const level of LEVELS) {
-    const units = data.byLevel.get(level) ?? [];
+    const units = (data.byLevel.get(level) ?? []).filter(
+      (u) => level !== "commune" || u.population.y2024 >= CHANGE_GAP_POPULATION_FLOOR,
+    );
     if (units.length < CHANGE_MIN_LEVEL_SIZE) continue;
 
     for (const f of FIELDS) {
@@ -163,13 +212,16 @@ function detectChanges(data: Data): Finding[] {
 /**
  * A commune against its province, a province against its région: the difference from the
  * parent's own value, among parents with 8 or more children, scored against that group's
- * own mean and standard deviation of the difference.
+ * own mean and standard deviation of the difference. A commune under
+ * `CHANGE_GAP_POPULATION_FLOOR` is left out of the comparison; a province has no floor.
  */
 function detectGaps(data: Data): Finding[] {
   const out: Finding[] = [];
 
   for (const childLevel of ["commune", "province"] as const) {
-    const children = data.byLevel.get(childLevel) ?? [];
+    const children = (data.byLevel.get(childLevel) ?? []).filter(
+      (u) => childLevel !== "commune" || u.population.y2024 >= CHANGE_GAP_POPULATION_FLOOR,
+    );
     const byParent = new Map<string, Unit[]>();
     for (const u of children) {
       if (!u.parent) continue;
@@ -219,12 +271,37 @@ function detectGaps(data: Data): Finding[] {
   return out;
 }
 
+/**
+ * A finding whose relevant year holds an implausible record becomes an artefact instead: a
+ * change when either year is implausible, an extreme or a gap when 2024 is. That can leave
+ * 2 findings sharing one id, such as an extreme and a change on the same figure once both
+ * turn into artefacts; only the one with the higher score survives.
+ */
+function markImplausibleArtefacts(findings: Finding[], data: Data): Finding[] {
+  const converted = findings.map((f) => {
+    if (f.kind === "artefact") return f;
+    const unit = data.units.get(f.code);
+    if (!unit) return f;
+    const why = implausibleYears(unit);
+    const implausible = f.kind === "change" ? why.y2014 != null || why.y2024 != null : why.y2024 != null;
+    if (!implausible) return f;
+    return { ...f, kind: "artefact" as Kind, id: findingId(f.code, f.measure, "artefact") };
+  });
+
+  const byId = new Map<string, Finding>();
+  for (const f of converted) {
+    const existing = byId.get(f.id);
+    if (!existing || f.score > existing.score) byId.set(f.id, f);
+  }
+  return [...byId.values()];
+}
+
 /** Every census, housing and economy field's stand-out findings, ranked and trimmed. */
 export function detect(data: Data, options?: { cap?: number; perUnit?: number }): Finding[] {
   const cap = options?.cap ?? DEFAULT_CAP;
   const perUnit = options?.perUnit ?? DEFAULT_PER_UNIT;
 
-  const findings = [...detectExtremes(data), ...detectChanges(data), ...detectGaps(data)];
+  const findings = markImplausibleArtefacts([...detectExtremes(data), ...detectChanges(data), ...detectGaps(data)], data);
   findings.sort((a, b) => b.score - a.score);
 
   const perUnitCount = new Map<string, number>();

@@ -62,7 +62,9 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       l’évolution moyenne de son niveau, pour un niveau d’au moins {count(method.changeLevelSize)} unités et une
       mesure que le recensement de 2014 posait de la même façon. Une commune ou une province se détache aussi quand
       son écart au chiffre de sa province ou de sa région s’éloigne d’au moins {count(method.deviations)} écarts-types
-      de l’écart moyen sous ce même parent, quand celui-ci compte au moins {count(method.gapGroupSize)} unités.
+      de l’écart moyen sous ce même parent, quand celui-ci compte au moins {count(method.gapGroupSize)} unités. Les
+      évolutions et les écarts ne comptent que pour les communes de {count(method.changeGapFloor)} habitants ou
+      plus, où quelques ménages ne peuvent pas faire basculer une part à eux seuls.
     </p>
     <p>
       Chaque mesure est un taux, une part ou une moyenne, car un effectif brut ferait ressortir une grande unité
@@ -75,6 +77,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       ces mesures bascule dans un lieu dont la population a varié de moins de {whole(method.artefactCeiling)}, sans
       qu’aucun voisin ait bougé dans le même sens d’au moins la moitié, le chiffre est signalé comme une erreur
       possible dans les données. Il est affiché avec ce seul signalement, et aucune raison n’est proposée pour lui.
+    </p>
+    <p>
+      Un chiffre qui ne peut pas être juste, comme plus de {count(method.peoplePerRoom)} personnes par pièce ou un
+      ménage de plus de {count(method.householdSize)} personnes, est signalé comme une erreur possible dans les
+      données, et aucune raison n’est proposée pour lui.
     </p>
   </section>
 

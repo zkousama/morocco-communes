@@ -9,12 +9,15 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   ARTEFACT_POPULATION_CHANGE_CEILING,
+  CHANGE_GAP_POPULATION_FLOOR,
   CHANGE_MIN_LEVEL_SIZE,
   DEFAULT_CAP,
   DEFAULT_PER_UNIT,
   EXTREME_POPULATION_FLOOR,
   EXTREME_TAIL_SHARE,
   GAP_MIN_GROUP_SIZE,
+  MAX_HOUSEHOLD_SIZE,
+  MAX_PEOPLE_PER_ROOM,
   Z_THRESHOLD,
   type Kind,
 } from "../../../insights/src/detect.ts";
@@ -93,6 +96,9 @@ export const method = {
   changeLevelSize: CHANGE_MIN_LEVEL_SIZE,
   gapGroupSize: GAP_MIN_GROUP_SIZE,
   artefactCeiling: ARTEFACT_POPULATION_CHANGE_CEILING,
+  changeGapFloor: CHANGE_GAP_POPULATION_FLOOR,
+  peoplePerRoom: MAX_PEOPLE_PER_ROOM,
+  householdSize: MAX_HOUSEHOLD_SIZE,
   kept: DEFAULT_CAP,
   perPlace: DEFAULT_PER_UNIT,
   samples: SAMPLES,
