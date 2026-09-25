@@ -15,7 +15,20 @@ import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
 import { falsify, falsifierModel, NO_ANSWER, PROMPT_HASH as FALSIFY_PROMPT_HASH, UNREADABLE } from "./falsify.ts";
 import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
-import { addUsage, claudeTransport, hash, makeRunner, NO_USAGE, ollamaTransport, type Runner, type Usage } from "./model.ts";
+import {
+  addUsage,
+  claudeTransport,
+  hash,
+  LimitError,
+  makeRunner,
+  messageOf,
+  NO_USAGE,
+  ollamaTransport,
+  RETRY_DEFAULTS,
+  withRetries,
+  type Runner,
+  type Usage,
+} from "./model.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
 import { breakdown, findingLine } from "./text.ts";
@@ -172,12 +185,15 @@ export function aboutThisFinding(test: LinkTest, check: Check, finding: Finding)
 /** How many calls in a row may fail before a run stops: past a subscription's limit, every call fails the same way. */
 export const STOP_AFTER_FAILURES = 3;
 
-const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-
 /**
  * `run`, counting the calls that fail in a row. The one that makes `STOP_AFTER_FAILURES`
  * sets `halt.reason`, and from then on nothing is called at all, by this runner or any
  * other sharing the same `halt`: each call fails straight away with that reason instead.
+ *
+ * A `LimitError` halts at once, on the first one: by the time it reaches here, `withRetries`
+ * has already waited out any limit it could, so seeing one means the wait ran out. It's
+ * checked by class, never by message, so this never has to parse an error's wording to
+ * tell a real stop from an ordinary failure.
  */
 function stopAfterFailures(run: Runner, who: string, halt: { reason: string | null }): Runner {
   let inARow = 0;
@@ -188,6 +204,10 @@ function stopAfterFailures(run: Runner, who: string, halt: { reason: string | nu
       inARow = 0;
       return reply;
     } catch (error) {
+      if (error instanceof LimitError) {
+        halt.reason = messageOf(error);
+        throw error;
+      }
       inARow++;
       if (inARow >= STOP_AFTER_FAILURES) halt.reason = `${STOP_AFTER_FAILURES} ${who} calls in a row failed, the last with: ${messageOf(error)}`;
       throw error;
@@ -766,12 +786,13 @@ async function main(): Promise<void> {
     views = new Map(rows.map((r) => [r.code, r.n]));
   }
 
+  const retryOptions = { ...RETRY_DEFAULTS, sleep: (ms: number) => new Promise<void>((r) => setTimeout(r, ms)), log: (line: string) => console.error(line) };
   const data = loadData();
   const cacheDir = ".cache/insights/cache";
   const cacheOptions = { cacheDir, datasetVersion: data.version, stageVersions: STAGE_VERSIONS };
-  const run = makeRunner(claudeTransport(), cacheOptions);
+  const run = makeRunner(withRetries(claudeTransport(), retryOptions), cacheOptions);
   const falsifierTransport = falsifierChoice.transport === "ollama" ? ollamaTransport() : claudeTransport();
-  const falsifier = makeRunner(falsifierTransport, cacheOptions);
+  const falsifier = makeRunner(withRetries(falsifierTransport, retryOptions), cacheOptions);
 
   const file = await pipeline(data, { limit, only, run, falsifier, proposer, falsifierModel: falsifierChoice.model, views });
   await exportSpans(file.spans, process.env);

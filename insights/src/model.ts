@@ -117,6 +117,113 @@ export function claudeInvocation(call: ModelCall, parentEnv: NodeJS.ProcessEnv):
   return { args, cwd: tmpdir(), env };
 }
 
+/** A subscription's usage limit: waited out, not counted as a failure. `retryAfterMs` is how long the caller was told to wait, when it said. */
+export class LimitError extends Error {
+  readonly retryAfterMs: number | null;
+  constructor(message: string, retryAfterMs: number | null) {
+    super(message);
+    this.name = "LimitError";
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+/** A hiccup worth retrying: a timeout, an overload, a bad exit, garbled output, a network error. */
+export class TransientError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TransientError";
+  }
+}
+
+const FATAL_RE = /couldn't start claude|ENOENT|credit balance/i;
+const LIMIT_RE = /usage limit|hit your (?:\w+ )*limit|rate.?limit|too many requests|resource.?exhausted/i;
+
+/** Sorts an error into what `withRetries` should do with it: wait it out, retry it, or give up at once. */
+export function classify(error: unknown): "limit" | "transient" | "fatal" {
+  if (error instanceof LimitError) return "limit";
+  if (error instanceof TransientError) return "transient";
+  const message = messageOf(error);
+  if (FATAL_RE.test(message)) return "fatal";
+  if (LIMIT_RE.test(message)) return "limit";
+  return "transient";
+}
+
+/** An error's message, or its string form when it isn't an `Error` at all. */
+export function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * The error a nonzero exit from `claude -p` becomes. Its stdout, when it parses as the
+ * CLI's own JSON with `is_error` and a string `result`, carries the real reason (a usage
+ * limit's own wording, say); that's kept rather than lost behind a bare exit code.
+ * Anything else falls back to the exit code and the last of stderr, as before.
+ */
+export function claudeFailure(code: number | null, stdout: string, stderr: string): Error {
+  try {
+    const parsed = JSON.parse(stdout) as { is_error?: boolean; result?: unknown };
+    if (parsed.is_error && typeof parsed.result === "string") {
+      return new Error(`claude reported an error: ${parsed.result}`);
+    }
+  } catch {
+    // Not the CLI's JSON: fall through to the exit code and stderr.
+  }
+  return new Error(`claude exited ${code}: ${stderr.trim().split("\n").slice(-2).join(" ")}`);
+}
+
+export interface RetryOptions {
+  tries: number;
+  backoffMs: number[];
+  limitPollMs: number;
+  limitMaxMs: number;
+  sleep: (ms: number) => Promise<void>;
+  log?: (line: string) => void;
+}
+
+/** `tries: 3`, backing off 5s, 30s, 2 min; a limit is polled every 15 min for up to 6 hours. */
+export const RETRY_DEFAULTS: Omit<RetryOptions, "sleep"> = {
+  tries: 3,
+  backoffMs: [5_000, 30_000, 120_000],
+  limitPollMs: 15 * 60_000,
+  limitMaxMs: 6 * 60 * 60_000,
+};
+
+/**
+ * Wraps a transport so a hiccup retries and a usage limit waits, leaving only a real
+ * failure to reach the caller. A transient error backs off `backoffMs[i]` and retries, up
+ * to `tries` times, then throws as itself. A limit sleeps `retryAfterMs` (when the error
+ * said how long) or `limitPollMs`, and tries again; once the time already spent waiting
+ * has reached `limitMaxMs`, it gives up without waiting again and throws a `LimitError`
+ * saying the limit never reset in time. A fatal error throws at once, on the first try.
+ */
+export function withRetries(transport: Transport, o: RetryOptions): Transport {
+  return async (call) => {
+    let transientTries = 0;
+    let waited = 0;
+    for (;;) {
+      try {
+        return await transport(call);
+      } catch (error) {
+        const kind = classify(error);
+        if (kind === "fatal") throw error;
+        if (kind === "limit") {
+          if (waited >= o.limitMaxMs) {
+            throw new LimitError(`the usage limit didn't reset within ${Math.round(o.limitMaxMs / 3_600_000)} hours: ${messageOf(error)}`, null);
+          }
+          const wait = (error instanceof LimitError && error.retryAfterMs) || o.limitPollMs;
+          o.log?.(`limit reached, waiting ${Math.round(wait / 60_000)} min: ${messageOf(error)}`);
+          await o.sleep(wait);
+          waited += wait;
+          continue;
+        }
+        if (transientTries >= o.tries) throw error;
+        await o.sleep(o.backoffMs[Math.min(transientTries, o.backoffMs.length - 1)]!);
+        transientTries++;
+      }
+    }
+  };
+}
+
 /** Spawns `claude -p` as `claudeInvocation` sets it up, and reads its one JSON result. */
 export function claudeTransport(options?: { timeoutMs?: number }): Transport {
   return async (call) => {
@@ -152,7 +259,7 @@ export function claudeTransport(options?: { timeoutMs?: number }): Transport {
     }).finally(() => clearTimeout(timer));
 
     if (timedOut) throw new Error(`claude timed out after ${timeoutMs}ms`);
-    if (code !== 0) throw new Error(`claude exited ${code}: ${err.trim().split("\n").slice(-2).join(" ")}`);
+    if (code !== 0) throw claudeFailure(code, out, err);
 
     return parseClaudeOutput(out, call.model);
   };

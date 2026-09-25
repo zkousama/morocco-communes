@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
-import { makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
+import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
 import { aboutThisFinding, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary } from "../src/run.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
@@ -206,15 +206,23 @@ describe("an adversary that doesn't answer", () => {
     let calls = 0;
     const falsifier = makeRunner(async () => {
       calls++;
-      throw new Error("claude exited 1: usage limit reached");
+      throw new Error("claude exited 1: something broke");
     }, cache());
     const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier, proposer: "sonnet", falsifierModel: "opus" });
 
     expect(calls).toBe(3);
     expect(file.partial).toBe(true);
-    expect(file.stopped).toMatch(/^3 adversary calls in a row failed.*usage limit reached/);
+    expect(file.stopped).toMatch(/^3 adversary calls in a row failed.*something broke/);
     expect(file.items.at(-1)!.skipped).toMatch(/^the run stopped/);
     expect(summary(file).join("\n")).toMatch(/stopped early: 3 adversary calls/);
+  });
+
+  it("stops at once when a usage limit outlasts its wait, and says so", async () => {
+    // a runner that throws the LimitError withRetries throws after its wait
+    const limited = makeRunner(async () => { throw new LimitError("the usage limit didn't reset within 6 hours", null); }, cache());
+    const file = await pipeline(data, { only: [finding.code], run: proposer(), falsifier: limited, proposer: "sonnet", falsifierModel: "opus" });
+    expect(file.stopped).toMatch(/usage limit/);
+    expect(file.partial).toBe(true);
   });
 
   it("stops the run after 3 proposer calls in a row fail, before the next finding", async () => {
