@@ -271,7 +271,8 @@ const communesRoute = path(locale, "communes/");
       pending ||= requestAnimationFrame(draw);
     };
 
-    // A button, key or double-click eases to its view; a hand on the map follows the hand.
+    // A button, key or double-click eases to its view in 240ms. Pinches, drags and the wheel
+    // move the map at once.
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
     let aim: View | null = null;
     let flight = 0;
@@ -304,8 +305,8 @@ const communesRoute = path(locale, "communes/");
       const base = aim ?? view;
       glide(zoomAt(base, box, bounds(), p, base.k * factor));
     };
-    // A pinch that ends a hair past 1x goes back to the whole map rather than leave it
-    // almost still and unscrollable.
+    // A pinch that ends a hair past 1x goes back to the whole map, since at any zoom above
+    // 1x a finger on the map drags it instead of scrolling the page.
     const settle = () => {
       if (view.k > MIN_ZOOM && view.k < 1.05) glide(whole(box));
     };
@@ -598,9 +599,10 @@ const communesRoute = path(locale, "communes/");
 
   /* Zoomed in, lines in map units would thicken with the map, so they're measured on the
      screen instead, as a share of the frame's width. The map is 1000 units across (WIDTH in
-     site/scripts/map.ts), so 0.035cqw is 0.35 units at 1x, and the map at 1x looks as it
-     did. This costs the browser nothing per frame, where changing the widths as the map
-     zooms would restyle every commune. Without container units, lines stay in map units. */
+     site/scripts/map.ts), so 0.035cqw is 0.35 units at 1x, and the map at 1x is drawn the
+     same either way. Nothing is restyled while the map zooms, where changing the widths
+     with the zoom would restyle every commune each frame. Without container units, lines
+     stay in map units. */
   @supports (width: 1cqw) {
     .frame {
       container-type: inline-size;

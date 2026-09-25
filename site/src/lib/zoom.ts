@@ -3,8 +3,8 @@
  * its SVG viewBox, so zooming in is showing a smaller box of the same drawing rather than
  * scaling a picture of it, and it stays sharp at every zoom.
  *
- * Nothing here touches the page: a view goes in, a view comes out, and Map.astro writes
- * the result to the viewBox once a frame.
+ * Nothing here touches the page. These work out views and points, and Map.astro writes
+ * the view to the viewBox once a frame.
  */
 
 /** The whole map, in its own units: the viewBox it was generated with. */
@@ -131,8 +131,8 @@ export const viewBoxOf = (view: View, box: Box): string =>
 
 /**
  * A step of the way from one view to another, t from 0 to 1. The zoom changes by the same
- * factor each step, and the frame moves so the point the two views share on screen stays
- * put, so zooming in to a point looks like zooming in to it.
+ * factor each step, and the map point that both views draw at the same place on screen
+ * stays there the whole way.
  */
 export const between = (a: View, b: View, box: Box, t: number): View => {
   const k = a.k * (b.k / a.k) ** t;
