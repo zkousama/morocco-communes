@@ -45,7 +45,7 @@
     "shiki": "^3.23.0",
     "solid-js": "^1.9.15",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0",
+    "vitest": "^4.1.11",
     "wrangler": "^4.134.0"
   },
   "dependencies": {
