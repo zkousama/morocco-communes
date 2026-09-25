@@ -28,8 +28,8 @@ accident. Ollama is optional, and only for running the adversary locally.
 - **`INSIGHTS_LIVE=1`**: required before `pnpm insights` or any transport in `model.ts` will
   call a model at all.
 - **`INSIGHTS_FALSIFIER`**: which model argues against a proposal. `"ollama:<model>"` or
-  `"claude:<model>"`, split at the first colon; left unset, Opus answers a Sonnet proposer
-  and Sonnet answers any other proposer, so the two are always different models.
+  `"claude:<model>"`, split at the first colon; left unset, the adversary is always a
+  different model from the proposer, run through the same `claude` command-line tool.
 - **`INSIGHTS_DEMAND`**: `"remote"` lets `pnpm insights --demand` read the site's own demand
   log, the last 30 days of page views, and order findings by what people actually open
   before it orders them by score. The same double opt-in the site build uses for
