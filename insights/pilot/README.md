@@ -192,8 +192,8 @@ The choice of proposer, the number of samples and the high effort rest on the ju
 the signal is weak. Under the checklist the jury judged few reasons sound: 3 of Haiku's 13
 rated reasons, one of the 14 from Sonnet at high effort, and none from the other 2 setups. Its
 3 judges agreed on which reasons were sound about as often as chance would give (kappa
-between −0.02 and 0.10), and they agreed with the owner's 20 answers at the same level (kappa
-0). Raw agreement ran high only because nearly every reason was rated unsound. Those 3 choices
+between −0.02 and 0.10), and the jury matched the owner's 20 answers no better than chance
+(kappa 0). Raw agreement ran high only because nearly every reason was rated unsound. Those 3 choices
 follow the rules on that signal, and the full run's setup gets checked against this pilot's
 data before any run uses it.
 
