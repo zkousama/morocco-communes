@@ -677,6 +677,8 @@ export async function publishIfAllowed(options: {
   else if (options.run.partial) reasons.push("the latest run left findings out with --limit or --only: run pnpm insights on all of them first");
   if (!options.metrics) {
     reasons.push("no graded set yet: run pnpm insights:grade");
+  } else if (!options.run.runId || !options.metrics?.runId) {
+    reasons.push("the run or its metrics has no run id: run pnpm insights and pnpm insights:score again");
   } else if (options.metrics.runId !== options.run.runId) {
     reasons.push(`the grades are for run ${options.metrics.runId}, and the latest run is ${options.run.runId}: grade it and run pnpm insights:score first`);
   } else {

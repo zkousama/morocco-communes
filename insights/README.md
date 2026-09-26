@@ -85,7 +85,7 @@ project's host with `/api/public/otel` added, and `OTEL_EXPORTER_OTLP_HEADERS` t
 - **`measuredAt`**: when `pnpm insights:score` wrote the file.
 - **`published`**: the published side's yes answers, `yes`, out of its yes and no answers,
   `graded`, with the 95% Wilson interval's `low` and `high`, and `lowOneSided`, the one-sided
-  lower bound the gate reads.
+  lower bound, kept for reading; the gate works it out again from the counts.
 - **`rejectedButSound`**: rejected hypotheses graded yes, `count`, and `byStage`, where each
   one stopped.
 - **`agreement`**: Cohen's `kappa` between the first grades and the regrades, over `n` pairs,

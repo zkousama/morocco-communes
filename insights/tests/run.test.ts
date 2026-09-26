@@ -578,6 +578,14 @@ describe("publishing", () => {
     expect(existsSync(join(outDir, "index.json"))).toBe(false);
   });
 
+  it("refuses when either run id is missing, rather than treating 2 blanks as a match", async () => {
+    const { outDir, publishedPath } = place();
+    const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "", partial: false }, metrics: { ...passing, runId: "" }, baseline: null, files: new Map([["index.json", []]]) });
+    expect(result.written).toBe(false);
+    expect(result.reasons.join(" ")).toMatch(/run id/);
+    expect(existsSync(join(outDir, "index.json"))).toBe(false);
+  });
+
   it("refuses a run that covered only some findings", async () => {
     const { outDir, publishedPath } = place();
     const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-a", partial: true }, metrics: passing, baseline: null, files: new Map([["index.json", []]]) });
