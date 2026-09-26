@@ -205,8 +205,11 @@ the jury's file records the switch. That's the only substitution allowed.
 
 Each judge answers every item once, at its model's default reasoning and temperature 0, from
 the same blind text the owner would have seen, in English and French. A judge on Cloudflare
-stops for the day before the day's calls would pass 9,000 neurons, inside the free allowance.
-For each reason, a judge answers 3 checks with yes, no or unsure:
+has its replies capped at 1,000 tokens, which bounds what each call costs on the free tier
+since its answer is a short JSON object, and stops for the day before the day's calls would
+pass 9,000 neurons, inside the free allowance. A Groq judge's replies aren't capped, since
+`openai/gpt-oss-120b` reasons before it answers. For each reason, a judge answers 3 checks
+with yes, no or unsure:
 
 1. Does the claim say more than the premise and its numbers show?
 2. Does the link explain the figure that stands out, rather than something else?

@@ -86,6 +86,12 @@ describe("the second amendment, on who rates", () => {
     expect(amendment).toContain("9,000 neurons");
   });
 
+  it("names the cap on a Cloudflare judge's replies, and says a Groq judge's aren't capped", () => {
+    const flat = amendment.replace(/\s+/g, " "); // a phrase can wrap across a line
+    expect(flat).toContain("capped at 1,000 tokens");
+    expect(flat).toContain("A Groq judge's replies aren't capped");
+  });
+
   it("states the owner's spot-check: its sample and seed, that it came first, and that it's reported only", () => {
     expect(amendment).toContain("20 items");
     expect(amendment).toContain(String(PILOT_SEED));
