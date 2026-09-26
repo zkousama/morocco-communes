@@ -7,12 +7,15 @@ import {
   claudeInvocation,
   claudeTransport,
   makeRunner,
+  NO_USAGE,
   ollamaTransport,
   parseClaudeOutput,
   stubTransport,
+  withRetries,
   writeJsonAtomic,
   type Effort,
   type ModelCall,
+  type Transport,
 } from "../src/model.ts";
 import { newIds, traceparent } from "../src/trace.ts";
 
@@ -129,6 +132,23 @@ describe("the runner", () => {
     expect(first.ms).toBeGreaterThanOrEqual(20);
     expect(second.cached).toBe(true);
     expect(second.ms).toBe(first.ms);
+  });
+
+  it("excludes a retry's own wait from ms, and reports it separately as waitedMs", async () => {
+    let tries = 0;
+    const flaky: Transport = async () => {
+      tries++;
+      if (tries === 1) throw new Error("claude exited 1: overloaded");
+      return { text: '{"ok":true}', model: "sonnet", usage: NO_USAGE };
+    };
+    // A fake clock: `sleep` resolves at once, but `withRetries` still counts the 1,000ms
+    // backoff it asked for as waited time, so this proves `ms` doesn't fold that in.
+    const retried = withRetries(flaky, { tries: 3, backoffMs: [1000], limitPollMs: 1000, limitMaxMs: 10_000, sleep: async () => {} });
+    const cacheDir = mkdtempSync(join(tmpdir(), "waited-"));
+    const runner = makeRunner(retried, { cacheDir, datasetVersion: "t", stageVersions: {} });
+    const reply = await runner(call);
+    expect(reply.waitedMs).toBe(1000);
+    expect(reply.ms).toBeLessThan(1000);
   });
 
   it("never caches an answer its stage can't read, so a re-run asks again", async () => {

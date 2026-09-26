@@ -54,12 +54,15 @@ export interface ModelReply {
   model: string;
   promptHash: string;
   cached: boolean;
-  ms: number;
+  ms: number; // the call's own answering time, waits for a retry or a limit left out
   usage: Usage;
+  waitedMs: number; // time `withRetries` spent sleeping on this call's behalf; 0 when it never had to
 }
 
-// model: the id that actually answered, which an alias like "sonnet" doesn't say
-export type Transport = (call: ModelCall) => Promise<{ text: string; model: string; usage: Usage }>;
+// model: the id that actually answered, which an alias like "sonnet" doesn't say.
+// waitedMs is left out by every transport but `withRetries`' own wrapping of one; a
+// transport that doesn't wait has nothing to report, so `makeRunner` reads it as 0.
+export type Transport = (call: ModelCall) => Promise<{ text: string; model: string; usage: Usage; waitedMs?: number }>;
 
 export type Runner = (call: ModelCall) => Promise<ModelReply>;
 
@@ -248,14 +251,21 @@ export const RETRY_DEFAULTS: Omit<RetryOptions, "sleep"> = {
  * time waited never runs past it; once none is left, it gives up without waiting again and
  * throws a `LimitError` saying the limit never reset in time. A fatal error throws at once,
  * on the first try.
+ *
+ * Every backoff and every limit wait this call made is summed and returned on the eventual
+ * successful result as `waitedMs` (added to whatever the transport itself already reported,
+ * so wrapping this twice would never lose one layer's own wait), so a caller can tell how
+ * long a call took to answer from how long it spent queued behind a retry or a limit.
  */
 export function withRetries(transport: Transport, o: RetryOptions): Transport {
   return async (call) => {
     let transientTries = 0;
-    let waited = 0;
+    let waited = 0; // toward `limitMaxMs`'s own budget, reset by nothing else
+    let waitedMs = 0; // every wait this call made, backoffs and limit waits alike
     for (;;) {
       try {
-        return await transport(call);
+        const result = await transport(call);
+        return { ...result, waitedMs: (result.waitedMs ?? 0) + waitedMs };
       } catch (error) {
         const kind = classify(error);
         if (kind === "fatal") throw error;
@@ -268,10 +278,13 @@ export function withRetries(transport: Transport, o: RetryOptions): Transport {
           o.log?.(`limit reached, waiting ${Math.round(wait / 60_000)} min: ${messageOf(error)}`);
           await o.sleep(wait);
           waited += wait;
+          waitedMs += wait;
           continue;
         }
         if (transientTries >= o.tries) throw error;
-        await o.sleep(o.backoffMs[Math.min(transientTries, o.backoffMs.length - 1)]!);
+        const backoff = o.backoffMs[Math.min(transientTries, o.backoffMs.length - 1)]!;
+        await o.sleep(backoff);
+        waitedMs += backoff;
         transientTries++;
       }
     }
@@ -491,6 +504,7 @@ interface CacheEntry {
   promptHash: string;
   ms: number;
   usage: Usage;
+  waitedMs: number;
 }
 
 function cacheId(call: ModelCall, datasetVersion: string, stageVersions: Record<string, string>): string {
@@ -545,9 +559,10 @@ async function readCacheFile(path: string): Promise<CacheEntry | null> {
     ) {
       return null;
     }
-    // An older cache file, written before usage was tracked, has no `usage` at all: read
-    // as zero rather than a miss, so it isn't asked again just to learn what it cost.
-    return { ...parsed, usage: parsed.usage ?? NO_USAGE } as CacheEntry;
+    // An older cache file, written before usage or waitedMs was tracked, has neither at
+    // all: read both as zero rather than a miss, so it isn't asked again just to learn
+    // what it cost.
+    return { ...parsed, usage: parsed.usage ?? NO_USAGE, waitedMs: parsed.waitedMs ?? 0 } as CacheEntry;
   } catch {
     // Unreadable or unparseable: a miss, not a crash. The call is asked again and the
     // file overwritten.
@@ -557,10 +572,17 @@ async function readCacheFile(path: string): Promise<CacheEntry | null> {
 
 /**
  * Wraps a transport with a cache keyed on everything that could change an answer's
- * meaning. A cache hit returns the original call's `ms` with `cached: true`; a miss asks
- * the transport, writes the answer to the cache and returns it with `cached: false`. An
- * answer the call's `accept` turns down is never written, and one already in the cache is
- * read as a miss, so a stage never gets stuck on a reply it couldn't read the first time.
+ * meaning. A cache hit returns the original call's `ms` and `waitedMs` with `cached: true`;
+ * a miss asks the transport, writes the answer to the cache and returns it with `cached:
+ * false`. An answer the call's `accept` turns down is never written, and one already in the
+ * cache is read as a miss, so a stage never gets stuck on a reply it couldn't read the
+ * first time.
+ *
+ * `ms` is the elapsed time with `waitedMs` (whatever `withRetries` reported spending on
+ * backoffs or a limit) taken back out, so it reads as how long the model itself took to
+ * answer, never inflated by a wait a transport that doesn't retry never reports at all
+ * (`waitedMs` then defaults to 0). Never negative: a fake clock in a test can make the
+ * measured elapsed time shorter than a wait it didn't actually spend real time on.
  */
 export function makeRunner(
   transport: Transport,
@@ -577,9 +599,9 @@ export function makeRunner(
     if (cached && readable(cached.text)) return { ...cached, cached: true };
 
     const started = Date.now();
-    const { text, model, usage } = await transport(call);
-    const ms = Date.now() - started;
-    const entry: CacheEntry = { text, model, promptHash, ms, usage };
+    const { text, model, usage, waitedMs = 0 } = await transport(call);
+    const ms = Math.max(0, Date.now() - started - waitedMs);
+    const entry: CacheEntry = { text, model, promptHash, ms, usage, waitedMs };
     if (readable(text)) await writeCacheFile(path, entry);
     return { ...entry, cached: false };
   };

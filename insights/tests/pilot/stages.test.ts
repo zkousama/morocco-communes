@@ -6,7 +6,8 @@ import { loadData } from "../../src/data.ts";
 import { detect } from "../../src/detect.ts";
 import { NO_ANSWER } from "../../src/falsify.ts";
 import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Runner } from "../../src/model.ts";
-import { committedCandidates, runStageA, runStageB } from "../../src/pilot/stages.ts";
+import { STOP_AFTER_FAILURES } from "../../src/run.ts";
+import { committedCandidates, runStageA, runStageB, type StageA, type StageACandidate } from "../../src/pilot/stages.ts";
 import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
@@ -188,7 +189,7 @@ describe("stage A", () => {
       const flaky: Runner = async (call) => {
         n++;
         if (n <= 2) throw new Error("claude exited 1: overloaded");
-        return { text: answer(call), model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE };
+        return { text: answer(call), model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE, waitedMs: 0 };
       };
       const runnersFlaky = new Map(PROPOSERS.map((p) => [p.id, flaky]));
       const a = await runStageA(data, findings, runnersFlaky, { concurrency: 1, terms: null });
@@ -205,6 +206,18 @@ describe("stage A", () => {
       await expect(runStageA(data, findings, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/3 proposer calls in a row failed/);
       expect(n).toBeLessThan(10);
     });
+
+    it("stops calling onCandidates once the halt is set, so no misleading '0 candidates' lines print", async () => {
+      const alwaysFailing = failing("claude exited 1: something broke");
+      const runnersAll = new Map(PROPOSERS.map((p) => [p.id, alwaysFailing]));
+      let onCandidatesCalls = 0;
+      await expect(
+        runStageA(data, findings, runnersAll, { concurrency: 1, terms: null, onCandidates: () => { onCandidatesCalls++; } }),
+      ).rejects.toThrow(/3 proposer calls in a row failed/);
+      // The halt trips inside the first finding's own 5-sample loop, before that finding
+      // (or any later one) ever reaches its own onCandidates call.
+      expect(onCandidatesCalls).toBe(0);
+    });
   });
 });
 
@@ -220,43 +233,137 @@ describe("stage B", () => {
     expect(b.verdicts).toHaveLength(poolSize * ADVERSARIES.length);
     expect(calls).toBe(poolSize * ADVERSARIES.length); // A2 isn't served from A1's cache
   });
-  it("never commits the text of a candidate stopped for safety", async () => {
+  it("never commits the text of a candidate stopped for safety, but keeps every run's non-text fields", async () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     const refusing = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r", refuse: "blame" })), { cacheDir: mkdtempSync(join(tmpdir(), "pr-")), datasetVersion: "t", stageVersions: {} });
     const adv = new Map(ADVERSARIES.map((r) => [r.id, refusing]));
     const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
-    const committed = JSON.stringify(committedCandidates(a, b));
-    for (const c of a.candidates) expect(committed).not.toContain(c.candidate.claim.en);
-    expect(committed).toContain('"category":"blame"');
+    const committed = committedCandidates(a, b, null) as Array<Record<string, unknown>>;
+    const json = JSON.stringify(committed);
+    for (const c of a.candidates) expect(json).not.toContain(c.candidate.claim.en);
+    expect(json).toContain('"category":"blame"');
+
+    const entry = committed[0]!;
+    expect(entry.claim).toBeUndefined();
+    const runs = entry.runs as Array<Record<string, unknown>>;
+    expect(runs).toHaveLength(ADVERSARIES.length);
+    expect(runs[0]).toMatchObject({ run: "A1", survived: false, stage: "safety", category: "blame", unusable: null, model: "opus", effort: "medium" });
+    expect(runs[0]).toHaveProperty("usage");
+    expect(runs[0]).toHaveProperty("waitedMs");
+    expect(runs[0]).not.toHaveProperty("counter");
+    expect(runs[0]).not.toHaveProperty("counterOutcome");
+    expect(runs[0]).not.toHaveProperty("reason");
   });
 
-  it("also redacts a candidate the private terms backstop stops, and never names the term itself", async () => {
+  it("redacts a term-matching candidate even when every run's counter-test breaks it, never letting a broken candidate skip the term check", async () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     // P1 alone claims "claim by haiku" (no adversary answers as "haiku"), so matching on it
     // stands in for a private term without that word ever legitimately appearing elsewhere.
     const terms = /haiku/i;
-    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "fine" })), { cacheDir: mkdtempSync(join(tmpdir(), "pt-")), datasetVersion: "t", stageVersions: {} });
-    const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
+    // A counter-test that's true for every one of these findings' real data, so every run
+    // genuinely breaks the candidate (survived: false) rather than ever reaching "survived",
+    // the path the old, verdict-gated terms check depended on.
+    const breaking = makeRunner(stubTransport(() => JSON.stringify({
+      counter: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: -1 } },
+      reason: "always true, always breaks it",
+    })), { cacheDir: mkdtempSync(join(tmpdir(), "tm-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, breaking]));
     const b = await runStageB(data, a, adv, { concurrency: 1, terms });
-    const committed = JSON.stringify(committedCandidates(a, b));
+
+    const p1 = a.candidates.find((c) => c.proposer === "P1")!;
+    const p1Verdicts = b.verdicts.filter((v) => v.candidateId === p1.candidateId);
+    expect(p1Verdicts.length).toBeGreaterThan(0);
+    expect(p1Verdicts.every((v) => v.survived === false && v.stage === "falsify")).toBe(true); // never reached "survived"
+
+    const committed = JSON.stringify(committedCandidates(a, b, terms));
     expect(committed).toContain('"category":"terms"');
     expect(committed).not.toContain("haiku");
   });
 
-  it("keeps a candidate's full text when a run simply couldn't answer, since that isn't a safety stop", async () => {
+  it("never keeps an adversary's free-text reason in the committed file", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const answering: Runner = async (call) => ({
+      text: JSON.stringify({
+        counter: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: -1 } },
+        reason: "a private reason nobody should read",
+      }),
+      model: call.model,
+      promptHash: "x",
+      cached: false,
+      ms: 1,
+      usage: NO_USAGE,
+      waitedMs: 0,
+    });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    const committed = JSON.stringify(committedCandidates(a, b, null));
+    expect(committed).not.toContain("a private reason nobody should read");
+    expect(committed).not.toContain('"reason"');
+    expect(committed).toContain('"education.higher"'); // the counter-test's own field still shows: it isn't free text
+  });
+
+  it("drops a counter-test's own JSON when it matches a term, keeping only its outcome status", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const answering = makeRunner(stubTransport(() => JSON.stringify({
+      counter: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: -1 } },
+      reason: "fine",
+    })), { cacheDir: mkdtempSync(join(tmpdir(), "cu-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null }); // the candidate's own text never matches
+    const terms = /-1\b/; // matches only the counter-test's own distinctive threshold
+    const committed = JSON.stringify(committedCandidates(a, b, terms));
+    expect(committed).not.toContain("-1");
+    expect(committed).toContain('"status":"passed"');
+  });
+
+  it("keeps a candidate's full text when a run simply couldn't answer, marking it unusable rather than a break", async () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     let n = 0;
     const flaky: Runner = async (call) => {
       n++;
       if (n % 4 === 0) throw new Error("claude exited 1: overloaded"); // never 3 in a row
-      return { text: JSON.stringify({ counter: null, reason: "fine" }), model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE };
+      return { text: JSON.stringify({ counter: null, reason: "fine" }), model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE, waitedMs: 0 };
     };
     const adv = new Map(ADVERSARIES.map((r) => [r.id, flaky]));
     const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
-    expect(b.verdicts.some((v) => v.reason === NO_ANSWER)).toBe(true);
-    const committed = JSON.stringify(committedCandidates(a, b));
-    expect(committed).toContain(NO_ANSWER);
-    for (const c of a.candidates) expect(committed).toContain(c.candidate.claim.en);
+    expect(b.verdicts.some((v) => v.unusable === "no answer")).toBe(true);
+    const committed = committedCandidates(a, b, null) as Array<{ claim?: { en: string }; runs: Array<{ unusable: string | null }> }>;
+    expect(JSON.stringify(committed)).not.toContain(NO_ANSWER);
+    expect(committed.some((c) => c.runs.some((r) => r.unusable === "no answer"))).toBe(true);
+    for (const c of a.candidates) expect(JSON.stringify(committed)).toContain(c.candidate.claim.en);
+  });
+
+  it("marks a reply that couldn't be read unreadable rather than refused, the shape a blocked Gemini reply takes", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    // An empty answer is exactly what `geminiTransport` returns when the provider blocks a
+    // reply: not valid JSON, so `falsify` can't read it, but nothing was ever refused.
+    const blocked = makeRunner(stubTransport(() => ""), { cacheDir: mkdtempSync(join(tmpdir(), "ur-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, blocked]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    expect(b.verdicts.length).toBeGreaterThan(0);
+    expect(b.verdicts.every((v) => v.unusable === "unreadable")).toBe(true);
+    expect(b.verdicts.every((v) => v.category === null && v.stage === "falsify")).toBe(true);
+  });
+
+  it("checks every pool candidate's finding id resolves before making any call", async () => {
+    const fakeTest = { check: "compare" as const, left: { of: { unit: "self" as const }, field: "education.higher", year: 2024 as const }, op: ">" as const, right: { value: 0 } };
+    const fakeCandidate: StageACandidate = {
+      candidateId: "deadbeefdead",
+      proposer: "P1",
+      findingId: "not-a-real-finding-id",
+      candidate: { claim: { en: "c", fr: "c" }, link: { en: "l", fr: "l" }, premise: { en: "p", fr: "p" }, test: fakeTest, linkTest: null, artefact: false, support: 5, samples: [0, 1, 2, 3, 4] },
+      sampleIndexes: [0, 1, 2, 3, 4],
+      rank: 0,
+      outcome: { status: "passed", numbers: {} },
+      passed: true,
+      link: null,
+    };
+    const fakeA: StageA = { seed: PILOT_SEED, findingIds: ["not-a-real-finding-id"], proposers: [], candidates: [fakeCandidate] };
+    const calls: string[] = [];
+    const counting = () => makeRunner(stubTransport((call) => { calls.push(call.model); return JSON.stringify({ counter: null, reason: "r" }); }), { cacheDir: mkdtempSync(join(tmpdir(), "fid-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, counting()]));
+    await expect(runStageB(data, fakeA, adv, { concurrency: 1, terms: null })).rejects.toThrow(/finding id/);
+    expect(calls).toEqual([]);
   });
 
   it("checks every adversary has a runner before making any call", async () => {
@@ -305,6 +412,19 @@ describe("stage B", () => {
       const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, countingFailing]));
       await expect(runStageB(data, a, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/3 adversary calls in a row failed/);
       expect(n).toBeLessThan(10);
+    });
+
+    it("stops calling onVerdict once the halt is set, so no false 'broke' lines print before the stop message", async () => {
+      const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+      const alwaysFailing: Runner = async () => { throw new Error("claude exited 1: something broke"); };
+      const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, alwaysFailing]));
+      let onVerdictCalls = 0;
+      await expect(
+        runStageB(data, a, runnersAll, { concurrency: 1, terms: null, onVerdict: () => { onVerdictCalls++; } }),
+      ).rejects.toThrow(/3 adversary calls in a row failed/);
+      // Concurrency 1: the 2 failures before the one that trips the halt are real progress;
+      // everything from the call that sets it onward is suppressed.
+      expect(onVerdictCalls).toBe(STOP_AFTER_FAILURES - 1);
     });
   });
 });

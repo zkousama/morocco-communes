@@ -76,7 +76,8 @@ detection can't quietly change the sample it draws from:
 
 Every per-finding measure gets a 95% bootstrap interval, resampling the findings 2,000 times
 with a fixed seed. The pilot is built to catch only large differences; "What this pilot can
-tell apart" below says how large.
+tell apart" below says how large. Seconds per call: the time the model took to answer, with
+waits for rate limits and retries left out.
 
 For each proposer setup: how many answers were usable; how many data tests passed, were
 refused (tautology, unknown field) or came back missing; how many distinct reasons turned up

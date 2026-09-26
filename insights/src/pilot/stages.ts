@@ -31,12 +31,13 @@
  */
 import type { Data } from "../data.ts";
 import { detect, type Finding } from "../detect.ts";
-import { falsify, type Verdict } from "../falsify.ts";
+import { falsify, NO_ANSWER, UNREADABLE, type Verdict } from "../falsify.ts";
 import { addUsage, classify, LimitError, messageOf, NO_USAGE, type Runner, type Usage } from "../model.ts";
 import { mapPool } from "../pool.ts";
 import { propose, type Candidate, type Proposal } from "../propose.ts";
 import { judgeLinks, runLink } from "../links.ts";
 import { aboutThisFinding, linkSeed, STOP_AFTER_FAILURES, type LinkResult } from "../run.ts";
+import { refusal } from "../safety.ts";
 import { evaluate, type Check, type Outcome } from "../vocabulary.ts";
 import { candidateIdOf, samplePool, type PoolEntry } from "./sample.ts";
 import { ADVERSARIES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS, type PilotRole } from "./setups.ts";
@@ -62,7 +63,8 @@ export interface StageAProposer {
   safetyDrops: Record<string, number>; // hypotheses the safety check dropped, by category, summed across findings
   entropy: Record<string, number>; // this proposer's semantic entropy on each finding, keyed by finding id
   usage: Usage; // every call's tokens and cost, summed
-  ms: number; // every call's time, summed
+  ms: number; // every call's own answering time, summed, waits for a retry or a limit left out
+  waitedMs: number; // every call's own wait for a retry or a limit, summed
   answered: string[]; // every resolved model id (`reply.model`) a reply came back with, sorted and distinct
 }
 
@@ -115,7 +117,7 @@ export async function runStageA(
   for (const role of PROPOSERS) {
     const runner = runners.get(role.id)!;
 
-    const spent = { usage: NO_USAGE, ms: 0 };
+    const spent = { usage: NO_USAGE, ms: 0, waitedMs: 0 };
     let failed = 0;
     const tracked: Runner = async (call) => {
       if (halt.reason) throw new Error(halt.reason);
@@ -125,6 +127,7 @@ export async function runStageA(
         const reply = await runner({ ...call, accept: undefined });
         spent.usage = addUsage(spent.usage, reply.usage);
         spent.ms += reply.ms;
+        spent.waitedMs += reply.waitedMs;
         inARow = 0;
         return reply;
       } catch (error) {
@@ -160,7 +163,10 @@ export async function runStageA(
           link: null,
         };
       });
-      options.onCandidates?.(role.id, finding.id, findingCandidates.length);
+      // Suppressed once the halt is set: a finding whose propose() call was aborted mid-way
+      // gives no real count worth printing, and would otherwise read as a misleading "0
+      // candidates" line printed after the run is already stopping.
+      if (!halt.reason) options.onCandidates?.(role.id, finding.id, findingCandidates.length);
       return {
         replies: proposal.replies,
         unusable: proposal.unusable,
@@ -228,6 +234,7 @@ export async function runStageA(
       entropy,
       usage: spent.usage,
       ms: spent.ms,
+      waitedMs: spent.waitedMs,
       answered: [...new Set(replies.map((r) => r.model))].sort(),
     });
   }
@@ -254,17 +261,23 @@ export interface StageBVerdict {
   survived: boolean;
   stage: Verdict["stage"];
   category: string | null; // the refusal category for a safety stop; null otherwise
+  unusable: "no answer" | "unreadable" | null; // the call failed, or its answer couldn't be read; null when it was usable
   counter: Check | null;
   counterOutcome: Outcome | null;
   reason: string;
   model: string | null; // the id that answered; null when the call failed
   usage: Usage;
   ms: number;
+  waitedMs: number;
 }
 
 export interface StageB {
   pool: PoolEntry[];
   verdicts: StageBVerdict[];
+  // Once per pool candidate, over its own claim, link and premise in both languages: whether
+  // any of the 6 texts matches the private terms, regardless of what any run's verdict says
+  // (see `runStageB`'s own comment on why this can't be read off `verdicts` instead).
+  termMatches: { candidateId: string; termMatch: boolean }[];
 }
 
 const REFUSED_PREFIX = "refused: ";
@@ -273,6 +286,13 @@ const REFUSED_PREFIX = "refused: ";
 function categoryOf(verdict: Verdict): string | null {
   if (verdict.stage !== "safety" || !verdict.reason.startsWith(REFUSED_PREFIX)) return null;
   return verdict.reason.slice(REFUSED_PREFIX.length);
+}
+
+/** Whether a call simply never gave a usable answer, and why, read off `falsify`'s own 2 fixed reasons; null for anything else, refusals included. */
+function unusableOf(verdict: Verdict): "no answer" | "unreadable" | null {
+  if (verdict.reason === NO_ANSWER) return "no answer";
+  if (verdict.reason === UNREADABLE) return "unreadable";
+  return null;
 }
 
 /** `ADVERSARIES`' own order, and each run's own effort: shared by `runStageB`'s own sort and by `committedCandidates`. */
@@ -287,6 +307,25 @@ const EFFORT_BY_RUN = new Map(ADVERSARIES.map((r) => [r.id, r.effort ?? null]));
  * effort, so its calls are asked again rather than served from A1's cache: that's the noise
  * floor rules 2 and 3 read every other run against.
  *
+ * Neither this stage nor stage A applies the private terms inside `falsify` or `propose`
+ * themselves: `falsify` is always called with `null`, whatever `options.terms` says, and
+ * only the built-in named-person pattern still drops anything at stage A. Instead,
+ * `options.terms`, when given, is used once per pool candidate to compute `termMatch`
+ * (`StageB.termMatches`), independent of any run's own verdict. This matters because the
+ * old way, checking a private term only after a candidate had already "survived" its own
+ * counter-test, missed a term match entirely on a candidate every run happened to break: a
+ * counter-test passing is judged before a private term ever would be, so that candidate
+ * would never have reached the check at all, and would have been committed in full.
+ * `termMatch` also keeps a policy-versus-terms comparison possible in both directions on the
+ * pool: a term matched while a run's own safety check passed it, or a run refusing with no
+ * term matched.
+ *
+ * Before any call, 2 things are checked: every adversary in `ADVERSARIES` has a runner (so a
+ * missing setup is never discovered only after the ones before it have already spent real
+ * calls), and every pool candidate's `findingId` resolves in `detect(data)` (so a dataset
+ * that's moved on from a stale stage A file fails clearly rather than crashing deep inside
+ * `falsify`).
+ *
  * Shares stage A's own halt, across every run and candidate rather than reset between runs:
  * a fatal error, a `LimitError`, or `STOP_AFTER_FAILURES` calls in a row failing stops the
  * whole stage, and `runStageB` throws once the run that tripped it has finished its own
@@ -296,7 +335,9 @@ const EFFORT_BY_RUN = new Map(ADVERSARIES.map((r) => [r.id, r.effort ?? null]));
  * resumed run rather than asked again.
  *
  * `options.onVerdict`, when given, is called once a candidate's verdict is in, so a caller
- * can print progress without this function knowing how to print anything.
+ * can print progress without this function knowing how to print anything; suppressed once
+ * the halt is set, so a call the halt cut short never prints a line that reads as real
+ * progress.
  *
  * The verdicts come back sorted by run order (`ADVERSARIES`' own order), then pool order, a
  * documented guarantee of the output rather than an accident of `mapPool` handing each run's
@@ -316,6 +357,19 @@ export async function runStageB(
   const pool = samplePool(a.candidates, POOL_PER_PROPOSER, PILOT_SEED);
   const byId = new Map(a.candidates.map((c) => [c.candidateId, c]));
   const findingById = new Map(detect(data).map((f) => [f.id, f]));
+
+  const unresolvedFindings = [...new Set(pool.filter((entry) => !findingById.has(entry.findingId)).map((entry) => entry.findingId))];
+  if (unresolvedFindings.length > 0) {
+    throw new Error(
+      `runStageB: the pool has a candidate for finding id${unresolvedFindings.length > 1 ? "s" : ""} detect(data) doesn't have: ${unresolvedFindings.join(", ")}`,
+    );
+  }
+
+  const termMatches = pool.map((entry) => {
+    const candidate = byId.get(entry.candidateId)!.candidate;
+    const texts = [candidate.claim, candidate.link, candidate.premise].flatMap((t) => [t.en, t.fr]);
+    return { candidateId: entry.candidateId, termMatch: texts.some((text) => refusal(text, options.terms) === "terms") };
+  });
 
   // Shared across every run and candidate: a subscription's own limit, or a missing binary,
   // means nothing later stands a better chance either.
@@ -360,20 +414,24 @@ export async function runStageB(
       // possible), and each still gets its own cache entry and its own real call.
       let usage = NO_USAGE;
       let ms = 0;
+      let waitedMs = 0;
       const capturing: Runner = async (call) => {
         const reply = await tracked({ ...call, key: `${call.key}:${entry.candidateId}` });
         usage = reply.usage;
         ms = reply.ms;
+        waitedMs = reply.waitedMs;
         return reply;
       };
 
+      // Neither stage of the pilot applies the private terms inside a real call: `null`
+      // here, always, whatever `options.terms` says (see the function's own comment).
       const verdict = await falsify(
         stageACandidate.candidate,
         finding,
         data,
         capturing,
         { model: role.model, effort: role.effort, label: role.label },
-        options.terms,
+        null,
       );
       const result: StageBVerdict = {
         run: role.id,
@@ -381,14 +439,16 @@ export async function runStageB(
         survived: verdict.survived,
         stage: verdict.stage,
         category: categoryOf(verdict),
+        unusable: unusableOf(verdict),
         counter: verdict.counter,
         counterOutcome: verdict.counterOutcome,
         reason: verdict.reason,
         model: verdict.model,
         usage,
         ms,
+        waitedMs,
       };
-      options.onVerdict?.(role.id, entry.candidateId, result);
+      if (!halt.reason) options.onVerdict?.(role.id, entry.candidateId, result);
       return result;
     };
 
@@ -407,19 +467,54 @@ export async function runStageB(
   const poolOrder = new Map(pool.map((entry, i) => [entry.candidateId, i]));
   verdicts.sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)! || poolOrder.get(x.candidateId)! - poolOrder.get(y.candidateId)!);
 
-  return { pool, verdicts };
+  return { pool, verdicts, termMatches };
+}
+
+/** Every field of a run's verdict that carries no free text: safe to commit for a redacted candidate as well as a shown one. */
+function nonTextRun(v: StageBVerdict): object {
+  return {
+    run: v.run,
+    survived: v.survived,
+    stage: v.stage,
+    category: v.category,
+    unusable: v.unusable,
+    model: v.model,
+    effort: EFFORT_BY_RUN.get(v.run) ?? null,
+    usage: v.usage,
+    ms: v.ms,
+    waitedMs: v.waitedMs,
+  };
+}
+
+/**
+ * A run's counter-test, kept only if neither its own JSON nor the named-person pattern
+ * matches `terms`; otherwise dropped, keeping just its outcome's status (never its own
+ * `reason`, and never the figures it read, on the belt-and-braces chance either named
+ * something they shouldn't). A verdict with no counter-test proposed carries nothing to
+ * screen either way.
+ */
+function safeCounter(v: StageBVerdict, terms: RegExp | null): { counter: Check | null; counterOutcome: { status: string } | Outcome | null } {
+  if (v.counter === null) return { counter: null, counterOutcome: v.counterOutcome };
+  if (refusal(JSON.stringify(v.counter), terms) === null) return { counter: v.counter, counterOutcome: v.counterOutcome };
+  return { counter: null, counterOutcome: v.counterOutcome ? { status: v.counterOutcome.status } : null };
 }
 
 /**
  * The body of `insights/pilot/candidates.json`, committed to the public repo: every pool
  * candidate, its verdict from each of the 5 runs sorted into run order, and nothing that
- * belongs to a candidate any run stopped for safety but that candidate's ids and which runs
- * stopped it, by category. `stage: "safety"` covers both a model's own refusal and the
- * private terms backstop (`falsify`'s own `refusedCandidate`), so checking it once here
- * catches both without this file ever seeing the private terms themselves.
+ * belongs to a candidate any run stopped for safety, or whose own text matched a private
+ * term (`b.termMatches`), but that candidate's ids and which runs or terms stopped it, by
+ * category. `stage: "safety"` covers a model's own refusal; `termMatch` is measured
+ * separately from any verdict (see `runStageB`'s own comment on why). Neither this file nor
+ * `StageBVerdict.reason` for a redacted candidate is read from here: no run's own free-text
+ * `reason` is ever written to this file at all, redacted candidate or not, and a
+ * non-redacted candidate's own counter-test is written only when `safeCounter` clears it.
+ * `terms` is never itself written anywhere in the result; it's read only to decide what to
+ * leave out.
  */
-export function committedCandidates(a: StageA, b: StageB): unknown {
+export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null): unknown {
   const candidateById = new Map(a.candidates.map((c) => [c.candidateId, c]));
+  const termMatchByCandidate = new Map(b.termMatches.map((t) => [t.candidateId, t.termMatch]));
   const verdictsByCandidate = new Map<string, StageBVerdict[]>();
   for (const v of b.verdicts) {
     const list = verdictsByCandidate.get(v.candidateId) ?? [];
@@ -431,9 +526,13 @@ export function committedCandidates(a: StageA, b: StageB): unknown {
     const stageACandidate = candidateById.get(entry.candidateId)!;
     const runs = (verdictsByCandidate.get(entry.candidateId) ?? []).slice().sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)!);
 
-    const safety = runs.filter((v) => v.stage === "safety").map((v) => ({ run: v.run, category: v.category }));
+    const termMatch = termMatchByCandidate.get(entry.candidateId) ?? false;
+    const safety = [
+      ...(termMatch ? [{ run: "terms", category: "terms" }] : []),
+      ...runs.filter((v) => v.stage === "safety").map((v) => ({ run: v.run, category: v.category })),
+    ];
     if (safety.length > 0) {
-      return { candidateId: entry.candidateId, proposer: entry.proposer, findingId: entry.findingId, safety };
+      return { candidateId: entry.candidateId, proposer: entry.proposer, findingId: entry.findingId, safety, runs: runs.map(nonTextRun) };
     }
 
     const { claim, link, premise, test } = stageACandidate.candidate;
@@ -447,19 +546,7 @@ export function committedCandidates(a: StageA, b: StageB): unknown {
       test,
       numbers: stageACandidate.outcome.numbers,
       linkTest: stageACandidate.link,
-      runs: runs.map((v) => ({
-        run: v.run,
-        survived: v.survived,
-        stage: v.stage,
-        category: v.category,
-        counter: v.counter,
-        counterOutcome: v.counterOutcome,
-        reason: v.reason,
-        model: v.model,
-        effort: EFFORT_BY_RUN.get(v.run) ?? null,
-        usage: v.usage,
-        ms: v.ms,
-      })),
+      runs: runs.map((v) => ({ ...nonTextRun(v), ...safeCounter(v, terms) })),
     };
   });
 }

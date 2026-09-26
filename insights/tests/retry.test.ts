@@ -50,11 +50,11 @@ describe("classify", () => {
 });
 
 describe("withRetries", () => {
-  it("retries a hiccup and returns the answer", async () => {
+  it("retries a hiccup and returns the answer, with the time it waited on top", async () => {
     const c = clock();
     const s = scripted([new Error("claude timed out after 240000 ms"), "ok"]);
     const reply = await withRetries(s.transport, { tries: 3, backoffMs: [5, 30, 120], limitPollMs: 1000, limitMaxMs: 10_000, sleep: c.sleep })(call);
-    expect(reply).toEqual(ok);
+    expect(reply).toEqual({ ...ok, waitedMs: 5 });
     expect(s.calls()).toBe(2);
     expect(c.waits).toEqual([5]);
   });
@@ -64,18 +64,19 @@ describe("withRetries", () => {
     await expect(withRetries(s.transport, { tries: 3, backoffMs: [5, 30, 120], limitPollMs: 1000, limitMaxMs: 10_000, sleep: c.sleep })(call)).rejects.toThrow(/exited/);
     expect(s.calls()).toBe(4);
   });
-  it("waits out a limit and carries on", async () => {
+  it("waits out a limit and carries on, reporting every minute spent waiting", async () => {
     const c = clock();
     const s = scripted([new Error("claude reported an error: You've hit your session limit"), new Error("claude reported an error: You've hit your session limit"), "ok"]);
     const reply = await withRetries(s.transport, { tries: 3, backoffMs: [5], limitPollMs: 1000, limitMaxMs: 10_000, sleep: c.sleep })(call);
-    expect(reply).toEqual(ok);
+    expect(reply).toEqual({ ...ok, waitedMs: 2000 });
     expect(c.waits).toEqual([1000, 1000]);
   });
   it("uses the wait a limit asks for", async () => {
     const c = clock();
     const s = scripted([new LimitError("429", 2500), "ok"]);
-    await withRetries(s.transport, { tries: 3, backoffMs: [5], limitPollMs: 1000, limitMaxMs: 10_000, sleep: c.sleep })(call);
+    const reply = await withRetries(s.transport, { tries: 3, backoffMs: [5], limitPollMs: 1000, limitMaxMs: 10_000, sleep: c.sleep })(call);
     expect(c.waits).toEqual([2500]);
+    expect(reply.waitedMs).toBe(2500);
   });
   it("stops waiting once the limit's had its time, and says so", async () => {
     const c = clock();

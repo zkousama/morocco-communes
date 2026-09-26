@@ -20,11 +20,11 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { loadData, type Data } from "../data.ts";
 import { detect, type Finding } from "../detect.ts";
-import { addUsage, makeRunner, messageOf, NO_USAGE, readLocal, RETRY_DEFAULTS, withRetries, writeJsonAtomic, type Runner, type Usage } from "../model.ts";
+import { addUsage, makeRunner, messageOf, NO_USAGE, readLocal, RETRY_DEFAULTS, withRetries, writeJsonAtomic, type Local, type Runner, type Usage } from "../model.ts";
 import { localWarning, transportFor } from "../run.ts";
 import { termsPattern } from "../safety.ts";
 import { sampleFindings } from "./sample.ts";
-import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "./setups.ts";
+import { ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
 import { committedCandidates, runStageA, runStageB, type StageA } from "./stages.ts";
 
 const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
@@ -115,7 +115,14 @@ export async function runAndReportB(
   try {
     result = await runStageB(data, a, runners, {
       ...options,
-      onVerdict: (run, candidateId, verdict) => io.log(`${run} ${candidateId}: ${verdict.survived ? "survived" : `broke (${verdict.stage}${verdict.category ? `: ${verdict.category}` : ""})`}`),
+      onVerdict: (run, candidateId, verdict) => {
+        const status = verdict.survived
+          ? "survived"
+          : verdict.unusable
+            ? `unusable (${verdict.unusable})`
+            : `broke (${verdict.stage}${verdict.category ? `: ${verdict.category}` : ""})`;
+        io.log(`${run} ${candidateId}: ${status}`);
+      },
     });
   } catch (error) {
     io.error(`stage B stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
@@ -131,9 +138,23 @@ export async function runAndReportB(
 
   await io.writeStageB(result);
   io.log(`wrote ${STAGE_B_PATH}`);
-  await io.writeCandidates(committedCandidates(a, result));
+  // `options.terms` is the same private-terms pattern `runStageB` used to compute
+  // `termMatches`, read here only to decide what `committedCandidates` leaves out.
+  await io.writeCandidates(committedCandidates(a, result, options.terms));
   io.log(`wrote ${CANDIDATES_PATH}`);
   return true;
+}
+
+/**
+ * A clear refusal, before any call, when stage B would need Gemini's own key but doesn't
+ * have it: without this, a missing key is only discovered when A5's own first call fails,
+ * by which point A1 through A4 have already spent real calls. `roles` is `ADVERSARIES`
+ * itself in the live command, taken as a parameter so this stays testable without it.
+ */
+export function missingGeminiKey(roles: PilotRole[], local: Local | null): string | null {
+  if (!roles.some((role) => role.transport === "gemini")) return null;
+  if (local?.keys.GEMINI_API_KEY) return null;
+  return "stage B needs GEMINI_API_KEY in the local keys file to run its gemini setup";
 }
 
 async function runStageACommand(concurrency: number): Promise<void> {
@@ -144,7 +165,6 @@ async function runStageACommand(concurrency: number): Promise<void> {
   const local = readLocal(process.env);
   const warning = localWarning(local);
   if (warning) console.error(warning);
-  const terms = termsPattern(local?.terms ?? []);
 
   const data = loadData();
   const findings = sampleFindings(detect(data), PILOT_SEED);
@@ -155,7 +175,9 @@ async function runStageACommand(concurrency: number): Promise<void> {
     PROPOSERS.map((role) => [role.id, makeRunner(withRetries(transportFor(role, local), retryOptions), cacheOptions)] as const),
   );
 
-  const ok = await runAndReport(data, findings, runners, { concurrency, terms }, {
+  // The pilot never applies the private terms inside a real proposer call (see runStageB's
+  // own comment): only the built-in named-person pattern still drops anything here.
+  const ok = await runAndReport(data, findings, runners, { concurrency, terms: null }, {
     log: (line) => console.log(line),
     error: (line) => console.error(line),
     write: (value) => writeJsonAtomic(STAGE_A_PATH, value),
@@ -171,7 +193,13 @@ async function runStageBCommand(concurrency: number): Promise<void> {
   const local = readLocal(process.env);
   const warning = localWarning(local);
   if (warning) console.error(warning);
+  // The private terms are never applied inside a real adversary call either; `terms` here
+  // only feeds `runStageB`'s own `termMatch` measurement and `committedCandidates`' counter
+  // screening.
   const terms = termsPattern(local?.terms ?? []);
+
+  const geminiError = missingGeminiKey(ADVERSARIES, local);
+  if (geminiError) throw new Error(geminiError);
 
   const data = loadData();
 
