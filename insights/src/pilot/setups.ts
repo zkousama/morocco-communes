@@ -6,6 +6,12 @@
  */
 import type { Role } from "../setup.ts";
 
+/** Rule 5's "5 samples", and the proposer's own upper bound: the pipeline's own sample count, not a second copy of it. */
+export { SAMPLES as MAX_SAMPLES } from "../propose.ts";
+
+/** Rule 6's "top 3": how many reasons by support a page actually shows, read off the run itself, not a second copy of it. */
+export { PUBLISHED_CAP as SHOWN_TOP_N } from "../run.ts";
+
 export interface PilotRole extends Role {
   id: string;
   label?: string; // tells apart a deliberate repeat of the same setup, such as A2's noise floor
@@ -72,21 +78,22 @@ export const FULL_RUN_ADVERSARY_CALLS = 2400;
  */
 export const A5_MAX_HOURS = 48;
 
-/** Rule 4: an adversary breaking its own family's reasons at least this much less often skips that family. */
+/**
+ * Rule 4: how much less often an adversary breaking its own family's reasons counts as
+ * self-preference. `insights/setup.json`'s own refinement already refuses an adversary
+ * arguing with its own model's reasons, so this measures and reports rather than deciding
+ * anything the schema doesn't already forbid.
+ */
 export const SELF_PREFERENCE_GAP = 0.15;
 
-/** Rule 5: the smallest sample count wins once it finds at least this share of what 5 samples find good. */
+/** Rule 5: the smallest sample count wins once it finds at least this share of what the full sample count finds good. */
 export const SAMPLES_SHARE = 0.9;
 
-/** Rule 5, and the proposer's own setup: how many samples a proposer can be asked for, at least and at most. */
+/** Rule 5, and the proposer's own setup: the fewest samples a proposer can be asked for. */
 export const MIN_SAMPLES = 1;
-export const MAX_SAMPLES = 5;
 
 /** Rule 6: attacking only the shown reasons turns on once this share of all breaks lands on them. */
 export const SHOWN_BREAKS_SHARE = 0.8;
-
-/** Rule 6: how many reasons by support a page actually shows. */
-export const SHOWN_TOP_N = 3;
 
 /** Anthropic's 3 families, or Google's one, for the self-preference measure. */
 export function modelFamily(role: PilotRole): "anthropic-haiku" | "anthropic-sonnet" | "anthropic-opus" | "google" {

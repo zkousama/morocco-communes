@@ -52,17 +52,60 @@ describe("the sampled findings it lists", () => {
   });
 });
 
+/** Each pilot model's display name in the file's prose, keyed by the id `PilotRole.model` uses. */
+const MODEL_DISPLAY: Record<string, string> = {
+  haiku: "Haiku 4.5",
+  sonnet: "Sonnet 5",
+  opus: "Opus 5.5",
+  "gemini-3.8-flash": "Gemini 3.8 Flash",
+};
+
+/** A markdown table row keyed by its first cell, for every row whose first cell is a setup or run id. */
+function idTableRows(source: string): Map<string, string[]> {
+  const rows = new Map<string, string[]>();
+  for (const line of source.split("\n")) {
+    if (!line.startsWith("|")) continue;
+    const cells = line
+      .split("|")
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+    if (cells.length >= 3 && /^[PA][1-5]$/.test(cells[0]!)) rows.set(cells[0]!, cells);
+  }
+  return rows;
+}
+
+describe("the setups tables", () => {
+  const rows = idTableRows(text);
+
+  it("has a row for every proposer and adversary, naming that setup's model and effort", () => {
+    for (const role of [...PROPOSERS, ...ADVERSARIES]) {
+      const row = rows.get(role.id);
+      expect(row, `a table row for ${role.id}`).toBeDefined();
+      const [, model, effort] = row!;
+      expect(model, `${role.id}'s model cell`).toContain(MODEL_DISPLAY[role.model] ?? role.model);
+      expect(effort, `${role.id}'s effort cell`).toContain(role.effort ?? "none");
+    }
+  });
+});
+
 /**
  * Every number `preregistration.md` states, checked against the exported constants it has
  * to come from, the same idea as the methods page's own digit test
  * (`site/tests/insights.test.ts`): strip what's allowed, then nothing with a digit may be
- * left. Tables are data, not prose (the setups and the findings list above are checked in
- * their own right), so they're stripped whole, along with the ordered list's own numbering.
- * Setup and run ids (P1, A3, ...), rule references ("rule 4") and the census year are
- * identifiers, not measures, and are stripped too; the seed is excluded by name, as asked.
+ * left. Tables are data, not prose (the sampled findings and the setups tables above are
+ * checked in their own right), so every table is stripped whole, along with the ordered
+ * decision-rules list's own numbering. Setup and run ids (P1, A3, ...), "rule N" references
+ * and the census year are identifiers, not measures, and are stripped too; the seed is
+ * excluded by name, as asked.
  */
 describe("the numbers it states", () => {
   const pct = (share: number) => Math.round(share * 100);
+
+  // Rule 2's "n times in d" is read back off the file itself, not hand-typed, so a rewording
+  // that changes the fraction can't drift from HIGH_EFFORT_RIGHT_SHARE unnoticed.
+  const rightShareMatch = /(\d+) times in (\d+)/.exec(text);
+  const rightSharePhrase = rightShareMatch?.[0] ?? "«rule 2's fraction not found»";
+
   // The 2 "about" figures under "What this pilot can tell apart" are a plain normal
   // approximation (z = 1.96 for a 95% interval) on RATED_PER_PROPOSER ratings at the
   // worst-case p = 0.5, rounded to the nearest 5 since both are stated as "about":
@@ -71,6 +114,10 @@ describe("the numbers it states", () => {
   const nearest5 = (value: number) => Math.round(value / 5) * 5;
   const singleIntervalPoints = nearest5(z * Math.sqrt(0.25 / RATED_PER_PROPOSER) * 100);
   const clearGapPoints = nearest5(z * Math.sqrt(0.5 / RATED_PER_PROPOSER) * 100);
+
+  // "5 samples", "the first 2 samples" .. "the first (MAX_SAMPLES - 1) samples": built from
+  // MAX_SAMPLES so a change to the pipeline's own sample count doesn't silently strand these.
+  const sampleCheckpoints = Array.from({ length: MAX_SAMPLES - 1 }, (_, i) => `the first ${i + 2} samples`);
 
   const pinned = [
     "Haiku 4.5",
@@ -89,15 +136,14 @@ describe("the numbers it states", () => {
     `${BOOTSTRAP_ROUNDS.toLocaleString("en-US")} times`,
     `${RATED_PER_PROPOSER} rated reasons`,
     `${MAX_SAMPLES} proposer samples`,
-    "5 samples",
-    "the first 2 samples",
-    "the first 3 samples",
-    "the first 4 samples",
+    `${MAX_SAMPLES} samples`,
+    ...sampleCheckpoints,
     `${pct(PROPOSER_MARGIN)} points`,
     `${KAPPA_MARGIN}`,
-    `${Math.round(HIGH_EFFORT_RIGHT_SHARE * 3)} times in 3`,
+    rightSharePhrase,
     `${FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US")} calls`,
     `${A5_MAX_HOURS} hours`,
+    `${A5_MAX_HOURS}-hour`,
     `${pct(SELF_PREFERENCE_GAP)} points`,
     `${MIN_SAMPLES} to ${MAX_SAMPLES}`,
     `${pct(SAMPLES_SHARE)}%`,
@@ -112,8 +158,15 @@ describe("the numbers it states", () => {
     `${DRIFT_ITEMS} items`,
     `${RATED_PER_PROPOSER} ratings`,
     `${singleIntervalPoints} points`,
+    "2 setups",
     `${clearGapPoints} points`,
   ];
+
+  it("pins rule 2's fraction to HIGH_EFFORT_RIGHT_SHARE", () => {
+    expect(rightShareMatch, "a \"n times in d\" phrase in the file").not.toBeNull();
+    const [, n, d] = rightShareMatch!;
+    expect(Number(n) / Number(d)).toBe(HIGH_EFFORT_RIGHT_SHARE);
+  });
 
   it("reads the pilot's real resolution off RATED_PER_PROPOSER, at a 95% z of 1.96", () => {
     expect(singleIntervalPoints).toBe(25);
