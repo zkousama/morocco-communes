@@ -5,11 +5,13 @@ import { detect } from "../../src/detect.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 import {
   A5_MAX_HOURS,
+  ACTIVE_ADVERSARIES,
   ADVERSARIES,
   BOOTSTRAP_ROUNDS,
   CONFIDENCE,
   DISAGREEMENT_CAP,
   DRIFT_ITEMS,
+  DROPPED_ADVERSARIES,
   FINDINGS_BY_KIND,
   FULL_RUN_ADVERSARY_CALLS,
   HIGH_EFFORT_RIGHT_SHARE,
@@ -48,6 +50,13 @@ describe("the amendment", () => {
     expect(amendment).toContain("A5");
     expect(amendment).toContain("Gemini 3.8 Flash");
     expect(amendment).toContain("dropped");
+  });
+
+  it("drops exactly the runs the code drops, and the code runs the rest of the registered list", () => {
+    expect(Object.keys(DROPPED_ADVERSARIES)).toEqual(["A5"]);
+    for (const id of Object.keys(DROPPED_ADVERSARIES)) expect(amendment).toContain(id);
+    expect(ACTIVE_ADVERSARIES).toEqual(ADVERSARIES.filter((r) => !Object.hasOwn(DROPPED_ADVERSARIES, r.id)));
+    expect(ACTIVE_ADVERSARIES.map((r) => r.id)).toEqual(["A1", "A2", "A3", "A4"]);
   });
 });
 

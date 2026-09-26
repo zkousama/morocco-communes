@@ -136,7 +136,7 @@ function micro(c3Test: (a: StageA, c: StageACandidate) => boolean = (a, c) => pa
       verdicts.push(verdict(run, ids[i]!, kind, { counter, ms: run === "A5" ? 3000 : 1000, cost: run === "A5" ? 0 : 0.02 }));
     });
   }
-  const b: StageB = { pool, verdicts, termMatches: pool.map((p) => ({ candidateId: p.candidateId, termMatch: p.candidateId === c3.candidateId })) };
+  const b: StageB = { pool, verdicts, termMatches: pool.map((p) => ({ candidateId: p.candidateId, termMatch: p.candidateId === c3.candidateId })), dropped: {} };
 
   const sharedId = counterIdOf(c1.candidateId, shared);
   const ownId = counterIdOf(c1.candidateId, own);

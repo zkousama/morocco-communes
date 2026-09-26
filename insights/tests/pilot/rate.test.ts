@@ -27,7 +27,7 @@ import {
   type UnitNamer,
 } from "../../src/pilot/rate.ts";
 import { candidateIdOf } from "../../src/pilot/sample.ts";
-import { ADVERSARIES, PROPOSERS } from "../../src/pilot/setups.ts";
+import { ADVERSARIES, DROPPED_ADVERSARIES, PROPOSERS } from "../../src/pilot/setups.ts";
 import type { StageA, StageB, StageBVerdict } from "../../src/pilot/stages.ts";
 import { fakeStageA, fakeStageB } from "./fixtures.ts";
 
@@ -140,6 +140,21 @@ describe("the rating plan", () => {
   it("differs for a different seed", () => {
     expect(ratingPlan(a, b, 2)).not.toEqual(plan);
   });
+  it("reads disagreements and their counter-tests off the active runs only, never a dropped run's verdicts", () => {
+    // A dropped run breaking every pool candidate, each with a counter-test of its own:
+    // counted, it would turn every agreeing candidate into a disagreement and add a
+    // counter-test to every disagreement already there.
+    const extra: StageBVerdict[] = Object.keys(DROPPED_ADVERSARIES).flatMap((run) =>
+      b.pool.map((entry, i) => ({
+        run, candidateId: entry.candidateId, survived: false, stage: "falsify" as const, category: null, unusable: null,
+        counter: { check: "compare" as const, left: { of: { unit: "self" as const }, field: "measure", year: 2024 as const }, op: "<" as const, right: { value: 9000 + i } },
+        counterOutcome: { status: "passed" as const, numbers: {} }, reason: "r", model: "m", usage: NO_USAGE, ms: 0, waitedMs: 0,
+      })),
+    );
+    expect(extra.length).toBeGreaterThan(0);
+    const withDropped: StageB = { ...b, verdicts: [...b.verdicts, ...extra] };
+    expect(ratingPlan(a, withDropped, 1)).toEqual(plan);
+  });
 });
 
 describe("ratingPlan's private-terms screen", () => {
@@ -185,7 +200,7 @@ describe("ratingPlan's private-terms screen", () => {
         },
       ],
     };
-    const miniB: StageB = { pool: [{ candidateId, proposer: "P1", findingId: "f0" }], verdicts: [], termMatches: [{ candidateId, termMatch: true }] };
+    const miniB: StageB = { pool: [{ candidateId, proposer: "P1", findingId: "f0" }], verdicts: [], termMatches: [{ candidateId, termMatch: true }], dropped: {} };
     expect(ratingPlan(miniA, miniB, 1).some((i) => i.kind === "reason")).toBe(false);
   });
 });

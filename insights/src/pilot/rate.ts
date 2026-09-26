@@ -1,13 +1,14 @@
 /**
  * The owner rates the pilot's candidates blind, in the terminal: 60 reasons (15 per
- * proposer, one per finding), then every pool candidate the 5 adversary runs disagree on
- * (capped at 40), then 10 of those items back for a second pass, unlabelled, for a drift
- * check. `ratingPlan` is the pure, seeded draw a re-run repeats; `pnpm insights:pilot:rate`
- * is the interactive loop that shows one item, takes an answer and saves `ratings.json`
- * right away, so quitting loses nothing already answered. Nothing here reuses `grade.ts`'s
- * own `interactiveLoop`: that one is typed to `GradedFile`, one render and one merge per
- * item, and a disagreement here asks 2 different kinds of question (the reason, then each
- * counter-test that broke it), which doesn't fit that shape without bending it.
+ * proposer, one per finding), then every pool candidate the active adversary runs
+ * (`ACTIVE_ADVERSARIES`) disagree on (capped at 40), then 10 of those items back for a
+ * second pass, unlabelled, for a drift check. `ratingPlan` is the pure, seeded draw a re-run
+ * repeats; `pnpm insights:pilot:rate` is the interactive loop that shows one item, takes an
+ * answer and saves `ratings.json` right away, so quitting loses nothing already answered.
+ * Nothing here reuses `grade.ts`'s own `interactiveLoop`: that one is typed to `GradedFile`,
+ * one render and one merge per item, and a disagreement here asks 2 different kinds of
+ * question (the reason, then each counter-test that broke it), which doesn't fit that shape
+ * without bending it.
  */
 import { readFile } from "node:fs/promises";
 import { createInterface } from "node:readline/promises";
@@ -24,7 +25,7 @@ import { refusal, termsPattern } from "../safety.ts";
 import { rng } from "../stats.ts";
 import { signature, type Check, type Ref, type Subject } from "../vocabulary.ts";
 import { sampleDisagreements, sampleRated, shuffle } from "./sample.ts";
-import { DISAGREEMENT_CAP, DRIFT_ITEMS, PILOT_SEED, RATED_PER_PROPOSER } from "./setups.ts";
+import { ACTIVE_ADVERSARIES, DISAGREEMENT_CAP, DRIFT_ITEMS, PILOT_SEED, RATED_PER_PROPOSER } from "./setups.ts";
 import type { StageA, StageB, StageBVerdict } from "./stages.ts";
 
 export type RatingItem =
@@ -41,6 +42,9 @@ export const RATINGS_PATH = "insights/pilot/ratings.json";
 
 const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
 const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
+
+/** The runs a disagreement is read across: a dropped run's verdicts, should a stage B file carry any, never make or shape one. */
+const ACTIVE_RUNS = new Set(ACTIVE_ADVERSARIES.map((role) => role.id));
 
 /** A short, stable id for a candidate playing a given role in the plan: never a text, and stable across a resumed run. */
 const itemIdFor = (kind: "reason" | "disagreement", candidateId: string): string => `${kind}:${candidateId}`;
@@ -61,12 +65,12 @@ export function counterIdOf(candidateId: string, check: Check): string {
   return hash(`${candidateId}:${signature(check)}`).slice(0, 12);
 }
 
-/** Every distinct counter-test (by signature) that broke `candidateId`, across whichever runs offered it, sorted by the id itself rather than by which run happened to answer first. */
+/** Every distinct counter-test (by signature) that broke `candidateId`, across whichever active runs offered it, sorted by the id itself rather than by which run happened to answer first. */
 function counterIdsFor(candidateId: string, b: StageB): string[] {
   const seen = new Set<string>();
   const ids: string[] = [];
   for (const v of b.verdicts) {
-    if (v.candidateId !== candidateId || !broke(v) || !v.counter) continue;
+    if (v.candidateId !== candidateId || !ACTIVE_RUNS.has(v.run) || !broke(v) || !v.counter) continue;
     const sig = signature(v.counter);
     if (seen.has(sig)) continue;
     seen.add(sig);
@@ -86,7 +90,9 @@ function counterIdsFor(candidateId: string, b: StageB): string[] {
  * for a reason just because its own text alone doesn't trip `refusal`. A candidate dropped
  * either way isn't replaced by another; the caller may end up rating fewer than 60 reasons.
  * Every candidate any run stopped for safety is left out of both the reasons and the
- * disagreements.
+ * disagreements, a dropped run's stop included, since leaving a candidate out is the safe
+ * side to err on. Disagreements, and the counter-tests each one asks about, are read across
+ * the active runs alone.
  */
 export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | null = null): RatingItem[] {
   const safetyIds = new Set(b.verdicts.filter((v) => v.stage === "safety").map((v) => v.candidateId));
@@ -109,7 +115,7 @@ export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | n
 
   const verdictsByCandidate = new Map<string, Map<string, boolean>>();
   for (const v of b.verdicts) {
-    if (safetyIds.has(v.candidateId) || termMatchIds.has(v.candidateId) || v.unusable !== null) continue;
+    if (!ACTIVE_RUNS.has(v.run) || safetyIds.has(v.candidateId) || termMatchIds.has(v.candidateId) || v.unusable !== null) continue;
     const perCandidate = verdictsByCandidate.get(v.candidateId) ?? new Map<string, boolean>();
     perCandidate.set(v.run, broke(v));
     verdictsByCandidate.set(v.candidateId, perCandidate);

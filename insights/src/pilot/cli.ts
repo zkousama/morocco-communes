@@ -1,13 +1,13 @@
 /**
  * The pilot's own runner: `pnpm insights:pilot --stage a` runs stage A, the 4 proposer
  * setups, live against a real model, and writes what it found to
- * `.cache/insights/pilot/stage-a.json`. `--stage b` reads that file, runs the 5 adversary
- * setups over one shared pool of its passing candidates, writes what it found to
- * `.cache/insights/pilot/stage-b.json`, and writes the redacted, committed
- * `insights/pilot/candidates.json` the public repo carries. Both stages share one cache
- * directory (`.cache/insights/pilot/cache`), separate from the full pipeline's, so a re-run
- * after an interruption resumes from every answer already given rather than asking again,
- * and a pilot call never touches the full pipeline's own cache.
+ * `.cache/insights/pilot/stage-a.json`. `--stage b` reads that file, runs the active
+ * adversary setups (`ACTIVE_ADVERSARIES`) over one shared pool of its passing candidates,
+ * writes what it found to `.cache/insights/pilot/stage-b.json`, and writes the redacted,
+ * committed `insights/pilot/candidates.json` the public repo carries. Both stages share one
+ * cache directory (`.cache/insights/pilot/cache`), separate from the full pipeline's, so a
+ * re-run after an interruption resumes from every answer already given rather than asking
+ * again, and a pilot call never touches the full pipeline's own cache.
  *
  * A failure once a run has started (a halt inside `runStageA` or `runStageB`) is reported
  * through `runAndReport` or `runAndReportB`, in its own wording, and is never routed through
@@ -38,7 +38,7 @@ import {
 import { localWarning, transportFor } from "../run.ts";
 import { termsPattern } from "../safety.ts";
 import { sampleFindings } from "./sample.ts";
-import { ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
+import { ACTIVE_ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
 import { committedCandidates, runStageA, runStageB, SetupError, type StageA } from "./stages.ts";
 
 const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
@@ -121,7 +121,7 @@ export async function runAndReportB(
   data: Data,
   a: StageA,
   runners: Map<string, Runner>,
-  options: { concurrency: number; terms: RegExp | null },
+  options: { concurrency: number; terms: RegExp | null; adversaries?: PilotRole[] },
   io: { log: (line: string) => void; error: (line: string) => void; writeStageB: (value: unknown) => Promise<void>; writeCandidates: (value: unknown) => Promise<void> },
 ): Promise<boolean> {
   let result: Awaited<ReturnType<typeof runStageB>>;
@@ -146,7 +146,8 @@ export async function runAndReportB(
     return false;
   }
 
-  for (const role of ADVERSARIES) {
+  for (const [id, reason] of Object.entries(result.dropped)) io.log(`${id} dropped, not run: ${reason}`);
+  for (const role of options.adversaries ?? ACTIVE_ADVERSARIES) {
     const mine = result.verdicts.filter((v) => v.run === role.id);
     const usage = mine.reduce((acc, v) => addUsage(acc, v.usage), NO_USAGE);
     const effort = role.effort ? ` ${role.effort}` : role.transport === "gemini" ? " default effort" : "";
@@ -164,9 +165,10 @@ export async function runAndReportB(
 
 /**
  * A clear refusal, before any call, when stage B would need Gemini's own key but doesn't
- * have it: without this, a missing key is only discovered when A5's own first call fails,
- * by which point A1 through A4 have already spent real calls. `roles` is `ADVERSARIES`
- * itself in the live command, taken as a parameter so this stays testable without it.
+ * have it: without this, a missing key is only discovered when a Gemini run's own first
+ * call fails, by which point the runs before it have already spent real calls. `roles` is
+ * `ACTIVE_ADVERSARIES` in the live command, taken as a parameter so this stays testable
+ * without it; with the one Gemini run dropped, it has nothing to refuse.
  */
 export function missingGeminiKey(roles: PilotRole[], local: Local | null): string | null {
   if (!roles.some((role) => role.transport === "gemini")) return null;
@@ -215,7 +217,7 @@ async function runStageBCommand(concurrency: number): Promise<void> {
   // screening.
   const terms = termsPattern(local?.terms ?? []);
 
-  const geminiError = missingGeminiKey(ADVERSARIES, local);
+  const geminiError = missingGeminiKey(ACTIVE_ADVERSARIES, local);
   if (geminiError) throw new Error(geminiError);
 
   const data = loadData();
@@ -230,7 +232,7 @@ async function runStageBCommand(concurrency: number): Promise<void> {
   const retryOptions = { ...RETRY_DEFAULTS, sleep: (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)), log: (line: string) => console.error(line) };
   const cacheOptions = { cacheDir: CACHE_DIR, datasetVersion: data.version, stageVersions: {} };
   const runners = new Map(
-    ADVERSARIES.map((role) => [role.id, makeRunner(withRetries(transportFor(role, local), retryOptions), cacheOptions)] as const),
+    ACTIVE_ADVERSARIES.map((role) => [role.id, makeRunner(withRetries(transportFor(role, local), retryOptions), cacheOptions)] as const),
   );
 
   const ok = await runAndReportB(data, a, runners, { concurrency, terms }, {

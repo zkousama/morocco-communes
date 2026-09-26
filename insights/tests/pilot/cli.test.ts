@@ -6,8 +6,8 @@ import { loadData } from "../../src/data.ts";
 import { detect } from "../../src/detect.ts";
 import { makeRunner, stubTransport, type Runner } from "../../src/model.ts";
 import { missingGeminiKey, runAndReport, runAndReportB } from "../../src/pilot/cli.ts";
-import { runStageA, type StageA } from "../../src/pilot/stages.ts";
-import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
+import { runStageA, type StageA, type StageB } from "../../src/pilot/stages.ts";
+import { ACTIVE_ADVERSARIES, ADVERSARIES, DROPPED_ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
 const data = loadData();
@@ -54,6 +54,32 @@ describe("runAndReport", () => {
 });
 
 describe("runAndReportB", () => {
+  it("runs with runners for the active runs alone, says which run was dropped and why, and writes that down", async () => {
+    const proposerRunners = new Map(PROPOSERS.map((p) => [p.id, makeRunner(stubTransport(answer), { cacheDir: mkdtempSync(join(tmpdir(), "cdr-")), datasetVersion: "t", stageVersions: {} })]));
+    const a = await runStageA(data, findings, proposerRunners, { concurrency: 1, terms: null });
+    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r" })), { cacheDir: mkdtempSync(join(tmpdir(), "cda-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ACTIVE_ADVERSARIES.map((r) => [r.id, answering]));
+    const logs: string[] = [];
+    const errors: string[] = [];
+    let stageB: StageB | null = null;
+    let candidates: { dropped?: unknown } | null = null;
+    const ok = await runAndReportB(data, a, adv, { concurrency: 1, terms: null }, {
+      log: (l) => logs.push(l),
+      error: (l) => errors.push(l),
+      writeStageB: async (v) => { stageB = v as StageB; },
+      writeCandidates: async (v) => { candidates = v as { dropped?: unknown }; },
+    });
+    expect(errors).toEqual([]);
+    expect(ok).toBe(true);
+    expect(stageB!.dropped).toEqual(DROPPED_ADVERSARIES);
+    expect(candidates!.dropped).toEqual(DROPPED_ADVERSARIES);
+    for (const [id, reason] of Object.entries(DROPPED_ADVERSARIES)) {
+      expect(logs).toContain(`${id} dropped, not run: ${reason}`);
+      expect(logs.some((l) => l.startsWith(`usage: ${id} `))).toBe(false);
+    }
+    for (const role of ACTIVE_ADVERSARIES) expect(logs.some((l) => l.startsWith(`usage: ${role.id} `))).toBe(true);
+  });
+
   it("prints 'unusable' rather than 'broke' when a run simply couldn't answer", async () => {
     const proposerRunners = new Map(PROPOSERS.map((p) => [p.id, makeRunner(stubTransport(answer), { cacheDir: mkdtempSync(join(tmpdir(), "cbb-")), datasetVersion: "t", stageVersions: {} })]));
     const a = await runStageA(data, findings, proposerRunners, { concurrency: 1, terms: null });
@@ -102,5 +128,9 @@ describe("missingGeminiKey", () => {
   });
   it("never checks for a key when nothing needs gemini", () => {
     expect(missingGeminiKey(PROPOSERS, null)).toBeNull();
+  });
+  it("never checks for a key for the active runs: the one gemini run is dropped", () => {
+    expect(ACTIVE_ADVERSARIES.some((r) => r.transport === "gemini")).toBe(false);
+    expect(missingGeminiKey(ACTIVE_ADVERSARIES, null)).toBeNull();
   });
 });

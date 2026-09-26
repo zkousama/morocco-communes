@@ -247,7 +247,7 @@ export function fakeStageB(a: StageA): StageB {
     }
   }
   const termMatches = pool.map((entry, i) => ({ candidateId: entry.candidateId, termMatch: i === TERM_MATCH_INDEX }));
-  return { pool, verdicts, termMatches };
+  return { pool, verdicts, termMatches, dropped: {} };
 }
 
 const ANSWERED_AT = "2026-09-26T00:00:00.000Z";

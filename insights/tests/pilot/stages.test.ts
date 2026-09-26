@@ -9,7 +9,7 @@ import { geminiTransport, LimitError, makeRunner, NO_USAGE, RETRY_DEFAULTS, stub
 import { STOP_AFTER_FAILURES } from "../../src/run.ts";
 import type { Check } from "../../src/vocabulary.ts";
 import { committedCandidates, runStageA, runStageB, type StageA, type StageACandidate, type StageB, type StageBVerdict } from "../../src/pilot/stages.ts";
-import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
+import { ACTIVE_ADVERSARIES, ADVERSARIES, DROPPED_ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
 const data = loadData();
@@ -223,23 +223,48 @@ describe("stage A", () => {
 });
 
 describe("stage B", () => {
-  it("runs every adversary on the same pool, and the repeat run really asks again", async () => {
+  it("runs every active adversary on the same pool, and the repeat run really asks again", async () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     let calls = 0;
     const sharedCache = mkdtempSync(join(tmpdir(), "pb-"));
     const counting = (id: string) => makeRunner(async (call) => { calls++; return { text: JSON.stringify({ counter: null, reason: `none from ${id}` }), model: call.model, usage: NO_USAGE }; }, { cacheDir: sharedCache, datasetVersion: "t", stageVersions: {} });
-    const adv = new Map(ADVERSARIES.map((r) => [r.id, counting(r.id)]));
+    const adv = new Map(ACTIVE_ADVERSARIES.map((r) => [r.id, counting(r.id)]));
     const b = await runStageB(data, a, adv, { concurrency: 2, terms: null });
     const poolSize = b.pool.length;
-    expect(b.verdicts).toHaveLength(poolSize * ADVERSARIES.length);
-    expect(calls).toBe(poolSize * ADVERSARIES.length); // A2 isn't served from A1's cache
+    expect(b.verdicts).toHaveLength(poolSize * ACTIVE_ADVERSARIES.length);
+    expect(calls).toBe(poolSize * ACTIVE_ADVERSARIES.length); // A2 isn't served from A1's cache
+  });
+
+  it("makes no call for a dropped run, needs no runner or Gemini key for it, and records why it was dropped", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r" })), { cacheDir: mkdtempSync(join(tmpdir(), "dr-")), datasetVersion: "t", stageVersions: {} });
+
+    // Only the active runs have a runner at all: no Gemini transport, so no key either.
+    const b = await runStageB(data, a, new Map(ACTIVE_ADVERSARIES.map((r) => [r.id, answering])), { concurrency: 1, terms: null });
+    expect([...new Set(b.verdicts.map((v) => v.run))]).toEqual(ACTIVE_ADVERSARIES.map((r) => r.id));
+    expect(b.dropped).toEqual(DROPPED_ADVERSARIES);
+
+    // A runner handed in for a dropped run is never called.
+    let droppedCalls = 0;
+    const counting: Runner = async () => { droppedCalls++; throw new Error("a dropped run was called"); };
+    const withDropped = new Map([...ACTIVE_ADVERSARIES.map((r) => [r.id, answering] as const), ...Object.keys(DROPPED_ADVERSARIES).map((id) => [id, counting] as const)]);
+    await runStageB(data, a, withDropped, { concurrency: 1, terms: null });
+    expect(droppedCalls).toBe(0);
+  });
+
+  it("runs an explicit list of adversaries instead, recording nothing as dropped that it ran", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r" })), { cacheDir: mkdtempSync(join(tmpdir(), "ex-")), datasetVersion: "t", stageVersions: {} });
+    const b = await runStageB(data, a, new Map(ADVERSARIES.map((r) => [r.id, answering])), { concurrency: 1, terms: null, adversaries: ADVERSARIES });
+    expect([...new Set(b.verdicts.map((v) => v.run))]).toEqual(ADVERSARIES.map((r) => r.id));
+    expect(b.dropped).toEqual({});
   });
   it("never commits the text of a candidate stopped for safety, but keeps every run's non-text fields", async () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     const refusing = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r", refuse: "blame" })), { cacheDir: mkdtempSync(join(tmpdir(), "pr-")), datasetVersion: "t", stageVersions: {} });
     const adv = new Map(ADVERSARIES.map((r) => [r.id, refusing]));
     const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
-    const committed = committedCandidates(a, b, null) as Array<Record<string, unknown>>;
+    const committed = committedCandidates(a, b, null).candidates as Array<Record<string, unknown>>;
     const json = JSON.stringify(committed);
     for (const c of a.candidates) expect(json).not.toContain(c.candidate.claim.en);
     expect(json).toContain('"category":"blame"');
@@ -247,13 +272,25 @@ describe("stage B", () => {
     const entry = committed[0]!;
     expect(entry.claim).toBeUndefined();
     const runs = entry.runs as Array<Record<string, unknown>>;
-    expect(runs).toHaveLength(ADVERSARIES.length);
+    expect(runs).toHaveLength(ACTIVE_ADVERSARIES.length);
     expect(runs[0]).toMatchObject({ run: "A1", survived: false, stage: "safety", category: "blame", unusable: null, model: "opus", effort: "medium" });
     expect(runs[0]).toHaveProperty("usage");
     expect(runs[0]).toHaveProperty("waitedMs");
     expect(runs[0]).not.toHaveProperty("counter");
     expect(runs[0]).not.toHaveProperty("counterOutcome");
     expect(runs[0]).not.toHaveProperty("reason");
+  });
+
+  it("commits which runs were dropped and why, beside verdicts from the active runs only", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r" })), { cacheDir: mkdtempSync(join(tmpdir(), "cd-")), datasetVersion: "t", stageVersions: {} });
+    const b = await runStageB(data, a, new Map(ACTIVE_ADVERSARIES.map((r) => [r.id, answering])), { concurrency: 1, terms: null });
+    const committed = committedCandidates(a, b, null);
+    expect(committed.dropped).toEqual(DROPPED_ADVERSARIES);
+    expect(committed.candidates.length).toBe(b.pool.length);
+    for (const entry of committed.candidates as Array<{ runs: Array<{ run: string }> }>) {
+      expect(entry.runs.map((r) => r.run)).toEqual(ACTIVE_ADVERSARIES.map((r) => r.id));
+    }
   });
 
   it("redacts every run's own text once any one of them refuses, not just the refusing run's", async () => {
@@ -388,7 +425,7 @@ describe("stage B", () => {
       counter: counterWithTab, counterOutcome: { status: "passed", numbers: {} }, reason: "fine",
       model: "opus", usage: NO_USAGE, ms: 0, waitedMs: 0,
     };
-    const fakeB: StageB = { pool: [{ candidateId: "aaaaaaaaaaaa", proposer: "P1", findingId: "f1" }], verdicts: [verdict], termMatches: [{ candidateId: "aaaaaaaaaaaa", termMatch: false }] };
+    const fakeB: StageB = { pool: [{ candidateId: "aaaaaaaaaaaa", proposer: "P1", findingId: "f1" }], verdicts: [verdict], termMatches: [{ candidateId: "aaaaaaaaaaaa", termMatch: false }], dropped: {} };
     const terms = /abc\tdef/; // a raw tab, exactly as it would sit inside a private term
     const committed = JSON.stringify(committedCandidates(fakeA, fakeB, terms));
     expect(committed).not.toContain("abc");
@@ -400,7 +437,7 @@ describe("stage B", () => {
     const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
     const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
     const withoutTermMatches: StageB = { ...b, termMatches: [] }; // simulates a missing row for every candidate
-    const committed = committedCandidates(a, withoutTermMatches, null) as Array<{ safety?: Array<{ run: string; category: string }> }>;
+    const committed = committedCandidates(a, withoutTermMatches, null).candidates as Array<{ safety?: Array<{ run: string; category: string }> }>;
     expect(committed.length).toBeGreaterThan(0);
     expect(committed.every((c) => c.safety !== undefined)).toBe(true);
     expect(committed.every((c) => c.safety!.some((s) => s.run === "terms"))).toBe(true);
@@ -417,7 +454,7 @@ describe("stage B", () => {
     const adv = new Map(ADVERSARIES.map((r) => [r.id, flaky]));
     const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
     expect(b.verdicts.some((v) => v.unusable === "no answer")).toBe(true);
-    const committed = committedCandidates(a, b, null) as Array<{ claim?: { en: string }; runs: Array<{ unusable: string | null }> }>;
+    const committed = committedCandidates(a, b, null).candidates as Array<{ claim?: { en: string }; runs: Array<{ unusable: string | null }> }>;
     expect(JSON.stringify(committed)).not.toContain(NO_ANSWER);
     expect(committed.some((c) => c.runs.some((r) => r.unusable === "no answer"))).toBe(true);
     for (const c of a.candidates) expect(JSON.stringify(committed)).toContain(c.candidate.claim.en);
@@ -460,8 +497,8 @@ describe("stage B", () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     const calls: string[] = [];
     const counting = () => makeRunner(stubTransport((call) => { calls.push(call.model); return JSON.stringify({ counter: null, reason: "r" }); }), { cacheDir: mkdtempSync(join(tmpdir(), "mb-")), datasetVersion: "t", stageVersions: {} });
-    // A1-A3 (which come first) do have runners; A4 and A5 don't.
-    const partial = new Map(ADVERSARIES.slice(0, 3).map((r) => [r.id, counting()]));
+    // A1-A3 (which come first) do have runners; A4, still active, doesn't.
+    const partial = new Map(ACTIVE_ADVERSARIES.slice(0, 3).map((r) => [r.id, counting()]));
     await expect(runStageB(data, a, partial, { concurrency: 1, terms: null })).rejects.toThrow(/no runner for adversar/);
     expect(calls).toEqual([]);
   });
@@ -490,7 +527,7 @@ describe("stage B", () => {
       const enoent: Runner = async () => { calls++; throw new Error("couldn't start claude: spawn claude ENOENT"); };
       const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, enoent]));
       await expect(runStageB(data, a, runnersAll, { concurrency: 3, terms: null })).rejects.toThrow(/couldn't start claude/);
-      // A full run over this pool would be 12 candidates x 5 adversaries = 60 calls.
+      // A full run over this pool would be 12 candidates x 4 active adversaries = 48 calls.
       expect(calls).toBeLessThan(10);
     });
 
@@ -501,8 +538,10 @@ describe("stage B", () => {
       process.env.INSIGHTS_LIVE = "1";
       try {
         const gemini = withRetries(geminiTransport({ terms: [], keys: { GEMINI_API_KEY: "placeholder-key" } }), { ...RETRY_DEFAULTS, sleep: async () => {} });
-        const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, makeRunner(gemini, { cacheDir: mkdtempSync(join(tmpdir(), "g401-")), datasetVersion: "t", stageVersions: {} })]));
-        await expect(runStageB(data, a, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/an adversary call failed: gemini answered 401/);
+        // The Gemini run is dropped from the pilot itself, so it's asked for by name here.
+        const geminiRuns = ADVERSARIES.filter((r) => r.transport === "gemini");
+        const runnersAll = new Map(geminiRuns.map((r) => [r.id, makeRunner(gemini, { cacheDir: mkdtempSync(join(tmpdir(), "g401-")), datasetVersion: "t", stageVersions: {} })]));
+        await expect(runStageB(data, a, runnersAll, { concurrency: 1, terms: null, adversaries: geminiRuns })).rejects.toThrow(/an adversary call failed: gemini answered 401/);
         expect(fetchMock).toHaveBeenCalledTimes(1);
       } finally {
         delete process.env.INSIGHTS_LIVE;

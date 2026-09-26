@@ -25,7 +25,11 @@ export const PROPOSERS: PilotRole[] = [
   { id: "P4", transport: "claude", model: "opus", effort: "medium" },
 ];
 
-/** Stage B: 5 runs attacking the same fixed pool. A2 repeats A1 to measure the noise floor. */
+/**
+ * Stage B as registered: 5 runs attacking the same fixed pool. A2 repeats A1 to measure the
+ * noise floor. Kept whole for the record (the preregistration's own table is checked against
+ * it); what actually runs is `ACTIVE_ADVERSARIES`.
+ */
 export const ADVERSARIES: PilotRole[] = [
   { id: "A1", transport: "claude", model: "opus", effort: "medium" },
   { id: "A2", transport: "claude", model: "opus", effort: "medium", label: "repeat" },
@@ -33,6 +37,18 @@ export const ADVERSARIES: PilotRole[] = [
   { id: "A4", transport: "claude", model: "sonnet", effort: "high" },
   { id: "A5", transport: "gemini", model: "gemini-3.8-flash" }, // the free tier's default effort
 ];
+
+/**
+ * Registered runs the owner dropped before they were measured, each with its reason, as the
+ * preregistration's amendment records. A dropped run is never run, rated or analysed; the
+ * write-up names it as dropped and not measured.
+ */
+export const DROPPED_ADVERSARIES: Record<string, string> = {
+  A5: "the free tier caps Gemini 3.8 Flash at 20 requests a day",
+};
+
+/** The runs stage B makes and the rating and the analysis read: `ADVERSARIES`, in order, less `DROPPED_ADVERSARIES`. */
+export const ACTIVE_ADVERSARIES: PilotRole[] = ADVERSARIES.filter((role) => !Object.hasOwn(DROPPED_ADVERSARIES, role.id));
 
 export const PILOT_SEED = 20260925;
 

@@ -40,7 +40,7 @@ import { aboutThisFinding, linkSeed, STOP_AFTER_FAILURES, type LinkResult } from
 import { refusal } from "../safety.ts";
 import { evaluate, type Check, type Outcome } from "../vocabulary.ts";
 import { candidateIdOf, samplePool, type PoolEntry } from "./sample.ts";
-import { ADVERSARIES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS, type PilotRole } from "./setups.ts";
+import { ACTIVE_ADVERSARIES, ADVERSARIES, DROPPED_ADVERSARIES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS, type PilotRole } from "./setups.ts";
 
 /**
  * A mistake found before either stage ever made a call: a missing runner, or a pool
@@ -287,6 +287,9 @@ export interface StageB {
   // any of the 6 texts matches the private terms, regardless of what any run's verdict says
   // (see `runStageB`'s own comment on why this can't be read off `verdicts` instead).
   termMatches: { candidateId: string; termMatch: boolean }[];
+  // Every run in `DROPPED_ADVERSARIES` this stage didn't make, with its reason: `verdicts`
+  // has nothing from it.
+  dropped: Record<string, string>;
 }
 
 const REFUSED_PREFIX = "refused: ";
@@ -310,11 +313,15 @@ const EFFORT_BY_RUN = new Map(ADVERSARIES.map((r) => [r.id, r.effort ?? null]));
 
 /**
  * Stage B: draws the pool `samplePool(a.candidates, POOL_PER_PROPOSER, PILOT_SEED)` shares
- * across every run, then asks each of `ADVERSARIES` in turn to `falsify` every candidate in
- * it, `options.concurrency` at a time. A2 repeats A1's exact model and effort with its own
- * `label: "repeat"`, which `falsify` folds into its cache key alongside the model and
- * effort, so its calls are asked again rather than served from A1's cache: that's the noise
- * floor rules 2 and 3 read every other run against.
+ * across every run, then asks each run in `options.adversaries` (`ACTIVE_ADVERSARIES` unless
+ * a caller names its own) in turn to `falsify` every candidate in it, `options.concurrency`
+ * at a time. A run in `DROPPED_ADVERSARIES` that isn't in that list makes no call and needs
+ * no runner; `StageB.dropped` records it with its reason.
+ *
+ * A2 repeats A1's exact model and effort with its own `label: "repeat"`, which `falsify`
+ * folds into its cache key alongside the model and effort, so its calls are asked again
+ * rather than served from A1's cache: that's the noise floor rules 2 and 3 read every other
+ * run against.
  *
  * Neither this stage nor stage A applies the private terms inside `falsify` or `propose`
  * themselves: `falsify` is always called with `null`, whatever `options.terms` says, and
@@ -329,7 +336,7 @@ const EFFORT_BY_RUN = new Map(ADVERSARIES.map((r) => [r.id, r.effort ?? null]));
  * pool: a term matched while a run's own safety check passed it, or a run refusing with no
  * term matched.
  *
- * Before any call, 2 things are checked: every adversary in `ADVERSARIES` has a runner (so a
+ * Before any call, 2 things are checked: every adversary it runs has a runner (so a
  * missing setup is never discovered only after the ones before it have already spent real
  * calls), and every pool candidate's `findingId` resolves in `detect(data)` (so a dataset
  * that's moved on from a stale stage A file fails clearly rather than crashing deep inside
@@ -356,9 +363,17 @@ export async function runStageB(
   data: Data,
   a: StageA,
   runners: Map<string, Runner>,
-  options: { concurrency: number; terms: RegExp | null; onVerdict?: (run: string, candidateId: string, verdict: StageBVerdict) => void },
+  options: {
+    concurrency: number;
+    terms: RegExp | null;
+    onVerdict?: (run: string, candidateId: string, verdict: StageBVerdict) => void;
+    adversaries?: PilotRole[];
+  },
 ): Promise<StageB> {
-  const missing = ADVERSARIES.filter((r) => !runners.has(r.id)).map((r) => r.id);
+  const adversaries = options.adversaries ?? ACTIVE_ADVERSARIES;
+  const dropped = Object.fromEntries(Object.entries(DROPPED_ADVERSARIES).filter(([id]) => !adversaries.some((r) => r.id === id)));
+
+  const missing = adversaries.filter((r) => !runners.has(r.id)).map((r) => r.id);
   if (missing.length > 0) {
     throw new SetupError(`runStageB: no runner for adversar${missing.length > 1 ? "ies" : "y"} ${missing.map((id) => `"${id}"`).join(", ")}`);
   }
@@ -386,7 +401,7 @@ export async function runStageB(
   let inARow = 0;
   const verdicts: StageBVerdict[] = [];
 
-  for (const role of ADVERSARIES) {
+  for (const role of adversaries) {
     const runner = runners.get(role.id)!;
 
     const tracked: Runner = async (call) => {
@@ -476,7 +491,7 @@ export async function runStageB(
   const poolOrder = new Map(pool.map((entry, i) => [entry.candidateId, i]));
   verdicts.sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)! || poolOrder.get(x.candidateId)! - poolOrder.get(y.candidateId)!);
 
-  return { pool, verdicts, termMatches };
+  return { pool, verdicts, termMatches, dropped };
 }
 
 /** Every field of a run's verdict that carries no free text: safe to commit for a redacted candidate as well as a shown one. */
@@ -531,20 +546,21 @@ function safeCounter(v: StageBVerdict, terms: RegExp | null): { counter: Check |
 }
 
 /**
- * The body of `insights/pilot/candidates.json`, committed to the public repo: every pool
- * candidate, its verdict from each of the 5 runs sorted into run order, and nothing that
- * belongs to a candidate any run stopped for safety, or whose own text matched a private
- * term (`b.termMatches`), but that candidate's ids and which runs or terms stopped it, by
- * category. `stage: "safety"` covers a model's own refusal; `termMatch` is measured
- * separately from any verdict (see `runStageB`'s own comment on why), and fails closed: a
- * candidate with no row in `b.termMatches` at all is redacted, not shown. Neither this file
+ * The body of `insights/pilot/candidates.json`, committed to the public repo: the runs stage
+ * B dropped, with their reasons (`b.dropped`), then every pool candidate, its verdict from
+ * each run stage B made sorted into run order, and nothing that belongs to a candidate any
+ * run stopped for safety, or whose own text matched a private term (`b.termMatches`), but
+ * that candidate's ids and which runs or terms stopped it, by category. `stage: "safety"`
+ * covers a model's own refusal; `termMatch` is measured separately from any verdict (see
+ * `runStageB`'s own comment on why), and fails closed: a candidate with no row in
+ * `b.termMatches` at all is redacted, not shown. Neither this file
  * nor `StageBVerdict.reason` for a redacted candidate is read from here: no run's own
  * free-text `reason` is ever written to this file at all, redacted candidate or not, and a
  * non-redacted candidate's own counter-test is written only when `safeCounter` clears it
  * (never when its own outcome was refused, whatever its text). `terms` is never itself
  * written anywhere in the result; it's read only to decide what to leave out.
  */
-export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null): unknown {
+export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null): { dropped: Record<string, string>; candidates: unknown[] } {
   const candidateById = new Map(a.candidates.map((c) => [c.candidateId, c]));
   const termMatchByCandidate = new Map(b.termMatches.map((t) => [t.candidateId, t.termMatch]));
   const verdictsByCandidate = new Map<string, StageBVerdict[]>();
@@ -554,7 +570,7 @@ export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null):
     verdictsByCandidate.set(v.candidateId, list);
   }
 
-  return b.pool.map((entry) => {
+  const candidates = b.pool.map((entry) => {
     const stageACandidate = candidateById.get(entry.candidateId)!;
     const runs = (verdictsByCandidate.get(entry.candidateId) ?? []).slice().sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)!);
 
@@ -584,4 +600,5 @@ export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null):
       runs: runs.map((v) => ({ ...nonTextRun(v), ...safeCounter(v, terms) })),
     };
   });
+  return { dropped: { ...b.dropped }, candidates };
 }
