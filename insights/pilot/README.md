@@ -29,8 +29,8 @@ Stage A asked each proposer setup for reasons on the same 16 findings, 5 samples
 | P3 | Sonnet 5 | high |
 | P4 | Opus 5.5 | medium |
 
-Stage B drew a pool of up to 30 passing candidates from each proposer setup, and had 5
-adversary runs argue with every candidate in it:
+Stage B drew a pool of up to 30 passing candidates from each proposer setup, for 5
+adversary runs to argue with every candidate in it:
 
 | Run | Model | Effort |
 | --- | --- | --- |
@@ -40,11 +40,11 @@ adversary runs argue with every candidate in it:
 | A4 | Sonnet 5 | high |
 | A5 | Gemini 3.8 Flash | its own default |
 
-A1 and A2 are the same setup run twice. How far those 2 runs disagree is the noise floor
-every other comparison between runs is read against.
-
 A5, Gemini 3.8 Flash, was dropped before it could be measured: the free tier caps it at 20
 requests a day ([the amendment](preregistration.md#amendment-26-september-2026)).
+
+A1 and A2 are the same setup run twice. How far those 2 runs disagree is the noise floor
+every other comparison between runs is read against.
 
 The owner then rated the candidates blind: first a sample of the reasons, then every
 candidate the runs disagreed on (capped at 40, with a seeded sample above that), then 10 of

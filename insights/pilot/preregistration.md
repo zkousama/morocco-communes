@@ -175,8 +175,8 @@ The pilot's findings, its pool and its rating draws all come from one fixed seed
 
 ## Amendment, 26 September 2026
 
-Stage A and the 4 adversary runs on Claude, A1 to A4 on Opus 5.5 and Sonnet 5, had finished
-when A5 started. Gemini's free tier turned out to cap Gemini 3.8 Flash at 20 requests a day.
+Stage A and the first 4 adversary runs, A1 to A4 on Opus 5.5 and Sonnet 5, had finished when
+A5 started. Gemini's free tier turned out to cap Gemini 3.8 Flash at 20 requests a day.
 That day the provider answered with 503 overload errors for over an hour, and the retries
 used up the day's requests after 4 answers. At 20 requests a day, the full run's 2,400
 adversary calls would take 120 days, so A5 couldn't pass rule 3's 48-hour speed check
@@ -184,5 +184,6 @@ however good its answers were.
 
 A5 is dropped unmeasured, and the 4 answers it gave aren't used. Rule 3 weighs A4 alone
 against the Opus run rule 2 chose. When the proposer is Opus 5.5 and nothing's left standing,
-the job goes to A4, the only challenger left. Every measure that needs A5 is reported as not
-measured. The rest of the design stays as registered above.
+the job goes to A4, the only challenger left. Measures pooled across runs, and the
+disagreements the owner rates, cover A1 to A4. Every measure that needs A5 is reported as
+not measured. The rest of the design stays as registered above.
