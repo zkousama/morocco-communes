@@ -34,6 +34,7 @@ export interface Usage {
   cacheWrite: number;
   thinking: number;
   costUsd: number;
+  neurons?: number; // Cloudflare Workers AI's own billing unit, only where a reply reports it
 }
 
 export const NO_USAGE: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, thinking: 0, costUsd: 0 };
@@ -48,6 +49,7 @@ export const compactCount = (n: number): string =>
 /** Dollars, to the cent. */
 export const usd = (n: number): string => `$${n.toFixed(2)}`;
 
+/** Every category summed; neurons only when either side reports them, so a sum with none carries none. */
 export function addUsage(a: Usage, b: Usage): Usage {
   return {
     input: a.input + b.input,
@@ -56,6 +58,7 @@ export function addUsage(a: Usage, b: Usage): Usage {
     cacheWrite: a.cacheWrite + b.cacheWrite,
     thinking: a.thinking + b.thinking,
     costUsd: a.costUsd + b.costUsd,
+    ...(a.neurons !== undefined || b.neurons !== undefined ? { neurons: (a.neurons ?? 0) + (b.neurons ?? 0) } : {}),
   };
 }
 
@@ -201,11 +204,17 @@ export class TransientError extends Error {
   }
 }
 
-/** A failure no retry heals, such as a bad key, an unknown model or a malformed request: given up on at once. */
+/**
+ * A failure no retry heals, such as a bad key, an unknown model or a malformed request: given
+ * up on at once. `status` is the HTTP status that caused it, when a transport knows one, so a
+ * caller can tell a withdrawn model (404) from a bad key without reading the message.
+ */
 export class FatalError extends Error {
-  constructor(message: string) {
+  readonly status: number | null;
+  constructor(message: string, status: number | null = null) {
     super(message);
     this.name = "FatalError";
+    this.status = status;
   }
 }
 
@@ -535,6 +544,147 @@ export function geminiTransport(local: Local | null, options?: { timeoutMs?: num
         costUsd: 0,
       },
     };
+  };
+}
+
+/**
+ * An OpenAI-compatible error body's own message, read defensively (the OpenAI shape's
+ * `error.message`, or Cloudflare's own `errors[0].message`), with the key blanked out
+ * wherever it turns up, as `geminiErrorMessage` does.
+ */
+function openaiErrorMessage(body: unknown, key: string): string {
+  const shaped = body as { error?: { message?: unknown } | string; errors?: Array<{ message?: unknown }> } | undefined;
+  const message =
+    typeof shaped?.error === "string" ? shaped.error : typeof shaped?.error?.message === "string" ? shaped.error.message : shaped?.errors?.[0]?.message;
+  return typeof message === "string" ? withoutKey(message, key) : "no error message";
+}
+
+/** The statuses no retry heals on an OpenAI-compatible API: a malformed request, a bad or missing key, a key without access, an unknown model, a request it can't process. */
+const OPENAI_FATAL = new Set([400, 401, 403, 404, 422]);
+const OPENAI_TRANSIENT = new Set([500, 502, 503, 504]);
+
+/**
+ * POSTs to an OpenAI-compatible `chat/completions` endpoint: the call's system prompt and
+ * prompt as 2 messages, at temperature 0, with nothing asking for JSON (Cloudflare doesn't
+ * document a JSON mode, so no caller relies on one). The key travels only in the
+ * `Authorization: Bearer` header, never the URL, never a thrown message; a missing one throws
+ * a plain error naming `provider` and `keyName`, the variable the local keys file should
+ * hold it under. Statuses are sorted as `geminiTransport` sorts them: a 429 becomes a
+ * `LimitError` carrying its `retry-after` header's seconds as milliseconds (null without
+ * one); 500, 502, 503 and 504, a timeout and a network failure become a `TransientError`;
+ * 400, 401, 403, 404 and 422 become a `FatalError` carrying the status; any other non-2xx
+ * becomes a plain `Error` naming it. On success the text is `choices[0].message.content`, or
+ * "" when that isn't a string, the model is whatever id the reply says answered, and the
+ * usage costs nothing: every provider this serves is used on its free plan. Reasoning tokens,
+ * where the reply counts them, are recorded as thinking, and the neurons a Cloudflare reply
+ * reports in its usage, as `neurons`. Nothing sets a reasoning effort or caps the tokens a
+ * reply may use, since a cap could cut a reasoning model's answer short.
+ */
+export function openaiCompatibleTransport(options: {
+  baseUrl: string;
+  apiKey: string | undefined;
+  provider: string;
+  keyName: string;
+  timeoutMs?: number;
+}): Transport {
+  const { baseUrl, apiKey, provider, keyName } = options;
+  return async (call) => {
+    requireLive(`the ${provider} transport`);
+    if (!apiKey) throw new Error(`${provider} needs ${keyName} in the local keys file`);
+    const key = apiKey;
+
+    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    let res: Response;
+    try {
+      res = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: call.model,
+          messages: [
+            { role: "system", content: call.system },
+            { role: "user", content: call.prompt },
+          ],
+          temperature: 0,
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (controller.signal.aborted) throw new TransientError(`${provider} timed out after ${timeoutMs}ms`);
+      throw new TransientError(`${provider}: network error: ${withoutKey(messageOf(error), key)}`);
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const body: unknown = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const message = `${provider} answered ${res.status}: ${openaiErrorMessage(body, key)}`;
+      if (res.status === 429) {
+        const header = res.headers.get("retry-after");
+        const retryAfterMs = header && /^\d+(?:\.\d+)?$/.test(header) ? Math.round(parseFloat(header) * 1000) : null;
+        throw new LimitError(`${provider}'s usage limit: ${openaiErrorMessage(body, key)}`, retryAfterMs);
+      }
+      if (OPENAI_TRANSIENT.has(res.status)) throw new TransientError(message);
+      if (OPENAI_FATAL.has(res.status)) throw new FatalError(message, res.status);
+      throw new Error(message);
+    }
+
+    const parsed = body as {
+      model?: unknown;
+      choices?: Array<{ message?: { content?: unknown } }>;
+      usage?: { prompt_tokens?: number; completion_tokens?: number; completion_tokens_details?: { reasoning_tokens?: number }; neurons?: unknown };
+    };
+    const content = parsed.choices?.[0]?.message?.content;
+    const usage = parsed.usage ?? {};
+    return {
+      text: typeof content === "string" ? content : "",
+      model: typeof parsed.model === "string" && parsed.model ? parsed.model : call.model,
+      usage: {
+        input: usage.prompt_tokens ?? 0,
+        output: usage.completion_tokens ?? 0,
+        thinking: usage.completion_tokens_details?.reasoning_tokens ?? 0,
+        cacheRead: 0,
+        cacheWrite: 0,
+        costUsd: 0,
+        ...(typeof usage.neurons === "number" && Number.isFinite(usage.neurons) ? { neurons: usage.neurons } : {}),
+      },
+    };
+  };
+}
+
+/** Groq's OpenAI-compatible endpoint, keyed by `GROQ_API_KEY` from the local keys file. */
+export function groqTransport(local: Local | null): Transport {
+  return openaiCompatibleTransport({
+    baseUrl: "https://api.groq.com/openai/v1",
+    apiKey: local?.keys.GROQ_API_KEY,
+    provider: "groq",
+    keyName: "GROQ_API_KEY",
+  });
+}
+
+/**
+ * Cloudflare Workers AI's OpenAI-compatible endpoint for the account `CLOUDFLARE_ACCOUNT_ID`
+ * names (an id the URL has to carry, not a secret), keyed by `CLOUDFLARE_API_TOKEN`, both
+ * from the local keys file. A missing account id is refused the same way a missing token is,
+ * inside the call and after the live check, so nothing is ever sent to an account called
+ * "undefined".
+ */
+export function cloudflareTransport(local: Local | null): Transport {
+  const accountId = local?.keys.CLOUDFLARE_ACCOUNT_ID;
+  const inner = openaiCompatibleTransport({
+    baseUrl: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+    apiKey: local?.keys.CLOUDFLARE_API_TOKEN,
+    provider: "cloudflare",
+    keyName: "CLOUDFLARE_API_TOKEN",
+  });
+  return async (call) => {
+    requireLive("the cloudflare transport");
+    if (!accountId) throw new Error("cloudflare needs CLOUDFLARE_ACCOUNT_ID in the local keys file");
+    return inner(call);
   };
 }
 
