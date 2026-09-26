@@ -31,6 +31,11 @@
  *   both recorded per verdict), averaged over the calls that came back, since the free tier's
  *   rate limits are what could make the full run too slow. The total it waited is reported
  *   beside the check.
+ * - Who rated goes in `rater`: "owner", or, once `insights/pilot/jury.json` exists (the
+ *   preregistration's second amendment), the jury's judges and models, J2's switch to its
+ *   stand-in if it made one, the judges' agreement and the owner's spot-check against the jury.
+ *   A jury's majority answers sit in the rating file in the owner's own shape, so every measure
+ *   and rule reads them unchanged; only the write-up's wording follows `rater`.
  * - A run in `DROPPED_ADVERSARIES` (the preregistration's amendment) is never measured: its
  *   verdicts, should stage B carry any, are read nowhere, every measure covers the active
  *   runs alone, rule 3 never lets it qualify and says so, and the write-up shows it as
@@ -42,7 +47,9 @@ import { pathToFileURL } from "node:url";
 import { addUsage, compactCount, inputOf, messageOf, NO_USAGE, usd, writeJsonAtomic, writeTextAtomic, type Usage } from "../model.ts";
 import { formatSetup, parseSetup, SETUP_PATH, type Role, type Setup } from "../setup.ts";
 import { bootstrap, cohenKappa } from "../stats.ts";
+import { MEASURES, type Measure } from "./checklist.ts";
 import { STAGE_A_PATH, STAGE_B_PATH } from "./cli.ts";
+import type { Agreement, JuryAgreement, JuryFallback, JuryFile, SpotAgreement } from "./jury.ts";
 import { broke, counterIdOf, RATINGS_PATH, readStageFiles, remainingItems, type RatingItem, type Ratings } from "./rate.ts";
 import {
   A5_MAX_HOURS,
@@ -69,6 +76,8 @@ import type { StageA, StageACandidate, StageAProposer, StageB, StageBVerdict } f
 
 export const RESULTS_PATH = "insights/pilot/results.json";
 export const README_PATH = "insights/pilot/README.md";
+/** Written by `pnpm insights:pilot:jury`; kept here, the one place that reads it back, so `jury.ts` can import it without this file importing `jury.ts` at run time. */
+export const JURY_PATH = "insights/pilot/jury.json";
 
 const RESULTS_START = "<!-- results:start -->";
 const RESULTS_END = "<!-- results:end -->";
@@ -171,6 +180,29 @@ export interface Decisions {
   attackShownOnly: Decision;
 }
 
+/** The jury, as the results record it: each judge's id, provider, model (its stand-in's, once J2 switched), family and the model ids its replies came back with. */
+export interface JuryRater {
+  by: "jury";
+  judges: { id: string; provider: string; model: string; family: string; answered: string[] }[];
+  fallback: JuryFallback | null;
+  agreement: JuryAgreement;
+  spotCheck: SpotAgreement;
+}
+
+/** Who rated: the owner, blind, or the checklist jury of the second amendment. */
+export type Rater = "owner" | JuryRater;
+
+/** The `rater` block a jury's file gives: its judges and models, J2's switch, and both agreements, never its answers. */
+export function raterFrom(jury: JuryFile): JuryRater {
+  return {
+    by: "jury",
+    judges: jury.judges.map((j) => ({ id: j.id, provider: j.provider, model: j.model, family: j.family, answered: j.answered })),
+    fallback: jury.fallback,
+    agreement: jury.agreement,
+    spotCheck: jury.spotCheck,
+  };
+}
+
 export interface Results {
   measuredAt: string;
   seed: number;
@@ -188,6 +220,7 @@ export interface Results {
   shownBreaks: { breaks: number; shown: number; share: Interval | null }; // rule 6, across every run measured
   safety: { termsMatched: number; byRun: Record<string, SafetyByRun>; policyMisses: { candidateId: string; category: "terms"; runs: string[] }[] };
   drift: { kappa: number | null; n: number };
+  rater: Rater;
   decisions: Decisions;
 }
 
@@ -370,9 +403,17 @@ function proposerResults(
  * candidate stage A doesn't have, a run missing a verdict, a rated item naming a candidate
  * neither stage has): a measure over a mismatched set would read as real and wouldn't be.
  * Every measure covers the runs `dropped` leaves standing (`ACTIVE_ADVERSARIES` by default)
- * and reads only their verdicts; the results record `dropped` itself, reasons and all.
+ * and reads only their verdicts; the results record `dropped` itself, reasons and all, and
+ * `rater` as given.
  */
-export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new Date(), dropped: Record<string, string> = DROPPED_ADVERSARIES): Results {
+export function analyse(
+  a: StageA,
+  b: StageB,
+  ratings: Ratings,
+  now: Date = new Date(),
+  dropped: Record<string, string> = DROPPED_ADVERSARIES,
+  rater: Rater = "owner",
+): Results {
   const unfinished = unfinishedRating(ratings);
   if (unfinished) throw new Error(unfinished);
 
@@ -584,6 +625,7 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
             ),
       n: driftPairs.length,
     },
+    rater,
   };
   return { ...measured, decisions: decide(measured) };
 }
@@ -689,7 +731,7 @@ function ruleEffort(r: Omit<Results, "decisions">): Decision {
   return {
     choice: high ? "high" : "medium",
     rule,
-    because: `${lead}. The owner judged ${right} of ${HIGH_RUN}'s ${rated} rated extra breaks right, ${high ? "at least" : "under"} ${bar}.`,
+    because: `${lead}. The ${r.rater === "owner" ? "owner" : "jury"} judged ${right} of ${HIGH_RUN}'s ${rated} rated extra breaks right, ${high ? "at least" : "under"} ${bar}.`,
     metBar: true,
   };
 }
@@ -919,12 +961,45 @@ const setupName = (role: PilotRole): string => (role.effort ? `${modelName(role)
 const droppedRow = (id: string, reason: string, width: number, lead: string[] = []): string =>
   cells([id, ...lead, `dropped, not measured: ${reason}`, ...Array.from({ length: width - lead.length - 1 }, () => "")]);
 
-/** The markdown the README carries between its results markers: every measure beside its interval, then each decision and why. */
+const MEASURE_NAMES: Record<Measure, string> = {
+  claimBeyondPremise: "Claim beyond premise",
+  linkExplainsFinding: "Link explains finding",
+  ignoresObviousAlternative: "Ignores obvious alternative",
+  sound: "Sound",
+  breaks: "Breaks",
+};
+const kappaCell = (x: Agreement): string => `${x.kappa === null ? "none" : two(x.kappa)} (n ${x.n})`;
+const shareCell = (share: number | null, n: number): string => `${share === null ? "none" : pct(share)} (n ${n})`;
+
+/** The "Who rated" section a jury's results open with: the judges and their models, J2's switch, then how far the judges agree and how far the owner's spot-check agrees with them. */
+function whoRated(rater: JuryRater): string[] {
+  const out = ["### Who rated", ""];
+  const judges = list(rater.judges.map((j) => `${j.id} (\`${j.model}\`)`));
+  const lead = `A jury of ${rater.judges.length} models rated every reason and disagreement, each question going to the majority: ${judges}. No person's answers feed the rules.`;
+  const f = rater.fallback;
+  out.push(f ? `${lead} ${f.judge} ran on \`${f.to}\`: \`${f.from}\` answered ${f.status} at its first call.` : lead, "");
+  out.push(
+    `The judges' agreement with each other, and the owner's spot-check on ${rater.spotCheck.items} items against the jury's majority, are reported only: no rule reads them. Kappa is Cohen's kappa, or 1 when the 2 sides agree on every answer.`,
+    "",
+  );
+  out.push(...header(["Between", ...MEASURES.map((m) => MEASURE_NAMES[m])]));
+  for (const [pair, measures] of Object.entries(rater.agreement.pairs)) {
+    out.push(cells([`${pair.split("|").join(" and ")}, kappa`, ...MEASURES.map((m) => kappaCell(measures[m]))]));
+  }
+  out.push(cells([`All ${rater.judges.length} judges, share agreeing`, ...MEASURES.map((m) => shareCell(rater.agreement.all[m].share, rater.agreement.all[m].n))]));
+  out.push(cells(["Owner and jury, share agreeing", ...MEASURES.map((m) => shareCell(rater.spotCheck.measures[m].raw, rater.spotCheck.measures[m].n))]));
+  out.push(cells(["Owner and jury, kappa", ...MEASURES.map((m) => kappaCell(rater.spotCheck.measures[m]))]));
+  out.push("");
+  return out;
+}
+
+/** The markdown the README carries between its results markers: who rated, when a jury did, then every measure beside its interval, then each decision and why. */
 export function tables(r: Results): string {
   const out: string[] = [];
   const pool = Object.values(r.poolByProposer).reduce((sum, n) => sum + n, 0);
   const measured = activeOf(r.dropped);
 
+  if (r.rater !== "owner") out.push(...whoRated(r.rater));
   out.push("### Proposers", "");
   out.push(`${r.findings} findings, ${MAX_SAMPLES} samples each. Every interval is ${pct(CONFIDENCE)}, from ${BOOTSTRAP_ROUNDS.toLocaleString("en-US")} bootstrap rounds over the findings.`, "");
   out.push(...header(["Setup", "Model", "Effort", "Reasons", "Tests passed", "Refused", "Missing", "Usable answers", "Reasons per finding", "Entropy", "Links consistent", "Safety drops"]));
@@ -1087,9 +1162,11 @@ export function tables(r: Results): string {
 
   out.push("", "### Drift", "");
   out.push(
-    r.drift.kappa === null
-      ? "No item rated twice had an answer both times."
-      : `The owner's kappa with their own earlier answers, on ${r.drift.n} items rated twice: ${two(r.drift.kappa)}.`,
+    r.rater !== "owner"
+      ? "A jury rated, so there's no drift check."
+      : r.drift.kappa === null
+        ? "No item rated twice had an answer both times."
+        : `The owner's kappa with their own earlier answers, on ${r.drift.n} items rated twice: ${two(r.drift.kappa)}.`,
   );
 
   out.push("", "### Decisions", "");
@@ -1120,6 +1197,19 @@ function isRatingsShape(value: unknown): value is Ratings {
   return Array.isArray(items) && Array.isArray(answers);
 }
 
+/** Whether a parsed `jury.json` has what the `rater` block reads: its judges, and both agreements. */
+function isJuryFileShape(value: unknown): value is JuryFile {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const { judges, agreement, spotCheck } = value as { judges?: unknown; agreement?: { pairs?: unknown; all?: unknown }; spotCheck?: { measures?: unknown } };
+  return (
+    Array.isArray(judges) &&
+    judges.every((j) => typeof (j as { id?: unknown })?.id === "string" && typeof (j as { model?: unknown }).model === "string") &&
+    typeof agreement?.pairs === "object" &&
+    typeof agreement?.all === "object" &&
+    typeof spotCheck?.measures === "object"
+  );
+}
+
 export interface AnalysisPaths {
   stageA: string;
   stageB: string;
@@ -1127,6 +1217,7 @@ export interface AnalysisPaths {
   results: string;
   readme: string;
   setup: string;
+  jury: string; // read when it exists: the rating then came from the jury
 }
 
 export const ANALYSIS_PATHS: AnalysisPaths = {
@@ -1136,13 +1227,15 @@ export const ANALYSIS_PATHS: AnalysisPaths = {
   results: RESULTS_PATH,
   readme: README_PATH,
   setup: SETUP_PATH,
+  jury: JURY_PATH,
 };
 
 /**
- * Reads the stage files and the rating, and only once the rating is finished and everything
- * has been computed and checked (the analysis, the README's markers, the new setup against
- * `parseSetup`) writes the results, the README and the setup, each with a temp-and-rename
- * write. Anything wrong before that point writes nothing at all. Returns whether it wrote.
+ * Reads the stage files, the rating and, when it exists, the jury's file (`rater`), and only
+ * once the rating is finished and everything has been computed and checked (the analysis, the
+ * README's markers, the new setup against `parseSetup`) writes the results, the README and the
+ * setup, each with a temp-and-rename write. Anything wrong before that point, a jury's file
+ * that can't be read included, writes nothing at all. Returns whether it wrote.
  */
 export async function runAnalysis(paths: AnalysisPaths, io: { log: (line: string) => void; error: (line: string) => void }, now: Date = new Date()): Promise<boolean> {
   const stages = await readStageFiles(paths.stageA, paths.stageB);
@@ -1170,11 +1263,26 @@ export async function runAnalysis(paths: AnalysisPaths, io: { log: (line: string
     return false;
   }
 
+  let rater: Rater = "owner";
+  try {
+    const parsed: unknown = JSON.parse(await readFile(paths.jury, "utf8"));
+    if (!isJuryFileShape(parsed)) {
+      io.error(`${paths.jury} isn't a jury's file: it needs its judges and their agreement`);
+      return false;
+    }
+    rater = raterFrom(parsed);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code !== "ENOENT") {
+      io.error(`couldn't read ${paths.jury}: ${messageOf(error)}`);
+      return false;
+    }
+  }
+
   let results: Results;
   let readme: string;
   let setup: Setup;
   try {
-    results = analyse(stages.a, stages.b, ratings, now);
+    results = analyse(stages.a, stages.b, ratings, now, DROPPED_ADVERSARIES, rater);
     readme = withResults(await readFile(paths.readme, "utf8"), tables(results));
     setup = setupFrom(results, parseSetup(JSON.parse(await readFile(paths.setup, "utf8"))));
   } catch (error) {

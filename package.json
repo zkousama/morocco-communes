@@ -33,6 +33,8 @@
     "insights:pilot": "node --experimental-strip-types insights/src/pilot/cli.ts",
     "insights:pilot:rate": "node --experimental-strip-types insights/src/pilot/rate.ts",
     "insights:pilot:analyse": "node --experimental-strip-types insights/src/pilot/analyse.ts",
+    "insights:pilot:spot": "node --experimental-strip-types insights/src/pilot/spot.ts",
+    "insights:pilot:jury": "node --experimental-strip-types insights/src/pilot/jury.ts",
     "stats": "node --experimental-strip-types scripts/stats.ts",
     "demand": "node --experimental-strip-types scripts/demand.ts"
   },

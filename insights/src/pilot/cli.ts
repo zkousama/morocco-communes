@@ -41,7 +41,7 @@ import { sampleFindings } from "./sample.ts";
 import { ACTIVE_ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
 import { committedCandidates, runStageA, runStageB, SetupError, type StageA } from "./stages.ts";
 
-const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
+export const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
 export const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
 export const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
 const CANDIDATES_PATH = join("insights", "pilot", "candidates.json");

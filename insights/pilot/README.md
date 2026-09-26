@@ -46,9 +46,14 @@ requests a day ([the amendment](preregistration.md#amendment-26-september-2026))
 A1 and A2 are the same setup run twice. How far those 2 runs disagree is the noise floor
 every other comparison between runs is read against.
 
-The owner then rated the candidates blind: first a sample of the reasons, then every
+The candidates were then drawn for a blind rating: first a sample of the reasons, then every
 candidate the runs disagreed on (capped at 40, with a seeded sample above that), then 10 of
 those items again for a drift check. No item showed its setup, model or stage.
+
+A jury of 3 models from other families rated them in place of a person, each question going
+to the majority, after the owner had answered 20 of the items as a spot-check
+([the second amendment](preregistration.md#amendment-26-september-2026-who-rates)). The drift
+check doesn't apply to a jury.
 
 ## Results
 

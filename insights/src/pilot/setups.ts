@@ -67,6 +67,9 @@ export const DISAGREEMENT_CAP = 40;
 /** How many already-rated items come back blind, at the end, for the owner's own drift check. */
 export const DRIFT_ITEMS = 10;
 
+/** How many of the plan's reasons and disagreements the owner answers as a spot-check before the jury runs: reported beside the jury, never read by a rule. */
+export const SPOT_CHECK_ITEMS = 20;
+
 /** Every per-finding measure's bootstrap interval resamples the findings this many times. */
 export const BOOTSTRAP_ROUNDS = 2000;
 

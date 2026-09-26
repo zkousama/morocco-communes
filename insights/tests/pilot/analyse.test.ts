@@ -9,6 +9,7 @@ import {
   analyse,
   decide,
   hoursFor,
+  raterFrom,
   runAnalysis,
   setupFrom,
   tables,
@@ -36,6 +37,9 @@ import {
 import type { StageA, StageACandidate, StageB, StageBVerdict } from "../../src/pilot/stages.ts";
 import { formatSetup, parseSetup, SETUP_PATH, type Setup } from "../../src/setup.ts";
 import type { Check } from "../../src/vocabulary.ts";
+import type { ChecklistAnswer } from "../../src/pilot/checklist.ts";
+import { JUDGES, juryAgreement, spotAgreement, type AnswersByJudge, type JuryFile } from "../../src/pilot/jury.ts";
+import { spotItems, type SpotCheck } from "../../src/pilot/spot.ts";
 import { fakeRatings, fakeStageA, fakeStageB } from "./fixtures.ts";
 
 const NOW = new Date("2026-09-26T12:00:00.000Z");
@@ -1071,6 +1075,7 @@ describe("pnpm insights:pilot:analyse", () => {
       results: join(dir, "results.json"),
       readme: join(dir, "README.md"),
       setup: join(dir, "setup.json"),
+      jury: join(dir, "jury.json"),
     };
     await writeFile(paths.stageA, JSON.stringify(a));
     await writeFile(paths.stageB, JSON.stringify(b));
@@ -1125,5 +1130,137 @@ describe("pnpm insights:pilot:analyse", () => {
     const written = await readFile(s.paths.setup, "utf8");
     expect(written).toBe(formatSetup(setupFrom(results, parseSetup(JSON.parse(s.setup)))));
     expect(parseSetup(JSON.parse(written))).toEqual(setupFrom(results, parseSetup(JSON.parse(s.setup))));
+  });
+  it("reads the jury's file into the results and the tables when a jury rated", async () => {
+    const a = fakeStageA();
+    const b = fakeStageB(a);
+    const s = await setUp(fakeRatings(a, b));
+    await writeFile(s.paths.jury, JSON.stringify(JURY));
+    expect(await runAnalysis(s.paths, s.io, NOW)).toBe(true);
+    const results = JSON.parse(await readFile(s.paths.results, "utf8")) as Results;
+    expect(results.rater).toEqual(JSON.parse(JSON.stringify(raterFrom(JURY))));
+    expect(await readFile(s.paths.readme, "utf8")).toContain("### Who rated");
+  });
+  it("writes nothing when jury.json isn't a jury's file", async () => {
+    const a = fakeStageA();
+    const b = fakeStageB(a);
+    const s = await setUp(fakeRatings(a, b));
+    await writeFile(s.paths.jury, JSON.stringify({ judges: "J1" }));
+    expect(await runAnalysis(s.paths, s.io, NOW)).toBe(false);
+    expect(await exists(s.paths.results)).toBe(false);
+    expect(await readFile(s.paths.setup, "utf8")).toBe(s.setup);
+    expect(s.lines.join("\n")).toMatch(/isn't a jury's file/);
+  });
+});
+
+/** A jury's file over the fixtures' plan: the judges split on about a third of the items, and the owner's spot-check calls every sampled reason sound. */
+const JURY: JuryFile = (() => {
+  const { ratings } = FIXTURE;
+  const asked = ratings.items.filter((i): i is RatingItem & { kind: "reason" | "disagreement" } => i.kind !== "drift");
+  const answer = (item: RatingItem, sound: boolean): ChecklistAnswer => ({
+    claimBeyondPremise: sound ? "no" : "yes",
+    linkExplainsFinding: "yes",
+    ignoresObviousAlternative: "no",
+    ...(item.kind === "disagreement" ? { counters: Object.fromEntries(item.counterIds.map((id) => [id, "yes" as const])) } : {}),
+  });
+  const answers: AnswersByJudge = Object.fromEntries(
+    JUDGES.map((judge, k) => [judge.id, Object.fromEntries(asked.map((item, i) => [item.itemId, answer(item, (i + k) % 3 !== 0)]))]),
+  );
+  const sample = spotItems(ratings.items);
+  const spot: SpotCheck = { items: sample.map((i) => i.itemId), answers: sample.map((i) => ({ itemId: i.itemId, ...answer(i, true) })) };
+  return {
+    ranAt: "2026-09-27T12:00:00.000Z",
+    judges: JUDGES.map((j) => ({
+      id: j.id,
+      provider: j.provider,
+      model: j.model,
+      family: j.family,
+      answered: [j.model],
+      asked: asked.length,
+      usable: asked.length,
+      failed: 0,
+      unsure: 0,
+      calls: asked.length,
+      usage: NO_USAGE,
+      secondsPerCall: 1,
+      waitedSeconds: 0,
+    })),
+    fallback: null,
+    answers,
+    agreement: juryAgreement(ratings.items, answers),
+    spotCheck: spotAgreement(spot, ratings.items, answers),
+  };
+})();
+
+describe("who rated", () => {
+  const { a, b, ratings } = FIXTURE;
+  const byJury = analyse(a, b, ratings, NOW, DROPPED_ADVERSARIES, raterFrom(JURY));
+  const md = tables(byJury);
+
+  it("is the owner when no jury rated, and the tables add nothing", () => {
+    expect(FIXTURE.results.rater).toBe("owner");
+    expect(tables(FIXTURE.results)).not.toContain("Who rated");
+  });
+
+  it("carries the jury's judges and models, J2's switch and the agreement, and leaves every measure as it was", () => {
+    const rater = raterFrom(JURY);
+    expect(rater).toEqual({
+      by: "jury",
+      judges: JUDGES.map((j) => ({ id: j.id, provider: j.provider, model: j.model, family: j.family, answered: [j.model] })),
+      fallback: null,
+      agreement: JURY.agreement,
+      spotCheck: JURY.spotCheck,
+    });
+    expect(byJury.rater).toEqual(rater);
+    const { rater: _jury, decisions: _d1, ...measures } = byJury;
+    const { rater: _owner, decisions: _d2, ...before } = FIXTURE.results;
+    expect(measures).toEqual(before);
+  });
+
+  it("gives the tables a Who rated section: the judges and their models, and no person's answers in the rules", () => {
+    expect(md.startsWith("### Who rated")).toBe(true);
+    for (const j of JUDGES) expect(md).toContain(`${j.id} (\`${j.model}\`)`);
+    expect(md).toContain("No person's answers feed the rules.");
+  });
+
+  it("tabulates the judges' agreement and the owner's spot-check against the jury, each with its n", () => {
+    const k = JURY.agreement.pairs["J1|J2"]!.sound;
+    expect(md).toContain("| Between | Claim beyond premise | Link explains finding | Ignores obvious alternative | Sound | Breaks |");
+    expect(md).toMatch(new RegExp(`\\| J1 and J2, kappa \\| [^|]+ \\| [^|]+ \\| [^|]+ \\| ${k.kappa!.toFixed(2)} \\(n ${k.n}\\) \\|`));
+    expect(md).toMatch(/\| All 3 judges, share agreeing \| \d+% \(n \d+\) \|/);
+    const spot = JURY.spotCheck.measures.sound;
+    expect(md).toContain(`| Owner and jury, share agreeing |`);
+    expect(md).toContain(`${Math.round(spot.raw! * 100)}% (n ${spot.n})`);
+    expect(md).toMatch(/\| Owner and jury, kappa \|/);
+    expect(md).toContain(`on ${JURY.spotCheck.items} items`);
+  });
+
+  it("names J2's stand-in when it took over", () => {
+    const switched: JuryFile = {
+      ...JURY,
+      fallback: { judge: "J2", from: "qwen/qwen3.8-27b", to: "@cf/google/gemma-4-26b-a4b-it", status: 404 },
+      judges: JURY.judges.map((j) => (j.id === "J2" ? { ...j, provider: "cloudflare", model: "@cf/google/gemma-4-26b-a4b-it", family: "Google" } : j)),
+    };
+    const out = tables(analyse(a, b, ratings, NOW, DROPPED_ADVERSARIES, raterFrom(switched)));
+    expect(out).toContain("J2 (`@cf/google/gemma-4-26b-a4b-it`)");
+    expect(out).toContain("J2 ran on `@cf/google/gemma-4-26b-a4b-it`: `qwen/qwen3.8-27b` answered 404 at its first call.");
+  });
+
+  it("says there's no drift check under a jury", () => {
+    expect(md).toContain("A jury rated, so there's no drift check.");
+    expect(md).not.toContain("No item rated twice");
+  });
+
+  it("names the jury as the one who judged A3's extra breaks", () => {
+    const r = base();
+    r.noiseFloor = iv(0.8);
+    r.agreement["A1|A3"] = iv(0.6);
+    r.extraBreaks = { inPool: 4, rated: 3, right: 2 };
+    expect(decide(r).adversaryEffort.because).toContain("The owner judged 2 of A3's 3 rated extra breaks right");
+    expect(decide({ ...r, rater: raterFrom(JURY) }).adversaryEffort.because).toContain("The jury judged 2 of A3's 3 rated extra breaks right");
+  });
+
+  it("keeps to the copy rules: no em dash", () => {
+    expect(md).not.toContain("—");
   });
 });

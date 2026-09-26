@@ -3,6 +3,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { loadData } from "../../src/data.ts";
+import { detect } from "../../src/detect.ts";
 import { NO_USAGE } from "../../src/model.ts";
 import { refusal } from "../../src/safety.ts";
 import type { Check } from "../../src/vocabulary.ts";
@@ -20,6 +22,7 @@ import {
   resolve,
   runRating,
   screen,
+  screenInputs,
   type Prompter,
   type RatingIO,
   type Ratings,
@@ -213,6 +216,24 @@ describe("missingFindingIds", () => {
   it("is empty once every id resolves", () => {
     const lineMap = new Map([["f0", { en: "x", fr: "y" }]]);
     expect(missingFindingIds(["f0"], lineMap)).toEqual([]);
+  });
+});
+
+describe("screenInputs", () => {
+  const data = loadData();
+  it("builds a finding line for every id and names a unit by its code", () => {
+    const finding = detect(data)[0]!;
+    const inputs = screenInputs([finding.id], data);
+    if (!inputs.ok) throw new Error(inputs.message);
+    expect(inputs.lines.get(finding.id)!.en.length).toBeGreaterThan(0);
+    const [code, unit] = [...data.units.entries()][0]!;
+    expect(inputs.unitName(code)).toBe(unit.name.fr);
+    expect(inputs.unitName("not-a-code")).toBeNull();
+  });
+  it("refuses, saying how many, when an id isn't one detect(data) gives now", () => {
+    const inputs = screenInputs(["not-a-finding", "nor-this"], data);
+    expect(inputs.ok).toBe(false);
+    expect(inputs.ok ? "" : inputs.message).toMatch(/^2 of stage A's finding ids don't match/);
   });
 });
 

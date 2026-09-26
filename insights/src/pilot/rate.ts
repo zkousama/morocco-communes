@@ -15,7 +15,7 @@ import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
 import { detect } from "../detect.ts";
-import { loadData } from "../data.ts";
+import { loadData, type Data } from "../data.ts";
 import { field } from "../fields.ts";
 import { findingLine } from "../text.ts";
 import { formatNumbers, formatReasonBlock } from "../grade.ts";
@@ -153,6 +153,32 @@ export function resolve(item: RatingItem, b: StageB): { kind: "reason" | "disagr
 /** `findingId`s from `a.findingIds` that aren't keys of `lines`: stage A's own findings the caller's line map can't render. Empty when every one resolves. */
 export function missingFindingIds(findingIds: string[], lines: Map<string, unknown>): string[] {
   return findingIds.filter((id) => !lines.has(id));
+}
+
+/**
+ * What `screen` and `counterText` read from the dataset, built the one way for every command
+ * that shows an item (the rating, the owner's spot-check and the jury): a finding line for
+ * each of stage A's finding ids, and a namer for a unit a counter-test names by code. Refuses,
+ * with the message the command prints, when an id doesn't match what `detect(data)` gives now.
+ */
+export function screenInputs(
+  findingIds: string[],
+  data: Data,
+): { ok: true; lines: Map<string, { en: string; fr: string }>; unitName: UnitNamer } | { ok: false; message: string } {
+  const findingById = new Map(detect(data).map((f) => [f.id, f]));
+  const lines = new Map<string, { en: string; fr: string }>();
+  for (const id of findingIds) {
+    const finding = findingById.get(id);
+    if (finding) lines.set(id, findingLine(finding, data));
+  }
+  const missing = missingFindingIds(findingIds, lines);
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      message: `${missing.length} of stage A's finding id${missing.length === 1 ? "" : "s"} ${missing.length === 1 ? "doesn't" : "don't"} match the dataset detect(data) gives now; rerun the pilot's stage A, or check the dataset version`,
+    };
+  }
+  return { ok: true, lines, unitName: (code) => data.units.get(code)?.name.fr ?? null };
 }
 
 /** What the rater sees for `item`: the finding line, the claim, the premise with its numbers, and the link, each in English then French. Never the setup, the model, the effort, the stage or a verdict. A drift item shows exactly what the item it repeats showed. `lines` must hold every finding id in `a.findingIds` (`main` refuses to start otherwise; a test passes its own synthetic map). */
@@ -295,7 +321,8 @@ export async function readStageFiles(aPath: string, bPath: string): Promise<{ ok
   return { ok: true, a: a.value as StageA, b: b.value as StageB };
 }
 
-async function loadRatings(path: string): Promise<Ratings> {
+/** The saved rating at `path`, or an empty one (no plan, no answers) when the file isn't there yet. */
+export async function loadRatings(path: string): Promise<Ratings> {
   try {
     const raw = await readFile(path, "utf8");
     return JSON.parse(raw) as Ratings;
@@ -419,20 +446,13 @@ async function main(): Promise<void> {
     return;
   }
 
-  const data = loadData();
-  const findingById = new Map(detect(data).map((f) => [f.id, f]));
-  const lines = new Map<string, { en: string; fr: string }>();
-  for (const id of stages.a.findingIds) {
-    const finding = findingById.get(id);
-    if (finding) lines.set(id, findingLine(finding, data));
-  }
-  const missing = missingFindingIds(stages.a.findingIds, lines);
-  if (missing.length > 0) {
-    console.log(`${missing.length} of stage A's finding id${missing.length === 1 ? "" : "s"} ${missing.length === 1 ? "doesn't" : "don't"} match the dataset detect(data) gives now; rerun the pilot's stage A, or check the dataset version`);
+  const screens = screenInputs(stages.a.findingIds, loadData());
+  if (!screens.ok) {
+    console.log(screens.message);
     process.exitCode = 1;
     return;
   }
-  const unitName: UnitNamer = (code) => data.units.get(code)?.name.fr ?? null;
+  const { lines, unitName } = screens;
 
   const ratings = await loadRatings(RATINGS_PATH);
   const local = readLocal(process.env);
