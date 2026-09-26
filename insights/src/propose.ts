@@ -25,6 +25,7 @@ export interface Candidate {
   linkTest: LinkTest | null;
   artefact: boolean; // the model's own call: the hypothesis is that the figure is a data artefact
   support: number; // how many of the 5 samples proposed this test
+  samples: number[]; // the indexes (0-based) of the samples that proposed it
 }
 
 export interface Proposal {
@@ -33,6 +34,8 @@ export interface Proposal {
   entropy: number;
   skipped?: string;
   replies: { model: string; promptHash: string }[];
+  unusable: number; // samples that gave no valid hypothesis at all
+  refusals: Record<string, number>; // hypotheses the safety check dropped, counted by category; their text is never kept
 }
 
 export const SAMPLES = 5;
@@ -177,7 +180,7 @@ const hypothesisSchema = z.object({
   artefact: z.boolean().optional(),
 });
 
-type Hypothesis = Omit<Candidate, "support">;
+type Hypothesis = Omit<Candidate, "support" | "samples">;
 
 /** A model often fences JSON in a code block despite being asked not to; the fence isn't part of the answer. */
 export const unfence = (text: string): string =>
@@ -266,35 +269,40 @@ export async function propose(
   }
 
   const entropy = semanticEntropy(samples.map((sample) => sample.map((h) => signature(h.test))));
+  const unusable = samples.filter((sample) => sample.length === 0).length;
 
   if (samples.every((sample) => sample.length === 0)) {
     const skipped = lastError
       ? `no usable answer in ${sampleCount} samples; the last call failed: ${lastError}`
       : `no usable answer in ${sampleCount} samples; the last came back with ${lastProblem}`;
-    return { finding, candidates: [], entropy, skipped, replies };
+    return { finding, candidates: [], entropy, skipped, replies, unusable, refusals: {} };
   }
 
   // Merged by what the test checks: the first sample to propose a test gives its wording,
-  // and every sample that proposed it counts once towards its support.
-  const merged = new Map<string, { hypothesis: Hypothesis; support: number; order: number }>();
-  for (const sample of samples) {
+  // and every sample that proposed it counts once towards its support and lists its index.
+  const merged = new Map<string, { hypothesis: Hypothesis; support: number; order: number; samples: number[] }>();
+  for (const [sampleIndex, sample] of samples.entries()) {
     for (const s of new Set(sample.map((h) => signature(h.test)))) {
       const entry = merged.get(s);
-      if (entry) entry.support++;
-      else merged.set(s, { hypothesis: sample.find((h) => signature(h.test) === s)!, support: 1, order: merged.size });
+      if (entry) {
+        entry.support++;
+        entry.samples.push(sampleIndex);
+      } else {
+        merged.set(s, { hypothesis: sample.find((h) => signature(h.test) === s)!, support: 1, order: merged.size, samples: [sampleIndex] });
+      }
     }
   }
 
-  const refusals: string[] = [];
+  const refusals: Record<string, number> = {};
   const candidates: Candidate[] = [];
-  for (const { hypothesis, support } of [...merged.values()].sort((a, b) => b.support - a.support || a.order - b.order)) {
+  for (const { hypothesis, support, samples: sampleIndexes } of [...merged.values()].sort((a, b) => b.support - a.support || a.order - b.order)) {
     const rule = refused(hypothesis, terms);
-    if (rule) refusals.push(rule);
-    else candidates.push({ ...hypothesis, support });
+    if (rule) refusals[rule] = (refusals[rule] ?? 0) + 1;
+    else candidates.push({ ...hypothesis, support, samples: sampleIndexes });
   }
 
   if (candidates.length === 0) {
-    return { finding, candidates, entropy, skipped: `every hypothesis was refused: ${[...new Set(refusals)].join(", ")}`, replies };
+    return { finding, candidates, entropy, skipped: `every hypothesis was refused: ${Object.keys(refusals).join(", ")}`, replies, unusable, refusals };
   }
-  return { finding, candidates, entropy, replies };
+  return { finding, candidates, entropy, replies, unusable, refusals };
 }

@@ -14,7 +14,7 @@ const finding: Finding = { id: "f1", code: "04.421.01.0", level: "commune", meas
 const candidate: Candidate = {
   claim: { en: "c", fr: "c" }, link: { en: "l", fr: "l" }, premise: { en: "p", fr: "p" },
   test: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: 5 } },
-  linkTest: null, artefact: false, support: 5,
+  linkTest: null, artefact: false, support: 5, samples: [0, 1, 2, 3, 4],
 };
 const run = (answer: string) => makeRunner(stubTransport(() => answer), { cacheDir: mkdtempSync(join(tmpdir(), "f-")), datasetVersion: "t", stageVersions: { falsify: "1" } });
 

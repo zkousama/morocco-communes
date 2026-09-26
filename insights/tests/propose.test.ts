@@ -31,6 +31,7 @@ describe("propose", () => {
     const p = await propose(finding, data, runner(good));
     expect(p.candidates).toHaveLength(1);
     expect(p.candidates[0]!.support).toBe(5);
+    expect(p.candidates[0]!.samples).toEqual([0, 1, 2, 3, 4]);
     expect(p.entropy).toBe(0);
   });
 
