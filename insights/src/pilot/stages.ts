@@ -30,15 +30,16 @@
  * the output rather than something left to how today's loops happen to build it.
  */
 import type { Data } from "../data.ts";
-import type { Finding } from "../detect.ts";
+import { detect, type Finding } from "../detect.ts";
+import { falsify, type Verdict } from "../falsify.ts";
 import { addUsage, classify, LimitError, messageOf, NO_USAGE, type Runner, type Usage } from "../model.ts";
 import { mapPool } from "../pool.ts";
 import { propose, type Candidate, type Proposal } from "../propose.ts";
 import { judgeLinks, runLink } from "../links.ts";
 import { aboutThisFinding, linkSeed, STOP_AFTER_FAILURES, type LinkResult } from "../run.ts";
-import { evaluate, type Outcome } from "../vocabulary.ts";
-import { candidateIdOf } from "./sample.ts";
-import { PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
+import { evaluate, type Check, type Outcome } from "../vocabulary.ts";
+import { candidateIdOf, samplePool, type PoolEntry } from "./sample.ts";
+import { ADVERSARIES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS, type PilotRole } from "./setups.ts";
 
 export interface StageACandidate {
   candidateId: string;
@@ -245,4 +246,220 @@ export async function runStageA(
   );
 
   return { seed: PILOT_SEED, findingIds: findings.map((f) => f.id), proposers, candidates };
+}
+
+export interface StageBVerdict {
+  run: string;
+  candidateId: string;
+  survived: boolean;
+  stage: Verdict["stage"];
+  category: string | null; // the refusal category for a safety stop; null otherwise
+  counter: Check | null;
+  counterOutcome: Outcome | null;
+  reason: string;
+  model: string | null; // the id that answered; null when the call failed
+  usage: Usage;
+  ms: number;
+}
+
+export interface StageB {
+  pool: PoolEntry[];
+  verdicts: StageBVerdict[];
+}
+
+const REFUSED_PREFIX = "refused: ";
+
+/** The category a safety stop's own reason names ("refused: blame" -> "blame"), or null when the verdict didn't stop there. */
+function categoryOf(verdict: Verdict): string | null {
+  if (verdict.stage !== "safety" || !verdict.reason.startsWith(REFUSED_PREFIX)) return null;
+  return verdict.reason.slice(REFUSED_PREFIX.length);
+}
+
+/** `ADVERSARIES`' own order, and each run's own effort: shared by `runStageB`'s own sort and by `committedCandidates`. */
+const RUN_ORDER = new Map(ADVERSARIES.map((r, i) => [r.id, i]));
+const EFFORT_BY_RUN = new Map(ADVERSARIES.map((r) => [r.id, r.effort ?? null]));
+
+/**
+ * Stage B: draws the pool `samplePool(a.candidates, POOL_PER_PROPOSER, PILOT_SEED)` shares
+ * across every run, then asks each of `ADVERSARIES` in turn to `falsify` every candidate in
+ * it, `options.concurrency` at a time. A2 repeats A1's exact model and effort with its own
+ * `label: "repeat"`, which `falsify` folds into its cache key alongside the model and
+ * effort, so its calls are asked again rather than served from A1's cache: that's the noise
+ * floor rules 2 and 3 read every other run against.
+ *
+ * Shares stage A's own halt, across every run and candidate rather than reset between runs:
+ * a fatal error, a `LimitError`, or `STOP_AFTER_FAILURES` calls in a row failing stops the
+ * whole stage, and `runStageB` throws once the run that tripped it has finished its own
+ * `mapPool`, so nothing partial is ever returned and a resumed run picks back up from every
+ * answer already cached. As in stage A, the wrapper strips `accept` before a call reaches
+ * the cache, so an answer that comes back unusable is cached and replayed identically on a
+ * resumed run rather than asked again.
+ *
+ * `options.onVerdict`, when given, is called once a candidate's verdict is in, so a caller
+ * can print progress without this function knowing how to print anything.
+ *
+ * The verdicts come back sorted by run order (`ADVERSARIES`' own order), then pool order, a
+ * documented guarantee of the output rather than an accident of `mapPool` handing each run's
+ * own results back in pool order regardless of when they finished.
+ */
+export async function runStageB(
+  data: Data,
+  a: StageA,
+  runners: Map<string, Runner>,
+  options: { concurrency: number; terms: RegExp | null; onVerdict?: (run: string, candidateId: string, verdict: StageBVerdict) => void },
+): Promise<StageB> {
+  const missing = ADVERSARIES.filter((r) => !runners.has(r.id)).map((r) => r.id);
+  if (missing.length > 0) {
+    throw new Error(`runStageB: no runner for adversar${missing.length > 1 ? "ies" : "y"} ${missing.map((id) => `"${id}"`).join(", ")}`);
+  }
+
+  const pool = samplePool(a.candidates, POOL_PER_PROPOSER, PILOT_SEED);
+  const byId = new Map(a.candidates.map((c) => [c.candidateId, c]));
+  const findingById = new Map(detect(data).map((f) => [f.id, f]));
+
+  // Shared across every run and candidate: a subscription's own limit, or a missing binary,
+  // means nothing later stands a better chance either.
+  const halt: { reason: string | null } = { reason: null };
+  let inARow = 0;
+  const verdicts: StageBVerdict[] = [];
+
+  for (const role of ADVERSARIES) {
+    const runner = runners.get(role.id)!;
+
+    const tracked: Runner = async (call) => {
+      if (halt.reason) throw new Error(halt.reason);
+      try {
+        // Stripped of `accept`, so an answer that comes back unusable is still cached and
+        // replayed exactly on a resumed run, rather than asked again every time.
+        const reply = await runner({ ...call, accept: undefined });
+        inARow = 0;
+        return reply;
+      } catch (error) {
+        if (classify(error) === "fatal") {
+          halt.reason = `an adversary call failed: ${messageOf(error)}`;
+        } else if (error instanceof LimitError) {
+          halt.reason = `an adversary's usage limit didn't reset in time: ${messageOf(error)}`;
+        } else {
+          inARow++;
+          if (inARow >= STOP_AFTER_FAILURES) {
+            halt.reason = `${STOP_AFTER_FAILURES} adversary calls in a row failed, the last with: ${messageOf(error)}`;
+          }
+        }
+        throw error;
+      }
+    };
+
+    const oneCandidate = async (entry: PoolEntry): Promise<StageBVerdict> => {
+      const stageACandidate = byId.get(entry.candidateId)!;
+      const finding = findingById.get(entry.findingId)!;
+
+      // falsify() makes exactly one call; captured here so the verdict can carry what that
+      // one call spent, rather than only what the whole run spent. `call.key` is scoped to
+      // this pool candidate, not just its finding and test: 2 different proposers can land
+      // on the exact same premise and test (the pilot's own fixed findings make that
+      // possible), and each still gets its own cache entry and its own real call.
+      let usage = NO_USAGE;
+      let ms = 0;
+      const capturing: Runner = async (call) => {
+        const reply = await tracked({ ...call, key: `${call.key}:${entry.candidateId}` });
+        usage = reply.usage;
+        ms = reply.ms;
+        return reply;
+      };
+
+      const verdict = await falsify(
+        stageACandidate.candidate,
+        finding,
+        data,
+        capturing,
+        { model: role.model, effort: role.effort, label: role.label },
+        options.terms,
+      );
+      const result: StageBVerdict = {
+        run: role.id,
+        candidateId: entry.candidateId,
+        survived: verdict.survived,
+        stage: verdict.stage,
+        category: categoryOf(verdict),
+        counter: verdict.counter,
+        counterOutcome: verdict.counterOutcome,
+        reason: verdict.reason,
+        model: verdict.model,
+        usage,
+        ms,
+      };
+      options.onVerdict?.(role.id, entry.candidateId, result);
+      return result;
+    };
+
+    const results = await mapPool(pool, options.concurrency, oneCandidate);
+    // Nothing partial is ever returned: the answers already cached stay there for a resumed
+    // run to pick straight back up from.
+    if (halt.reason) throw new Error(halt.reason);
+
+    verdicts.push(...results);
+  }
+
+  // Already produced in this order by construction (runs made one after another, and
+  // `mapPool` hands each run's own results back in pool order regardless of when they
+  // finished); sorted again here so that stays a documented guarantee of the output, not an
+  // accident of how it happens to be built today.
+  const poolOrder = new Map(pool.map((entry, i) => [entry.candidateId, i]));
+  verdicts.sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)! || poolOrder.get(x.candidateId)! - poolOrder.get(y.candidateId)!);
+
+  return { pool, verdicts };
+}
+
+/**
+ * The body of `insights/pilot/candidates.json`, committed to the public repo: every pool
+ * candidate, its verdict from each of the 5 runs sorted into run order, and nothing that
+ * belongs to a candidate any run stopped for safety but that candidate's ids and which runs
+ * stopped it, by category. `stage: "safety"` covers both a model's own refusal and the
+ * private terms backstop (`falsify`'s own `refusedCandidate`), so checking it once here
+ * catches both without this file ever seeing the private terms themselves.
+ */
+export function committedCandidates(a: StageA, b: StageB): unknown {
+  const candidateById = new Map(a.candidates.map((c) => [c.candidateId, c]));
+  const verdictsByCandidate = new Map<string, StageBVerdict[]>();
+  for (const v of b.verdicts) {
+    const list = verdictsByCandidate.get(v.candidateId) ?? [];
+    list.push(v);
+    verdictsByCandidate.set(v.candidateId, list);
+  }
+
+  return b.pool.map((entry) => {
+    const stageACandidate = candidateById.get(entry.candidateId)!;
+    const runs = (verdictsByCandidate.get(entry.candidateId) ?? []).slice().sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)!);
+
+    const safety = runs.filter((v) => v.stage === "safety").map((v) => ({ run: v.run, category: v.category }));
+    if (safety.length > 0) {
+      return { candidateId: entry.candidateId, proposer: entry.proposer, findingId: entry.findingId, safety };
+    }
+
+    const { claim, link, premise, test } = stageACandidate.candidate;
+    return {
+      candidateId: entry.candidateId,
+      proposer: entry.proposer,
+      findingId: entry.findingId,
+      claim,
+      link,
+      premise,
+      test,
+      numbers: stageACandidate.outcome.numbers,
+      linkTest: stageACandidate.link,
+      runs: runs.map((v) => ({
+        run: v.run,
+        survived: v.survived,
+        stage: v.stage,
+        category: v.category,
+        counter: v.counter,
+        counterOutcome: v.counterOutcome,
+        reason: v.reason,
+        model: v.model,
+        effort: EFFORT_BY_RUN.get(v.run) ?? null,
+        usage: v.usage,
+        ms: v.ms,
+      })),
+    };
+  });
 }

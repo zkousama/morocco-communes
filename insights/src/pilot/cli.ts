@@ -1,30 +1,36 @@
 /**
  * The pilot's own runner: `pnpm insights:pilot --stage a` runs stage A, the 4 proposer
  * setups, live against a real model, and writes what it found to
- * `.cache/insights/pilot/stage-a.json`. Its own cache directory
- * (`.cache/insights/pilot/cache`) is separate from the full pipeline's, so a re-run after an
- * interruption resumes from every answer already given rather than asking again, and a pilot
- * call never touches the full pipeline's own cache. `--stage b` is recognised but not
- * implemented yet: it arrives with Task 14.
+ * `.cache/insights/pilot/stage-a.json`. `--stage b` reads that file, runs the 5 adversary
+ * setups over one shared pool of its passing candidates, writes what it found to
+ * `.cache/insights/pilot/stage-b.json`, and writes the redacted, committed
+ * `insights/pilot/candidates.json` the public repo carries. Both stages share one cache
+ * directory (`.cache/insights/pilot/cache`), separate from the full pipeline's, so a re-run
+ * after an interruption resumes from every answer already given rather than asking again,
+ * and a pilot call never touches the full pipeline's own cache.
  *
- * A failure once the run has started (a halt inside `runStageA`) is reported through
- * `runAndReport`, in its own wording, and is never routed through `refuseToStart`: that one
- * is for a mistake made before anything ran at all (a bad flag, `INSIGHTS_LIVE` unset), which
- * a person reads completely differently from "it ran for 3 hours and then stopped".
+ * A failure once a run has started (a halt inside `runStageA` or `runStageB`) is reported
+ * through `runAndReport` or `runAndReportB`, in its own wording, and is never routed through
+ * `refuseToStart`: that one is for a mistake made before anything ran at all (a bad flag,
+ * `INSIGHTS_LIVE` unset, no stage A file yet), which a person reads completely differently
+ * from "it ran for 3 hours and then stopped".
  */
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { loadData, type Data } from "../data.ts";
 import { detect, type Finding } from "../detect.ts";
-import { makeRunner, messageOf, readLocal, RETRY_DEFAULTS, withRetries, writeJsonAtomic, type Runner, type Usage } from "../model.ts";
+import { addUsage, makeRunner, messageOf, NO_USAGE, readLocal, RETRY_DEFAULTS, withRetries, writeJsonAtomic, type Runner, type Usage } from "../model.ts";
 import { localWarning, transportFor } from "../run.ts";
 import { termsPattern } from "../safety.ts";
 import { sampleFindings } from "./sample.ts";
-import { PILOT_SEED, PROPOSERS } from "./setups.ts";
-import { runStageA } from "./stages.ts";
+import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "./setups.ts";
+import { committedCandidates, runStageA, runStageB, type StageA } from "./stages.ts";
 
 const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
 const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
+const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
+const CANDIDATES_PATH = join("insights", "pilot", "candidates.json");
 const DEFAULT_CONCURRENCY = 3;
 
 /** Every input token a call spent, whether fresh or read back from the API's own cache. */
@@ -90,6 +96,46 @@ export async function runAndReport(
   return true;
 }
 
+/**
+ * Runs stage B and reports what happened through `io`, on the same shape as `runAndReport`:
+ * a failure once the run has started is reported through `io.error` and nothing is written,
+ * since the cached answers already have everything a resumed run needs. Writes both
+ * `.cache/insights/pilot/stage-b.json`, the full run, and `insights/pilot/candidates.json`,
+ * `committedCandidates`' redacted view of it, the file the public repo carries. Takes
+ * stubbed `runners` directly, so it's testable without `INSIGHTS_LIVE` or a real transport.
+ */
+export async function runAndReportB(
+  data: Data,
+  a: StageA,
+  runners: Map<string, Runner>,
+  options: { concurrency: number; terms: RegExp | null },
+  io: { log: (line: string) => void; error: (line: string) => void; writeStageB: (value: unknown) => Promise<void>; writeCandidates: (value: unknown) => Promise<void> },
+): Promise<boolean> {
+  let result: Awaited<ReturnType<typeof runStageB>>;
+  try {
+    result = await runStageB(data, a, runners, {
+      ...options,
+      onVerdict: (run, candidateId, verdict) => io.log(`${run} ${candidateId}: ${verdict.survived ? "survived" : `broke (${verdict.stage}${verdict.category ? `: ${verdict.category}` : ""})`}`),
+    });
+  } catch (error) {
+    io.error(`stage B stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
+    return false;
+  }
+
+  for (const role of ADVERSARIES) {
+    const mine = result.verdicts.filter((v) => v.run === role.id);
+    const usage = mine.reduce((acc, v) => addUsage(acc, v.usage), NO_USAGE);
+    const effort = role.effort ? ` ${role.effort}` : role.transport === "gemini" ? " default effort" : "";
+    io.log(`usage: ${role.id} ${role.model}${effort}: ${mine.length} calls, ${k(inputOf(usage))} tokens in, ${k(usage.output)} out, ${usd(usage.costUsd)}`);
+  }
+
+  await io.writeStageB(result);
+  io.log(`wrote ${STAGE_B_PATH}`);
+  await io.writeCandidates(committedCandidates(a, result));
+  io.log(`wrote ${CANDIDATES_PATH}`);
+  return true;
+}
+
 async function runStageACommand(concurrency: number): Promise<void> {
   if (process.env.INSIGHTS_LIVE !== "1") {
     throw new Error("pnpm insights:pilot needs INSIGHTS_LIVE=1: it would spend real calls against a subscription");
@@ -117,6 +163,40 @@ async function runStageACommand(concurrency: number): Promise<void> {
   if (!ok) process.exitCode = 1;
 }
 
+async function runStageBCommand(concurrency: number): Promise<void> {
+  if (process.env.INSIGHTS_LIVE !== "1") {
+    throw new Error("pnpm insights:pilot needs INSIGHTS_LIVE=1: it would spend real calls against a subscription");
+  }
+
+  const local = readLocal(process.env);
+  const warning = localWarning(local);
+  if (warning) console.error(warning);
+  const terms = termsPattern(local?.terms ?? []);
+
+  const data = loadData();
+
+  let a: StageA;
+  try {
+    a = JSON.parse(await readFile(STAGE_A_PATH, "utf8")) as StageA;
+  } catch (error) {
+    throw new Error(`couldn't read ${STAGE_A_PATH}: run pnpm insights:pilot --stage a first (${messageOf(error)})`);
+  }
+
+  const retryOptions = { ...RETRY_DEFAULTS, sleep: (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)), log: (line: string) => console.error(line) };
+  const cacheOptions = { cacheDir: CACHE_DIR, datasetVersion: data.version, stageVersions: {} };
+  const runners = new Map(
+    ADVERSARIES.map((role) => [role.id, makeRunner(withRetries(transportFor(role, local), retryOptions), cacheOptions)] as const),
+  );
+
+  const ok = await runAndReportB(data, a, runners, { concurrency, terms }, {
+    log: (line) => console.log(line),
+    error: (line) => console.error(line),
+    writeStageB: (value) => writeJsonAtomic(STAGE_B_PATH, value),
+    writeCandidates: (value) => writeJsonAtomic(CANDIDATES_PATH, value),
+  });
+  if (!ok) process.exitCode = 1;
+}
+
 /** A mistake in how the run was started: said in one line, with nothing run. */
 function refuseToStart(error: unknown): void {
   console.log(messageOf(error));
@@ -132,14 +212,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (args.stage === "b") {
-    console.log("insights pilot: stage B isn't wired up yet");
-    process.exitCode = 1;
-    return;
-  }
-
   try {
-    await runStageACommand(args.concurrency ?? DEFAULT_CONCURRENCY);
+    if (args.stage === "a") await runStageACommand(args.concurrency ?? DEFAULT_CONCURRENCY);
+    else await runStageBCommand(args.concurrency ?? DEFAULT_CONCURRENCY);
   } catch (error) {
     refuseToStart(error);
   }

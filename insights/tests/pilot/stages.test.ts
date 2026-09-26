@@ -4,9 +4,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadData } from "../../src/data.ts";
 import { detect } from "../../src/detect.ts";
+import { NO_ANSWER } from "../../src/falsify.ts";
 import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Runner } from "../../src/model.ts";
-import { runStageA } from "../../src/pilot/stages.ts";
-import { PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
+import { committedCandidates, runStageA, runStageB } from "../../src/pilot/stages.ts";
+import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
 const data = loadData();
@@ -202,6 +203,107 @@ describe("stage A", () => {
       const countingFailing: Runner = async (call) => { n++; return alwaysFailing(call); };
       const runnersAll = new Map(PROPOSERS.map((p) => [p.id, countingFailing]));
       await expect(runStageA(data, findings, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/3 proposer calls in a row failed/);
+      expect(n).toBeLessThan(10);
+    });
+  });
+});
+
+describe("stage B", () => {
+  it("runs every adversary on the same pool, and the repeat run really asks again", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    let calls = 0;
+    const sharedCache = mkdtempSync(join(tmpdir(), "pb-"));
+    const counting = (id: string) => makeRunner(async (call) => { calls++; return { text: JSON.stringify({ counter: null, reason: `none from ${id}` }), model: call.model, usage: NO_USAGE }; }, { cacheDir: sharedCache, datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, counting(r.id)]));
+    const b = await runStageB(data, a, adv, { concurrency: 2, terms: null });
+    const poolSize = b.pool.length;
+    expect(b.verdicts).toHaveLength(poolSize * ADVERSARIES.length);
+    expect(calls).toBe(poolSize * ADVERSARIES.length); // A2 isn't served from A1's cache
+  });
+  it("never commits the text of a candidate stopped for safety", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const refusing = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "r", refuse: "blame" })), { cacheDir: mkdtempSync(join(tmpdir(), "pr-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, refusing]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    const committed = JSON.stringify(committedCandidates(a, b));
+    for (const c of a.candidates) expect(committed).not.toContain(c.candidate.claim.en);
+    expect(committed).toContain('"category":"blame"');
+  });
+
+  it("also redacts a candidate the private terms backstop stops, and never names the term itself", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    // P1 alone claims "claim by haiku" (no adversary answers as "haiku"), so matching on it
+    // stands in for a private term without that word ever legitimately appearing elsewhere.
+    const terms = /haiku/i;
+    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "fine" })), { cacheDir: mkdtempSync(join(tmpdir(), "pt-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms });
+    const committed = JSON.stringify(committedCandidates(a, b));
+    expect(committed).toContain('"category":"terms"');
+    expect(committed).not.toContain("haiku");
+  });
+
+  it("keeps a candidate's full text when a run simply couldn't answer, since that isn't a safety stop", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    let n = 0;
+    const flaky: Runner = async (call) => {
+      n++;
+      if (n % 4 === 0) throw new Error("claude exited 1: overloaded"); // never 3 in a row
+      return { text: JSON.stringify({ counter: null, reason: "fine" }), model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE };
+    };
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, flaky]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    expect(b.verdicts.some((v) => v.reason === NO_ANSWER)).toBe(true);
+    const committed = JSON.stringify(committedCandidates(a, b));
+    expect(committed).toContain(NO_ANSWER);
+    for (const c of a.candidates) expect(committed).toContain(c.candidate.claim.en);
+  });
+
+  it("checks every adversary has a runner before making any call", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const calls: string[] = [];
+    const counting = () => makeRunner(stubTransport((call) => { calls.push(call.model); return JSON.stringify({ counter: null, reason: "r" }); }), { cacheDir: mkdtempSync(join(tmpdir(), "mb-")), datasetVersion: "t", stageVersions: {} });
+    // A1-A3 (which come first) do have runners; A4 and A5 don't.
+    const partial = new Map(ADVERSARIES.slice(0, 3).map((r) => [r.id, counting()]));
+    await expect(runStageB(data, a, partial, { concurrency: 1, terms: null })).rejects.toThrow(/no runner for adversar/);
+    expect(calls).toEqual([]);
+  });
+
+  it("resumes without re-asking a question already answered", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const cacheDir = mkdtempSync(join(tmpdir(), "resumeb-"));
+    let calls = 0;
+    const counting = () => makeRunner(async (call) => { calls++; return { text: JSON.stringify({ counter: null, reason: "r" }), model: call.model, usage: NO_USAGE }; }, { cacheDir, datasetVersion: "t", stageVersions: {} });
+
+    const b1 = await runStageB(data, a, new Map(ADVERSARIES.map((r) => [r.id, counting()])), { concurrency: 2, terms: null });
+    expect(calls).toBeGreaterThan(0);
+
+    calls = 0;
+    const b2 = await runStageB(data, a, new Map(ADVERSARIES.map((r) => [r.id, counting()])), { concurrency: 2, terms: null });
+    expect(calls).toBe(0);
+    expect(b2).toEqual(b1);
+  });
+
+  describe("halting", () => {
+    const failing = (message: string): Runner => async () => { throw new Error(message); };
+
+    it("halts at once on a fatal error and makes far fewer calls than a full run", async () => {
+      const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+      let calls = 0;
+      const enoent: Runner = async () => { calls++; throw new Error("couldn't start claude: spawn claude ENOENT"); };
+      const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, enoent]));
+      await expect(runStageB(data, a, runnersAll, { concurrency: 3, terms: null })).rejects.toThrow(/couldn't start claude/);
+      // A full run over this pool would be 12 candidates x 5 adversaries = 60 calls.
+      expect(calls).toBeLessThan(10);
+    });
+
+    it("halts after 3 ordinary failures in a row", async () => {
+      const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+      let n = 0;
+      const alwaysFailing = failing("claude exited 1: something broke");
+      const countingFailing: Runner = async (call) => { n++; return alwaysFailing(call); };
+      const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, countingFailing]));
+      await expect(runStageB(data, a, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/3 adversary calls in a row failed/);
       expect(n).toBeLessThan(10);
     });
   });
