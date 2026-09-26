@@ -1,0 +1,763 @@
+{
+  "measuredAt": "2026-09-26T16:43:15.334Z",
+  "seed": 20260925,
+  "findings": 16,
+  "poolByProposer": {
+    "P1": 30,
+    "P2": 30,
+    "P3": 30,
+    "P4": 30
+  },
+  "proposers": {
+    "P1": {
+      "calls": 80,
+      "failedCalls": 0,
+      "usable": {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      "candidates": 185,
+      "passed": {
+        "value": 0.9783783783783784,
+        "low": 0.9521276595744681,
+        "high": 1
+      },
+      "refused": {
+        "tautology": 3,
+        "too few places for that share": 1
+      },
+      "missing": 0,
+      "safetyDrops": {},
+      "distinctPerFinding": {
+        "value": 11.5625,
+        "low": 10.375,
+        "high": 12.8125
+      },
+      "entropy": {
+        "value": 2.299258460734877,
+        "low": 2.1706012240387405,
+        "high": 2.4359778859531174
+      },
+      "linksProposed": 150,
+      "linksConsistent": 14,
+      "yesRate": {
+        "value": 0.23076923076923078,
+        "low": 0,
+        "high": 0.46153846153846156
+      },
+      "rated": 13,
+      "costUsd": 5.7644319,
+      "costPerCall": 0.07205539875,
+      "tokens": {
+        "input": 800,
+        "output": 1099607,
+        "cacheRead": 823849,
+        "cacheWrite": 91606,
+        "thinking": 984278,
+        "costUsd": 5.7644319
+      },
+      "secondsPerCall": 127.49875
+    },
+    "P2": {
+      "calls": 80,
+      "failedCalls": 0,
+      "usable": {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      "candidates": 150,
+      "passed": {
+        "value": 0.94,
+        "low": 0.8992104022627279,
+        "high": 0.9750077160493826
+      },
+      "refused": {
+        "tautology": 4,
+        "too few places for that share": 3
+      },
+      "missing": 0,
+      "safetyDrops": {},
+      "distinctPerFinding": {
+        "value": 9.375,
+        "low": 8.3125,
+        "high": 10.5
+      },
+      "entropy": {
+        "value": 2.0512887539537172,
+        "low": 1.9199493809320811,
+        "high": 2.188991526945581
+      },
+      "linksProposed": 132,
+      "linksConsistent": 27,
+      "yesRate": {
+        "value": 0,
+        "low": 0,
+        "high": 0
+      },
+      "rated": 14,
+      "costUsd": 3.3236585999999995,
+      "costPerCall": 0.041545732499999995,
+      "tokens": {
+        "input": 160,
+        "output": 265840,
+        "cacheRead": 971253,
+        "cacheWrite": 117672,
+        "thinking": 159287,
+        "costUsd": 3.3236585999999995
+      },
+      "secondsPerCall": 37.3013875
+    },
+    "P3": {
+      "calls": 80,
+      "failedCalls": 0,
+      "usable": {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      "candidates": 152,
+      "passed": {
+        "value": 0.993421052631579,
+        "low": 0.9803921568627451,
+        "high": 1
+      },
+      "refused": {
+        "too few places for that share": 1
+      },
+      "missing": 0,
+      "safetyDrops": {},
+      "distinctPerFinding": {
+        "value": 9.5,
+        "low": 8.25,
+        "high": 10.75
+      },
+      "entropy": {
+        "value": 2.0597717227760475,
+        "low": 1.9132708953613466,
+        "high": 2.1967625458595816
+      },
+      "linksProposed": 136,
+      "linksConsistent": 26,
+      "yesRate": {
+        "value": 0.07142857142857142,
+        "low": 0,
+        "high": 0.21428571428571427
+      },
+      "rated": 14,
+      "costUsd": 5.334627000000002,
+      "costPerCall": 0.06668283750000002,
+      "tokens": {
+        "input": 164,
+        "output": 463882,
+        "cacheRead": 992479,
+        "cacheWrite": 123546,
+        "thinking": 348494,
+        "costUsd": 5.334627000000002
+      },
+      "secondsPerCall": 153.80676250000002
+    },
+    "P4": {
+      "calls": 80,
+      "failedCalls": 0,
+      "usable": {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      "candidates": 126,
+      "passed": {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      "refused": {},
+      "missing": 0,
+      "safetyDrops": {},
+      "distinctPerFinding": {
+        "value": 7.875,
+        "low": 6.8125,
+        "high": 9.125
+      },
+      "entropy": {
+        "value": 1.8687099441018669,
+        "low": 1.7389495167354492,
+        "high": 2.013608528689436
+      },
+      "linksProposed": 91,
+      "linksConsistent": 21,
+      "yesRate": {
+        "value": 0,
+        "low": 0,
+        "high": 0
+      },
+      "rated": 14,
+      "costUsd": 4.7055962000000005,
+      "costPerCall": 0.05881995250000001,
+      "tokens": {
+        "input": 160,
+        "output": 178910,
+        "cacheRead": 967221,
+        "cacheWrite": 116664,
+        "thinking": 53552,
+        "costUsd": 4.7055962000000005
+      },
+      "secondsPerCall": 22.33995
+    }
+  },
+  "dropped": {
+    "A5": "the free tier caps Gemini 3.8 Flash at 20 requests a day"
+  },
+  "adversaries": {
+    "A1": {
+      "judged": 119,
+      "breakRate": {
+        "value": 0.7394957983193278,
+        "low": 0.6525331613854091,
+        "high": 0.8393119747899158
+      },
+      "unusable": 1,
+      "refused": 0,
+      "calls": 120,
+      "costUsd": 8.618807199999997,
+      "tokens": {
+        "input": 240,
+        "output": 107677,
+        "cacheRead": 761976,
+        "cacheWrite": 788989,
+        "thinking": 69713,
+        "costUsd": 8.618807199999997
+      },
+      "secondsPerCall": 12.903883333333333,
+      "secondsPerCallWithWaits": 12.903883333333333,
+      "waitedSeconds": 0,
+      "rightOnDisagreements": {
+        "value": 0.55,
+        "low": 0.4444444444444444,
+        "high": 0.6923076923076923
+      },
+      "disagreementsRated": 40,
+      "countersHeld": {
+        "value": 0.43478260869565216,
+        "low": 0.2380252100840337,
+        "high": 0.7058823529411765
+      },
+      "countersRated": 23,
+      "family": {
+        "own": 0.7333333333333333,
+        "others": 0.7415730337078652,
+        "gap": {
+          "value": 0.008239700374531922,
+          "low": -0.1631909147514276,
+          "high": 0.254640151515151
+        }
+      }
+    },
+    "A2": {
+      "judged": 120,
+      "breakRate": {
+        "value": 0.775,
+        "low": 0.688511475409836,
+        "high": 0.8677685950413223
+      },
+      "unusable": 0,
+      "refused": 0,
+      "calls": 120,
+      "costUsd": 5.385509199999997,
+      "tokens": {
+        "input": 240,
+        "output": 107671,
+        "cacheRead": 1176486,
+        "cacheWrite": 374479,
+        "thinking": 69250,
+        "costUsd": 5.385509199999997
+      },
+      "secondsPerCall": 12.654783333333333,
+      "secondsPerCallWithWaits": 12.654783333333333,
+      "waitedSeconds": 0,
+      "rightOnDisagreements": {
+        "value": 0.675,
+        "low": 0.5384615384615384,
+        "high": 0.84
+      },
+      "disagreementsRated": 40,
+      "countersHeld": {
+        "value": 0.46153846153846156,
+        "low": 0.30434782608695654,
+        "high": 0.6521739130434783
+      },
+      "countersRated": 26,
+      "family": {
+        "own": 0.7333333333333333,
+        "others": 0.7888888888888889,
+        "gap": {
+          "value": 0.05555555555555558,
+          "low": -0.1798185916918163,
+          "high": 0.36722417133017643
+        }
+      }
+    },
+    "A3": {
+      "judged": 120,
+      "breakRate": {
+        "value": 0.7416666666666667,
+        "low": 0.645988751964271,
+        "high": 0.8360823017731682
+      },
+      "unusable": 0,
+      "refused": 0,
+      "calls": 120,
+      "costUsd": 8.802075999999996,
+      "tokens": {
+        "input": 240,
+        "output": 132481,
+        "cacheRead": 802080,
+        "cacheWrite": 748885,
+        "thinking": 93354,
+        "costUsd": 8.802075999999996
+      },
+      "secondsPerCall": 18.444225,
+      "secondsPerCallWithWaits": 18.444225,
+      "waitedSeconds": 0,
+      "rightOnDisagreements": {
+        "value": 0.575,
+        "low": 0.4222222222222222,
+        "high": 0.7407407407407407
+      },
+      "disagreementsRated": 40,
+      "countersHeld": {
+        "value": 0.5652173913043478,
+        "low": 0.4,
+        "high": 0.75
+      },
+      "countersRated": 23,
+      "family": {
+        "own": 0.6333333333333333,
+        "others": 0.7777777777777778,
+        "gap": {
+          "value": 0.1444444444444445,
+          "low": -0.007330544830544905,
+          "high": 0.3190671611351209
+        }
+      }
+    },
+    "A4": {
+      "judged": 116,
+      "breakRate": {
+        "value": 0.5689655172413793,
+        "low": 0.43267500000000003,
+        "high": 0.6990312741644471
+      },
+      "unusable": 4,
+      "refused": 0,
+      "calls": 120,
+      "costUsd": 7.668991200000004,
+      "tokens": {
+        "input": 240,
+        "output": 443005,
+        "cacheRead": 788326,
+        "cacheWrite": 770199,
+        "thinking": 408794,
+        "costUsd": 7.668991200000004
+      },
+      "secondsPerCall": 49.028074999999994,
+      "secondsPerCallWithWaits": 49.069741666666665,
+      "waitedSeconds": 5,
+      "rightOnDisagreements": {
+        "value": 0.4,
+        "low": 0.2222222222222222,
+        "high": 0.5588235294117647
+      },
+      "disagreementsRated": 40,
+      "countersHeld": {
+        "value": 0.15384615384615385,
+        "low": 0,
+        "high": 0.25
+      },
+      "countersRated": 13,
+      "family": {
+        "own": 0.5172413793103449,
+        "others": 0.6206896551724138,
+        "gap": {
+          "value": 0.10344827586206895,
+          "low": -0.04889262820512818,
+          "high": 0.24658297869392512
+        }
+      }
+    }
+  },
+  "agreement": {
+    "A1|A2": {
+      "value": 0.7008315606265714,
+      "low": 0.5679376362470612,
+      "high": 0.8216448331062615
+    },
+    "A1|A3": {
+      "value": 0.6253009816632709,
+      "low": 0.4615824498082561,
+      "high": 0.7977996254681644
+    },
+    "A1|A4": {
+      "value": 0.3654657578708212,
+      "low": 0.21062145951259129,
+      "high": 0.519123353211048
+    },
+    "A2|A3": {
+      "value": 0.6821793416572076,
+      "low": 0.4482689655172413,
+      "high": 0.8778721995290545
+    },
+    "A2|A4": {
+      "value": 0.23684210526315785,
+      "low": 0.0554513692978088,
+      "high": 0.3804088287488908
+    },
+    "A3|A4": {
+      "value": 0.20775095298602286,
+      "low": 0.04038845242548935,
+      "high": 0.3691724079631422
+    }
+  },
+  "noiseFloor": {
+    "value": 0.7008315606265714,
+    "low": 0.5679376362470612,
+    "high": 0.8216448331062615
+  },
+  "extraBreaks": {
+    "inPool": 9,
+    "rated": 9,
+    "right": 9
+  },
+  "speedCheck": {
+    "run": "A5",
+    "ran": false,
+    "reason": "the free tier caps Gemini 3.8 Flash at 20 requests a day"
+  },
+  "samplesCurve": {
+    "P1": [
+      {
+        "value": 0,
+        "low": 0,
+        "high": 0
+      },
+      {
+        "value": 0,
+        "low": 0,
+        "high": 0
+      },
+      {
+        "value": 0.6666666666666666,
+        "low": 0,
+        "high": 1
+      },
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      }
+    ],
+    "P2": [],
+    "P3": [
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      },
+      {
+        "value": 1,
+        "low": 1,
+        "high": 1
+      }
+    ],
+    "P4": []
+  },
+  "goodReasons": {
+    "P1": 3,
+    "P2": 0,
+    "P3": 1,
+    "P4": 0
+  },
+  "shownBreaks": {
+    "breaks": 336,
+    "shown": 125,
+    "share": {
+      "value": 0.37202380952380953,
+      "low": 0.2889423310400648,
+      "high": 0.46822972811115104
+    }
+  },
+  "safety": {
+    "termsMatched": 1,
+    "byRun": {
+      "A1": {
+        "refused": 0,
+        "categories": {},
+        "refusedWithoutTerm": 0,
+        "termButPassed": 1
+      },
+      "A2": {
+        "refused": 0,
+        "categories": {},
+        "refusedWithoutTerm": 0,
+        "termButPassed": 1
+      },
+      "A3": {
+        "refused": 0,
+        "categories": {},
+        "refusedWithoutTerm": 0,
+        "termButPassed": 1
+      },
+      "A4": {
+        "refused": 0,
+        "categories": {},
+        "refusedWithoutTerm": 0,
+        "termButPassed": 1
+      }
+    },
+    "policyMisses": [
+      {
+        "candidateId": "9f0a6eae274e",
+        "category": "terms",
+        "runs": [
+          "A1",
+          "A2",
+          "A3",
+          "A4"
+        ]
+      }
+    ]
+  },
+  "drift": {
+    "kappa": null,
+    "n": 0
+  },
+  "rater": {
+    "by": "jury",
+    "judges": [
+      {
+        "id": "J1",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "family": "OpenAI",
+        "answered": [
+          "openai/gpt-oss-120b"
+        ]
+      },
+      {
+        "id": "J2",
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+        "family": "Alibaba",
+        "answered": [
+          "qwen/qwen3.8-27b"
+        ]
+      },
+      {
+        "id": "J3",
+        "provider": "cloudflare",
+        "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "family": "Meta",
+        "answered": [
+          "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        ]
+      }
+    ],
+    "fallback": null,
+    "agreement": {
+      "pairs": {
+        "J1|J2": {
+          "claimBeyondPremise": {
+            "n": 99,
+            "raw": 0.8080808080808081,
+            "kappa": 0.48224607762180005
+          },
+          "linkExplainsFinding": {
+            "n": 99,
+            "raw": 0.5252525252525253,
+            "kappa": 0.04160659114315145
+          },
+          "ignoresObviousAlternative": {
+            "n": 99,
+            "raw": 0.5252525252525253,
+            "kappa": 0.041211621677312946
+          },
+          "sound": {
+            "n": 99,
+            "raw": 0.7373737373737373,
+            "kappa": 0.09937018894331709
+          },
+          "breaks": {
+            "n": 63,
+            "raw": 0.7142857142857143,
+            "kappa": 0.3984084880636605
+          }
+        },
+        "J1|J3": {
+          "claimBeyondPremise": {
+            "n": 95,
+            "raw": 0.8315789473684211,
+            "kappa": 0.07654921020656136
+          },
+          "linkExplainsFinding": {
+            "n": 95,
+            "raw": 0.8105263157894737,
+            "kappa": 0.19339622641509419
+          },
+          "ignoresObviousAlternative": {
+            "n": 95,
+            "raw": 0.9157894736842105,
+            "kappa": 0.1721132897603474
+          },
+          "sound": {
+            "n": 95,
+            "raw": 0.9578947368421052,
+            "kappa": -0.02150537634408657
+          },
+          "breaks": {
+            "n": 63,
+            "raw": 0.5079365079365079,
+            "kappa": 0.09499536607970349
+          }
+        },
+        "J2|J3": {
+          "claimBeyondPremise": {
+            "n": 95,
+            "raw": 0.6947368421052632,
+            "kappa": 0.026157652880876684
+          },
+          "linkExplainsFinding": {
+            "n": 95,
+            "raw": 0.5789473684210527,
+            "kappa": 0.16299559471365646
+          },
+          "ignoresObviousAlternative": {
+            "n": 95,
+            "raw": 0.5789473684210527,
+            "kappa": 0.1351843422849339
+          },
+          "sound": {
+            "n": 95,
+            "raw": 0.7157894736842105,
+            "kappa": 0.030978466188137273
+          },
+          "breaks": {
+            "n": 63,
+            "raw": 0.4444444444444444,
+            "kappa": -0.003641329085115952
+          }
+        }
+      },
+      "all": {
+        "claimBeyondPremise": {
+          "n": 95,
+          "share": 0.6631578947368421
+        },
+        "linkExplainsFinding": {
+          "n": 95,
+          "share": 0.45263157894736844
+        },
+        "ignoresObviousAlternative": {
+          "n": 95,
+          "share": 0.5157894736842106
+        },
+        "sound": {
+          "n": 95,
+          "share": 0.7052631578947368
+        },
+        "breaks": {
+          "n": 63,
+          "share": 0.3492063492063492
+        }
+      }
+    },
+    "spotCheck": {
+      "items": 20,
+      "measures": {
+        "claimBeyondPremise": {
+          "n": 20,
+          "raw": 0.85,
+          "kappa": 0
+        },
+        "linkExplainsFinding": {
+          "n": 20,
+          "raw": 0.85,
+          "kappa": 0
+        },
+        "ignoresObviousAlternative": {
+          "n": 20,
+          "raw": 0.75,
+          "kappa": -0.08695652173913052
+        },
+        "sound": {
+          "n": 20,
+          "raw": 0.8,
+          "kappa": -0.05263157894736848
+        },
+        "breaks": {
+          "n": 18,
+          "raw": 0.3888888888888889,
+          "kappa": 0.043478260869565154
+        }
+      }
+    }
+  },
+  "decisions": {
+    "proposer": {
+      "choice": "P1",
+      "rule": "1. Proposer",
+      "because": "Best yes rate: 23% (P1). Within 10 points of it: P1 at $5.76 ($0.072 a call). Cheapest of those: P1.",
+      "metBar": true
+    },
+    "adversaryEffort": {
+      "choice": "high",
+      "rule": "2. Adversary effort",
+      "because": "A3's kappa with A1, 0.63, is more than 0.05 from the noise floor, 0.70. The jury judged 9 of A3's 9 rated extra breaks right, at least 2 in 3.",
+      "metBar": true
+    },
+    "adversaryModel": {
+      "choice": "A3",
+      "rule": "3. Adversary model",
+      "because": "A4's kappa with A1, 0.37, is more than 0.05 from the noise floor, 0.70. A5 was dropped and not measured (the free tier caps Gemini 3.8 Flash at 20 requests a day), so it can't qualify. Nothing's left standing, so A3 keeps the job.",
+      "metBar": true
+    },
+    "selfPreference": {
+      "choice": "no change",
+      "rule": "4. Self-preference",
+      "because": "No run broke its own family's reasons at least 15 points less often than everyone else's. A5 was dropped and not measured. Reported only: the setup already keeps the adversary off the proposer's own model.",
+      "metBar": true
+    },
+    "samples": {
+      "choice": "4",
+      "rule": "5. Samples",
+      "because": "Of P1's 3 reasons rated good, the first 4 samples find 100%, at least 90%. With one fewer, the first 3 samples find 67%.",
+      "metBar": true
+    },
+    "attackShownOnly": {
+      "choice": "off",
+      "rule": "6. Attacking only the shown reasons",
+      "because": "125 of 336 breaks (37%) landed on the top 3 reasons a page would show, under 80%.",
+      "metBar": true
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "propose": { "transport": "claude", "model": "sonnet", "effort": "high", "samples": 5 },
-  "falsify": { "transport": "claude", "model": "opus", "effort": "medium" },
+  "propose": { "transport": "claude", "model": "haiku", "samples": 4 },
+  "falsify": { "transport": "claude", "model": "opus", "effort": "high" },
   "attackShownOnly": false,
-  "decidedBy": null
+  "decidedBy": "insights/pilot/results.json"
 }
