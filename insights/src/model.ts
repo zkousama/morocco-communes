@@ -38,6 +38,16 @@ export interface Usage {
 
 export const NO_USAGE: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, thinking: 0, costUsd: 0 };
 
+/** Every input token a call spent, whether fresh or read back from the API's own cache. */
+export const inputOf = (usage: Usage): number => usage.input + usage.cacheRead + usage.cacheWrite;
+
+/** A count written short: as is under 1,000, then in thousands ("12k"), then in millions ("3.5M"). */
+export const compactCount = (n: number): string =>
+  n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n));
+
+/** Dollars, to the cent. */
+export const usd = (n: number): string => `$${n.toFixed(2)}`;
+
 export function addUsage(a: Usage, b: Usage): Usage {
   return {
     input: a.input + b.input,

@@ -20,7 +20,21 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { loadData, type Data } from "../data.ts";
 import { detect, type Finding } from "../detect.ts";
-import { addUsage, makeRunner, messageOf, NO_USAGE, readLocal, RETRY_DEFAULTS, withRetries, writeJsonAtomic, type Local, type Runner, type Usage } from "../model.ts";
+import {
+  addUsage,
+  compactCount,
+  inputOf,
+  makeRunner,
+  messageOf,
+  NO_USAGE,
+  readLocal,
+  RETRY_DEFAULTS,
+  usd,
+  withRetries,
+  writeJsonAtomic,
+  type Local,
+  type Runner,
+} from "../model.ts";
 import { localWarning, transportFor } from "../run.ts";
 import { termsPattern } from "../safety.ts";
 import { sampleFindings } from "./sample.ts";
@@ -33,10 +47,6 @@ export const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
 const CANDIDATES_PATH = join("insights", "pilot", "candidates.json");
 const DEFAULT_CONCURRENCY = 3;
 
-/** Every input token a call spent, whether fresh or read back from the API's own cache. */
-export const inputOf = (usage: Usage): number => usage.input + usage.cacheRead + usage.cacheWrite;
-export const k = (n: number): string => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n)));
-const usd = (n: number): string => `$${n.toFixed(2)}`;
 
 /** `pnpm insights:pilot`'s flags: `--stage a` or `--stage b`, and an optional `--concurrency`. */
 export function parseArgs(args: string[]): { stage: "a" | "b"; concurrency: number | undefined } {
@@ -91,7 +101,7 @@ export async function runAndReport(
   for (const p of result.proposers) {
     const calls = p.replies.length;
     const effort = p.role.effort ? ` ${p.role.effort}` : "";
-    io.log(`usage: ${p.id} ${p.role.model}${effort}: ${calls} calls, ${k(inputOf(p.usage))} tokens in, ${k(p.usage.output)} out, ${usd(p.usage.costUsd)}`);
+    io.log(`usage: ${p.id} ${p.role.model}${effort}: ${calls} calls, ${compactCount(inputOf(p.usage))} tokens in, ${compactCount(p.usage.output)} out, ${usd(p.usage.costUsd)}`);
   }
 
   await io.write(result);
@@ -140,7 +150,7 @@ export async function runAndReportB(
     const mine = result.verdicts.filter((v) => v.run === role.id);
     const usage = mine.reduce((acc, v) => addUsage(acc, v.usage), NO_USAGE);
     const effort = role.effort ? ` ${role.effort}` : role.transport === "gemini" ? " default effort" : "";
-    io.log(`usage: ${role.id} ${role.model}${effort}: ${mine.length} calls, ${k(inputOf(usage))} tokens in, ${k(usage.output)} out, ${usd(usage.costUsd)}`);
+    io.log(`usage: ${role.id} ${role.model}${effort}: ${mine.length} calls, ${compactCount(inputOf(usage))} tokens in, ${compactCount(usage.output)} out, ${usd(usage.costUsd)}`);
   }
 
   await io.writeStageB(result);

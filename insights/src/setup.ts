@@ -56,6 +56,33 @@ export function parseSetup(json: unknown): Setup {
   return result.data as Setup;
 }
 
+/**
+ * `setup` as `insights/setup.json` lays it out: one top-level key per line at 2 spaces, each
+ * role on its own line, and a trailing newline. Writing back the values the file already
+ * holds gives the file byte for byte, so a rewrite that decides nothing new shows no diff.
+ */
+export function formatSetup(setup: Setup): string {
+  const inline = (fields: [string, unknown][]): string =>
+    `{ ${fields
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => `${JSON.stringify(key)}: ${JSON.stringify(value)}`)
+      .join(", ")} }`;
+  const role = (r: Role): [string, unknown][] => [
+    ["transport", r.transport],
+    ["model", r.model],
+    ["effort", r.effort],
+  ];
+  return [
+    "{",
+    `  "propose": ${inline([...role(setup.propose), ["samples", setup.propose.samples]])},`,
+    `  "falsify": ${inline(role(setup.falsify))},`,
+    `  "attackShownOnly": ${JSON.stringify(setup.attackShownOnly)},`,
+    `  "decidedBy": ${JSON.stringify(setup.decidedBy)}`,
+    "}",
+    "",
+  ].join("\n");
+}
+
 /** Reads and parses `path` (`SETUP_PATH` unless given), throwing a plain message when the file is missing, unparseable or invalid. */
 export function readSetup(path: string = SETUP_PATH): Setup {
   return parseSetup(JSON.parse(readFileSync(path, "utf8")));

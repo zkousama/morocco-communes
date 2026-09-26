@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -32,7 +32,7 @@ import {
   SHOWN_BREAKS_SHARE,
 } from "../../src/pilot/setups.ts";
 import type { StageA, StageACandidate, StageB, StageBVerdict } from "../../src/pilot/stages.ts";
-import { parseSetup, type Setup } from "../../src/setup.ts";
+import { formatSetup, parseSetup, SETUP_PATH, type Setup } from "../../src/setup.ts";
 import type { Check } from "../../src/vocabulary.ts";
 import { fakeRatings, fakeStageA, fakeStageB } from "./fixtures.ts";
 
@@ -90,9 +90,15 @@ interface Micro {
   own: Check;
 }
 
+/** Where `c` sits among the candidates that passed their data test, in its finding and proposer, by propose's own order. */
+function passingRank(a: StageA, c: StageACandidate): number {
+  return a.candidates.filter((x) => x.proposer === c.proposer && x.findingId === c.findingId && x.passed && x.rank < c.rank).length;
+}
+
 /**
- * c1 is P1's (Haiku), c2 P4's (Opus), c3 P2's (Sonnet, ranked past the top 3), c4 P3's
- * (Sonnet). The verdicts, run by run:
+ * c1 is P1's (Haiku), c2 P4's (Opus), c3 P2's (Sonnet, past the top 3 among the reasons that
+ * passed their data test, unless `c3` picks another), c4 P3's (Sonnet). The verdicts, run by
+ * run:
  *
  *        c1         c2          c3        c4
  *   A1   broke      survived    survived  survived
@@ -104,12 +110,12 @@ interface Micro {
  * c3 matches a private term. The rating: c1's reason yes, c2's no, c4's skip; the
  * disagreements c1 unsound, c2 sound, c3 skipped; 3 drift items.
  */
-function micro(): Micro {
+function micro(c3Test: (a: StageA, c: StageACandidate) => boolean = (a, c) => passingRank(a, c) >= PUBLISHED_CAP): Micro {
   const a = fakeStageA();
   const pick = (proposer: string, test: (c: StageACandidate) => boolean) => a.candidates.find((c) => c.proposer === proposer && c.passed && test(c))!;
   const c1 = pick("P1", (c) => c.rank === 0);
   const c2 = pick("P4", (c) => c.rank === 0);
-  const c3 = pick("P2", (c) => c.rank >= PUBLISHED_CAP);
+  const c3 = pick("P2", (c) => c3Test(a, c));
   const c4 = pick("P3", (c) => c.rank === 1);
   const shared = counterFor(11);
   const own = counterFor(12);
@@ -230,10 +236,19 @@ describe("the measures, worked by hand", () => {
   });
 
   it("counts the breaks landing on the top 3 reasons by support, across every run", () => {
-    // c1: A1, A2, A3; c2: A3, A4; c3 (ranked past the top 3): A2, A3, A5
+    // c1: A1, A2, A3; c2: A3, A4; c3 (past the top 3 that passed their data test): A2, A3, A5
+    expect(passingRank(m.a, m.c.c3)).toBeGreaterThanOrEqual(PUBLISHED_CAP);
     expect(r.shownBreaks.breaks).toBe(8);
     expect(r.shownBreaks.shown).toBe(5);
     expect(r.shownBreaks.share!.value).toBe(5 / 8);
+  });
+
+  it("ranks a reason among the ones that passed their data test, the way a page would show them", () => {
+    // Ranked past the top 3 in propose's order, but a reason above it failed its data test.
+    const n = micro((a, c) => c.rank >= PUBLISHED_CAP && passingRank(a, c) < PUBLISHED_CAP);
+    expect(n.c.c3.rank).toBeGreaterThanOrEqual(PUBLISHED_CAP);
+    const shown = analyse(n.a, n.b, n.ratings, NOW).shownBreaks;
+    expect(shown).toMatchObject({ breaks: 8, shown: 8 });
   });
 
   it("measures each run's break rate on its own family's reasons against everyone else's", () => {
@@ -250,7 +265,7 @@ describe("the measures, worked by hand", () => {
     expect(r.safety.termsMatched).toBe(1);
     expect(r.safety.byRun.A5).toEqual({ refused: 1, categories: { blame: 1 }, refusedWithoutTerm: 1, termButPassed: 1 });
     expect(r.safety.byRun.A1).toEqual({ refused: 0, categories: {}, refusedWithoutTerm: 0, termButPassed: 1 });
-    expect(r.safety.policyMisses).toEqual([{ candidateId: m.c.c3.candidateId, runs: ["A1", "A2", "A3", "A4", "A5"] }]);
+    expect(r.safety.policyMisses).toEqual([{ candidateId: m.c.c3.candidateId, category: "terms", runs: ["A1", "A2", "A3", "A4", "A5"] }]);
   });
 
   it("pairs each drift item with its original, skips left out", () => {
@@ -357,6 +372,11 @@ describe("the measures on the fixtures", () => {
       expect(r.adversaries[x.id]!.disagreementsRated).toBe(n);
       expect(r.adversaries[x.id]!.rightOnDisagreements!.value).toBeCloseTo(right / n, 10);
     }
+  });
+
+  it("puts breaks on both sides of the top 3 a page would show, so rule 6 has both to count", () => {
+    expect(r.shownBreaks.shown).toBeGreaterThan(0);
+    expect(r.shownBreaks.shown).toBeLessThan(r.shownBreaks.breaks);
   });
 
   it("reads the noise floor as A1 against A2", () => {
@@ -500,11 +520,15 @@ describe("rule 2, the adversary's effort", () => {
     r.noiseFloor = iv(1);
     expect(decide(r).adversaryEffort.choice).toBe("medium");
   });
-  it("can't call A3 close to the floor when there's no kappa to compare", () => {
-    const r = base();
-    r.noiseFloor = iv(0.8); r.agreement["A1|A3"] = null;
-    r.extraBreaks = { inPool: 3, rated: 3, right: 3 };
-    expect(decide(r).adversaryEffort.choice).toBe("high");
+  it("stays at medium when there's no kappa to compare, whatever the extra breaks say", () => {
+    for (const [kappa, floor] of [[null, iv(0.8)], [iv(0.3), null], [null, null]] as const) {
+      const r = base();
+      r.noiseFloor = floor; r.agreement["A1|A3"] = kappa;
+      r.extraBreaks = { inPool: 3, rated: 3, right: 3 };
+      const d = decide(r).adversaryEffort;
+      expect(d.choice).toBe("medium");
+      expect(d.because).toMatch(/can't be measured/);
+    }
   });
 });
 
@@ -551,6 +575,12 @@ describe("rule 3, the adversary's model", () => {
   it("reads A5's hours for the full run one call at a time", () => {
     expect(hoursFor(fast)).toBeCloseTo((fast * FULL_RUN_ADVERSARY_CALLS) / 3600, 10);
     expect(hoursFor(slow)).toBeGreaterThan(A5_MAX_HOURS);
+  });
+  it("counts exactly 48 hours as fitting, and anything over as too slow", () => {
+    const exactly = (A5_MAX_HOURS * 3600) / FULL_RUN_ADVERSARY_CALLS; // 72 s a call
+    expect(hoursFor(exactly)).toBe(A5_MAX_HOURS);
+    expect(decide(rule3({ k4: 0.5, a5Seconds: exactly })).adversaryModel.choice).toBe("A5");
+    expect(decide(rule3({ k4: 0.5, a5Seconds: exactly + 0.001 })).adversaryModel.choice).toBe("A1");
   });
 
   it("keeps A1 when neither A4 nor A5 qualifies on kappa", () => {
@@ -676,6 +706,8 @@ describe("rule 4, self-preference", () => {
     expect(d.because).not.toContain("A4");
     r.adversaries.A1!.family = { own: 0.3, others: 0.3, gap: iv(0) };
     const after = decide(r);
+    for (const x of Object.values(r.adversaries)) if (x.family) x.family.gap = iv(0);
+    expect(decide(r).selfPreference.because).toContain(`at least ${Math.round(SELF_PREFERENCE_GAP * 100)} points less often`);
     expect(after.proposer).toEqual(before.proposer);
     expect(after.adversaryModel).toEqual(before.adversaryModel);
     expect(after.selfPreference.choice).toBe(d.choice);
@@ -701,10 +733,11 @@ describe("rule 5, samples", () => {
     r.samplesCurve.P1 = [1, 1, 1, 1, 1].map(iv);
     expect(decide(r).samples.choice).toBe(String(MAX_SAMPLES));
   });
-  it("keeps every sample, below the bar, when the chosen proposer has no reason rated good", () => {
+  it("keeps every sample when the chosen proposer has no reason rated good, and says why", () => {
     const d = decide(withCurve([])).samples;
     expect(d.choice).toBe(String(MAX_SAMPLES));
-    expect(d.metBar).toBe(false);
+    expect(d.metBar).toBe(true);
+    expect(d.because).toMatch(/no reason rated good/);
   });
 });
 
@@ -743,6 +776,15 @@ describe("every decision", () => {
 });
 
 describe("the setup it proposes", () => {
+  it("is laid out like the committed insights/setup.json, so the same values make no diff", () => {
+    const committed = readFileSync(SETUP_PATH, "utf8");
+    expect(formatSetup(parseSetup(JSON.parse(committed)))).toBe(committed);
+  });
+  it("lays out a role with no effort without the key", () => {
+    const text = formatSetup(parseSetup({ propose: { transport: "claude", model: "haiku", samples: 2 }, falsify: { transport: "gemini", model: "gemini-3.8-flash" }, attackShownOnly: true, decidedBy: "insights/pilot/results.json" }));
+    expect(text).toBe('{\n  "propose": { "transport": "claude", "model": "haiku", "samples": 2 },\n  "falsify": { "transport": "gemini", "model": "gemini-3.8-flash" },\n  "attackShownOnly": true,\n  "decidedBy": "insights/pilot/results.json"\n}\n');
+  });
+
   const previous: Setup = parseSetup({
     propose: { transport: "claude", model: "sonnet", effort: "high", samples: 5 },
     falsify: { transport: "claude", model: "opus", effort: "medium" },
@@ -782,11 +824,28 @@ describe("the tables", () => {
   it("shows each decision with its reason", () => {
     for (const d of Object.values(results.decisions)) expect(md).toContain(d.because);
   });
-  it("names a policy miss by candidate id only", () => {
+  it("names a policy miss by candidate id and category only", () => {
     const miss = b.termMatches.find((t) => t.termMatch)!.candidateId;
-    expect(md).toContain(miss);
+    expect(md).toContain(`\`${miss}\` (terms)`);
     const text = a.candidates.find((c) => c.candidateId === miss)!.candidate.claim.en;
-    expect(md).not.toContain(`${text} `);
+    expect(md).not.toContain(text);
+  });
+  it("gives the test counts a denominator: each setup's reasons", () => {
+    expect(md).toContain("| Setup | Model | Effort | Reasons | Tests passed | Refused | Missing |");
+    for (const role of PROPOSERS) {
+      expect(md).toContain(`| ${role.id} | ${role.id === "P1" ? "Haiku 4.5" : role.model === "sonnet" ? "Sonnet 5" : "Opus 5.5"} | ${role.effort ?? "none"} | ${results.proposers[role.id]!.candidates} |`);
+    }
+  });
+  it("calls it agreement, over the candidates both runs answered usably", () => {
+    expect(md).toContain("over the candidates both answered usably");
+    expect(md).toContain("Cohen's kappa, or 1 when the 2 runs agree on every candidate");
+  });
+  it("marks a choice that didn't meet its rule's own bar", () => {
+    const r = rule3({ proposer: "P4", k4: 0.5, k5: 0.5, right4: 0.7, right5: 0.4 });
+    const full: Results = { ...r, decisions: decide(r) };
+    expect(full.decisions.adversaryModel.metBar).toBe(false);
+    expect(tables(full)).toContain("A4 (Sonnet 5, high), below the rule's own bar");
+    expect(md).not.toContain("below the rule's own bar");
   });
   it("keeps to the copy rules: no em dash", () => {
     expect(md).not.toContain("—");
@@ -841,6 +900,14 @@ describe("pnpm insights:pilot:analyse", () => {
     expect(await readFile(s.paths.setup, "utf8")).toBe(s.setup);
     expect(s.lines.join("\n")).toMatch(/isn't finished/);
   });
+  it("writes nothing, and says why, when ratings.json isn't a rating", async () => {
+    for (const bad of [{}, { items: {}, answers: [] }, { items: [], answers: "x" }, []]) {
+      const s = await setUp(bad as unknown as Ratings);
+      expect(await runAnalysis(s.paths, s.io, NOW)).toBe(false);
+      expect(await exists(s.paths.results)).toBe(false);
+      expect(s.lines.join("\n")).toMatch(/isn't a rating/);
+    }
+  });
   it("writes nothing when the README has lost its markers", async () => {
     const a = fakeStageA();
     const b = fakeStageB(a);
@@ -859,7 +926,8 @@ describe("pnpm insights:pilot:analyse", () => {
     expect(results).toEqual(JSON.parse(JSON.stringify(FIXTURE.results)));
     const readme = await readFile(s.paths.readme, "utf8");
     expect(readme).toBe(withResults(s.readme, tables(results)));
-    const setup = parseSetup(JSON.parse(await readFile(s.paths.setup, "utf8")));
-    expect(setup).toEqual(setupFrom(results, parseSetup(JSON.parse(s.setup))));
+    const written = await readFile(s.paths.setup, "utf8");
+    expect(written).toBe(formatSetup(setupFrom(results, parseSetup(JSON.parse(s.setup)))));
+    expect(parseSetup(JSON.parse(written))).toEqual(setupFrom(results, parseSetup(JSON.parse(s.setup))));
   });
 });

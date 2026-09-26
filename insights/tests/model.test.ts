@@ -14,6 +14,9 @@ import {
   withRetries,
   writeJsonAtomic,
   writeTextAtomic,
+  inputOf,
+  compactCount,
+  usd,
   type Effort,
   type ModelCall,
   type Transport,
@@ -281,5 +284,19 @@ describe("writeTextAtomic", () => {
     await writeTextAtomic(path, "# Pilot\n");
     expect(await readFile(path, "utf8")).toBe("# Pilot\n");
     expect(readdirSync(dir)).toEqual(["README.md"]);
+  });
+});
+
+describe("the usage formatters", () => {
+  it("counts every input token, fresh or cached", () => {
+    expect(inputOf({ input: 10, output: 5, cacheRead: 20, cacheWrite: 3, thinking: 0, costUsd: 0 })).toBe(33);
+  });
+  it("writes a count short: as is below 1,000, then in thousands, then in millions", () => {
+    expect(compactCount(999)).toBe("999");
+    expect(compactCount(12_345)).toBe("12k");
+    expect(compactCount(3_450_000)).toBe("3.5M");
+  });
+  it("writes dollars to the cent", () => {
+    expect(usd(1.5)).toBe("$1.50");
   });
 });

@@ -59,6 +59,11 @@ describe("bootstrap", () => {
     expect(Number.isFinite(low)).toBe(true);
     expect(Number.isFinite(high)).toBe(true);
   });
+  it("gives the one group's own value, both ends, when there's only one group to draw", () => {
+    const { low, high } = bootstrap([[1, 0, 1]], mean, 2000, 7);
+    expect(low).toBeCloseTo(2 / 3, 10);
+    expect(high).toBeCloseTo(2 / 3, 10);
+  });
   it("has no interval to give without a group", () => {
     const { low, high } = bootstrap([], mean, 2000, 7);
     expect(Number.isNaN(low)).toBe(true);

@@ -19,18 +19,20 @@
  *   or passed one judged sound; a skip, or that run's own unusable answer or safety stop,
  *   counts for neither. Yes rates come from the reasons part of the rating only, rightness
  *   from the disagreements part only, even for a candidate that turns up in both.
- * - Rule 6 counts a break as landing on a shown reason when that candidate's `rank` within
- *   its finding and proposer is under `PUBLISHED_CAP`.
+ * - Rule 6 ranks a candidate among the ones that passed their data test in its finding and
+ *   proposer, in propose's own order (support, then first proposed), the way a page would
+ *   show them; a break lands on a shown reason when that rank is under `PUBLISHED_CAP`. It
+ *   pools the breaks of all 5 runs.
  * - Cost is each call's recorded `costUsd`, the list price the CLI reports; Gemini's free tier
  *   records 0. Seconds per call is the recorded answering time (waits for retries and limits
  *   already left out), averaged over the calls that came back.
  */
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { addUsage, messageOf, NO_USAGE, writeJsonAtomic, writeTextAtomic, type Usage } from "../model.ts";
-import { parseSetup, SETUP_PATH, type Role, type Setup } from "../setup.ts";
+import { addUsage, compactCount, inputOf, messageOf, NO_USAGE, usd, writeJsonAtomic, writeTextAtomic, type Usage } from "../model.ts";
+import { formatSetup, parseSetup, SETUP_PATH, type Role, type Setup } from "../setup.ts";
 import { bootstrap, cohenKappa } from "../stats.ts";
-import { inputOf, k, STAGE_A_PATH, STAGE_B_PATH } from "./cli.ts";
+import { STAGE_A_PATH, STAGE_B_PATH } from "./cli.ts";
 import { broke, counterIdOf, RATINGS_PATH, readStageFiles, remainingItems, type RatingItem, type Ratings } from "./rate.ts";
 import {
   A5_MAX_HOURS,
@@ -70,6 +72,7 @@ const HIGH_RUN = "A3";
 const CHALLENGERS = ["A4", "A5"] as const;
 const SPEED_CHECKED = "A5"; // the free tier's one call at a time
 const TIE_GOES_TO = "A5"; // "a tie goes to the cheaper one, A5, since Google's free tier costs nothing"
+const TOO_SLOW_GOES_TO = "A4"; // "an A5 pick that fails the 48-hour check going to A4 instead"
 
 export interface Interval {
   value: number;
@@ -149,7 +152,7 @@ export interface Results {
   samplesCurve: Record<string, Interval[]>; // proposer -> share of its good reasons found with the first 1..MAX_SAMPLES samples; empty with no good reason
   goodReasons: Record<string, number>;
   shownBreaks: { breaks: number; shown: number; share: Interval | null }; // rule 6, across every run
-  safety: { termsMatched: number; byRun: Record<string, SafetyByRun>; policyMisses: { candidateId: string; runs: string[] }[] };
+  safety: { termsMatched: number; byRun: Record<string, SafetyByRun>; policyMisses: { candidateId: string; category: "terms"; runs: string[] }[] };
   drift: { kappa: number | null; n: number };
   decisions: Decisions;
 }
@@ -233,6 +236,26 @@ function roleOf(roles: PilotRole[], id: string): PilotRole {
 }
 
 const sameModel = (x: PilotRole, y: PilotRole): boolean => x.transport === y.transport && x.model === y.model;
+
+/**
+ * Each passing candidate's place among the candidates that passed their data test in its
+ * own finding and proposer, in propose's own order (`rank`: support, then first proposed).
+ * A page only ever shows reasons that passed, so this, and not `rank` itself, says whether a
+ * reason sits in the top `PUBLISHED_CAP` a page would show.
+ */
+function passingRanks(candidates: StageACandidate[]): Map<string, number> {
+  const groups = new Map<string, StageACandidate[]>();
+  for (const c of candidates) {
+    if (!c.passed) continue;
+    const key = `${c.proposer}:${c.findingId}`;
+    groups.set(key, [...(groups.get(key) ?? []), c]);
+  }
+  const out = new Map<string, number>();
+  for (const group of groups.values()) {
+    group.sort((x, y) => x.rank - y.rank).forEach((c, i) => out.set(c.candidateId, i));
+  }
+  return out;
+}
 
 type Answer = Ratings["answers"][number];
 
@@ -428,10 +451,11 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
   };
 
   // Rule 6: every break, across every run, and whether it landed on a shown reason.
-  const breaks = b.verdicts.filter(broke).map((v) => {
-    const c = candidateById.get(v.candidateId)!;
-    return { findingId: c.findingId, value: c.rank < PUBLISHED_CAP };
-  });
+  const shownRank = passingRanks(a.candidates);
+  const breaks = b.verdicts.filter(broke).map((v) => ({
+    findingId: candidateById.get(v.candidateId)!.findingId,
+    value: shownRank.get(v.candidateId)! < PUBLISHED_CAP,
+  }));
   const shownBreaks = {
     breaks: breaks.length,
     shown: count(breaks, (x) => x.value),
@@ -452,7 +476,11 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
   }
   const policyMisses = b.pool
     .filter((entry) => termMatch.get(entry.candidateId))
-    .map((entry) => ({ candidateId: entry.candidateId, runs: ADVERSARIES.filter((r) => argued(verdictOf(r.id, entry.candidateId))).map((r) => r.id) }))
+    .map((entry) => ({
+      candidateId: entry.candidateId,
+      category: "terms" as const,
+      runs: ADVERSARIES.filter((r) => argued(verdictOf(r.id, entry.candidateId))).map((r) => r.id),
+    }))
     .filter((miss) => miss.runs.length > 0);
 
   // The drift check: each repeat against its original, skips left out.
@@ -514,7 +542,6 @@ export function effortName(role: PilotRole): string {
 
 const pct = (x: number): string => `${Math.round(x * 100)}%`;
 const two = (x: number): string => x.toFixed(2);
-const usd = (x: number): string => `$${x.toFixed(2)}`;
 const points = (x: number): string => String(Math.round(x * 100));
 const list = (ids: string[]): string => (ids.length <= 1 ? ids.join("") : `${ids.slice(0, -1).join(", ")} and ${ids.at(-1)}`);
 
@@ -570,10 +597,11 @@ function ruleEffort(r: Omit<Results, "decisions">): Decision {
       metBar: true,
     };
   }
-  const lead =
-    kappa && floor
-      ? `${HIGH_RUN}'s kappa with ${MEDIUM_RUN}, ${two(kappa.value)}, is more than ${KAPPA_MARGIN} from the noise floor, ${two(floor.value)}`
-      : `There's no ${kappa ? "noise floor" : `kappa between ${HIGH_RUN} and ${MEDIUM_RUN}`} to compare`;
+  if (!kappa || !floor) {
+    const missing = !kappa && !floor ? `${HIGH_RUN}'s kappa with ${MEDIUM_RUN} and the noise floor` : kappa ? "The noise floor" : `${HIGH_RUN}'s kappa with ${MEDIUM_RUN}`;
+    return { choice: "medium", rule, because: `${missing} can't be measured, so medium stays.`, metBar: true };
+  }
+  const lead = `${HIGH_RUN}'s kappa with ${MEDIUM_RUN}, ${two(kappa.value)}, is more than ${KAPPA_MARGIN} from the noise floor, ${two(floor.value)}`;
   const { rated, right } = r.extraBreaks;
   const bar = asFraction(HIGH_EFFORT_RIGHT_SHARE);
   if (rated === 0) {
@@ -681,8 +709,8 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
   const left = CHALLENGERS.filter((id) => !sameModel(roleOf(ADVERSARIES, id), proposer));
   if (left.length === 0) throw new Error("rule 3: every adversary shares the proposer's model");
   const pick = left.length === 1 ? left[0]! : moreRight(left[0]!, left[1]!);
-  const chosen = fits(pick) ? pick : "A4";
-  const slowNote = chosen === pick ? "" : ` ${pick} ${tooSlow(pick)}, so the job goes to A4.`;
+  const chosen = fits(pick) ? pick : TOO_SLOW_GOES_TO;
+  const slowNote = chosen === pick ? "" : ` ${pick} ${tooSlow(pick)}, so the job goes to ${TOO_SLOW_GOES_TO}.`;
   return {
     choice: chosen,
     rule,
@@ -702,7 +730,7 @@ function ruleSelfPreference(r: Omit<Results, "decisions">): Decision {
   const parts = [
     flagged.length > 0
       ? `${list(flagged)} broke ${flagged.length === 1 ? "its" : "their"} own family's reasons at least ${gap} points less often than everyone else's.`
-      : `No run broke its own family's reasons ${gap} points less often than everyone else's.`,
+      : `No run broke its own family's reasons at least ${gap} points less often than everyone else's.`,
   ];
   if (without.length > 0) parts.push(`${list(without)} had no reason from ${without.length === 1 ? "its" : "their"} own family to argue with.`);
   parts.push("Reported only: the setup already keeps the adversary off the proposer's own model.");
@@ -718,8 +746,8 @@ function ruleSamples(r: Omit<Results, "decisions">, proposerId: string): Decisio
     return {
       choice: String(MAX_SAMPLES),
       rule,
-      because: `${proposerId} has no reason rated good, so there's nothing to count, and the pipeline's own ${MAX_SAMPLES} samples stay.`,
-      metBar: false,
+      because: `${proposerId} has no reason rated good, so there's no share of them to find, and the pipeline's own ${MAX_SAMPLES} samples stay.`,
+      metBar: true,
     };
   }
   const first = (n: number) => (n === 1 ? "the first sample finds" : `the first ${n} samples find`);
@@ -747,7 +775,7 @@ function ruleShownOnly(r: Omit<Results, "decisions">): Decision {
   return {
     choice: on ? "on" : "off",
     rule,
-    because: `${shown} of ${breaks} breaks (${pct(landed.value)}) landed on the top ${PUBLISHED_CAP} reasons by support, ${on ? "at least" : "under"} ${pct(SHOWN_BREAKS_SHARE)}.`,
+    because: `${shown} of ${breaks} breaks (${pct(landed.value)}) landed on the top ${PUBLISHED_CAP} reasons a page would show, ${on ? "at least" : "under"} ${pct(SHOWN_BREAKS_SHARE)}.`,
     metBar: true,
   };
 }
@@ -800,7 +828,7 @@ export function tables(r: Results): string {
 
   out.push("### Proposers", "");
   out.push(`${r.findings} findings, ${MAX_SAMPLES} samples each. Every interval is ${pct(CONFIDENCE)}, from ${BOOTSTRAP_ROUNDS.toLocaleString("en-US")} bootstrap rounds over the findings.`, "");
-  out.push(...header(["Setup", "Model", "Effort", "Usable answers", "Tests passed", "Refused", "Missing", "Reasons per finding", "Entropy", "Links consistent", "Safety drops"]));
+  out.push(...header(["Setup", "Model", "Effort", "Reasons", "Tests passed", "Refused", "Missing", "Usable answers", "Reasons per finding", "Entropy", "Links consistent", "Safety drops"]));
   for (const role of PROPOSERS) {
     const p = r.proposers[role.id]!;
     out.push(
@@ -808,10 +836,11 @@ export function tables(r: Results): string {
         role.id,
         modelName(role),
         effortName(role),
-        pctRange(p.usable),
+        p.candidates,
         pctRange(p.passed),
         counts(p.refused),
         p.missing,
+        pctRange(p.usable),
         numRange(p.distinctPerFinding, 1),
         numRange(p.entropy),
         `${p.linksConsistent} of ${p.linksProposed}`,
@@ -823,7 +852,7 @@ export function tables(r: Results): string {
   out.push(...header(["Setup", "Yes rate", "Rated", "Cost at list price", "Tokens in", "Tokens out", "Seconds per call"]));
   for (const role of PROPOSERS) {
     const p = r.proposers[role.id]!;
-    out.push(cells([role.id, pctRange(p.yesRate), p.rated, usd(p.costUsd), k(inputOf(p.tokens)), k(p.tokens.output), seconds(p.secondsPerCall)]));
+    out.push(cells([role.id, pctRange(p.yesRate), p.rated, usd(p.costUsd), compactCount(inputOf(p.tokens)), compactCount(p.tokens.output), seconds(p.secondsPerCall)]));
   }
 
   out.push("", "### Adversaries", "");
@@ -857,8 +886,8 @@ export function tables(r: Results): string {
         family ? pct(family.others) : "none",
         family ? `${points(family.gap.value)} points (${points(family.gap.low)} to ${points(family.gap.high)})` : "none",
         usd(x.costUsd),
-        k(inputOf(x.tokens)),
-        k(x.tokens.output),
+        compactCount(inputOf(x.tokens)),
+        compactCount(x.tokens.output),
         seconds(x.secondsPerCall),
       ]),
     );
@@ -867,7 +896,7 @@ export function tables(r: Results): string {
 
   out.push("", "### Agreement", "");
   out.push(
-    `Cohen's kappa between each pair of runs, over the candidates both answered. ${MEDIUM_RUN} and ${REPEAT_RUN} are the same setup run twice, so their kappa is the noise floor: ${numRange(r.noiseFloor)}.`,
+    `Agreement between each pair of runs, over the candidates both answered usably: Cohen's kappa, or 1 when the 2 runs agree on every candidate. ${MEDIUM_RUN} and ${REPEAT_RUN} are the same setup run twice, so their agreement is the noise floor: ${numRange(r.noiseFloor)}.`,
     "",
   );
   out.push(...header(["Run", ...ADVERSARIES.map((x) => x.id)]));
@@ -893,7 +922,9 @@ export function tables(r: Results): string {
   }
 
   out.push("", "### Shown reasons", "");
-  out.push(`${r.shownBreaks.shown} of ${r.shownBreaks.breaks} breaks across every run landed on the top ${PUBLISHED_CAP} reasons by support: ${pctRange(r.shownBreaks.share)}.`);
+  out.push(
+    `${r.shownBreaks.shown} of ${r.shownBreaks.breaks} breaks across every run landed on the top ${PUBLISHED_CAP} reasons a page would show, by support among the ones that passed their data test: ${pctRange(r.shownBreaks.share)}.`,
+  );
 
   out.push("", "### Safety", "");
   out.push(`${r.safety.termsMatched} of the pool's candidates matched a private term.`, "");
@@ -903,8 +934,8 @@ export function tables(r: Results): string {
     out.push(cells([role.id, s.refused, counts(s.categories), s.refusedWithoutTerm, s.termButPassed]));
   }
   if (r.safety.policyMisses.length > 0) {
-    out.push("", "Argued with a private term matched, by candidate id:", "");
-    for (const miss of r.safety.policyMisses) out.push(`- \`${miss.candidateId}\`: ${miss.runs.join(", ")}`);
+    out.push("", "Argued with a private term matched, by candidate id and category, with the runs that passed it:", "");
+    for (const miss of r.safety.policyMisses) out.push(`- \`${miss.candidateId}\` (${miss.category}): ${miss.runs.join(", ")}`);
   }
 
   out.push("", "### Drift", "");
@@ -933,6 +964,13 @@ export function withResults(readme: string, md: string): string {
   const end = readme.indexOf(RESULTS_END);
   if (start < 0 || end < 0 || end < start) throw new Error(`the README needs ${RESULTS_START} and then ${RESULTS_END} around its results`);
   return `${readme.slice(0, start + RESULTS_START.length)}\n\n${md.trim()}\n\n${readme.slice(end)}`;
+}
+
+/** Whether a parsed `ratings.json` has the 2 lists every later step reads. */
+function isRatingsShape(value: unknown): value is Ratings {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const { items, answers } = value as { items?: unknown; answers?: unknown };
+  return Array.isArray(items) && Array.isArray(answers);
 }
 
 export interface AnalysisPaths {
@@ -968,7 +1006,12 @@ export async function runAnalysis(paths: AnalysisPaths, io: { log: (line: string
 
   let ratings: Ratings;
   try {
-    ratings = JSON.parse(await readFile(paths.ratings, "utf8")) as Ratings;
+    const parsed: unknown = JSON.parse(await readFile(paths.ratings, "utf8"));
+    if (!isRatingsShape(parsed)) {
+      io.error(`${paths.ratings} isn't a rating: it needs an "items" list and an "answers" list`);
+      return false;
+    }
+    ratings = parsed;
   } catch (error) {
     const missing = (error as NodeJS.ErrnoException)?.code === "ENOENT";
     io.error(missing ? "the rating hasn't started: run `pnpm insights:pilot:rate` first" : `couldn't read ${paths.ratings}: ${messageOf(error)}`);
@@ -994,7 +1037,7 @@ export async function runAnalysis(paths: AnalysisPaths, io: { log: (line: string
 
   await writeJsonAtomic(paths.results, results);
   await writeTextAtomic(paths.readme, readme);
-  await writeJsonAtomic(paths.setup, setup);
+  await writeTextAtomic(paths.setup, formatSetup(setup));
   for (const d of Object.values(results.decisions)) io.log(`${d.rule}: ${d.choice}${d.metBar ? "" : " (below the rule's own bar)"}`);
   io.log(`wrote ${paths.results}, ${paths.readme} and ${paths.setup}`);
   return true;
