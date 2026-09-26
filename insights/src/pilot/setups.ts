@@ -10,7 +10,7 @@ import type { Role } from "../setup.ts";
 export { SAMPLES as MAX_SAMPLES } from "../propose.ts";
 
 /** Rule 6's "top 3": how many reasons by support a page actually shows, read off the run itself, not a second copy of it. */
-export { PUBLISHED_CAP as SHOWN_TOP_N } from "../run.ts";
+export { PUBLISHED_CAP } from "../run.ts";
 
 export interface PilotRole extends Role {
   id: string;

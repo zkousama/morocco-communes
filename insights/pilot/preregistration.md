@@ -30,11 +30,13 @@ Stage B tries 5 adversary runs against one shared pool of candidates:
 | A2 | Opus 5.5 | medium, a second run of the same setup |
 | A3 | Opus 5.5 | high |
 | A4 | Sonnet 5 | high |
-| A5 | Gemini 3.8 Flash | none |
+| A5 | Gemini 3.8 Flash | its own default |
 
 A2 repeats A1's exact setup as a fresh run in its own right, with a run label that keeps its
 cache entry apart from A1's. Together, they measure how much running the same model twice
-can disagree with itself: the noise floor every other comparison gets read against.
+can disagree with itself: the noise floor every other comparison gets read against. A5 runs
+with its own default effort: the Gemini transport sends no thinking setting at all, so the
+model falls back to whatever it defaults to.
 
 ## Samples
 
@@ -117,26 +119,28 @@ neither.
    broke and A1 passed, were right at least 2 times in 3; when it doesn't clear that bar,
    medium effort still wins.
 3. **Adversary model.** A4 and A5 each qualify to replace Opus if their kappa with A1
-   differs from the noise floor by 0.05 or less and they get the disagreements right at
-   least as often as A1 does. If both qualify, whichever is right more often on the
-   disagreements wins; a tie goes to the cheaper one at API list price, which is A5, since
-   Google's free tier costs nothing. A5 still has to clear its own speed check: at one call
-   at a time, its seconds per call times 2,400 calls has to fit inside 48 hours; if it
-   doesn't, the job goes to whichever setup qualifies next, and the write-up says so.
-   Whichever model this leaves, if it's the same model already chosen as the proposer, it's
-   skipped too, and the job goes to the next qualifier, or to Opus 5.5 if none is left. If
-   the proposer is Opus 5.5 itself, so Opus can't be the adversary, and neither A4 nor A5
-   qualifies, the job goes to whichever of A4 and A5 is right more often on the
-   disagreements anyway, a tie going to A5 (cheaper), subject to the same 48-hour check, or
-   to A4 if A5 fails it; the write-up says it didn't clear this rule's own bar.
-4. **Self-preference.** Measured and reported, not decided anew: whether an adversary
-   breaks its own model family's reasons at least 15 points less often than everyone
-   else's. `insights/setup.json` already refuses pairing an adversary with the proposer's
-   own model, the only pairing in the full run where self-preference could bite, since
-   every candidate there comes from the one chosen proposer; this rule can only confirm
-   that ban was justified, not change the choice. Haiku, Sonnet, Opus and Gemini each count
-   as their own family; A5 has no candidates from its own family in the pool, so there's
-   nothing here for it to confirm.
+   differs from the noise floor, A1 and A2's own kappa, by 0.05 or less, and they get the
+   disagreements right at least as often as the Opus run rule 2 chose (A1 for medium
+   effort, A3 for high), the run they'd be replacing. If both qualify, whichever is
+   right more often on the disagreements wins; a tie goes to the cheaper one, A5, since
+   Google's free tier costs nothing. A5's win still needs its own speed check: at one call
+   at a time, its seconds per call times 2,400 calls has to fit inside 48 hours, or it
+   doesn't count, the same as failing to qualify. A qualifier is also skipped outright if it
+   shares a model with the chosen proposer. Whichever candidate is left standing after all
+   that takes the job. If nothing is left standing, the Opus run rule 2 chose keeps the job,
+   unless that run's model is the proposer's own: then, since Opus can't be the adversary
+   either, the job goes to whichever of A4 and A5 is right more often on the disagreements,
+   qualifying or not, a tie going to A5, an A5 pick that fails the 48-hour check going to A4
+   instead. Whenever the job lands on a setup this last way, the write-up says it didn't
+   meet this rule's own bar.
+4. **Self-preference.** Rule 4 is measured and reported: whether an adversary breaks its
+   own model family's reasons at least 15 points less often than everyone else's.
+   `insights/setup.json` already refuses pairing an adversary with the proposer's own
+   model, the only pairing in the full run where self-preference could bite, since every
+   candidate there comes from the one chosen proposer. This rule confirms that existing
+   ban; it doesn't decide anything new. Haiku, Sonnet, Opus and Gemini each count as their
+   own family; A5 has no candidates from its own family in the pool, so there's nothing
+   here for it to confirm.
 5. **Samples.** Use the smallest number of samples from 1 to 5 that finds at least 90% of
    the chosen proposer's reasons rated good at 5 samples. "Good" is whatever the owner rated
    yes.

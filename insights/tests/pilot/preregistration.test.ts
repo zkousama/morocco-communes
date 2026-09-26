@@ -20,11 +20,11 @@ import {
   POOL_PER_PROPOSER,
   PROPOSER_MARGIN,
   PROPOSERS,
+  PUBLISHED_CAP,
   RATED_PER_PROPOSER,
   SAMPLES_SHARE,
   SELF_PREFERENCE_GAP,
   SHOWN_BREAKS_SHARE,
-  SHOWN_TOP_N,
 } from "../../src/pilot/setups.ts";
 
 const text = readFileSync("insights/pilot/preregistration.md", "utf8");
@@ -83,7 +83,10 @@ describe("the setups tables", () => {
       expect(row, `a table row for ${role.id}`).toBeDefined();
       const [, model, effort] = row!;
       expect(model, `${role.id}'s model cell`).toContain(MODEL_DISPLAY[role.model] ?? role.model);
-      expect(effort, `${role.id}'s effort cell`).toContain(role.effort ?? "none");
+      // Gemini takes no thinking setting at all, so its row says so in its own words rather
+      // than "none", which reads as though an effort could have been asked for and wasn't.
+      const wantEffort = role.transport === "gemini" ? "its own default" : (role.effort ?? "none");
+      expect(effort, `${role.id}'s effort cell`).toContain(wantEffort);
     }
   });
 });
@@ -96,14 +99,19 @@ describe("the setups tables", () => {
  * checked in their own right), so every table is stripped whole, along with the ordered
  * decision-rules list's own numbering. Setup and run ids (P1, A3, ...), "rule N" references
  * and the census year are identifiers, not measures, and are stripped too; the seed is
- * excluded by name, as asked.
+ * excluded by name, as asked. Most of `pinned` below is built from a constant, but a few
+ * entries are fixed text with nothing to trace to: the model display names ("Haiku 4.5" and
+ * the rest, proper nouns rather than measures) and "2 setups" (a generic comparison between
+ * a pair of things, not a count of anything the pilot defines).
  */
 describe("the numbers it states", () => {
   const pct = (share: number) => Math.round(share * 100);
 
-  // Rule 2's "n times in d" is read back off the file itself, not hand-typed, so a rewording
-  // that changes the fraction can't drift from HIGH_EFFORT_RIGHT_SHARE unnoticed.
-  const rightShareMatch = /(\d+) times in (\d+)/.exec(text);
+  // Rule 2's "n times in d" is read back off rule 2's own paragraph, not the first match
+  // anywhere in the file, so a rewording that changes the fraction can't drift from
+  // HIGH_EFFORT_RIGHT_SHARE unnoticed, and nothing outside rule 2 could match by accident.
+  const rule2Text = /2\.\s+\*\*Adversary effort\.\*\*([\s\S]*?)\n3\.\s+\*\*Adversary model\.\*\*/.exec(text)?.[1] ?? "";
+  const rightShareMatch = /(\d+) times in (\d+)/.exec(rule2Text);
   const rightSharePhrase = rightShareMatch?.[0] ?? "«rule 2's fraction not found»";
 
   // The 2 "about" figures under "What this pilot can tell apart" are a plain normal
@@ -148,7 +156,7 @@ describe("the numbers it states", () => {
     `${MIN_SAMPLES} to ${MAX_SAMPLES}`,
     `${pct(SAMPLES_SHARE)}%`,
     `${pct(SHOWN_BREAKS_SHARE)}%`,
-    `${SHOWN_TOP_N} reasons`,
+    `${PUBLISHED_CAP} reasons`,
     `${RATED_PER_PROPOSER * PROPOSERS.length} reasons`,
     `${RATED_PER_PROPOSER} per proposer setup`,
     `${RATED_PER_PROPOSER} of the ${TOTAL_FINDINGS} findings`,
