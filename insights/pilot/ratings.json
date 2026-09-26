@@ -1,0 +1,1382 @@
+{
+  "items": [
+    {
+      "kind": "reason",
+      "itemId": "reason:f32ec0c06741",
+      "candidateId": "f32ec0c06741"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:399f4b74f625",
+      "candidateId": "399f4b74f625"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:85af71ed2bcc",
+      "candidateId": "85af71ed2bcc"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:f0b45102ff5b",
+      "candidateId": "f0b45102ff5b"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:64bf9f434670",
+      "candidateId": "64bf9f434670"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:dd91d1ec6fa0",
+      "candidateId": "dd91d1ec6fa0"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:ef0c1d92bc34",
+      "candidateId": "ef0c1d92bc34"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:ae9a8d8fa7bc",
+      "candidateId": "ae9a8d8fa7bc"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:aaaf780a0080",
+      "candidateId": "aaaf780a0080"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:c79068dd1977",
+      "candidateId": "c79068dd1977"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:0a6923629d2d",
+      "candidateId": "0a6923629d2d"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:9401af8da28f",
+      "candidateId": "9401af8da28f"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:c6868047c916",
+      "candidateId": "c6868047c916"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:378b4482efc1",
+      "candidateId": "378b4482efc1"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:bc0550a56965",
+      "candidateId": "bc0550a56965"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:059fe2312073",
+      "candidateId": "059fe2312073"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:a9d69480c1ae",
+      "candidateId": "a9d69480c1ae"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:8a977ab04ec2",
+      "candidateId": "8a977ab04ec2"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:f96a0f1bb84a",
+      "candidateId": "f96a0f1bb84a"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:11fc14462e40",
+      "candidateId": "11fc14462e40"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:4e0b8dc0e51d",
+      "candidateId": "4e0b8dc0e51d"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:e893b36421bf",
+      "candidateId": "e893b36421bf"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:2855494a0a16",
+      "candidateId": "2855494a0a16"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:bb24bea3c95d",
+      "candidateId": "bb24bea3c95d"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:94a887dbc2d1",
+      "candidateId": "94a887dbc2d1"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:062245902ae0",
+      "candidateId": "062245902ae0"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:ad65aac9f721",
+      "candidateId": "ad65aac9f721"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:dad0ce788dd4",
+      "candidateId": "dad0ce788dd4"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:48b66f266258",
+      "candidateId": "48b66f266258"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:c5fd551d4753",
+      "candidateId": "c5fd551d4753"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:fe3f9067342a",
+      "candidateId": "fe3f9067342a"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:9dbcf61e37c0",
+      "candidateId": "9dbcf61e37c0"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:f6507e0fabaa",
+      "candidateId": "f6507e0fabaa"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:d917479e5201",
+      "candidateId": "d917479e5201"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:3c5c178313b3",
+      "candidateId": "3c5c178313b3"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:ce7bf1efab83",
+      "candidateId": "ce7bf1efab83"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:a6fc72bed757",
+      "candidateId": "a6fc72bed757"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:91586bf68356",
+      "candidateId": "91586bf68356"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:9d0bb503b713",
+      "candidateId": "9d0bb503b713"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:679727cabbb4",
+      "candidateId": "679727cabbb4"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:7751ecdfaafb",
+      "candidateId": "7751ecdfaafb"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:792d6c3d4ecd",
+      "candidateId": "792d6c3d4ecd"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:14b09a64d747",
+      "candidateId": "14b09a64d747"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:a14e2db7dac2",
+      "candidateId": "a14e2db7dac2"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:fbbf5b9c5400",
+      "candidateId": "fbbf5b9c5400"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:aa2a183f3a71",
+      "candidateId": "aa2a183f3a71"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:b49bb59e71da",
+      "candidateId": "b49bb59e71da"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:46ce1ba742d6",
+      "candidateId": "46ce1ba742d6"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:e31cd6bff7d4",
+      "candidateId": "e31cd6bff7d4"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:2a3834a42574",
+      "candidateId": "2a3834a42574"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:a05968859767",
+      "candidateId": "a05968859767"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:cc3e3420b752",
+      "candidateId": "cc3e3420b752"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:eb81c03822ec",
+      "candidateId": "eb81c03822ec"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:e15dd12c9f1b",
+      "candidateId": "e15dd12c9f1b"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:c7ec5526985e",
+      "candidateId": "c7ec5526985e"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:abb63cb00c33",
+      "candidateId": "abb63cb00c33"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:d43682fcec0c",
+      "candidateId": "d43682fcec0c"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:8931a7503ab9",
+      "candidateId": "8931a7503ab9"
+    },
+    {
+      "kind": "reason",
+      "itemId": "reason:a1336eda7449",
+      "candidateId": "a1336eda7449"
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:a7d2688bdd9a",
+      "candidateId": "a7d2688bdd9a",
+      "counterIds": [
+        "447fe79c8da4",
+        "855d22765645"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:e96cf18a5629",
+      "candidateId": "e96cf18a5629",
+      "counterIds": [
+        "06df0af7dc9f",
+        "14393dc9f3e7",
+        "a6bfc4e8b519"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:87068bc905ee",
+      "candidateId": "87068bc905ee",
+      "counterIds": [
+        "7dfdd3357715",
+        "fd3fc224a57c"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:cbaa89b4d300",
+      "candidateId": "cbaa89b4d300",
+      "counterIds": [
+        "a87f916f50ae"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:07c51a402506",
+      "candidateId": "07c51a402506",
+      "counterIds": [
+        "0a25f8a84d94"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:c5fd551d4753",
+      "candidateId": "c5fd551d4753",
+      "counterIds": [
+        "579c9d7254e3",
+        "9fab6216304a"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:0f8635530b6c",
+      "candidateId": "0f8635530b6c",
+      "counterIds": [
+        "0cce5f47cb1f",
+        "8308584eb820"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:e5c43a3df6ea",
+      "candidateId": "e5c43a3df6ea",
+      "counterIds": [
+        "0f467ba29bfd"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:11fc14462e40",
+      "candidateId": "11fc14462e40",
+      "counterIds": [
+        "0a1bbd4e1ca7"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:200014a2a132",
+      "candidateId": "200014a2a132",
+      "counterIds": [
+        "b923ea849c7b"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:d7545a22e261",
+      "candidateId": "d7545a22e261",
+      "counterIds": [
+        "857d7e468f70"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:28423561df5e",
+      "candidateId": "28423561df5e",
+      "counterIds": [
+        "0ab7cb67a9d2"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:6989ad27fb59",
+      "candidateId": "6989ad27fb59",
+      "counterIds": [
+        "0b3a5af8efe6"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:42b0f9eaf41f",
+      "candidateId": "42b0f9eaf41f",
+      "counterIds": [
+        "1a49f092c59b",
+        "1c62d6c63218",
+        "6c77c42f7613"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:28a7705e1929",
+      "candidateId": "28a7705e1929",
+      "counterIds": [
+        "8f2b4692a24d"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:3badc80a816a",
+      "candidateId": "3badc80a816a",
+      "counterIds": [
+        "9e87bf67e29e"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:0ebd34f1c326",
+      "candidateId": "0ebd34f1c326",
+      "counterIds": [
+        "d973081d89f6"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:9218118e52e6",
+      "candidateId": "9218118e52e6",
+      "counterIds": [
+        "b2895108a51d"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:2f9a3d12b205",
+      "candidateId": "2f9a3d12b205",
+      "counterIds": [
+        "15a2a53f4407",
+        "9f13b28b498c"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:9ca664f4ea69",
+      "candidateId": "9ca664f4ea69",
+      "counterIds": [
+        "2fa1b30210fd"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:c327f673d0d4",
+      "candidateId": "c327f673d0d4",
+      "counterIds": [
+        "815321385c74",
+        "972d47f5a3c1"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:72ad9ad2d596",
+      "candidateId": "72ad9ad2d596",
+      "counterIds": [
+        "0f854c790748",
+        "ce8df306d853"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:51c2b68a9949",
+      "candidateId": "51c2b68a9949",
+      "counterIds": [
+        "5d41ae13de06"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:27435b83e9cc",
+      "candidateId": "27435b83e9cc",
+      "counterIds": [
+        "34e971d65b49",
+        "799baa56a50c"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:4b8c0a21a1cd",
+      "candidateId": "4b8c0a21a1cd",
+      "counterIds": [
+        "4713dbdbe93e",
+        "9c54fea28757"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:dac1f3ff758e",
+      "candidateId": "dac1f3ff758e",
+      "counterIds": [
+        "8db5255d2a58"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:e6b0ea427b16",
+      "candidateId": "e6b0ea427b16",
+      "counterIds": [
+        "2ca6176a15f7",
+        "8ec9439fe6ba",
+        "bb0a51612ac4"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:0201090a5d56",
+      "candidateId": "0201090a5d56",
+      "counterIds": [
+        "85b5d4c32e37",
+        "e816d81bca81"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:c77b6ec26317",
+      "candidateId": "c77b6ec26317",
+      "counterIds": [
+        "8ada608d4d42",
+        "d80b7f2ce4f1"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:7b23d056d671",
+      "candidateId": "7b23d056d671",
+      "counterIds": [
+        "044b58ada5b5",
+        "4611233929ff",
+        "5f889dd0bc52"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:fbf37981c30b",
+      "candidateId": "fbf37981c30b",
+      "counterIds": [
+        "e6ac24427276"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:094efee5ea80",
+      "candidateId": "094efee5ea80",
+      "counterIds": [
+        "910e4e13420b"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:4e4e005f788e",
+      "candidateId": "4e4e005f788e",
+      "counterIds": [
+        "94fbfecc4818"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:a809f0e4d206",
+      "candidateId": "a809f0e4d206",
+      "counterIds": [
+        "8ed343465c56"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:214ea609734e",
+      "candidateId": "214ea609734e",
+      "counterIds": [
+        "1a39653475eb",
+        "4bf26d0ee0d7"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:a011a223f984",
+      "candidateId": "a011a223f984",
+      "counterIds": [
+        "34a0b6a5fd5e",
+        "e611a63c0907"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:ff62b9563058",
+      "candidateId": "ff62b9563058",
+      "counterIds": [
+        "0de7b7e248aa",
+        "6ec6e1b8fca2"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:85af71ed2bcc",
+      "candidateId": "85af71ed2bcc",
+      "counterIds": [
+        "04db0a567ae7",
+        "4971699d6302"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:4e3a7807fa3f",
+      "candidateId": "4e3a7807fa3f",
+      "counterIds": [
+        "81a93d073489"
+      ]
+    },
+    {
+      "kind": "disagreement",
+      "itemId": "disagreement:475072f5f248",
+      "candidateId": "475072f5f248",
+      "counterIds": [
+        "05e106a7462b"
+      ]
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:2a3834a42574",
+      "of": "reason:2a3834a42574"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:94a887dbc2d1",
+      "of": "reason:94a887dbc2d1"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:a6fc72bed757",
+      "of": "reason:a6fc72bed757"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:f96a0f1bb84a",
+      "of": "reason:f96a0f1bb84a"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:c5fd551d4753",
+      "of": "reason:c5fd551d4753"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:disagreement:27435b83e9cc",
+      "of": "disagreement:27435b83e9cc"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:378b4482efc1",
+      "of": "reason:378b4482efc1"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:reason:dd91d1ec6fa0",
+      "of": "reason:dd91d1ec6fa0"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:disagreement:c77b6ec26317",
+      "of": "disagreement:c77b6ec26317"
+    },
+    {
+      "kind": "drift",
+      "itemId": "drift:disagreement:9ca664f4ea69",
+      "of": "disagreement:9ca664f4ea69"
+    }
+  ],
+  "answers": [
+    {
+      "itemId": "reason:f32ec0c06741",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:399f4b74f625",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:85af71ed2bcc",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:f0b45102ff5b",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:64bf9f434670",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:dd91d1ec6fa0",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:ef0c1d92bc34",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:ae9a8d8fa7bc",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:aaaf780a0080",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:c79068dd1977",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:0a6923629d2d",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:9401af8da28f",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:c6868047c916",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:378b4482efc1",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:bc0550a56965",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:059fe2312073",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:a9d69480c1ae",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:8a977ab04ec2",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:f96a0f1bb84a",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:11fc14462e40",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:4e0b8dc0e51d",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:e893b36421bf",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:2855494a0a16",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:bb24bea3c95d",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:94a887dbc2d1",
+      "answer": "yes",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:062245902ae0",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:ad65aac9f721",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:dad0ce788dd4",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:48b66f266258",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:c5fd551d4753",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:fe3f9067342a",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:9dbcf61e37c0",
+      "answer": "yes",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:f6507e0fabaa",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:d917479e5201",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:3c5c178313b3",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:ce7bf1efab83",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:a6fc72bed757",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:91586bf68356",
+      "answer": "yes",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:9d0bb503b713",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:679727cabbb4",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:7751ecdfaafb",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:792d6c3d4ecd",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:14b09a64d747",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:a14e2db7dac2",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:fbbf5b9c5400",
+      "answer": "yes",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:aa2a183f3a71",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:b49bb59e71da",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:46ce1ba742d6",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:e31cd6bff7d4",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:2a3834a42574",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:a05968859767",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:cc3e3420b752",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:eb81c03822ec",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:e15dd12c9f1b",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:c7ec5526985e",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:abb63cb00c33",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:d43682fcec0c",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:8931a7503ab9",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "reason:a1336eda7449",
+      "answer": "no",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:a7d2688bdd9a",
+      "answer": "no",
+      "counters": {
+        "447fe79c8da4": "yes",
+        "855d22765645": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:e96cf18a5629",
+      "answer": "no",
+      "counters": {
+        "06df0af7dc9f": "no",
+        "14393dc9f3e7": "no",
+        "a6bfc4e8b519": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:87068bc905ee",
+      "answer": "no",
+      "counters": {
+        "7dfdd3357715": "yes",
+        "fd3fc224a57c": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:cbaa89b4d300",
+      "answer": "no",
+      "counters": {
+        "a87f916f50ae": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:07c51a402506",
+      "answer": "no",
+      "counters": {
+        "0a25f8a84d94": "skip"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:c5fd551d4753",
+      "answer": "no",
+      "counters": {
+        "579c9d7254e3": "no",
+        "9fab6216304a": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:0f8635530b6c",
+      "answer": "no",
+      "counters": {
+        "0cce5f47cb1f": "no",
+        "8308584eb820": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:e5c43a3df6ea",
+      "answer": "yes",
+      "counters": {
+        "0f467ba29bfd": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:11fc14462e40",
+      "answer": "no",
+      "counters": {
+        "0a1bbd4e1ca7": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:200014a2a132",
+      "answer": "no",
+      "counters": {
+        "b923ea849c7b": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:d7545a22e261",
+      "answer": "no",
+      "counters": {
+        "857d7e468f70": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:28423561df5e",
+      "answer": "no",
+      "counters": {
+        "0ab7cb67a9d2": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:6989ad27fb59",
+      "answer": "no",
+      "counters": {
+        "0b3a5af8efe6": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:42b0f9eaf41f",
+      "answer": "no",
+      "counters": {
+        "1a49f092c59b": "no",
+        "1c62d6c63218": "yes",
+        "6c77c42f7613": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:28a7705e1929",
+      "answer": "no",
+      "counters": {
+        "8f2b4692a24d": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:3badc80a816a",
+      "answer": "no",
+      "counters": {
+        "9e87bf67e29e": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:0ebd34f1c326",
+      "answer": "no",
+      "counters": {
+        "d973081d89f6": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:9218118e52e6",
+      "answer": "no",
+      "counters": {
+        "b2895108a51d": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:2f9a3d12b205",
+      "answer": "no",
+      "counters": {
+        "15a2a53f4407": "no",
+        "9f13b28b498c": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:9ca664f4ea69",
+      "answer": "no",
+      "counters": {
+        "2fa1b30210fd": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:c327f673d0d4",
+      "answer": "no",
+      "counters": {
+        "815321385c74": "no",
+        "972d47f5a3c1": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:72ad9ad2d596",
+      "answer": "no",
+      "counters": {
+        "0f854c790748": "yes",
+        "ce8df306d853": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:51c2b68a9949",
+      "answer": "no",
+      "counters": {
+        "5d41ae13de06": "skip"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:27435b83e9cc",
+      "answer": "no",
+      "counters": {
+        "34e971d65b49": "no",
+        "799baa56a50c": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:4b8c0a21a1cd",
+      "answer": "no",
+      "counters": {
+        "4713dbdbe93e": "yes",
+        "9c54fea28757": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:dac1f3ff758e",
+      "answer": "no",
+      "counters": {
+        "8db5255d2a58": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:e6b0ea427b16",
+      "answer": "no",
+      "counters": {
+        "2ca6176a15f7": "yes",
+        "8ec9439fe6ba": "yes",
+        "bb0a51612ac4": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:0201090a5d56",
+      "answer": "no",
+      "counters": {
+        "85b5d4c32e37": "no",
+        "e816d81bca81": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:c77b6ec26317",
+      "answer": "no",
+      "counters": {
+        "8ada608d4d42": "no",
+        "d80b7f2ce4f1": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:7b23d056d671",
+      "answer": "no",
+      "counters": {
+        "044b58ada5b5": "no",
+        "4611233929ff": "no",
+        "5f889dd0bc52": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:fbf37981c30b",
+      "answer": "no",
+      "counters": {
+        "e6ac24427276": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:094efee5ea80",
+      "answer": "no",
+      "counters": {
+        "910e4e13420b": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:4e4e005f788e",
+      "answer": "no",
+      "counters": {
+        "94fbfecc4818": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:a809f0e4d206",
+      "answer": "no",
+      "counters": {
+        "8ed343465c56": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:214ea609734e",
+      "answer": "no",
+      "counters": {
+        "1a39653475eb": "yes",
+        "4bf26d0ee0d7": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:a011a223f984",
+      "answer": "no",
+      "counters": {
+        "34a0b6a5fd5e": "yes",
+        "e611a63c0907": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:ff62b9563058",
+      "answer": "no",
+      "counters": {
+        "0de7b7e248aa": "no",
+        "6ec6e1b8fca2": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:85af71ed2bcc",
+      "answer": "no",
+      "counters": {
+        "04db0a567ae7": "yes",
+        "4971699d6302": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:4e3a7807fa3f",
+      "answer": "no",
+      "counters": {
+        "81a93d073489": "yes"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "disagreement:475072f5f248",
+      "answer": "no",
+      "counters": {
+        "05e106a7462b": "no"
+      },
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:2a3834a42574",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:94a887dbc2d1",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:a6fc72bed757",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:f96a0f1bb84a",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:c5fd551d4753",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:disagreement:27435b83e9cc",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:378b4482efc1",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:reason:dd91d1ec6fa0",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:disagreement:c77b6ec26317",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    },
+    {
+      "itemId": "drift:disagreement:9ca664f4ea69",
+      "answer": "skip",
+      "at": "2026-09-26T16:42:32.423Z"
+    }
+  ]
+}

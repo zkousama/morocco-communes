@@ -1,0 +1,2122 @@
+{
+  "ranAt": "2026-09-26T16:42:32.423Z",
+  "judges": [
+    {
+      "id": "J1",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "family": "OpenAI",
+      "answered": [
+        "openai/gpt-oss-120b"
+      ],
+      "asked": 99,
+      "usable": 99,
+      "failed": 0,
+      "unsure": 2,
+      "calls": 99,
+      "usage": {
+        "input": 83948,
+        "output": 65565,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "thinking": 60245,
+        "costUsd": 0
+      },
+      "secondsPerCall": 2.226252525252525,
+      "waitedSeconds": 616
+    },
+    {
+      "id": "J2",
+      "provider": "groq",
+      "model": "qwen/qwen3.8-27b",
+      "family": "Alibaba",
+      "answered": [
+        "qwen/qwen3.8-27b"
+      ],
+      "asked": 99,
+      "usable": 99,
+      "failed": 0,
+      "unsure": 0,
+      "calls": 99,
+      "usage": {
+        "input": 84046,
+        "output": 4889,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "thinking": 0,
+        "costUsd": 0
+      },
+      "secondsPerCall": 0.5196767676767676,
+      "waitedSeconds": 610
+    },
+    {
+      "id": "J3",
+      "provider": "cloudflare",
+      "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      "family": "Meta",
+      "answered": [
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+      ],
+      "asked": 99,
+      "usable": 95,
+      "failed": 0,
+      "unsure": 0,
+      "calls": 99,
+      "usage": {
+        "input": 82969,
+        "output": 3927,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "thinking": 0,
+        "costUsd": 0,
+        "neurons": 3016.860361099243
+      },
+      "secondsPerCall": 1.4717373737373736,
+      "waitedSeconds": 0
+    }
+  ],
+  "fallback": null,
+  "answers": {
+    "J1": {
+      "reason:f32ec0c06741": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:399f4b74f625": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:85af71ed2bcc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:f0b45102ff5b": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:64bf9f434670": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:dd91d1ec6fa0": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ef0c1d92bc34": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ae9a8d8fa7bc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:aaaf780a0080": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c79068dd1977": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:0a6923629d2d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:9401af8da28f": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c6868047c916": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:378b4482efc1": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:bc0550a56965": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:059fe2312073": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a9d69480c1ae": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:8a977ab04ec2": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:f96a0f1bb84a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:11fc14462e40": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:4e0b8dc0e51d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e893b36421bf": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:2855494a0a16": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:bb24bea3c95d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:94a887dbc2d1": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:062245902ae0": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ad65aac9f721": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:dad0ce788dd4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:48b66f266258": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c5fd551d4753": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:fe3f9067342a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:9dbcf61e37c0": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:f6507e0fabaa": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:d917479e5201": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:3c5c178313b3": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ce7bf1efab83": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a6fc72bed757": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:91586bf68356": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:9d0bb503b713": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:679727cabbb4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:7751ecdfaafb": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:792d6c3d4ecd": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:14b09a64d747": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a14e2db7dac2": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:fbbf5b9c5400": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:aa2a183f3a71": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:b49bb59e71da": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:46ce1ba742d6": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e31cd6bff7d4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:2a3834a42574": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a05968859767": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:cc3e3420b752": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:eb81c03822ec": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e15dd12c9f1b": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c7ec5526985e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:abb63cb00c33": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:d43682fcec0c": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:8931a7503ab9": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a1336eda7449": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "disagreement:a7d2688bdd9a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "447fe79c8da4": "no",
+          "855d22765645": "yes"
+        }
+      },
+      "disagreement:e96cf18a5629": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "06df0af7dc9f": "no",
+          "14393dc9f3e7": "no",
+          "a6bfc4e8b519": "no"
+        }
+      },
+      "disagreement:87068bc905ee": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "7dfdd3357715": "yes",
+          "fd3fc224a57c": "no"
+        }
+      },
+      "disagreement:cbaa89b4d300": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "a87f916f50ae": "yes"
+        }
+      },
+      "disagreement:07c51a402506": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0a25f8a84d94": "unsure"
+        }
+      },
+      "disagreement:c5fd551d4753": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "579c9d7254e3": "no",
+          "9fab6216304a": "no"
+        }
+      },
+      "disagreement:0f8635530b6c": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0cce5f47cb1f": "no",
+          "8308584eb820": "no"
+        }
+      },
+      "disagreement:e5c43a3df6ea": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0f467ba29bfd": "no"
+        }
+      },
+      "disagreement:11fc14462e40": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0a1bbd4e1ca7": "yes"
+        }
+      },
+      "disagreement:200014a2a132": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "b923ea849c7b": "no"
+        }
+      },
+      "disagreement:d7545a22e261": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "857d7e468f70": "yes"
+        }
+      },
+      "disagreement:28423561df5e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0ab7cb67a9d2": "yes"
+        }
+      },
+      "disagreement:6989ad27fb59": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0b3a5af8efe6": "no"
+        }
+      },
+      "disagreement:42b0f9eaf41f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "1a49f092c59b": "no",
+          "1c62d6c63218": "no",
+          "6c77c42f7613": "yes"
+        }
+      },
+      "disagreement:28a7705e1929": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8f2b4692a24d": "no"
+        }
+      },
+      "disagreement:3badc80a816a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "9e87bf67e29e": "no"
+        }
+      },
+      "disagreement:0ebd34f1c326": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "d973081d89f6": "no"
+        }
+      },
+      "disagreement:9218118e52e6": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "b2895108a51d": "yes"
+        }
+      },
+      "disagreement:2f9a3d12b205": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "15a2a53f4407": "no",
+          "9f13b28b498c": "yes"
+        }
+      },
+      "disagreement:9ca664f4ea69": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "2fa1b30210fd": "no"
+        }
+      },
+      "disagreement:c327f673d0d4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "815321385c74": "no",
+          "972d47f5a3c1": "no"
+        }
+      },
+      "disagreement:72ad9ad2d596": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0f854c790748": "yes",
+          "ce8df306d853": "yes"
+        }
+      },
+      "disagreement:51c2b68a9949": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "5d41ae13de06": "unsure"
+        }
+      },
+      "disagreement:27435b83e9cc": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "34e971d65b49": "no",
+          "799baa56a50c": "no"
+        }
+      },
+      "disagreement:4b8c0a21a1cd": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "4713dbdbe93e": "yes",
+          "9c54fea28757": "yes"
+        }
+      },
+      "disagreement:dac1f3ff758e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8db5255d2a58": "no"
+        }
+      },
+      "disagreement:e6b0ea427b16": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "2ca6176a15f7": "yes",
+          "8ec9439fe6ba": "yes",
+          "bb0a51612ac4": "no"
+        }
+      },
+      "disagreement:0201090a5d56": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "85b5d4c32e37": "no",
+          "e816d81bca81": "yes"
+        }
+      },
+      "disagreement:c77b6ec26317": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8ada608d4d42": "no",
+          "d80b7f2ce4f1": "no"
+        }
+      },
+      "disagreement:7b23d056d671": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "044b58ada5b5": "no",
+          "4611233929ff": "no",
+          "5f889dd0bc52": "no"
+        }
+      },
+      "disagreement:fbf37981c30b": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "e6ac24427276": "yes"
+        }
+      },
+      "disagreement:094efee5ea80": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "910e4e13420b": "no"
+        }
+      },
+      "disagreement:4e4e005f788e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "94fbfecc4818": "no"
+        }
+      },
+      "disagreement:a809f0e4d206": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8ed343465c56": "no"
+        }
+      },
+      "disagreement:214ea609734e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "1a39653475eb": "yes",
+          "4bf26d0ee0d7": "yes"
+        }
+      },
+      "disagreement:a011a223f984": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "34a0b6a5fd5e": "yes",
+          "e611a63c0907": "yes"
+        }
+      },
+      "disagreement:ff62b9563058": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0de7b7e248aa": "no",
+          "6ec6e1b8fca2": "no"
+        }
+      },
+      "disagreement:85af71ed2bcc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "04db0a567ae7": "yes",
+          "4971699d6302": "yes"
+        }
+      },
+      "disagreement:4e3a7807fa3f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "81a93d073489": "yes"
+        }
+      },
+      "disagreement:475072f5f248": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "05e106a7462b": "no"
+        }
+      }
+    },
+    "J2": {
+      "reason:f32ec0c06741": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:399f4b74f625": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:85af71ed2bcc": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:f0b45102ff5b": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:64bf9f434670": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:dd91d1ec6fa0": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:ef0c1d92bc34": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ae9a8d8fa7bc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:aaaf780a0080": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:c79068dd1977": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:0a6923629d2d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:9401af8da28f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c6868047c916": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:378b4482efc1": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:bc0550a56965": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:059fe2312073": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a9d69480c1ae": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:8a977ab04ec2": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:f96a0f1bb84a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:11fc14462e40": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:4e0b8dc0e51d": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:e893b36421bf": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:2855494a0a16": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:bb24bea3c95d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:94a887dbc2d1": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:062245902ae0": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:ad65aac9f721": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:dad0ce788dd4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:48b66f266258": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c5fd551d4753": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:fe3f9067342a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:9dbcf61e37c0": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:f6507e0fabaa": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:d917479e5201": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:3c5c178313b3": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ce7bf1efab83": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:a6fc72bed757": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:91586bf68356": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:9d0bb503b713": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:679727cabbb4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:7751ecdfaafb": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:792d6c3d4ecd": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:14b09a64d747": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a14e2db7dac2": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:fbbf5b9c5400": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:aa2a183f3a71": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:b49bb59e71da": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:46ce1ba742d6": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e31cd6bff7d4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:2a3834a42574": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a05968859767": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:cc3e3420b752": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:eb81c03822ec": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:e15dd12c9f1b": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:c7ec5526985e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:abb63cb00c33": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:d43682fcec0c": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:8931a7503ab9": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:a1336eda7449": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "disagreement:a7d2688bdd9a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "447fe79c8da4": "yes",
+          "855d22765645": "yes"
+        }
+      },
+      "disagreement:e96cf18a5629": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "06df0af7dc9f": "no",
+          "14393dc9f3e7": "no",
+          "a6bfc4e8b519": "no"
+        }
+      },
+      "disagreement:87068bc905ee": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "7dfdd3357715": "yes",
+          "fd3fc224a57c": "no"
+        }
+      },
+      "disagreement:cbaa89b4d300": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "a87f916f50ae": "yes"
+        }
+      },
+      "disagreement:07c51a402506": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0a25f8a84d94": "yes"
+        }
+      },
+      "disagreement:c5fd551d4753": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "579c9d7254e3": "no",
+          "9fab6216304a": "no"
+        }
+      },
+      "disagreement:0f8635530b6c": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0cce5f47cb1f": "no",
+          "8308584eb820": "no"
+        }
+      },
+      "disagreement:e5c43a3df6ea": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0f467ba29bfd": "no"
+        }
+      },
+      "disagreement:11fc14462e40": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0a1bbd4e1ca7": "yes"
+        }
+      },
+      "disagreement:200014a2a132": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "b923ea849c7b": "no"
+        }
+      },
+      "disagreement:d7545a22e261": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "857d7e468f70": "no"
+        }
+      },
+      "disagreement:28423561df5e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0ab7cb67a9d2": "yes"
+        }
+      },
+      "disagreement:6989ad27fb59": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0b3a5af8efe6": "no"
+        }
+      },
+      "disagreement:42b0f9eaf41f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "1a49f092c59b": "no",
+          "1c62d6c63218": "yes",
+          "6c77c42f7613": "yes"
+        }
+      },
+      "disagreement:28a7705e1929": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8f2b4692a24d": "yes"
+        }
+      },
+      "disagreement:3badc80a816a": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "9e87bf67e29e": "no"
+        }
+      },
+      "disagreement:0ebd34f1c326": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "d973081d89f6": "no"
+        }
+      },
+      "disagreement:9218118e52e6": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "b2895108a51d": "no"
+        }
+      },
+      "disagreement:2f9a3d12b205": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "15a2a53f4407": "no",
+          "9f13b28b498c": "no"
+        }
+      },
+      "disagreement:9ca664f4ea69": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "2fa1b30210fd": "no"
+        }
+      },
+      "disagreement:c327f673d0d4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "815321385c74": "no",
+          "972d47f5a3c1": "no"
+        }
+      },
+      "disagreement:72ad9ad2d596": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0f854c790748": "yes",
+          "ce8df306d853": "no"
+        }
+      },
+      "disagreement:51c2b68a9949": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "5d41ae13de06": "no"
+        }
+      },
+      "disagreement:27435b83e9cc": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "34e971d65b49": "no",
+          "799baa56a50c": "no"
+        }
+      },
+      "disagreement:4b8c0a21a1cd": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "4713dbdbe93e": "yes",
+          "9c54fea28757": "yes"
+        }
+      },
+      "disagreement:dac1f3ff758e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8db5255d2a58": "yes"
+        }
+      },
+      "disagreement:e6b0ea427b16": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "2ca6176a15f7": "no",
+          "8ec9439fe6ba": "no",
+          "bb0a51612ac4": "no"
+        }
+      },
+      "disagreement:0201090a5d56": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "85b5d4c32e37": "no",
+          "e816d81bca81": "no"
+        }
+      },
+      "disagreement:c77b6ec26317": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "8ada608d4d42": "no",
+          "d80b7f2ce4f1": "no"
+        }
+      },
+      "disagreement:7b23d056d671": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "044b58ada5b5": "no",
+          "4611233929ff": "no",
+          "5f889dd0bc52": "no"
+        }
+      },
+      "disagreement:fbf37981c30b": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "e6ac24427276": "no"
+        }
+      },
+      "disagreement:094efee5ea80": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "910e4e13420b": "yes"
+        }
+      },
+      "disagreement:4e4e005f788e": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "94fbfecc4818": "no"
+        }
+      },
+      "disagreement:a809f0e4d206": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "8ed343465c56": "no"
+        }
+      },
+      "disagreement:214ea609734e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "1a39653475eb": "yes",
+          "4bf26d0ee0d7": "yes"
+        }
+      },
+      "disagreement:a011a223f984": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "34a0b6a5fd5e": "yes",
+          "e611a63c0907": "yes"
+        }
+      },
+      "disagreement:ff62b9563058": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0de7b7e248aa": "no",
+          "6ec6e1b8fca2": "no"
+        }
+      },
+      "disagreement:85af71ed2bcc": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "04db0a567ae7": "no",
+          "4971699d6302": "no"
+        }
+      },
+      "disagreement:4e3a7807fa3f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "81a93d073489": "no"
+        }
+      },
+      "disagreement:475072f5f248": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "05e106a7462b": "no"
+        }
+      }
+    },
+    "J3": {
+      "reason:f32ec0c06741": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:399f4b74f625": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:85af71ed2bcc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:f0b45102ff5b": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:64bf9f434670": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:dd91d1ec6fa0": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ef0c1d92bc34": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ae9a8d8fa7bc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:aaaf780a0080": null,
+      "reason:c79068dd1977": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:0a6923629d2d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:9401af8da28f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c6868047c916": null,
+      "reason:378b4482efc1": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:bc0550a56965": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:059fe2312073": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a9d69480c1ae": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:8a977ab04ec2": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:f96a0f1bb84a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:11fc14462e40": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:4e0b8dc0e51d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e893b36421bf": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:2855494a0a16": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:bb24bea3c95d": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:94a887dbc2d1": {
+        "claimBeyondPremise": "no",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:062245902ae0": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ad65aac9f721": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:dad0ce788dd4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:48b66f266258": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c5fd551d4753": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:fe3f9067342a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:9dbcf61e37c0": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:f6507e0fabaa": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:d917479e5201": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:3c5c178313b3": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:ce7bf1efab83": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a6fc72bed757": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:91586bf68356": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:9d0bb503b713": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:679727cabbb4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:7751ecdfaafb": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:792d6c3d4ecd": null,
+      "reason:14b09a64d747": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a14e2db7dac2": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:fbbf5b9c5400": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no"
+      },
+      "reason:aa2a183f3a71": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:b49bb59e71da": null,
+      "reason:46ce1ba742d6": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e31cd6bff7d4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:2a3834a42574": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a05968859767": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:cc3e3420b752": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:eb81c03822ec": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:e15dd12c9f1b": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:c7ec5526985e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:abb63cb00c33": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:d43682fcec0c": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:8931a7503ab9": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "reason:a1336eda7449": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes"
+      },
+      "disagreement:a7d2688bdd9a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "447fe79c8da4": "yes",
+          "855d22765645": "yes"
+        }
+      },
+      "disagreement:e96cf18a5629": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "06df0af7dc9f": "no",
+          "14393dc9f3e7": "no",
+          "a6bfc4e8b519": "no"
+        }
+      },
+      "disagreement:87068bc905ee": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "7dfdd3357715": "yes",
+          "fd3fc224a57c": "no"
+        }
+      },
+      "disagreement:cbaa89b4d300": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "a87f916f50ae": "no"
+        }
+      },
+      "disagreement:07c51a402506": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0a25f8a84d94": "no"
+        }
+      },
+      "disagreement:c5fd551d4753": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "579c9d7254e3": "yes",
+          "9fab6216304a": "yes"
+        }
+      },
+      "disagreement:0f8635530b6c": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0cce5f47cb1f": "yes",
+          "8308584eb820": "yes"
+        }
+      },
+      "disagreement:e5c43a3df6ea": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "0f467ba29bfd": "yes"
+        }
+      },
+      "disagreement:11fc14462e40": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0a1bbd4e1ca7": "yes"
+        }
+      },
+      "disagreement:200014a2a132": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "b923ea849c7b": "yes"
+        }
+      },
+      "disagreement:d7545a22e261": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "857d7e468f70": "yes"
+        }
+      },
+      "disagreement:28423561df5e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0ab7cb67a9d2": "yes"
+        }
+      },
+      "disagreement:6989ad27fb59": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0b3a5af8efe6": "yes"
+        }
+      },
+      "disagreement:42b0f9eaf41f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "1a49f092c59b": "yes",
+          "1c62d6c63218": "yes",
+          "6c77c42f7613": "no"
+        }
+      },
+      "disagreement:28a7705e1929": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8f2b4692a24d": "yes"
+        }
+      },
+      "disagreement:3badc80a816a": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "9e87bf67e29e": "yes"
+        }
+      },
+      "disagreement:0ebd34f1c326": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "d973081d89f6": "yes"
+        }
+      },
+      "disagreement:9218118e52e6": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "b2895108a51d": "no"
+        }
+      },
+      "disagreement:2f9a3d12b205": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "15a2a53f4407": "no",
+          "9f13b28b498c": "yes"
+        }
+      },
+      "disagreement:9ca664f4ea69": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "no",
+        "counters": {
+          "2fa1b30210fd": "no"
+        }
+      },
+      "disagreement:c327f673d0d4": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "815321385c74": "yes",
+          "972d47f5a3c1": "yes"
+        }
+      },
+      "disagreement:72ad9ad2d596": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0f854c790748": "no",
+          "ce8df306d853": "yes"
+        }
+      },
+      "disagreement:51c2b68a9949": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "5d41ae13de06": "yes"
+        }
+      },
+      "disagreement:27435b83e9cc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "34e971d65b49": "no",
+          "799baa56a50c": "no"
+        }
+      },
+      "disagreement:4b8c0a21a1cd": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "4713dbdbe93e": "no",
+          "9c54fea28757": "no"
+        }
+      },
+      "disagreement:dac1f3ff758e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8db5255d2a58": "no"
+        }
+      },
+      "disagreement:e6b0ea427b16": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "2ca6176a15f7": "yes",
+          "8ec9439fe6ba": "yes",
+          "bb0a51612ac4": "no"
+        }
+      },
+      "disagreement:0201090a5d56": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "85b5d4c32e37": "yes",
+          "e816d81bca81": "no"
+        }
+      },
+      "disagreement:c77b6ec26317": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8ada608d4d42": "yes",
+          "d80b7f2ce4f1": "yes"
+        }
+      },
+      "disagreement:7b23d056d671": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "044b58ada5b5": "no",
+          "4611233929ff": "no",
+          "5f889dd0bc52": "no"
+        }
+      },
+      "disagreement:fbf37981c30b": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "e6ac24427276": "yes"
+        }
+      },
+      "disagreement:094efee5ea80": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "910e4e13420b": "yes"
+        }
+      },
+      "disagreement:4e4e005f788e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "94fbfecc4818": "no"
+        }
+      },
+      "disagreement:a809f0e4d206": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "8ed343465c56": "yes"
+        }
+      },
+      "disagreement:214ea609734e": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "1a39653475eb": "yes",
+          "4bf26d0ee0d7": "yes"
+        }
+      },
+      "disagreement:a011a223f984": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "34a0b6a5fd5e": "yes",
+          "e611a63c0907": "yes"
+        }
+      },
+      "disagreement:ff62b9563058": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "0de7b7e248aa": "yes",
+          "6ec6e1b8fca2": "no"
+        }
+      },
+      "disagreement:85af71ed2bcc": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "04db0a567ae7": "yes",
+          "4971699d6302": "yes"
+        }
+      },
+      "disagreement:4e3a7807fa3f": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "yes",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "81a93d073489": "yes"
+        }
+      },
+      "disagreement:475072f5f248": {
+        "claimBeyondPremise": "yes",
+        "linkExplainsFinding": "no",
+        "ignoresObviousAlternative": "yes",
+        "counters": {
+          "05e106a7462b": "yes"
+        }
+      }
+    }
+  },
+  "agreement": {
+    "pairs": {
+      "J1|J2": {
+        "claimBeyondPremise": {
+          "n": 99,
+          "raw": 0.8080808080808081,
+          "kappa": 0.48224607762180005
+        },
+        "linkExplainsFinding": {
+          "n": 99,
+          "raw": 0.5252525252525253,
+          "kappa": 0.04160659114315145
+        },
+        "ignoresObviousAlternative": {
+          "n": 99,
+          "raw": 0.5252525252525253,
+          "kappa": 0.041211621677312946
+        },
+        "sound": {
+          "n": 99,
+          "raw": 0.7373737373737373,
+          "kappa": 0.09937018894331709
+        },
+        "breaks": {
+          "n": 63,
+          "raw": 0.7142857142857143,
+          "kappa": 0.3984084880636605
+        }
+      },
+      "J1|J3": {
+        "claimBeyondPremise": {
+          "n": 95,
+          "raw": 0.8315789473684211,
+          "kappa": 0.07654921020656136
+        },
+        "linkExplainsFinding": {
+          "n": 95,
+          "raw": 0.8105263157894737,
+          "kappa": 0.19339622641509419
+        },
+        "ignoresObviousAlternative": {
+          "n": 95,
+          "raw": 0.9157894736842105,
+          "kappa": 0.1721132897603474
+        },
+        "sound": {
+          "n": 95,
+          "raw": 0.9578947368421052,
+          "kappa": -0.02150537634408657
+        },
+        "breaks": {
+          "n": 63,
+          "raw": 0.5079365079365079,
+          "kappa": 0.09499536607970349
+        }
+      },
+      "J2|J3": {
+        "claimBeyondPremise": {
+          "n": 95,
+          "raw": 0.6947368421052632,
+          "kappa": 0.026157652880876684
+        },
+        "linkExplainsFinding": {
+          "n": 95,
+          "raw": 0.5789473684210527,
+          "kappa": 0.16299559471365646
+        },
+        "ignoresObviousAlternative": {
+          "n": 95,
+          "raw": 0.5789473684210527,
+          "kappa": 0.1351843422849339
+        },
+        "sound": {
+          "n": 95,
+          "raw": 0.7157894736842105,
+          "kappa": 0.030978466188137273
+        },
+        "breaks": {
+          "n": 63,
+          "raw": 0.4444444444444444,
+          "kappa": -0.003641329085115952
+        }
+      }
+    },
+    "all": {
+      "claimBeyondPremise": {
+        "n": 95,
+        "share": 0.6631578947368421
+      },
+      "linkExplainsFinding": {
+        "n": 95,
+        "share": 0.45263157894736844
+      },
+      "ignoresObviousAlternative": {
+        "n": 95,
+        "share": 0.5157894736842106
+      },
+      "sound": {
+        "n": 95,
+        "share": 0.7052631578947368
+      },
+      "breaks": {
+        "n": 63,
+        "share": 0.3492063492063492
+      }
+    }
+  },
+  "spotCheck": {
+    "items": 20,
+    "measures": {
+      "claimBeyondPremise": {
+        "n": 20,
+        "raw": 0.85,
+        "kappa": 0
+      },
+      "linkExplainsFinding": {
+        "n": 20,
+        "raw": 0.85,
+        "kappa": 0
+      },
+      "ignoresObviousAlternative": {
+        "n": 20,
+        "raw": 0.75,
+        "kappa": -0.08695652173913052
+      },
+      "sound": {
+        "n": 20,
+        "raw": 0.8,
+        "kappa": -0.05263157894736848
+      },
+      "breaks": {
+        "n": 18,
+        "raw": 0.3888888888888889,
+        "kappa": 0.043478260869565154
+      }
+    }
+  }
+}
