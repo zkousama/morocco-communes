@@ -1,14 +1,14 @@
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { runLink } from "../src/links.ts";
 import { hash, LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
-import { aboutThisFinding, localWarning, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
-import { parseSetup } from "../src/setup.ts";
+import { aboutThisFinding, localWarning, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, transportFor, type Item, type RunFile } from "../src/run.ts";
+import { parseSetup, type Role } from "../src/setup.ts";
 import type { Metrics } from "../src/score.ts";
 import type { Check } from "../src/vocabulary.ts";
 
@@ -635,5 +635,28 @@ describe("the private-terms warning", () => {
 
   it("says nothing once there's at least one term", () => {
     expect(localWarning({ terms: ["zorblat"], keys: {} })).toBeNull();
+  });
+});
+
+describe("transportFor", () => {
+  const roleFor = (transport: Role["transport"]): Role => ({ transport, model: "a-model" });
+
+  it("returns a working function for each transport name", () => {
+    for (const transport of ["claude", "ollama", "gemini"] as const) {
+      expect(typeof transportFor(roleFor(transport), null)).toBe("function");
+    }
+  });
+
+  it("calling the gemini one with INSIGHTS_LIVE unset rejects with the live-run message, never touching fetch", async () => {
+    delete process.env.INSIGHTS_LIVE;
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    try {
+      const transport = transportFor(roleFor("gemini"), null);
+      await expect(transport({ model: "a-model", system: "s", prompt: "p", stage: "falsify", key: "k" })).rejects.toThrow(/INSIGHTS_LIVE/);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

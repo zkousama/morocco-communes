@@ -19,6 +19,7 @@ import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts
 import {
   addUsage,
   claudeTransport,
+  geminiTransport,
   hash,
   LimitError,
   makeRunner,
@@ -30,13 +31,14 @@ import {
   withRetries,
   type Local,
   type Runner,
+  type Transport,
   type Usage,
 } from "./model.ts";
 import { mapPool } from "./pool.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
 import { termsPattern } from "./safety.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
-import { readSetup, type Setup } from "./setup.ts";
+import { readSetup, type Role, type Setup } from "./setup.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
 import { evaluate, fieldsRead, type Check, type Outcome } from "./vocabulary.ts";
@@ -817,6 +819,18 @@ export function localWarning(local: Local | null): string | null {
   return null;
 }
 
+/** The transport a role's `transport` field names, built the one way regardless of whether it's playing proposer or adversary. */
+export function transportFor(role: Role, local: Local | null): Transport {
+  switch (role.transport) {
+    case "claude":
+      return claudeTransport();
+    case "ollama":
+      return ollamaTransport();
+    case "gemini":
+      return geminiTransport(local);
+  }
+}
+
 /** A mistake in how the run was started: said in one line, with nothing run. */
 function refuseToStart(error: unknown): void {
   console.log(messageOf(error));
@@ -848,13 +862,6 @@ async function main(): Promise<void> {
     refuseToStart(error);
     return;
   }
-  // The schema accepts "gemini" already, but the gemini transport isn't wired in yet: a
-  // run asked for one today has nothing to call it with.
-  if (setup.propose.transport === "gemini" || setup.falsify.transport === "gemini") {
-    refuseToStart(new Error("the gemini transport arrives with the pilot's connector"));
-    return;
-  }
-
   // Reuses the site's own demand log reader: the same "remote" opt-in, under its own name
   // here, so a run never queries the owner's database unless it's asked to twice over.
   let views: Map<string, number> | undefined;
@@ -864,19 +871,19 @@ async function main(): Promise<void> {
     views = new Map(rows.map((r) => [r.code, r.n]));
   }
 
-  const retryOptions = { ...RETRY_DEFAULTS, sleep: (ms: number) => new Promise<void>((r) => setTimeout(r, ms)), log: (line: string) => console.error(line) };
-  const data = loadData();
-  const cacheDir = ".cache/insights/cache";
-  const cacheOptions = { cacheDir, datasetVersion: data.version, stageVersions: STAGE_VERSIONS };
-  const proposeTransport = setup.propose.transport === "ollama" ? ollamaTransport() : claudeTransport();
-  const run = makeRunner(withRetries(proposeTransport, retryOptions), cacheOptions);
-  const falsifyTransport = setup.falsify.transport === "ollama" ? ollamaTransport() : claudeTransport();
-  const falsifier = makeRunner(withRetries(falsifyTransport, retryOptions), cacheOptions);
-
   const local = readLocal(process.env);
   const warning = localWarning(local);
   if (warning) console.error(warning);
   const terms = termsPattern(local?.terms ?? []);
+
+  const retryOptions = { ...RETRY_DEFAULTS, sleep: (ms: number) => new Promise<void>((r) => setTimeout(r, ms)), log: (line: string) => console.error(line) };
+  const data = loadData();
+  const cacheDir = ".cache/insights/cache";
+  const cacheOptions = { cacheDir, datasetVersion: data.version, stageVersions: STAGE_VERSIONS };
+  const proposeTransport = transportFor(setup.propose, local);
+  const run = makeRunner(withRetries(proposeTransport, retryOptions), cacheOptions);
+  const falsifyTransport = transportFor(setup.falsify, local);
+  const falsifier = makeRunner(withRetries(falsifyTransport, retryOptions), cacheOptions);
 
   const file = await pipeline(data, { limit, only, run, falsifier, setup, views, concurrency, terms });
   await exportSpans(file.spans, process.env);

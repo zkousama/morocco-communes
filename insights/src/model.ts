@@ -382,6 +382,104 @@ export function ollamaTransport(url?: string): Transport {
   };
 }
 
+/** A Google API error body's own message, read defensively; never touches the key, which never appears in the body. */
+function geminiErrorMessage(body: unknown): string {
+  const message = (body as { error?: { message?: string } } | undefined)?.error?.message;
+  return typeof message === "string" ? message : "no error message";
+}
+
+/**
+ * How long a 429 asked to wait, in milliseconds: the error body's own `RetryInfo.retryDelay`
+ * (a string like `"37s"`) when it's there, else the `retry-after` header, else null.
+ */
+function geminiRetryAfterMs(body: unknown, res: Response): number | null {
+  const details = (body as { error?: { details?: unknown[] } } | undefined)?.error?.details;
+  const info = Array.isArray(details) ? details.find((d) => typeof (d as { "@type"?: string })?.["@type"] === "string" && (d as { "@type": string })["@type"].includes("RetryInfo")) : undefined;
+  const delay = (info as { retryDelay?: string } | undefined)?.retryDelay;
+  const fromBody = typeof delay === "string" ? /^(\d+(?:\.\d+)?)s$/.exec(delay) : null;
+  if (fromBody) return Math.round(parseFloat(fromBody[1]!) * 1000);
+  const header = res.headers.get("retry-after");
+  if (header && /^\d+(?:\.\d+)?$/.test(header)) return Math.round(parseFloat(header) * 1000);
+  return null;
+}
+
+/**
+ * POSTs to Gemini's `generateContent` endpoint on the free tier, asking for JSON back. The
+ * key comes from `local.keys.GEMINI_API_KEY` and travels only in the `x-goog-api-key`
+ * header, never the URL, never a thrown message. A 429 becomes a `LimitError` carrying
+ * however long it asked to wait; 500, 503 and 504 become a `TransientError`, as does a
+ * timeout or a network failure; any other non-2xx becomes a plain `Error`. On success, the
+ * text is the answer's non-thinking parts joined, or "" when there are no candidates or the
+ * one there stopped for a reason other than running out of room or finishing cleanly, since
+ * an unreadable answer is the stage's problem to record, not a crash here.
+ */
+export function geminiTransport(local: Local | null, options?: { timeoutMs?: number; base?: string }): Transport {
+  return async (call) => {
+    requireLive("geminiTransport");
+    const key = local?.keys.GEMINI_API_KEY;
+    if (!key) throw new Error("geminiTransport needs GEMINI_API_KEY in the local keys file");
+
+    const base = options?.base ?? "https://generativelanguage.googleapis.com/v1beta";
+    const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    let res: Response;
+    try {
+      res = await fetch(`${base}/models/${call.model}:generateContent`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: call.system }] },
+          contents: [{ role: "user", parts: [{ text: call.prompt }] }],
+          generationConfig: { responseMimeType: "application/json" },
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (controller.signal.aborted) throw new TransientError(`gemini timed out after ${timeoutMs}ms`);
+      throw new TransientError(`gemini: network error: ${messageOf(error)}`);
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const body: unknown = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      if (res.status === 429) throw new LimitError(`gemini's usage limit: ${geminiErrorMessage(body)}`, geminiRetryAfterMs(body, res));
+      if (res.status === 500 || res.status === 503 || res.status === 504) {
+        throw new TransientError(`gemini answered ${res.status}: ${geminiErrorMessage(body)}`);
+      }
+      throw new Error(`gemini answered ${res.status}: ${geminiErrorMessage(body)}`);
+    }
+
+    const parsed = body as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string; thought?: boolean }> }; finishReason?: string }>;
+      modelVersion?: string;
+      usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number };
+    };
+    const candidate = parsed.candidates?.[0];
+    const readable = candidate !== undefined && (candidate.finishReason === "STOP" || candidate.finishReason === "MAX_TOKENS");
+    const text = readable
+      ? (candidate.content?.parts ?? []).filter((part) => part.thought !== true).map((part) => part.text ?? "").join("")
+      : "";
+
+    const usage = parsed.usageMetadata ?? {};
+    return {
+      text,
+      model: parsed.modelVersion ?? call.model,
+      usage: {
+        input: usage.promptTokenCount ?? 0,
+        output: usage.candidatesTokenCount ?? 0,
+        thinking: usage.thoughtsTokenCount ?? 0,
+        cacheRead: usage.cachedContentTokenCount ?? 0,
+        cacheWrite: 0,
+        costUsd: 0,
+      },
+    };
+  };
+}
+
 /** A transport for tests: answers from a function, never touching the environment or the network. */
 export function stubTransport(answer: (call: ModelCall) => string): Transport {
   return async (call) => ({ text: answer(call), model: call.model, usage: NO_USAGE });
