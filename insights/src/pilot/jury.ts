@@ -20,6 +20,7 @@ import { loadData } from "../data.ts";
 import {
   addUsage,
   classify,
+  CLOUDFLARE_MAX_TOKENS,
   cloudflareTransport,
   compactCount,
   FatalError,
@@ -39,7 +40,6 @@ import {
   type Runner,
   type Usage,
 } from "../model.ts";
-import { mapPool } from "../pool.ts";
 import { STOP_AFTER_FAILURES } from "../run.ts";
 import { agreementOf, JURY_PATH } from "./analyse.ts";
 import { CHECKLIST_GUIDE, CHECKS, MEASURES, TRI, verdictOf, type ChecklistAnswer, type CheckName, type Measure, type Tri } from "./checklist.ts";
@@ -359,9 +359,6 @@ export function missingJudgeKeys(local: Local | null): string | null {
 // Running the jury
 // ---------------------------------------------------------------------------------------
 
-/** Each judge runs one call at a time by default: Groq's free plan caps each model at 8,000 tokens a minute, and that cap sets the pace. */
-export const DEFAULT_JURY_CONCURRENCY = 1;
-
 /**
  * The most neurons the Cloudflare judges may use in one UTC day, together. The free allowance
  * is 10,000 a day; stopping short of it keeps the jury free whatever plan the account is on.
@@ -384,10 +381,10 @@ export function neuronsOf(model: string, usage: Usage): number {
   return rate ? (usage.input * rate.input + usage.output * rate.output) / 1e6 : 0;
 }
 
-/** The least a call can cost before it's made: its instructions and prompt alone, at about 4 characters a token, with no reply. */
-function inputNeurons(model: string, call: ModelCall): number {
+/** The most a Cloudflare call can cost before it's made: its instructions and prompt at about 4 characters a token, and a reply as long as `CLOUDFLARE_MAX_TOKENS` allows. */
+function callCeiling(model: string, call: ModelCall): number {
   const rate = NEURONS_PER_MILLION[model];
-  return rate ? (Math.ceil((call.system.length + call.prompt.length) / 4) * rate.input) / 1e6 : 0;
+  return rate ? (Math.ceil((call.system.length + call.prompt.length) / 4) * rate.input + CLOUDFLARE_MAX_TOKENS * rate.output) / 1e6 : 0;
 }
 
 /** Each UTC day's Cloudflare total so far, by "YYYY-MM-DD". */
@@ -464,7 +461,6 @@ export interface JuryRun {
 export interface JuryOptions {
   unitName: UnitNamer;
   ledger: NeuronLedger;
-  concurrency?: number;
   neuronLimit?: number;
   now?: () => Date;
   onProgress?: (judgeId: string, model: string, done: number, total: number) => void;
@@ -475,23 +471,23 @@ const countUnsure = (answer: ChecklistAnswer): number =>
 
 /**
  * Asks each judge in `JUDGES`, in order, every reason and disagreement in `plan` (never a
- * drift item), `options.concurrency` at a time (1 unless told otherwise), through the runner
- * for its provider: stage "jury", key `${judgeId}:${itemId}`, the judge's own model, `accept`
+ * drift item), one call at a time, through the runner for its provider: stage "jury", key `${judgeId}:${itemId}`, the judge's own model, `accept`
  * left off so every answer, unusable ones included, is cached once and replayed exactly on a
  * resumed run.
  *
  * Shares stages A and B's halt: a fatal error, a `LimitError` (`withRetries` has already
  * waited that one out) or `STOP_AFTER_FAILURES` failures in a row stops every later call,
- * and this throws once the judge that tripped it has finished its own `mapPool`, so nothing
- * partial is ever returned. A single failure leaves that item unusable for that judge. The
+ * and this throws once that judge's loop ends, so nothing partial is ever returned. A single failure leaves that item unusable for that judge. The
  * one exception is J2's first call: a 404 there means its model was withdrawn, so J2 switches
  * to its stand-in and starts again from its first item, before any of its answers count.
  *
  * A Cloudflare judge's call is also checked against the day's neurons first (`ledger`, per UTC
- * day, across both Cloudflare judges): when what's already spent today plus the most any call
- * has cost so far (or, before any, the call's own input) would pass `options.neuronLimit`
- * (`CLOUDFLARE_DAILY_NEURONS` unless told otherwise), the run halts, and a re-run the next UTC
- * day resumes from the cache. A reply read back from the cache costs nothing today.
+ * day, across both Cloudflare judges): when what's already spent today plus the most this call
+ * could cost (its input and a reply as long as `CLOUDFLARE_MAX_TOKENS` allows, or the costliest
+ * reply so far if that's more) would pass `options.neuronLimit` (`CLOUDFLARE_DAILY_NEURONS`
+ * unless told otherwise), the run halts, and a re-run the next UTC day resumes from the cache.
+ * A reply read back from the cache costs nothing today. Calls never overlap, so each check sees
+ * every call made before it.
  *
  * Throws a `SetupError`, before any call, when a provider a judge or J2's stand-in needs has
  * no runner.
@@ -509,7 +505,6 @@ export async function runJury(
   if (missing.length > 0) throw new SetupError(`runJury: no runner for ${listed(missing.map((p) => `"${p}"`))}`);
 
   const items = askedItems(plan);
-  const concurrency = options.concurrency ?? DEFAULT_JURY_CONCURRENCY;
   const limit = options.neuronLimit ?? CLOUDFLARE_DAILY_NEURONS;
   const now = options.now ?? (() => new Date());
 
@@ -545,7 +540,7 @@ export async function runJury(
       const day = utcDay(now());
       if (onCloudflare) {
         const today = await options.ledger.spent(day);
-        if (today + Math.max(costliest, inputNeurons(role.model, call)) > limit) {
+        if (today + Math.max(costliest, callCeiling(role.model, call)) > limit) {
           halt.reason ??= `the day's Cloudflare calls would pass ${limit.toLocaleString("en-US")} neurons: ${Math.round(today).toLocaleString("en-US")} used on ${day}, UTC; run it again after midnight UTC to resume`;
           return;
         }
@@ -588,7 +583,9 @@ export async function runJury(
         rest = items.slice(1);
       }
     }
-    await mapPool(rest, concurrency, (item) => askOne(item, false));
+    // One call at a time, always: the neuron check before a Cloudflare call reads the day's
+    // total, and a second call in flight could pass that same check before either had spent.
+    for (const item of rest) await askOne(item, false);
     // Nothing partial is ever returned: the answers already cached stay there for a resumed
     // run to pick straight back up from.
     if (halt.reason) throw new Error(halt.reason);
@@ -650,7 +647,7 @@ export interface JuryFile {
 export async function juryAndReport(
   input: { a: StageA; b: StageB; lines: Map<string, { en: string; fr: string }>; unitName: UnitNamer; ratings: Ratings; spot: SpotCheck | null },
   runners: Map<Provider, Runner>,
-  options: { ledger: NeuronLedger; concurrency?: number; forceReplace?: boolean; now?: () => Date },
+  options: { ledger: NeuronLedger; forceReplace?: boolean; now?: () => Date },
   io: { log: (line: string) => void; error: (line: string) => void; writeJury: (value: JuryFile) => Promise<void>; writeRatings: (value: Ratings) => Promise<void> },
 ): Promise<boolean> {
   const refusal = juryRefusal(input.ratings, input.spot, options.forceReplace ?? false);
@@ -665,7 +662,6 @@ export async function juryAndReport(
     run = await runJury(input.ratings.items, input.a, input.b, input.lines, runners, {
       unitName: input.unitName,
       ledger: options.ledger,
-      concurrency: options.concurrency,
       now,
       onProgress: (judgeId, model, done, total) => {
         if (done % 10 === 0 || done === total) io.log(`${judgeId} ${model}: ${done} of ${total} items`);
@@ -717,20 +713,15 @@ export async function juryAndReport(
   return true;
 }
 
-/** `pnpm insights:pilot:jury`'s flags: `--force-replace`, to replace answers already in the rating, and `--concurrency N`. */
-export function parseJuryArgs(args: string[]): { forceReplace: boolean; concurrency: number | undefined } {
+/** `pnpm insights:pilot:jury`'s one flag, `--force-replace`, to replace answers already in the rating. There's no `--concurrency`: the jury runs one call at a time. */
+export function parseJuryArgs(args: string[]): { forceReplace: boolean } {
   let forceReplace = false;
-  let concurrency: number | undefined;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i]!;
+  for (const arg of args) {
     if (arg === "--force-replace") forceReplace = true;
-    else if (arg === "--concurrency") {
-      const next = args[++i];
-      if (next === undefined || !/^[1-9]\d*$/.test(next)) throw new Error(`--concurrency needs a whole number of calls at once, such as --concurrency 1${next ? `, not ${next}` : ""}`);
-      concurrency = Number(next);
-    } else throw new Error(`unknown flag ${arg}: pnpm insights:pilot:jury takes --force-replace and --concurrency`);
+    else if (arg === "--concurrency") throw new Error("--concurrency: the jury always runs one call at a time, so its Cloudflare budget check sees every call before the next");
+    else throw new Error(`unknown flag ${arg}: pnpm insights:pilot:jury takes --force-replace`);
   }
-  return { forceReplace, concurrency };
+  return { forceReplace };
 }
 
 /** A mistake in how the command was started: said in one line, with nothing run. */
@@ -777,7 +768,7 @@ async function main(): Promise<void> {
   const ok = await juryAndReport(
     { a: stages.a, b: stages.b, lines: screens.lines, unitName: screens.unitName, ratings, spot },
     runners,
-    { ledger: fileLedger(NEURONS_PATH), concurrency: args.concurrency, forceReplace: args.forceReplace },
+    { ledger: fileLedger(NEURONS_PATH), forceReplace: args.forceReplace },
     {
       log: (line) => console.log(line),
       error: (line) => console.error(line),

@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FatalError, LimitError, makeRunner, NO_USAGE, type ModelCall, type ModelReply, type Runner, type Transport } from "../../src/model.ts";
+import { CLOUDFLARE_MAX_TOKENS, FatalError, LimitError, makeRunner, NO_USAGE, type ModelCall, type ModelReply, type Runner, type Transport } from "../../src/model.ts";
 import { agreementOf, analyse, unfinishedRating } from "../../src/pilot/analyse.ts";
 import { CHECKLIST_GUIDE, type ChecklistAnswer, type Tri } from "../../src/pilot/checklist.ts";
 import {
@@ -455,14 +455,14 @@ describe("runJury", () => {
     expect(Object.keys(j1.answers).sort()).toEqual(fewAsked.map((i) => i.itemId).sort());
   });
 
-  it("runs one call at a time unless told otherwise", async () => {
+  it("never runs 2 calls at once, on either provider", async () => {
     const groq = recording();
     const cloudflare = recording();
-    await runJury(few, a, b, lines, runnersOf(groq.run, cloudflare.run), options());
-    expect(Math.max(groq.most(), cloudflare.most())).toBe(1);
-    const faster = recording();
-    await runJury(few, a, b, lines, runnersOf(faster.run, recording().run), options({ concurrency: 3 }));
-    expect(faster.most()).toBeGreaterThan(1);
+    await runJury(plan, a, b, lines, runnersOf(groq.run, cloudflare.run), options());
+    expect(groq.calls.length).toBeGreaterThan(1);
+    expect(cloudflare.calls.length).toBeGreaterThan(1);
+    expect(groq.most()).toBe(1);
+    expect(cloudflare.most()).toBe(1);
   });
 
   it("checks it has a runner for every provider a judge or J2's stand-in needs before any call", async () => {
@@ -599,6 +599,18 @@ describe("runJury", () => {
       const cloudflare = recording(undefined, { neurons: 50 });
       await expect(runJury(few, a, b, lines, runnersOf(recording().run, cloudflare.run), options({ ledger }))).rejects.toThrow(/neurons/);
       expect(cloudflare.calls).toHaveLength(0);
+    });
+
+    it("reserves a Cloudflare call's whole capped reply before its first call, not its input alone", async () => {
+      // A first call's input on the fixtures is about 14 neurons on Llama; its reply, capped at
+      // CLOUDFLARE_MAX_TOKENS, can add about 205. 8,900 already spent leaves room for the first
+      // and not the second.
+      expect(CLOUDFLARE_MAX_TOKENS).toBe(1_000);
+      const ledger = memoryLedger({ "2026-09-27": 8_900 });
+      const cloudflare = recording(undefined, { neurons: 1 });
+      await expect(runJury(few, a, b, lines, runnersOf(recording().run, cloudflare.run), options({ ledger }))).rejects.toThrow(/9,000 neurons/);
+      expect(cloudflare.calls).toHaveLength(0);
+      expect(ledger.days["2026-09-27"]).toBe(8_900);
     });
 
     it("resumes the next UTC day, replaying what's cached without counting it again", async () => {
@@ -741,11 +753,15 @@ describe("juryAndReport", () => {
 });
 
 describe("parseJuryArgs", () => {
-  it("reads --force-replace and --concurrency, and refuses anything else", () => {
-    expect(parseJuryArgs([])).toEqual({ forceReplace: false, concurrency: undefined });
-    expect(parseJuryArgs(["--force-replace", "--concurrency", "2"])).toEqual({ forceReplace: true, concurrency: 2 });
-    expect(() => parseJuryArgs(["--concurrency", "0"])).toThrow(/--concurrency/);
+  it("reads --force-replace, and refuses anything else", () => {
+    expect(parseJuryArgs([])).toEqual({ forceReplace: false });
+    expect(parseJuryArgs(["--force-replace"])).toEqual({ forceReplace: true });
     expect(() => parseJuryArgs(["--stage", "a"])).toThrow(/--stage/);
+  });
+  it("refuses --concurrency, saying the jury runs one call at a time", () => {
+    for (const args of [["--concurrency", "2"], ["--concurrency", "1"], ["--force-replace", "--concurrency", "3"]]) {
+      expect(() => parseJuryArgs(args)).toThrow(/--concurrency.*one call at a time/);
+    }
   });
 });
 

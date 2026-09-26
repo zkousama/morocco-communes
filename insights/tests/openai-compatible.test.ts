@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addUsage,
   classify,
+  CLOUDFLARE_MAX_TOKENS,
   cloudflareTransport,
   FatalError,
   groqTransport,
@@ -49,6 +50,12 @@ describe("the openai-compatible transport", () => {
       ],
       temperature: 0,
     });
+  });
+
+  it("sends max_tokens only when asked to cap the reply", async () => {
+    respond(200, ok);
+    await openaiCompatibleTransport({ ...options, maxTokens: 250 })(call);
+    expect(JSON.parse(fetchCalls()[0]![1].body).max_tokens).toBe(250);
   });
 
   it("reads the text, the model that answered and the tokens, reasoning tokens as thinking, at no cost", async () => {
@@ -202,12 +209,28 @@ describe("addUsage with neurons", () => {
 describe("groq and cloudflare", () => {
   const local = { terms: [], keys: { GROQ_API_KEY: "groq-secret", CLOUDFLARE_ACCOUNT_ID: "acct-123", CLOUDFLARE_API_TOKEN: "cf-secret" } };
 
-  it("sends groq's calls to its own endpoint with its own key", async () => {
+  it("sends groq's calls to its own endpoint with its own key, with no cap on the reply", async () => {
     respond(200, ok);
     await groqTransport(local)(call);
     const [url, init] = fetchCalls()[0]!;
     expect(String(url)).toBe("https://api.groq.com/openai/v1/chat/completions");
     expect((init.headers as Record<string, string>).authorization).toBe("Bearer groq-secret");
+    expect(JSON.parse(init.body)).not.toHaveProperty("max_tokens");
+  });
+
+  it("caps every cloudflare reply at CLOUDFLARE_MAX_TOKENS", async () => {
+    expect(CLOUDFLARE_MAX_TOKENS).toBe(1_000);
+    respond(200, ok);
+    await cloudflareTransport(local)({ ...call, model: "@cf/google/gemma-4-26b-a4b-it" });
+    expect(JSON.parse(fetchCalls()[0]![1].body)).toEqual({
+      model: "@cf/google/gemma-4-26b-a4b-it",
+      messages: [
+        { role: "system", content: "the system" },
+        { role: "user", content: "the prompt" },
+      ],
+      temperature: 0,
+      max_tokens: CLOUDFLARE_MAX_TOKENS,
+    });
   });
 
   it("sends cloudflare's calls to the account's endpoint with its token", async () => {

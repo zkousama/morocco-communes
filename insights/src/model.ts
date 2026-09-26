@@ -559,6 +559,13 @@ function openaiErrorMessage(body: unknown, key: string): string {
   return typeof message === "string" ? withoutKey(message, key) : "no error message";
 }
 
+/**
+ * The most tokens a Cloudflare reply may use, sent as `max_tokens` on every Cloudflare call,
+ * so one reply's cost in neurons is bounded (about 205 at Llama 3.3 70B's price for output).
+ * Groq's replies stay uncapped: a reasoning model's JSON could be cut short.
+ */
+export const CLOUDFLARE_MAX_TOKENS = 1_000;
+
 /** The statuses no retry heals on an OpenAI-compatible API: a malformed request, a bad or missing key, a key without access, an unknown model, a request it can't process. */
 const OPENAI_FATAL = new Set([400, 401, 403, 404, 422]);
 const OPENAI_TRANSIENT = new Set([500, 502, 503, 504]);
@@ -577,8 +584,8 @@ const OPENAI_TRANSIENT = new Set([500, 502, 503, 504]);
  * "" when that isn't a string, the model is whatever id the reply says answered, and the
  * usage costs nothing: every provider this serves is used on its free plan. Reasoning tokens,
  * where the reply counts them, are recorded as thinking, and the neurons a Cloudflare reply
- * reports in its usage, as `neurons`. Nothing sets a reasoning effort or caps the tokens a
- * reply may use, since a cap could cut a reasoning model's answer short.
+ * reports in its usage, as `neurons`. Nothing sets a reasoning effort, and a reply's tokens are
+ * capped only when `maxTokens` asks, since a cap could cut a reasoning model's answer short.
  */
 export function openaiCompatibleTransport(options: {
   baseUrl: string;
@@ -586,6 +593,7 @@ export function openaiCompatibleTransport(options: {
   provider: string;
   keyName: string;
   timeoutMs?: number;
+  maxTokens?: number; // sent as `max_tokens` when given: the most tokens a reply may use
 }): Transport {
   const { baseUrl, apiKey, provider, keyName } = options;
   return async (call) => {
@@ -609,6 +617,7 @@ export function openaiCompatibleTransport(options: {
             { role: "user", content: call.prompt },
           ],
           temperature: 0,
+          ...(options.maxTokens !== undefined ? { max_tokens: options.maxTokens } : {}),
         }),
         signal: controller.signal,
       });
@@ -671,7 +680,8 @@ export function groqTransport(local: Local | null): Transport {
  * names (an id the URL has to carry, not a secret), keyed by `CLOUDFLARE_API_TOKEN`, both
  * from the local keys file. A missing account id is refused the same way a missing token is,
  * inside the call and after the live check, so nothing is ever sent to an account called
- * "undefined".
+ * "undefined". Every reply is capped at `CLOUDFLARE_MAX_TOKENS`, which bounds what one call
+ * can cost in neurons.
  */
 export function cloudflareTransport(local: Local | null): Transport {
   const accountId = local?.keys.CLOUDFLARE_ACCOUNT_ID;
@@ -680,6 +690,7 @@ export function cloudflareTransport(local: Local | null): Transport {
     apiKey: local?.keys.CLOUDFLARE_API_TOKEN,
     provider: "cloudflare",
     keyName: "CLOUDFLARE_API_TOKEN",
+    maxTokens: CLOUDFLARE_MAX_TOKENS,
   });
   return async (call) => {
     requireLive("the cloudflare transport");

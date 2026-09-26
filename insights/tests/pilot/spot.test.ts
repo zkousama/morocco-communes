@@ -70,7 +70,7 @@ describe("unansweredSpotItems", () => {
 });
 
 describe("the spot-check's screen", () => {
-  const bannedWords = [...PROPOSERS, ...ADVERSARIES].flatMap((r) => [r.id, r.model]).concat(["medium", "high", "survived", "published", "falsify", "safety", "proposer", "adversary", "stage"]);
+  const bannedWords = [...PROPOSERS, ...ADVERSARIES].flatMap((r) => [r.id, r.model]).concat(["medium", "high", "survived", "published", "falsify", "safety", "proposer", "adversary", "stage", "claude", "anthropic"]);
 
   it("prints the guide before the first item", async () => {
     const logged: string[] = [];
