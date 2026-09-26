@@ -20,7 +20,9 @@ import {
 import { broke, counterIdOf, type Ratings, type RatingItem } from "../../src/pilot/rate.ts";
 import {
   A5_MAX_HOURS,
+  ACTIVE_ADVERSARIES,
   ADVERSARIES,
+  DROPPED_ADVERSARIES,
   FULL_RUN_ADVERSARY_CALLS,
   KAPPA_MARGIN,
   MAX_SAMPLES,
@@ -54,6 +56,9 @@ const base = (): Omit<Results, "decisions"> => {
 
 /** A point estimate with no spread: the rules read `value` alone. */
 const iv = (value: number): Interval => ({ value, low: value, high: value });
+
+/** No run dropped: the design as registered, A5 measured like every other run. */
+const AS_REGISTERED: Record<string, string> = {};
 
 // ---------------------------------------------------------------------------------------
 // A hand-built stage B and rating over 4 of the fixture's own stage A candidates, small
@@ -184,9 +189,9 @@ describe("agreementOf", () => {
   });
 });
 
-describe("the measures, worked by hand", () => {
+describe("the measures as registered, A5 measured, worked by hand", () => {
   const m = micro();
-  const r = analyse(m.a, m.b, m.ratings, NOW);
+  const r = analyse(m.a, m.b, m.ratings, NOW, AS_REGISTERED);
 
   it("reads kappa only over candidates both runs gave a usable answer on, a safety stop counting as stopped", () => {
     // A1 vs A2, all 4 usable: stopped/stopped, survived x2, survived vs stopped: 0.5
@@ -247,7 +252,7 @@ describe("the measures, worked by hand", () => {
     // Ranked past the top 3 in propose's order, but a reason above it failed its data test.
     const n = micro((a, c) => c.rank >= PUBLISHED_CAP && passingRank(a, c) < PUBLISHED_CAP);
     expect(n.c.c3.rank).toBeGreaterThanOrEqual(PUBLISHED_CAP);
-    const shown = analyse(n.a, n.b, n.ratings, NOW).shownBreaks;
+    const shown = analyse(n.a, n.b, n.ratings, NOW, AS_REGISTERED).shownBreaks;
     expect(shown).toMatchObject({ breaks: 8, shown: 8 });
   });
 
@@ -291,26 +296,72 @@ describe("the measures, worked by hand", () => {
   it("times A5's speed check per answered call with its waits counted in, and totals what it waited", () => {
     const waited = micro();
     for (const v of waited.b.verdicts) if (v.run === "A5" && v.model !== null) v.waitedMs = 70_000;
-    const w = analyse(waited.a, waited.b, waited.ratings, NOW);
+    const w = analyse(waited.a, waited.b, waited.ratings, NOW, AS_REGISTERED);
     expect(w.adversaries.A5!.secondsPerCall).toBe(3); // the answering time alone, as before
     expect(w.adversaries.A5!.secondsPerCallWithWaits).toBe(73);
     expect(w.adversaries.A5!.waitedSeconds).toBe(210);
     expect(w.speedCheck).toMatchObject({ run: "A5", secondsPerCall: 73, waitedSeconds: 210, maxHours: A5_MAX_HOURS, fits: false });
-    expect(w.speedCheck.hours).toBeCloseTo((73 * FULL_RUN_ADVERSARY_CALLS) / 3600, 10);
+    expect(w.speedCheck.ran && w.speedCheck.hours).toBeCloseTo((73 * FULL_RUN_ADVERSARY_CALLS) / 3600, 10);
     expect(r.speedCheck).toMatchObject({ secondsPerCall: 3, waitedSeconds: 0, fits: true });
   });
 
   it("says how many candidates each proposer put in the pool", () => {
     expect(r.poolByProposer).toEqual({ P1: 1, P2: 1, P3: 1, P4: 1 });
   });
+
+  it("records no run as dropped, and runs A5's speed check", () => {
+    expect(r.dropped).toEqual({});
+    expect(r.speedCheck).toMatchObject({ run: "A5", ran: true });
+  });
+});
+
+describe("the measures with A5 dropped, worked by hand", () => {
+  // The same stage B, A5's verdicts still in it: dropped, they're read nowhere.
+  const m = micro();
+  const r = analyse(m.a, m.b, m.ratings, NOW);
+  const registered = analyse(m.a, m.b, m.ratings, NOW, AS_REGISTERED);
+
+  it("records A5 as dropped, with its reason, in the results", () => {
+    expect(r.dropped).toEqual(DROPPED_ADVERSARIES);
+    expect(Object.keys(r.dropped)).toEqual(["A5"]);
+  });
+
+  it("measures A1 to A4 exactly as before, and has no measure for A5 at all", () => {
+    expect(Object.keys(r.adversaries)).toEqual(ACTIVE_ADVERSARIES.map((x) => x.id));
+    for (const x of ACTIVE_ADVERSARIES) expect(r.adversaries[x.id]).toEqual(registered.adversaries[x.id]);
+    expect(r.adversaries.A5).toBeUndefined();
+  });
+
+  it("pairs A1 to A4 only for agreement, the noise floor unchanged", () => {
+    expect(Object.keys(r.agreement)).toHaveLength((ACTIVE_ADVERSARIES.length * (ACTIVE_ADVERSARIES.length - 1)) / 2);
+    expect(Object.keys(r.agreement).some((key) => key.includes("A5"))).toBe(false);
+    expect(r.noiseFloor).toEqual(registered.noiseFloor);
+  });
+
+  it("counts the breaks on shown reasons across A1 to A4 only, leaving out A5's break on c3", () => {
+    // c1: A1, A2, A3; c2: A3, A4; c3 (past the top 3): A2, A3
+    expect(r.shownBreaks.breaks).toBe(7);
+    expect(r.shownBreaks.shown).toBe(5);
+    expect(r.shownBreaks.share!.value).toBe(5 / 7);
+  });
+
+  it("crosses A1 to A4's policy stops with the private terms, and never A5's", () => {
+    expect(Object.keys(r.safety.byRun)).toEqual(ACTIVE_ADVERSARIES.map((x) => x.id));
+    expect(r.safety.policyMisses).toEqual([{ candidateId: m.c.c3.candidateId, category: "terms", runs: ["A1", "A2", "A3", "A4"] }]);
+  });
+
+  it("reports A5's speed check as not run, with the reason", () => {
+    expect(r.speedCheck).toEqual({ run: "A5", ran: false, reason: DROPPED_ADVERSARIES.A5 });
+  });
 });
 
 describe("the measures on the fixtures", () => {
   const { a, b, ratings, results: r } = FIXTURE;
 
-  it("covers every proposer and adversary, stamped with the seed and the time", () => {
+  it("covers every proposer and active adversary, stamped with the seed and the time", () => {
     expect(Object.keys(r.proposers)).toEqual(PROPOSERS.map((p) => p.id));
-    expect(Object.keys(r.adversaries)).toEqual(ADVERSARIES.map((x) => x.id));
+    expect(Object.keys(r.adversaries)).toEqual(ACTIVE_ADVERSARIES.map((x) => x.id));
+    expect(r.dropped).toEqual(DROPPED_ADVERSARIES);
     expect(r.seed).toBe(PILOT_SEED);
     expect(r.measuredAt).toBe(NOW.toISOString());
   });
@@ -373,7 +424,7 @@ describe("the measures on the fixtures", () => {
       expect(r.proposers[p.id]!.yesRate!.value).toBeCloseTo(answered.filter((x) => x === "yes").length / answered.length, 10);
     }
     const disagreements = ratings.items.filter((i) => i.kind === "disagreement" && answerOf.get(i.itemId) !== "skip");
-    for (const x of ADVERSARIES) {
+    for (const x of ACTIVE_ADVERSARIES) {
       let right = 0;
       let n = 0;
       for (const item of disagreements) {
@@ -555,7 +606,11 @@ describe("rule 2, the adversary's effort", () => {
   });
 });
 
-/** Every rule-3 input set explicitly: the floor, each kappa with A1, each rightness and A5's speed. */
+/**
+ * Every rule-3 input set explicitly: the floor, each kappa with A1, each rightness and A5's
+ * speed. A5 is measured beside the others, the rule as registered, unless `a5` is
+ * "dropped": then it stays out of the results, as the fixtures' own analysis leaves it.
+ */
 function rule3(opts: {
   proposer?: string;
   effort?: "medium" | "high";
@@ -566,6 +621,7 @@ function rule3(opts: {
   right4?: number | null;
   right5?: number | null;
   a5Seconds?: number | null;
+  a5?: "measured" | "dropped";
 }): Omit<Results, "decisions"> {
   const r = base();
   for (const p of Object.values(r.proposers)) { p.yesRate = iv(0.1); p.costUsd = 100; }
@@ -581,17 +637,25 @@ function rule3(opts: {
     r.agreement["A1|A3"] = iv(0.8);
   }
   r.agreement["A1|A4"] = opts.k4 === undefined ? iv(0.8) : opts.k4 === null ? null : iv(opts.k4);
-  r.agreement["A1|A5"] = opts.k5 === undefined ? iv(0.8) : opts.k5 === null ? null : iv(opts.k5);
   const right = (x: number | null | undefined, fallback: number) => (x === undefined ? iv(fallback) : x === null ? null : iv(x));
   r.adversaries.A1!.rightOnDisagreements = right(opts.right1, 0.6);
   r.adversaries.A3!.rightOnDisagreements = right(opts.right3, 0.6);
   r.adversaries.A4!.rightOnDisagreements = right(opts.right4, 0.6);
-  r.adversaries.A5!.rightOnDisagreements = right(opts.right5, 0.6);
-  r.adversaries.A5!.secondsPerCallWithWaits = opts.a5Seconds === undefined ? 10 : opts.a5Seconds;
+  if (opts.a5 === "dropped") return r;
+  r.dropped = {};
+  r.adversaries.A5 = {
+    ...structuredClone(r.adversaries.A4!),
+    family: null,
+    costUsd: 0,
+    rightOnDisagreements: right(opts.right5, 0.6),
+    secondsPerCallWithWaits: opts.a5Seconds === undefined ? 10 : opts.a5Seconds,
+  };
+  r.safety.byRun.A5 = structuredClone(r.safety.byRun.A4!);
+  r.agreement["A1|A5"] = opts.k5 === undefined ? iv(0.8) : opts.k5 === null ? null : iv(opts.k5);
   return r;
 }
 
-describe("rule 3, the adversary's model", () => {
+describe("rule 3, the adversary's model, as registered with A5 measured", () => {
   const fast = 10; // 10 s x 2,400 calls = 6.7 hours
   const slow = ((A5_MAX_HOURS + 1) * 3600) / FULL_RUN_ADVERSARY_CALLS;
 
@@ -662,7 +726,7 @@ describe("rule 3, the adversary's model", () => {
   it("counts A5's waits in: an A5 whose answering time alone fits but whose waits push it over fails the check", () => {
     const waited = micro();
     for (const v of waited.b.verdicts) if (v.run === "A5" && v.model !== null) v.waitedMs = 70_000;
-    const measured = analyse(waited.a, waited.b, waited.ratings, NOW).adversaries.A5!;
+    const measured = analyse(waited.a, waited.b, waited.ratings, NOW, AS_REGISTERED).adversaries.A5!;
     expect(hoursFor(measured.secondsPerCall!)).toBeLessThanOrEqual(A5_MAX_HOURS);
     const r = rule3({ k4: 0.5 });
     r.adversaries.A5 = { ...r.adversaries.A5!, secondsPerCall: measured.secondsPerCall, secondsPerCallWithWaits: measured.secondsPerCallWithWaits, waitedSeconds: measured.waitedSeconds };
@@ -730,7 +794,74 @@ describe("rule 3, the adversary's model", () => {
   });
 });
 
+describe("rule 3, the adversary's model, with A5 dropped", () => {
+  const dropped = (opts: Parameters<typeof rule3>[0] = {}) => rule3({ ...opts, a5: "dropped" });
+  const reason = DROPPED_ADVERSARIES.A5!;
+
+  it("starts from results with no A5 in them at all", () => {
+    const r = dropped();
+    expect(r.dropped).toEqual(DROPPED_ADVERSARIES);
+    expect(r.adversaries.A5).toBeUndefined();
+    expect(r.agreement["A1|A5"]).toBeUndefined();
+  });
+  it("never lets A5 qualify, and says it was dropped and not measured, and why", () => {
+    const d = decide(dropped({ k4: 0.5 })).adversaryModel;
+    expect(d.choice).toBe("A1");
+    expect(d.metBar).toBe(true);
+    expect(d.because).toContain(`A5 was dropped and not measured (${reason})`);
+  });
+  it("hands the job to A4 when it qualifies, weighed against the Opus run alone", () => {
+    const d = decide(dropped()).adversaryModel;
+    expect(d.choice).toBe("A4");
+    expect(d.metBar).toBe(true);
+    expect(d.because).toContain("A5 was dropped");
+    expect(decide(dropped({ right1: 0.6, right4: 0.59 })).adversaryModel.choice).toBe("A1");
+    expect(decide(dropped({ effort: "high", right3: 0.8, right4: 0.7 })).adversaryModel.choice).toBe("A3");
+    expect(decide(dropped({ effort: "high", right3: 0.6, right4: 0.7 })).adversaryModel.choice).toBe("A4");
+  });
+  it("skips A4 when it shares the proposer's model, leaving the Opus run the job", () => {
+    const d = decide(dropped({ proposer: "P2" })).adversaryModel;
+    expect(d.choice).toBe("A1");
+    expect(d.because).toContain("proposer's own model");
+  });
+  it("with an Opus proposer, still hands the job to A4 when it qualifies", () => {
+    const d = decide(dropped({ proposer: "P4" })).adversaryModel;
+    expect(d.choice).toBe("A4");
+    expect(d.metBar).toBe(true);
+  });
+  it("with an Opus proposer and nothing standing, gives the job to A4, the only challenger left, below the bar, and says so", () => {
+    for (const opts of [{ k4: 0.5 }, { k4: 0.5, right4: null }, { k4: 0.5, right4: 0.1, right1: 0.9 }, { effort: "high" as const, k4: 0.5 }]) {
+      const d = decide(dropped({ proposer: "P4", ...opts })).adversaryModel;
+      expect(d.choice).toBe("A4");
+      expect(d.metBar).toBe(false);
+      expect(d.because).toContain("A4, the only challenger left");
+      expect(d.because).toContain("A5 was dropped");
+      expect(d.because).toContain("didn't meet this rule's own bar");
+    }
+  });
+  it("never lands on the proposer's own model, or on a dropped run", () => {
+    for (const proposer of PROPOSERS.map((p) => p.id)) {
+      for (const k of [0.5, 0.8]) {
+        for (const effort of ["medium", "high"] as const) {
+          for (const right4 of [null, 0.1, 0.9]) {
+            const d = decide(dropped({ proposer, effort, k4: k, right4 }));
+            const chosen = ADVERSARIES.find((x) => x.id === d.adversaryModel.choice)!;
+            const p = PROPOSERS.find((x) => x.id === d.proposer.choice)!;
+            expect(chosen.transport === p.transport && chosen.model === p.model).toBe(false);
+            expect(ACTIVE_ADVERSARIES.map((x) => x.id)).toContain(chosen.id);
+          }
+        }
+      }
+    }
+  });
+});
+
 describe("rule 4, self-preference", () => {
+  it("reports A5 as dropped and not measured, rather than as a run with no family to argue with", () => {
+    const d = decide(base()).selfPreference;
+    expect(d.because).toContain("A5 was dropped and not measured");
+    expect(d.because).not.toMatch(/A5[^.]*had no reason/);
+  });
   it("reports an adversary breaking its own family's reasons at least 15 points less often, and changes nothing", () => {
     const r = base();
     r.adversaries.A1!.family = { own: 0.2, others: 0.2 + SELF_PREFERENCE_GAP, gap: iv(SELF_PREFERENCE_GAP) };
@@ -885,11 +1016,31 @@ describe("the tables", () => {
   it("keeps to the copy rules: no em dash", () => {
     expect(md).not.toContain("—");
   });
-  it("states A5's speed check, waits included, with the total time it waited beside it", () => {
-    const check = results.speedCheck;
-    expect(md).toContain(`A5's speed check, one call at a time, waits included: ${check.secondsPerCall!.toFixed(1)} seconds a call`);
-    expect(md).toMatch(/A5's speed check[^\n]*waited [^\n]* in all/);
-    expect(md).toContain("| Waited |");
+  it("states A5's speed check, waits included, with the total time it waited beside it, when A5 was measured", () => {
+    const m = micro();
+    const measured = analyse(m.a, m.b, m.ratings, NOW, AS_REGISTERED);
+    const check = measured.speedCheck;
+    if (!check.ran) throw new Error("A5's speed check should have run");
+    const measuredMd = tables(measured);
+    expect(measuredMd).toContain(`A5's speed check, one call at a time, waits included: ${check.secondsPerCall!.toFixed(1)} seconds a call`);
+    expect(measuredMd).toMatch(/A5's speed check[^\n]*waited [^\n]* in all/);
+    expect(measuredMd).toContain("| Waited |");
+  });
+  it("says A5's speed check didn't run, and why", () => {
+    expect(md).toContain(`A5's speed check didn't run: A5 was dropped and not measured (${DROPPED_ADVERSARIES.A5}).`);
+    expect(md).not.toMatch(/A5's speed check, one call at a time/);
+  });
+  it("shows A5 as a row marked dropped and not measured, with the reason, in every run table, never as numbers", () => {
+    const rows = md.split("\n").filter((line) => line.startsWith("| A5 |"));
+    expect(rows.length).toBe(4); // the 2 adversary tables, agreement and safety
+    for (const row of rows) {
+      expect(row).toContain(`dropped, not measured: ${DROPPED_ADVERSARIES.A5}`);
+      expect(row).not.toMatch(/\|\s*\d/); // no cell starts with a number
+    }
+    expect(md).toContain(`| Run | ${ACTIVE_ADVERSARIES.map((x) => x.id).join(" | ")} |`); // agreement's own columns: the runs measured
+  });
+  it("names the runs whose breaks it counts on shown reasons", () => {
+    expect(md).toContain("breaks across A1, A2, A3 and A4 landed on the top");
   });
   it("puts each proposer's cost per answered call beside its total", () => {
     expect(md).toContain("| Setup | Yes rate | Rated | Cost at list price | Cost per call |");
@@ -968,6 +1119,7 @@ describe("pnpm insights:pilot:analyse", () => {
     expect(await runAnalysis(s.paths, s.io, NOW)).toBe(true);
     const results = JSON.parse(await readFile(s.paths.results, "utf8")) as Results;
     expect(results).toEqual(JSON.parse(JSON.stringify(FIXTURE.results)));
+    expect(results.dropped).toEqual(DROPPED_ADVERSARIES);
     const readme = await readFile(s.paths.readme, "utf8");
     expect(readme).toBe(withResults(s.readme, tables(results)));
     const written = await readFile(s.paths.setup, "utf8");

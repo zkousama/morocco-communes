@@ -22,7 +22,7 @@
  * - Rule 6 ranks a candidate among the ones that passed their data test in its finding and
  *   proposer, in propose's own order (support, then first proposed), the way a page would
  *   show them; a break lands on a shown reason when that rank is under `PUBLISHED_CAP`. It
- *   pools the breaks of all 5 runs.
+ *   pools the breaks of every run measured.
  * - Cost is each call's recorded `costUsd`, the list price the CLI reports; Gemini's free tier
  *   records 0. Rule 1 reads each proposer's total; its cost per call, over the calls that came
  *   back, is reported beside it. Seconds per call is the recorded answering time (waits for
@@ -31,6 +31,11 @@
  *   both recorded per verdict), averaged over the calls that came back, since the free tier's
  *   rate limits are what could make the full run too slow. The total it waited is reported
  *   beside the check.
+ * - A run in `DROPPED_ADVERSARIES` (the preregistration's amendment) is never measured: its
+ *   verdicts, should stage B carry any, are read nowhere, every measure covers the active
+ *   runs alone, rule 3 never lets it qualify and says so, and the write-up shows it as
+ *   dropped and not measured, with the reason, never as a zero. `analyse` takes the dropped
+ *   runs as a parameter, so the rules as registered, A5 measured, stay testable.
  */
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
@@ -44,6 +49,7 @@ import {
   ADVERSARIES,
   BOOTSTRAP_ROUNDS,
   CONFIDENCE,
+  DROPPED_ADVERSARIES,
   FULL_RUN_ADVERSARY_CALLS,
   HIGH_EFFORT_RIGHT_SHARE,
   KAPPA_MARGIN,
@@ -134,11 +140,19 @@ export interface SafetyByRun {
 /** Rule 3's speed check, as the rule reads it off the checked run's own measures. */
 export interface SpeedCheck {
   run: string;
+  ran: true;
   secondsPerCall: number | null; // waits included; null with no call back
   waitedSeconds: number; // the total it waited, reported beside the check
   hours: number | null; // `FULL_RUN_ADVERSARY_CALLS` calls one at a time at that pace
   maxHours: number;
   fits: boolean; // never with no call back to time
+}
+
+/** Rule 3's speed check on a run that was dropped, so never timed: why, instead of a time. */
+export interface SpeedCheckNotRun {
+  run: string;
+  ran: false;
+  reason: string; // the run's own reason in `DROPPED_ADVERSARIES`
 }
 
 export interface Decision {
@@ -163,14 +177,15 @@ export interface Results {
   findings: number;
   poolByProposer: Record<string, number>;
   proposers: Record<string, ProposerResults>;
-  adversaries: Record<string, AdversaryResults>;
-  agreement: Record<string, Interval | null>; // "A1|A2" -> agreementOf the 2 runs, every pair; null with no candidate both answered
+  dropped: Record<string, string>; // runs dropped before they were measured, with their reasons: no measure below covers them
+  adversaries: Record<string, AdversaryResults>; // the runs measured
+  agreement: Record<string, Interval | null>; // "A1|A2" -> agreementOf the 2 runs, every pair measured; null with no candidate both answered
   noiseFloor: Interval | null; // A1 against A2
   extraBreaks: { inPool: number; rated: number; right: number }; // rule 2: candidates A3 broke and A1 passed
-  speedCheck: SpeedCheck; // rule 3's check on A5, with the total time it waited
+  speedCheck: SpeedCheck | SpeedCheckNotRun; // rule 3's check on A5, with the total time it waited, or why it didn't run
   samplesCurve: Record<string, Interval[]>; // proposer -> share of its good reasons found with the first 1..MAX_SAMPLES samples; empty with no good reason
   goodReasons: Record<string, number>;
-  shownBreaks: { breaks: number; shown: number; share: Interval | null }; // rule 6, across every run
+  shownBreaks: { breaks: number; shown: number; share: Interval | null }; // rule 6, across every run measured
   safety: { termsMatched: number; byRun: Record<string, SafetyByRun>; policyMisses: { candidateId: string; category: "terms"; runs: string[] }[] };
   drift: { kappa: number | null; n: number };
   decisions: Decisions;
@@ -210,7 +225,20 @@ export function hoursFor(secondsPerCall: number): number {
 export function speedCheckOf(run: string, x: AdversaryResults): SpeedCheck {
   const s = x.secondsPerCallWithWaits;
   const hours = s === null ? null : hoursFor(s);
-  return { run, secondsPerCall: s, waitedSeconds: x.waitedSeconds, hours, maxHours: A5_MAX_HOURS, fits: hours !== null && hours <= A5_MAX_HOURS };
+  return { run, ran: true, secondsPerCall: s, waitedSeconds: x.waitedSeconds, hours, maxHours: A5_MAX_HOURS, fits: hours !== null && hours <= A5_MAX_HOURS };
+}
+
+/** The registered runs `dropped` leaves standing, in `ADVERSARIES`' own order. */
+const activeOf = (dropped: Record<string, string>): PilotRole[] => ADVERSARIES.filter((role) => !Object.hasOwn(dropped, role.id));
+
+/** Why `r` dropped run `id`, or undefined when it was measured. */
+const droppedReason = (r: Pick<Results, "dropped">, id: string): string | undefined => (Object.hasOwn(r.dropped, id) ? r.dropped[id] : undefined);
+
+/** Rule 3's speed check on `SPEED_CHECKED` as `r` has it: run on its measures, or not run, with the reason, when it was dropped. */
+function speedCheckIn(r: Pick<Results, "dropped" | "adversaries">): SpeedCheck | SpeedCheckNotRun {
+  const reason = droppedReason(r, SPEED_CHECKED);
+  if (reason !== undefined) return { run: SPEED_CHECKED, ran: false, reason };
+  return speedCheckOf(SPEED_CHECKED, r.adversaries[SPEED_CHECKED]!);
 }
 
 const share = (xs: boolean[]): number => (xs.length === 0 ? NaN : xs.filter(Boolean).length / xs.length);
@@ -341,10 +369,17 @@ function proposerResults(
  * unfinished rating, or on stage files and a rating that don't fit together (a pool
  * candidate stage A doesn't have, a run missing a verdict, a rated item naming a candidate
  * neither stage has): a measure over a mismatched set would read as real and wouldn't be.
+ * Every measure covers the runs `dropped` leaves standing (`ACTIVE_ADVERSARIES` by default)
+ * and reads only their verdicts; the results record `dropped` itself, reasons and all.
  */
-export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new Date()): Results {
+export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new Date(), dropped: Record<string, string> = DROPPED_ADVERSARIES): Results {
   const unfinished = unfinishedRating(ratings);
   if (unfinished) throw new Error(unfinished);
+
+  const active = activeOf(dropped);
+  const activeIds = new Set(active.map((role) => role.id));
+  // A dropped run's verdicts, should stage B carry any, are read nowhere below.
+  const measuredVerdicts = b.verdicts.filter((v) => activeIds.has(v.run));
 
   const candidateById = new Map(a.candidates.map((c) => [c.candidateId, c]));
   for (const p of PROPOSERS) {
@@ -356,12 +391,12 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
   const poolIds = new Set(b.pool.map((e) => e.candidateId));
 
   const verdicts = new Map<string, StageBVerdict>();
-  for (const v of b.verdicts) {
+  for (const v of measuredVerdicts) {
     if (!poolIds.has(v.candidateId)) throw new Error(`stage B has a ${v.run} verdict on ${v.candidateId}, which isn't in its pool`);
     if (verdicts.has(`${v.run}:${v.candidateId}`)) throw new Error(`stage B has 2 ${v.run} verdicts on ${v.candidateId}`);
     verdicts.set(`${v.run}:${v.candidateId}`, v);
   }
-  for (const run of ADVERSARIES) {
+  for (const run of active) {
     for (const entry of b.pool) {
       if (!verdicts.has(`${run.id}:${entry.candidateId}`)) throw new Error(`stage B has no ${run.id} verdict on pool candidate ${entry.candidateId}`);
     }
@@ -405,7 +440,7 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
     .map((item) => ({ item, answer: answers.get(item.itemId)! }))
     .filter((x) => x.answer.answer !== "skip");
   const adversaries: Record<string, AdversaryResults> = {};
-  for (const role of ADVERSARIES) {
+  for (const role of active) {
     const mine = b.pool.map((entry) => ({ entry, v: verdictOf(role.id, entry.candidateId) }));
     const judged = mine.filter((x) => argued(x.v));
     const calls = mine.filter((x) => x.v.model !== null);
@@ -457,8 +492,8 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
 
   // Agreement between every pair of runs, over the candidates both answered usably.
   const agreement: Record<string, Interval | null> = {};
-  for (const [i, x] of ADVERSARIES.entries()) {
-    for (const y of ADVERSARIES.slice(i + 1)) {
+  for (const [i, x] of active.entries()) {
+    for (const y of active.slice(i + 1)) {
       const pairs = b.pool.flatMap((entry) => {
         const vx = verdictOf(x.id, entry.candidateId);
         const vy = verdictOf(y.id, entry.candidateId);
@@ -483,9 +518,9 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
     right: count(ratedExtra, (x) => x.answer.answer === "no"),
   };
 
-  // Rule 6: every break, across every run, and whether it landed on a shown reason.
+  // Rule 6: every break, across every run measured, and whether it landed on a shown reason.
   const shownRank = passingRanks(a.candidates);
-  const breaks = b.verdicts.filter(broke).map((v) => ({
+  const breaks = measuredVerdicts.filter(broke).map((v) => ({
     findingId: candidateById.get(v.candidateId)!.findingId,
     value: shownRank.get(v.candidateId)! < PUBLISHED_CAP,
   }));
@@ -497,7 +532,7 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
 
   // Policy against the private terms, both ways: counts and candidate ids, never a term or a text.
   const byRun: Record<string, SafetyByRun> = {};
-  for (const role of ADVERSARIES) {
+  for (const role of active) {
     const mine = b.pool.map((entry) => ({ matched: termMatch.get(entry.candidateId)!, v: verdictOf(role.id, entry.candidateId) }));
     const stops = mine.filter((x) => x.v.stage === "safety");
     byRun[role.id] = {
@@ -512,7 +547,7 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
     .map((entry) => ({
       candidateId: entry.candidateId,
       category: "terms" as const,
-      runs: ADVERSARIES.filter((r) => argued(verdictOf(r.id, entry.candidateId))).map((r) => r.id),
+      runs: active.filter((r) => argued(verdictOf(r.id, entry.candidateId))).map((r) => r.id),
     }))
     .filter((miss) => miss.runs.length > 0);
 
@@ -529,11 +564,12 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
     findings: a.findingIds.length,
     poolByProposer: Object.fromEntries(PROPOSERS.map((p) => [p.id, count(b.pool, (e) => e.proposer === p.id)])),
     proposers,
+    dropped: { ...dropped },
     adversaries,
     agreement,
     noiseFloor: agreement[`${MEDIUM_RUN}|${REPEAT_RUN}`] ?? null,
     extraBreaks,
-    speedCheck: speedCheckOf(SPEED_CHECKED, adversaries[SPEED_CHECKED]!),
+    speedCheck: speedCheckIn({ dropped, adversaries }),
     samplesCurve,
     goodReasons,
     shownBreaks,
@@ -665,27 +701,31 @@ function ruleEffort(r: Omit<Results, "decisions">): Decision {
  * to A5. With nothing left, the Opus run rule 2 chose keeps the job, unless it's the
  * proposer's own model: then the more right of A4 and A5 takes it, qualifying or not (a tie
  * to A5, an A5 pick too slow for the full run going to A4), and the decision says it didn't
- * meet the rule's own bar.
+ * meet the rule's own bar. A challenger in `r.dropped` never qualifies and is never picked,
+ * and the decision says it was dropped and not measured, and why: with A5 dropped, A4 is
+ * weighed against the Opus run alone, and in the fallback A4 takes the job as the only
+ * challenger left.
  */
 function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort: string): Decision {
   const rule = "3. Adversary model";
   const opusRun = effort === "high" ? HIGH_RUN : MEDIUM_RUN;
   const proposer = roleOf(PROPOSERS, proposerId);
+  const isDropped = (id: string): boolean => droppedReason(r, id) !== undefined;
   const right = (id: string): number | null => r.adversaries[id]?.rightOnDisagreements?.value ?? null;
   // Read fresh off the run's own measures, waits included, never off `r.speedCheck`, so the
-  // rule and what it reads can't drift apart.
-  const check = speedCheckOf(SPEED_CHECKED, r.adversaries[SPEED_CHECKED]!);
-  const fits = (id: string): boolean => id !== SPEED_CHECKED || check.fits;
-  /** Why the checked run fails the speed check, to follow its id. */
+  // rule and what it reads can't drift apart. A dropped run has no measures to time.
+  const check = isDropped(SPEED_CHECKED) ? null : speedCheckOf(SPEED_CHECKED, r.adversaries[SPEED_CHECKED]!);
+  const fits = (id: string): boolean => id !== SPEED_CHECKED || (check?.fits ?? false);
+  /** Why the checked run fails the speed check, to follow its id. Only ever read for a checked run that was measured. */
   const tooSlow = (): string => {
     const calls = FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US");
-    return check.hours === null
+    return check!.hours === null
       ? `has no answered call to time, so it can't show ${calls} calls fit in ${A5_MAX_HOURS} hours`
-      : `would take ${check.hours.toFixed(1)} hours for ${calls} calls one at a time, waits included (it waited ${duration(check.waitedSeconds)} in all), over ${A5_MAX_HOURS}`;
+      : `would take ${check!.hours.toFixed(1)} hours for ${calls} calls one at a time, waits included (it waited ${duration(check!.waitedSeconds)} in all), over ${A5_MAX_HOURS}`;
   };
   /** The checked run's speed check when it passes, to follow "and" or a possessive. */
   const fast = (): string =>
-    `${FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US")} calls one at a time would take ${check.hours!.toFixed(1)} hours, waits included (it waited ${duration(check.waitedSeconds)} in all), within ${A5_MAX_HOURS}`;
+    `${FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US")} calls one at a time would take ${check!.hours!.toFixed(1)} hours, waits included (it waited ${duration(check!.waitedSeconds)} in all), within ${A5_MAX_HOURS}`;
   const rightText = (id: string): string => {
     const x = right(id);
     return x === null ? `${id} has no rated disagreement it argued` : `${id} is right on ${pct(x)} of the rated disagreements`;
@@ -705,6 +745,10 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
   const notes: string[] = [];
   const standing: string[] = [];
   for (const id of CHALLENGERS) {
+    if (isDropped(id)) {
+      notes.push(`${id} was dropped and not measured (${r.dropped[id]}), so it can't qualify.`);
+      continue;
+    }
     const kappa = r.agreement[`${MEDIUM_RUN}|${id}`] ?? null;
     if (!nearFloor(kappa, r.noiseFloor)) {
       notes.push(
@@ -748,27 +792,30 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
     return { choice: opusRun, rule, because: `${notes.join(" ")} Nothing's left standing, so ${opusRun} keeps the job.`, metBar: true };
   }
 
-  const left = CHALLENGERS.filter((id) => !sameModel(roleOf(ADVERSARIES, id), proposer));
-  if (left.length === 0) throw new Error("rule 3: every adversary shares the proposer's model");
+  const left = CHALLENGERS.filter((id) => !isDropped(id) && !sameModel(roleOf(ADVERSARIES, id), proposer));
+  if (left.length === 0) throw new Error("rule 3: every adversary left shares the proposer's model");
   const pick = left.length === 1 ? left[0]! : moreRight(left[0]!, left[1]!);
   const chosen = fits(pick) ? pick : TOO_SLOW_GOES_TO;
+  const goesTo = left.length === 1 ? `${pick}, the only challenger left, qualifying or not` : `the more right of ${list(left)}, qualifying or not: ${pick}`;
   const slowNote =
     pick !== SPEED_CHECKED ? "" : chosen === pick ? ` ${pick}'s ${fast()}.` : ` ${pick} ${tooSlow()}, so the job goes to ${TOO_SLOW_GOES_TO}.`;
   return {
     choice: chosen,
     rule,
-    because: `${notes.join(" ")} Nothing's left standing, and ${opusRun} runs ${modelName(opus)}, the proposer's own model, so the job goes to the more right of ${list(left)}, qualifying or not: ${pick}.${slowNote} ${chosen} didn't meet this rule's own bar.`,
+    because: `${notes.join(" ")} Nothing's left standing, and ${opusRun} runs ${modelName(opus)}, the proposer's own model, so the job goes to ${goesTo}.${slowNote} ${chosen} didn't meet this rule's own bar.`,
     metBar: false,
   };
 }
 
 /** Rule 4: measured and reported, never a choice: the setup already keeps the adversary off the proposer's own model. */
 function ruleSelfPreference(r: Omit<Results, "decisions">): Decision {
-  const flagged = ADVERSARIES.filter((x) => {
+  const measured = activeOf(r.dropped);
+  const flagged = measured.filter((x) => {
     const family = r.adversaries[x.id]?.family;
     return family !== null && family !== undefined && family.gap.value >= SELF_PREFERENCE_GAP - EPS;
   }).map((x) => x.id);
-  const without = ADVERSARIES.filter((x) => !r.adversaries[x.id]?.family).map((x) => x.id);
+  const without = measured.filter((x) => !r.adversaries[x.id]?.family).map((x) => x.id);
+  const dropped = ADVERSARIES.filter((x) => droppedReason(r, x.id) !== undefined).map((x) => x.id);
   const gap = points(SELF_PREFERENCE_GAP);
   const parts = [
     flagged.length > 0
@@ -776,6 +823,7 @@ function ruleSelfPreference(r: Omit<Results, "decisions">): Decision {
       : `No run broke its own family's reasons at least ${gap} points less often than everyone else's.`,
   ];
   if (without.length > 0) parts.push(`${list(without)} had no reason from ${without.length === 1 ? "its" : "their"} own family to argue with.`);
+  if (dropped.length > 0) parts.push(`${list(dropped)} ${dropped.length === 1 ? "was" : "were"} dropped and not measured.`);
   parts.push("Reported only: the setup already keeps the adversary off the proposer's own model.");
   return { choice: "no change", rule: "4. Self-preference", because: parts.join(" "), metBar: true };
 }
@@ -863,11 +911,19 @@ const counts = (record: Record<string, number>): string => {
 };
 const seconds = (x: number | null): string => (x === null ? "none" : x.toFixed(1));
 const setupName = (role: PilotRole): string => (role.effort ? `${modelName(role)}, ${role.effort}` : modelName(role));
+/**
+ * A dropped run's row in a table with `width` columns after its id: `lead` (the cells naming
+ * its setup, where the table has them), then the mark and the reason, then blanks. Never a
+ * number, so it can't be read as a measure of zero.
+ */
+const droppedRow = (id: string, reason: string, width: number, lead: string[] = []): string =>
+  cells([id, ...lead, `dropped, not measured: ${reason}`, ...Array.from({ length: width - lead.length - 1 }, () => "")]);
 
 /** The markdown the README carries between its results markers: every measure beside its interval, then each decision and why. */
 export function tables(r: Results): string {
   const out: string[] = [];
   const pool = Object.values(r.poolByProposer).reduce((sum, n) => sum + n, 0);
+  const measured = activeOf(r.dropped);
 
   out.push("### Proposers", "");
   out.push(`${r.findings} findings, ${MAX_SAMPLES} samples each. Every interval is ${pct(CONFIDENCE)}, from ${BOOTSTRAP_ROUNDS.toLocaleString("en-US")} bootstrap rounds over the findings.`, "");
@@ -913,6 +969,11 @@ export function tables(r: Results): string {
   out.push(`The pool: ${pool} candidates, ${PROPOSERS.map((p) => `${r.poolByProposer[p.id] ?? 0} from ${p.id}`).join(", ")}.`, "");
   out.push(...header(["Run", "Model", "Effort", "Break rate", "Argued", "Unusable", "Policy stops", "Right on disagreements", "Counter-tests upheld"]));
   for (const role of ADVERSARIES) {
+    const reason = droppedReason(r, role.id);
+    if (reason !== undefined) {
+      out.push(droppedRow(role.id, reason, 8, [modelName(role), effortName(role)]));
+      continue;
+    }
     const x = r.adversaries[role.id]!;
     out.push(
       cells([
@@ -933,6 +994,11 @@ export function tables(r: Results): string {
     ...header(["Run", "Own family's reasons broken", "Everyone else's", "Gap", "Cost at list price", "Tokens in", "Tokens out", "Seconds per call", "Seconds per call with waits", "Waited"]),
   );
   for (const role of ADVERSARIES) {
+    const reason = droppedReason(r, role.id);
+    if (reason !== undefined) {
+      out.push(droppedRow(role.id, reason, 9));
+      continue;
+    }
     const x = r.adversaries[role.id]!;
     const family = x.family;
     out.push(
@@ -950,15 +1016,17 @@ export function tables(r: Results): string {
       ]),
     );
   }
-  const check = speedCheckOf(SPEED_CHECKED, r.adversaries[SPEED_CHECKED]!);
+  const check = speedCheckIn(r);
   const calls = FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US");
   out.push(
     "",
-    `${SPEED_CHECKED}'s speed check, one call at a time, waits included: ${
-      check.secondsPerCall === null || check.hours === null
-        ? `no call came back to time, so it can't show ${calls} calls fit in ${A5_MAX_HOURS} hours`
-        : `${check.secondsPerCall.toFixed(1)} seconds a call, so ${calls} calls would take ${check.hours.toFixed(1)} hours, ${check.fits ? "within" : "over"} ${A5_MAX_HOURS}`
-    }; it waited ${duration(check.waitedSeconds)} in all.`,
+    !check.ran
+      ? `${check.run}'s speed check didn't run: ${check.run} was dropped and not measured (${check.reason}).`
+      : `${check.run}'s speed check, one call at a time, waits included: ${
+          check.secondsPerCall === null || check.hours === null
+            ? `no call came back to time, so it can't show ${calls} calls fit in ${A5_MAX_HOURS} hours`
+            : `${check.secondsPerCall.toFixed(1)} seconds a call, so ${calls} calls would take ${check.hours.toFixed(1)} hours, ${check.fits ? "within" : "over"} ${A5_MAX_HOURS}`
+        }; it waited ${duration(check.waitedSeconds)} in all.`,
   );
   out.push("", `${HIGH_RUN}'s extra breaks, the candidates it broke and ${MEDIUM_RUN} passed: ${r.extraBreaks.inPool} in the pool, ${r.extraBreaks.rated} rated, ${r.extraBreaks.right} of those judged right.`);
 
@@ -967,12 +1035,18 @@ export function tables(r: Results): string {
     `Agreement between each pair of runs, over the candidates both answered usably: Cohen's kappa, or 1 when the 2 runs agree on every candidate. ${MEDIUM_RUN} and ${REPEAT_RUN} are the same setup run twice, so their agreement is the noise floor: ${numRange(r.noiseFloor)}.`,
     "",
   );
-  out.push(...header(["Run", ...ADVERSARIES.map((x) => x.id)]));
-  for (const [i, row] of ADVERSARIES.entries()) {
+  out.push(...header(["Run", ...measured.map((x) => x.id)]));
+  for (const row of ADVERSARIES) {
+    const reason = droppedReason(r, row.id);
+    if (reason !== undefined) {
+      out.push(droppedRow(row.id, reason, measured.length));
+      continue;
+    }
+    const i = measured.indexOf(row);
     out.push(
       cells([
         row.id,
-        ...ADVERSARIES.map((col, j) => {
+        ...measured.map((col, j) => {
           if (i === j) return "";
           const key = i < j ? `${row.id}|${col.id}` : `${col.id}|${row.id}`;
           return numRange(r.agreement[key] ?? null);
@@ -991,13 +1065,18 @@ export function tables(r: Results): string {
 
   out.push("", "### Shown reasons", "");
   out.push(
-    `${r.shownBreaks.shown} of ${r.shownBreaks.breaks} breaks across every run landed on the top ${PUBLISHED_CAP} reasons a page would show, by support among the ones that passed their data test: ${pctRange(r.shownBreaks.share)}.`,
+    `${r.shownBreaks.shown} of ${r.shownBreaks.breaks} breaks across ${list(measured.map((x) => x.id))} landed on the top ${PUBLISHED_CAP} reasons a page would show, by support among the ones that passed their data test: ${pctRange(r.shownBreaks.share)}.`,
   );
 
   out.push("", "### Safety", "");
   out.push(`${r.safety.termsMatched} of the pool's candidates matched a private term.`, "");
   out.push(...header(["Run", "Policy stops", "By category", "Stopped with no term matched", "Term matched, argued anyway"]));
   for (const role of ADVERSARIES) {
+    const reason = droppedReason(r, role.id);
+    if (reason !== undefined) {
+      out.push(droppedRow(role.id, reason, 4));
+      continue;
+    }
     const s = r.safety.byRun[role.id]!;
     out.push(cells([role.id, s.refused, counts(s.categories), s.refusedWithoutTerm, s.termButPassed]));
   }

@@ -17,12 +17,13 @@
  * never a real census finding, so a test can shuffle, filter and hash this data without ever
  * touching the real dataset.
  *
- * StageB: 5 runs of made-up verdicts over that pool, disagreeing on about a third of it. A
- * term match and an unusable answer each land on a candidate that otherwise disagrees. A
- * couple of candidates get a safety stop. Some disagreeing candidates carry several distinct
- * counter-tests across the runs that broke them, others share just the one. Every pool
- * candidate ranked below the top 3 within its finding gets broken by A1 at least once, so a
- * rank-based measure has real breaks outside the top 3 to count, not just an empty set.
+ * StageB: the active runs' made-up verdicts over that pool (`ACTIVE_ADVERSARIES`, with A5
+ * recorded as dropped), disagreeing on about a third of it. A term match and an unusable
+ * answer each land on a candidate that otherwise disagrees. A couple of candidates get a
+ * safety stop. Some disagreeing candidates carry several distinct counter-tests across the
+ * runs that broke them, others share just the one. Every pool candidate ranked below the top
+ * 3 within its finding gets broken by A1 at least once, so a rank-based measure has real
+ * breaks outside the top 3 to count, not just an empty set.
  *
  * Ratings: a finished rating of `ratingPlan(a, b, PILOT_SEED)`, every item answered: yes on
  * 7 reasons in 10 (no on 2, a skip on the last), sound on every other disagreement, each
@@ -32,7 +33,7 @@ import { NO_USAGE, type Usage } from "../../src/model.ts";
 import type { LinkTest } from "../../src/links.ts";
 import { ratingPlan, type Ratings } from "../../src/pilot/rate.ts";
 import { candidateIdOf, samplePool } from "../../src/pilot/sample.ts";
-import { ADVERSARIES, MAX_SAMPLES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS } from "../../src/pilot/setups.ts";
+import { ACTIVE_ADVERSARIES, DROPPED_ADVERSARIES, MAX_SAMPLES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS } from "../../src/pilot/setups.ts";
 import type { StageA, StageACandidate, StageAProposer, StageB, StageBVerdict } from "../../src/pilot/stages.ts";
 import type { LinkResult } from "../../src/run.ts";
 import type { Check, Outcome } from "../../src/vocabulary.ts";
@@ -169,7 +170,7 @@ const SAFETY_STOPS: { index: number; run: string; category: string }[] = [
   { index: 13, run: "A1", category: "individuals" },
 ];
 const NO_ANSWER_INDEX = 9; // a disagreeing candidate (9 % 3 === 0): one run never answers
-const NO_ANSWER_RUN = "A5";
+const NO_ANSWER_RUN = "A4";
 const UNREADABLE_INDEX = 7; // pool index a run's answer can't be read
 const UNREADABLE_RUN = "A2";
 const TERM_MATCH_INDEX = 6; // a disagreeing candidate (6 % 3 === 0): the private terms would have caught it
@@ -205,7 +206,7 @@ function verdictFor(run: string, roleIndex: number, candidateId: string, i: numb
     };
   }
 
-  // About a third of the pool splits between the 5 runs; the rest agree (every run
+  // About a third of the pool splits between the runs; the rest agree (every run
   // survives it), so `sampleDisagreements` finds real disagreements on roughly a third.
   const disagrees = i % 3 === 0;
   const broke = disagrees && (roleIndex + i) % 2 === 0;
@@ -230,8 +231,9 @@ function verdictFor(run: string, roleIndex: number, candidateId: string, i: numb
 }
 
 /**
- * The real pool drawn from `a`'s passing candidates, and 5 runs of made-up verdicts over
- * it: about a third of the pool disagrees between runs, a couple of candidates get a safety
+ * The real pool drawn from `a`'s passing candidates, and the active runs' made-up verdicts
+ * over it, the dropped runs recorded with their reasons: about a third of the pool
+ * disagrees between runs, a couple of candidates get a safety
  * stop, one disagreeing candidate gets an unusable answer from one run, one disagreeing
  * candidate is flagged as a private term match (`termMatches`, independent of any run's own
  * verdict), some disagreeing candidates carry several distinct counter-tests across the runs
@@ -241,13 +243,13 @@ export function fakeStageB(a: StageA): StageB {
   const pool = samplePool(a.candidates, POOL_PER_PROPOSER, PILOT_SEED);
   const rankById = new Map(a.candidates.map((c) => [c.candidateId, c.rank]));
   const verdicts: StageBVerdict[] = [];
-  for (const [roleIndex, role] of ADVERSARIES.entries()) {
+  for (const [roleIndex, role] of ACTIVE_ADVERSARIES.entries()) {
     for (const [i, entry] of pool.entries()) {
       verdicts.push(verdictFor(role.id, roleIndex, entry.candidateId, i, rankById.get(entry.candidateId) ?? 0));
     }
   }
   const termMatches = pool.map((entry, i) => ({ candidateId: entry.candidateId, termMatch: i === TERM_MATCH_INDEX }));
-  return { pool, verdicts, termMatches, dropped: {} };
+  return { pool, verdicts, termMatches, dropped: { ...DROPPED_ADVERSARIES } };
 }
 
 const ANSWERED_AT = "2026-09-26T00:00:00.000Z";
