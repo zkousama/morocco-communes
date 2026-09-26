@@ -7,7 +7,8 @@ import { detect } from "../../src/detect.ts";
 import { NO_ANSWER } from "../../src/falsify.ts";
 import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Runner } from "../../src/model.ts";
 import { STOP_AFTER_FAILURES } from "../../src/run.ts";
-import { committedCandidates, runStageA, runStageB, type StageA, type StageACandidate } from "../../src/pilot/stages.ts";
+import type { Check } from "../../src/vocabulary.ts";
+import { committedCandidates, runStageA, runStageB, type StageA, type StageACandidate, type StageB, type StageBVerdict } from "../../src/pilot/stages.ts";
 import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
@@ -255,6 +256,35 @@ describe("stage B", () => {
     expect(runs[0]).not.toHaveProperty("reason");
   });
 
+  it("redacts every run's own text once any one of them refuses, not just the refusing run's", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    // A1 refuses outright; every other run answers for real, with its own free-text reason
+    // and a counter-test, on every candidate.
+    const mixed: Runner = async (call) => {
+      const text = call.model === "opus" && call.effort === "medium" && !call.label
+        ? JSON.stringify({ counter: null, reason: "r", refuse: "blame" })
+        : JSON.stringify({
+            counter: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: -1 } },
+            reason: "a reason nobody should read",
+          });
+      return { text, model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE, waitedMs: 0 };
+    };
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, mixed]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    const committed = JSON.stringify(committedCandidates(a, b, null));
+
+    expect(committed).not.toContain("a reason nobody should read"); // no run's reason, refusing or not
+    expect(committed).not.toContain('"education.higher"'); // no run's counter-test, and not the candidate's own data test either
+    for (const c of a.candidates) {
+      expect(committed).not.toContain(c.candidate.claim.en);
+      expect(committed).not.toContain(c.candidate.claim.fr);
+      expect(committed).not.toContain(c.candidate.link.en);
+      expect(committed).not.toContain(c.candidate.link.fr);
+      expect(committed).not.toContain(c.candidate.premise.en);
+      expect(committed).not.toContain(c.candidate.premise.fr);
+    }
+  });
+
   it("redacts a term-matching candidate even when every run's counter-test breaks it, never letting a broken candidate skip the term check", async () => {
     const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
     // P1 alone claims "claim by haiku" (no adversary answers as "haiku"), so matching on it
@@ -314,6 +344,66 @@ describe("stage B", () => {
     const committed = JSON.stringify(committedCandidates(a, b, terms));
     expect(committed).not.toContain("-1");
     expect(committed).toContain('"status":"passed"');
+  });
+
+  it("keeps only a refused counter-test's status, even when nothing in it matches a pattern", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    // "the committee's private records" isn't a real field, so evaluate() refuses this
+    // counter-test outright; nothing about that free text matches a term or an individual.
+    const answering = makeRunner(stubTransport(() => JSON.stringify({
+      counter: { check: "compare", left: { of: { unit: "self" }, field: "the committee's private records", year: 2024 }, op: ">", right: { value: 0 } },
+      reason: "fine",
+    })), { cacheDir: mkdtempSync(join(tmpdir(), "rf-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    expect(b.verdicts.every((v) => v.counterOutcome?.status === "refused")).toBe(true);
+    const committed = JSON.stringify(committedCandidates(a, b, null));
+    expect(committed).not.toContain("committee");
+    expect(committed).toContain('"status":"refused"');
+  });
+
+  it("screens the counter's own string values too, catching what an escaped character hides in its JSON", () => {
+    // Built by hand rather than through a real falsify() call: evaluate() would refuse a
+    // made-up field outright (covered by the test above), which would mask this on its own.
+    // This isolates the leaf-screening rule from the refused-status rule.
+    const fakeTest: Check = { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: 0 } };
+    const fakeCandidate: StageACandidate = {
+      candidateId: "aaaaaaaaaaaa",
+      proposer: "P1",
+      findingId: "f1",
+      candidate: { claim: { en: "c", fr: "c" }, link: { en: "l", fr: "l" }, premise: { en: "p", fr: "p" }, test: fakeTest, linkTest: null, artefact: false, support: 5, samples: [0, 1, 2, 3, 4] },
+      sampleIndexes: [0, 1, 2, 3, 4],
+      rank: 0,
+      outcome: { status: "passed", numbers: {} },
+      passed: true,
+      link: null,
+    };
+    const fakeA: StageA = { seed: PILOT_SEED, findingIds: ["f1"], proposers: [], candidates: [fakeCandidate] };
+    // A raw tab inside the counter's own field, exactly as it would sit if a private term
+    // contained one: `JSON.stringify` would escape it to the 2 characters \ and t, which a
+    // whole-JSON regex test for a literal tab would never match.
+    const counterWithTab: Check = { check: "compare", left: { of: { unit: "self" }, field: "abc\tdef", year: 2024 }, op: ">", right: { value: 0 } };
+    const verdict: StageBVerdict = {
+      run: "A1", candidateId: "aaaaaaaaaaaa", survived: true, stage: null, category: null, unusable: null,
+      counter: counterWithTab, counterOutcome: { status: "passed", numbers: {} }, reason: "fine",
+      model: "opus", usage: NO_USAGE, ms: 0, waitedMs: 0,
+    };
+    const fakeB: StageB = { pool: [{ candidateId: "aaaaaaaaaaaa", proposer: "P1", findingId: "f1" }], verdicts: [verdict], termMatches: [{ candidateId: "aaaaaaaaaaaa", termMatch: false }] };
+    const terms = /abc\tdef/; // a raw tab, exactly as it would sit inside a private term
+    const committed = JSON.stringify(committedCandidates(fakeA, fakeB, terms));
+    expect(committed).not.toContain("abc");
+  });
+
+  it("fails closed: a candidate with no termMatch row is redacted, not shown", async () => {
+    const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+    const answering = makeRunner(stubTransport(() => JSON.stringify({ counter: null, reason: "fine" })), { cacheDir: mkdtempSync(join(tmpdir(), "fc-")), datasetVersion: "t", stageVersions: {} });
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, answering]));
+    const b = await runStageB(data, a, adv, { concurrency: 1, terms: null });
+    const withoutTermMatches: StageB = { ...b, termMatches: [] }; // simulates a missing row for every candidate
+    const committed = committedCandidates(a, withoutTermMatches, null) as Array<{ safety?: Array<{ run: string; category: string }> }>;
+    expect(committed.length).toBeGreaterThan(0);
+    expect(committed.every((c) => c.safety !== undefined)).toBe(true);
+    expect(committed.every((c) => c.safety!.some((s) => s.run === "terms"))).toBe(true);
   });
 
   it("keeps a candidate's full text when a run simply couldn't answer, marking it unusable rather than a break", async () => {

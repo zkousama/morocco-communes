@@ -6,7 +6,7 @@ import { loadData } from "../../src/data.ts";
 import { detect } from "../../src/detect.ts";
 import { makeRunner, stubTransport, type Runner } from "../../src/model.ts";
 import { missingGeminiKey, runAndReport, runAndReportB } from "../../src/pilot/cli.ts";
-import { runStageA } from "../../src/pilot/stages.ts";
+import { runStageA, type StageA } from "../../src/pilot/stages.ts";
 import { ADVERSARIES, PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
@@ -68,6 +68,27 @@ describe("runAndReportB", () => {
     });
     expect(logs.some((l) => l.includes("unusable (no answer)"))).toBe(true);
     expect(logs.some((l) => l.includes("broke ("))).toBe(false);
+  });
+
+  it("reports a setup mistake as a refusal to start, not a mid-run halt", async () => {
+    const proposerRunners = new Map(PROPOSERS.map((p) => [p.id, makeRunner(stubTransport(answer), { cacheDir: mkdtempSync(join(tmpdir(), "sf-")), datasetVersion: "t", stageVersions: {} })]));
+    const a = await runStageA(data, findings, proposerRunners, { concurrency: 1, terms: null });
+    // Every candidate now names a finding id detect(data) doesn't have: a setup mistake
+    // found before any call, never a halt part-way through one.
+    const brokenA: StageA = { ...a, candidates: a.candidates.map((c) => ({ ...c, findingId: "not-a-real-finding-id" })) };
+    const neverCalled: Runner = async () => { throw new Error("should never be called"); };
+    const adv = new Map(ADVERSARIES.map((r) => [r.id, neverCalled]));
+    const errors: string[] = [];
+    const ok = await runAndReportB(data, brokenA, adv, { concurrency: 1, terms: null }, {
+      log: () => {},
+      error: (l) => errors.push(l),
+      writeStageB: async () => {},
+      writeCandidates: async () => {},
+    });
+    expect(ok).toBe(false);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/^stage B can't start: .*finding id/);
+    expect(errors[0]).not.toContain("answers so far are cached");
   });
 });
 

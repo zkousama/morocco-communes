@@ -42,6 +42,15 @@ import { evaluate, type Check, type Outcome } from "../vocabulary.ts";
 import { candidateIdOf, samplePool, type PoolEntry } from "./sample.ts";
 import { ADVERSARIES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS, type PilotRole } from "./setups.ts";
 
+/**
+ * A mistake found before either stage ever made a call: a missing runner, or a pool
+ * candidate whose finding id `detect(data)` doesn't have. Never a halt part-way through a
+ * run, so a caller reports it as its own kind of problem (a setup mistake, nothing to do
+ * with the answers already cached) rather than as "stopped ...; run it again to resume",
+ * which reads as though something was salvaged and only needs a retry.
+ */
+export class SetupError extends Error {}
+
 export interface StageACandidate {
   candidateId: string;
   proposer: string;
@@ -102,7 +111,7 @@ export async function runStageA(
 ): Promise<StageA> {
   const missing = PROPOSERS.filter((p) => !runners.has(p.id)).map((p) => p.id);
   if (missing.length > 0) {
-    throw new Error(`runStageA: no runner for proposer${missing.length > 1 ? "s" : ""} ${missing.map((id) => `"${id}"`).join(", ")}`);
+    throw new SetupError(`runStageA: no runner for proposer${missing.length > 1 ? "s" : ""} ${missing.map((id) => `"${id}"`).join(", ")}`);
   }
 
   const findingById = new Map(findings.map((f) => [f.id, f]));
@@ -351,7 +360,7 @@ export async function runStageB(
 ): Promise<StageB> {
   const missing = ADVERSARIES.filter((r) => !runners.has(r.id)).map((r) => r.id);
   if (missing.length > 0) {
-    throw new Error(`runStageB: no runner for adversar${missing.length > 1 ? "ies" : "y"} ${missing.map((id) => `"${id}"`).join(", ")}`);
+    throw new SetupError(`runStageB: no runner for adversar${missing.length > 1 ? "ies" : "y"} ${missing.map((id) => `"${id}"`).join(", ")}`);
   }
 
   const pool = samplePool(a.candidates, POOL_PER_PROPOSER, PILOT_SEED);
@@ -360,7 +369,7 @@ export async function runStageB(
 
   const unresolvedFindings = [...new Set(pool.filter((entry) => !findingById.has(entry.findingId)).map((entry) => entry.findingId))];
   if (unresolvedFindings.length > 0) {
-    throw new Error(
+    throw new SetupError(
       `runStageB: the pool has a candidate for finding id${unresolvedFindings.length > 1 ? "s" : ""} detect(data) doesn't have: ${unresolvedFindings.join(", ")}`,
     );
   }
@@ -486,16 +495,38 @@ function nonTextRun(v: StageBVerdict): object {
   };
 }
 
+/** Every string a `Check` carries, walked recursively: `refusal` only ever reads a string, and a term or a name could sit in any one of them. */
+function stringLeaves(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(stringLeaves);
+  if (value !== null && typeof value === "object") return Object.values(value).flatMap(stringLeaves);
+  return [];
+}
+
 /**
- * A run's counter-test, kept only if neither its own JSON nor the named-person pattern
- * matches `terms`; otherwise dropped, keeping just its outcome's status (never its own
- * `reason`, and never the figures it read, on the belt-and-braces chance either named
- * something they shouldn't). A verdict with no counter-test proposed carries nothing to
- * screen either way.
+ * Whether a counter-test is safe to commit as its own JSON: neither its whole
+ * `JSON.stringify`'d text nor any one of its own string leaves matches a term or the
+ * named-person pattern. Checked both ways because `JSON.stringify` escapes a raw tab or
+ * newline in a string leaf to 2 plain characters (`\` and `t`, say), which a term written
+ * with the real control character would never match against the whole, escaped text.
+ */
+function counterIsSafe(counter: Check, terms: RegExp | null): boolean {
+  if (refusal(JSON.stringify(counter), terms) !== null) return false;
+  return stringLeaves(counter).every((leaf) => refusal(leaf, terms) === null);
+}
+
+/**
+ * A run's counter-test, kept only when its own outcome wasn't refused (a refused counter's
+ * own field can be free text `evaluate` never validated against the catalogue, since
+ * refusing it is precisely what happens when it isn't a real one) and `counterIsSafe`
+ * clears it; otherwise dropped, keeping just its outcome's status (never its own `reason`,
+ * and never the figures it read, on the belt-and-braces chance either named something they
+ * shouldn't). A verdict with no counter-test proposed carries nothing to screen either way.
  */
 function safeCounter(v: StageBVerdict, terms: RegExp | null): { counter: Check | null; counterOutcome: { status: string } | Outcome | null } {
   if (v.counter === null) return { counter: null, counterOutcome: v.counterOutcome };
-  if (refusal(JSON.stringify(v.counter), terms) === null) return { counter: v.counter, counterOutcome: v.counterOutcome };
+  const refused = v.counterOutcome?.status === "refused";
+  if (!refused && counterIsSafe(v.counter, terms)) return { counter: v.counter, counterOutcome: v.counterOutcome };
   return { counter: null, counterOutcome: v.counterOutcome ? { status: v.counterOutcome.status } : null };
 }
 
@@ -505,12 +536,13 @@ function safeCounter(v: StageBVerdict, terms: RegExp | null): { counter: Check |
  * belongs to a candidate any run stopped for safety, or whose own text matched a private
  * term (`b.termMatches`), but that candidate's ids and which runs or terms stopped it, by
  * category. `stage: "safety"` covers a model's own refusal; `termMatch` is measured
- * separately from any verdict (see `runStageB`'s own comment on why). Neither this file nor
- * `StageBVerdict.reason` for a redacted candidate is read from here: no run's own free-text
- * `reason` is ever written to this file at all, redacted candidate or not, and a
- * non-redacted candidate's own counter-test is written only when `safeCounter` clears it.
- * `terms` is never itself written anywhere in the result; it's read only to decide what to
- * leave out.
+ * separately from any verdict (see `runStageB`'s own comment on why), and fails closed: a
+ * candidate with no row in `b.termMatches` at all is redacted, not shown. Neither this file
+ * nor `StageBVerdict.reason` for a redacted candidate is read from here: no run's own
+ * free-text `reason` is ever written to this file at all, redacted candidate or not, and a
+ * non-redacted candidate's own counter-test is written only when `safeCounter` clears it
+ * (never when its own outcome was refused, whatever its text). `terms` is never itself
+ * written anywhere in the result; it's read only to decide what to leave out.
  */
 export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null): unknown {
   const candidateById = new Map(a.candidates.map((c) => [c.candidateId, c]));
@@ -526,7 +558,10 @@ export function committedCandidates(a: StageA, b: StageB, terms: RegExp | null):
     const stageACandidate = candidateById.get(entry.candidateId)!;
     const runs = (verdictsByCandidate.get(entry.candidateId) ?? []).slice().sort((x, y) => RUN_ORDER.get(x.run)! - RUN_ORDER.get(y.run)!);
 
-    const termMatch = termMatchByCandidate.get(entry.candidateId) ?? false;
+    // Fails closed: a candidate with no row at all (a missing or corrupt termMatches entry)
+    // is treated as a match, not a pass, since the safer default here is to redact rather
+    // than to show.
+    const termMatch = termMatchByCandidate.get(entry.candidateId) ?? true;
     const safety = [
       ...(termMatch ? [{ run: "terms", category: "terms" }] : []),
       ...runs.filter((v) => v.stage === "safety").map((v) => ({ run: v.run, category: v.category })),

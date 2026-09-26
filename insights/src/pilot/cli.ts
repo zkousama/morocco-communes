@@ -25,7 +25,7 @@ import { localWarning, transportFor } from "../run.ts";
 import { termsPattern } from "../safety.ts";
 import { sampleFindings } from "./sample.ts";
 import { ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
-import { committedCandidates, runStageA, runStageB, type StageA } from "./stages.ts";
+import { committedCandidates, runStageA, runStageB, SetupError, type StageA } from "./stages.ts";
 
 const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
 const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
@@ -81,7 +81,10 @@ export async function runAndReport(
       onCandidates: (proposer, findingId, count) => io.log(`${proposer} ${findingId}: ${count} candidate${count === 1 ? "" : "s"}`),
     });
   } catch (error) {
-    io.error(`stage A stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
+    // A SetupError was found before any call was made (a missing runner): a mistake to fix
+    // and rerun, never a halt with answers already cached worth resuming from.
+    if (error instanceof SetupError) io.error(`stage A can't start: ${messageOf(error)}`);
+    else io.error(`stage A stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
     return false;
   }
 
@@ -125,7 +128,11 @@ export async function runAndReportB(
       },
     });
   } catch (error) {
-    io.error(`stage B stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
+    // A SetupError was found before any call was made (a missing runner, a pool candidate
+    // whose finding id detect(data) doesn't have): a mistake to fix and rerun, never a halt
+    // with answers already cached worth resuming from.
+    if (error instanceof SetupError) io.error(`stage B can't start: ${messageOf(error)}`);
+    else io.error(`stage B stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
     return false;
   }
 

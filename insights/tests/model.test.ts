@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   claudeInvocation,
   claudeTransport,
@@ -135,20 +135,29 @@ describe("the runner", () => {
   });
 
   it("excludes a retry's own wait from ms, and reports it separately as waitedMs", async () => {
-    let tries = 0;
-    const flaky: Transport = async () => {
-      tries++;
-      if (tries === 1) throw new Error("claude exited 1: overloaded");
-      return { text: '{"ok":true}', model: "sonnet", usage: NO_USAGE };
-    };
-    // A fake clock: `sleep` resolves at once, but `withRetries` still counts the 1,000ms
-    // backoff it asked for as waited time, so this proves `ms` doesn't fold that in.
-    const retried = withRetries(flaky, { tries: 3, backoffMs: [1000], limitPollMs: 1000, limitMaxMs: 10_000, sleep: async () => {} });
-    const cacheDir = mkdtempSync(join(tmpdir(), "waited-"));
-    const runner = makeRunner(retried, { cacheDir, datasetVersion: "t", stageVersions: {} });
-    const reply = await runner(call);
-    expect(reply.waitedMs).toBe(1000);
-    expect(reply.ms).toBeLessThan(1000);
+    vi.useFakeTimers();
+    try {
+      let tries = 0;
+      const flaky: Transport = async () => {
+        tries++;
+        if (tries === 1) throw new Error("claude exited 1: overloaded");
+        return { text: '{"ok":true}', model: "sonnet", usage: NO_USAGE };
+      };
+      // A fake clock that actually advances when `sleep` is called: without subtracting
+      // `waitedMs`, `Date.now() - started` alone would already read the full 1,000ms, so
+      // this (unlike a clock that never moves) fails if the subtraction is ever dropped.
+      const retried = withRetries(flaky, {
+        tries: 3, backoffMs: [1000], limitPollMs: 1000, limitMaxMs: 10_000,
+        sleep: async (ms) => { vi.setSystemTime(Date.now() + ms); },
+      });
+      const cacheDir = mkdtempSync(join(tmpdir(), "waited-"));
+      const runner = makeRunner(retried, { cacheDir, datasetVersion: "t", stageVersions: {} });
+      const reply = await runner(call);
+      expect(reply.waitedMs).toBe(1000);
+      expect(reply.ms).toBeLessThan(100);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("never caches an answer its stage can't read, so a re-run asks again", async () => {
