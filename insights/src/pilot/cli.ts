@@ -6,13 +6,17 @@
  * interruption resumes from every answer already given rather than asking again, and a pilot
  * call never touches the full pipeline's own cache. `--stage b` is recognised but not
  * implemented yet: it arrives with Task 14.
+ *
+ * A failure once the run has started (a halt inside `runStageA`) is reported through
+ * `runAndReport`, in its own wording, and is never routed through `refuseToStart`: that one
+ * is for a mistake made before anything ran at all (a bad flag, `INSIGHTS_LIVE` unset), which
+ * a person reads completely differently from "it ran for 3 hours and then stopped".
  */
-import { mkdir, rename, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { loadData } from "../data.ts";
-import { detect } from "../detect.ts";
-import { hash, makeRunner, messageOf, readLocal, RETRY_DEFAULTS, withRetries, type Usage } from "../model.ts";
+import { loadData, type Data } from "../data.ts";
+import { detect, type Finding } from "../detect.ts";
+import { makeRunner, messageOf, readLocal, RETRY_DEFAULTS, withRetries, writeJsonAtomic, type Runner, type Usage } from "../model.ts";
 import { localWarning, transportFor } from "../run.ts";
 import { termsPattern } from "../safety.ts";
 import { sampleFindings } from "./sample.ts";
@@ -27,15 +31,6 @@ const DEFAULT_CONCURRENCY = 3;
 const inputOf = (usage: Usage): number => usage.input + usage.cacheRead + usage.cacheWrite;
 const k = (n: number): string => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n)));
 const usd = (n: number): string => `$${n.toFixed(2)}`;
-
-/** Writes to a temporary name in the same directory, then renames it into place, so a crash mid-write never leaves a half-written file to be read back. */
-async function writeJsonAtomic(path: string, value: unknown): Promise<void> {
-  const dir = dirname(path);
-  await mkdir(dir, { recursive: true });
-  const tmp = join(dir, `.tmp-${hash(`${process.pid}-${Date.now()}-${Math.random()}`).slice(0, 16)}`);
-  await writeFile(tmp, JSON.stringify(value, null, 2));
-  await rename(tmp, path);
-}
 
 /** `pnpm insights:pilot`'s flags: `--stage a` or `--stage b`, and an optional `--concurrency`. */
 export function parseArgs(args: string[]): { stage: "a" | "b"; concurrency: number | undefined } {
@@ -58,6 +53,43 @@ export function parseArgs(args: string[]): { stage: "a" | "b"; concurrency: numb
   return { stage: rawStage, concurrency: rawConcurrency === undefined ? undefined : Number(rawConcurrency) };
 }
 
+/**
+ * Runs stage A and reports what happened through `io`, never throwing itself: a failure once
+ * the run has started is reported through `io.error`, worded as its own kind of problem
+ * ("stage A stopped", not a mistake made before anything ran), and nothing is written, since
+ * the cached answers already have everything a resumed run needs. Returns whether the file
+ * was written. Takes stubbed `runners` directly, so it's testable without `INSIGHTS_LIVE` or
+ * a real transport.
+ */
+export async function runAndReport(
+  data: Data,
+  findings: Finding[],
+  runners: Map<string, Runner>,
+  options: { concurrency: number; terms: RegExp | null },
+  io: { log: (line: string) => void; error: (line: string) => void; write: (value: unknown) => Promise<void> },
+): Promise<boolean> {
+  let result: Awaited<ReturnType<typeof runStageA>>;
+  try {
+    result = await runStageA(data, findings, runners, {
+      ...options,
+      onCandidates: (proposer, findingId, count) => io.log(`${proposer} ${findingId}: ${count} candidate${count === 1 ? "" : "s"}`),
+    });
+  } catch (error) {
+    io.error(`stage A stopped: ${messageOf(error)}; answers so far are cached, run it again to resume`);
+    return false;
+  }
+
+  for (const p of result.proposers) {
+    const calls = p.replies.length;
+    const effort = p.role.effort ? ` ${p.role.effort}` : "";
+    io.log(`usage: ${p.id} ${p.role.model}${effort}: ${calls} calls, ${k(inputOf(p.usage))} tokens in, ${k(p.usage.output)} out, ${usd(p.usage.costUsd)}`);
+  }
+
+  await io.write(result);
+  io.log(`wrote ${STAGE_A_PATH}`);
+  return true;
+}
+
 async function runStageACommand(concurrency: number): Promise<void> {
   if (process.env.INSIGHTS_LIVE !== "1") {
     throw new Error("pnpm insights:pilot needs INSIGHTS_LIVE=1: it would spend real calls against a subscription");
@@ -77,20 +109,12 @@ async function runStageACommand(concurrency: number): Promise<void> {
     PROPOSERS.map((role) => [role.id, makeRunner(withRetries(transportFor(role, local), retryOptions), cacheOptions)] as const),
   );
 
-  const result = await runStageA(data, findings, runners, {
-    concurrency,
-    terms,
-    onCandidates: (proposer, findingId, count) => console.log(`${proposer} ${findingId}: ${count} candidate${count === 1 ? "" : "s"}`),
+  const ok = await runAndReport(data, findings, runners, { concurrency, terms }, {
+    log: (line) => console.log(line),
+    error: (line) => console.error(line),
+    write: (value) => writeJsonAtomic(STAGE_A_PATH, value),
   });
-
-  for (const p of result.proposers) {
-    const calls = p.replies.length;
-    const effort = p.role.effort ? ` ${p.role.effort}` : "";
-    console.log(`usage: ${p.id} ${p.role.model}${effort}: ${calls} calls, ${k(inputOf(p.usage))} tokens in, ${k(p.usage.output)} out, ${usd(p.usage.costUsd)}`);
-  }
-
-  await writeJsonAtomic(STAGE_A_PATH, result);
-  console.log(`wrote ${STAGE_A_PATH}`);
+  if (!ok) process.exitCode = 1;
 }
 
 /** A mistake in how the run was started: said in one line, with nothing run. */

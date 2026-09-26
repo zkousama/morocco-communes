@@ -518,6 +518,21 @@ async function writeCacheFile(path: string, entry: CacheEntry): Promise<void> {
   await rename(tmpFile, path);
 }
 
+/**
+ * Writes `value` as JSON to a temporary file in `path`'s own directory, then renames it into
+ * place, the same shape `writeCacheFile` uses for every cached answer, so a crash or a quit
+ * mid-write never leaves a half-written file to be read back. Shared here for whatever else
+ * writes a whole file at once, rather than one answer at a time (the pilot's own stage files
+ * among them).
+ */
+export async function writeJsonAtomic(path: string, value: unknown): Promise<void> {
+  const dir = dirname(path);
+  await mkdir(dir, { recursive: true });
+  const tmpFile = join(dir, `.tmp-${hash(`${process.pid}-${Date.now()}-${Math.random()}`).slice(0, 16)}`);
+  await writeFile(tmpFile, JSON.stringify(value, null, 2));
+  await rename(tmpFile, path);
+}
+
 async function readCacheFile(path: string): Promise<CacheEntry | null> {
   try {
     const raw = await readFile(path, "utf8");

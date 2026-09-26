@@ -4,13 +4,14 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadData } from "../../src/data.ts";
 import { detect } from "../../src/detect.ts";
-import { makeRunner, stubTransport, type ModelCall } from "../../src/model.ts";
+import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Runner } from "../../src/model.ts";
 import { runStageA } from "../../src/pilot/stages.ts";
 import { PILOT_SEED, PROPOSERS } from "../../src/pilot/setups.ts";
 import { sampleFindings } from "../../src/pilot/sample.ts";
 
 const data = loadData();
-const findings = sampleFindings(detect(data), PILOT_SEED).slice(0, 3);
+const allFindings = sampleFindings(detect(data), PILOT_SEED);
+const findings = allFindings.slice(0, 3);
 const answer = (call: { model: string }) => JSON.stringify({ hypotheses: [{
   claim: { en: `claim by ${call.model}`, fr: "affirmation" }, link: { en: "link", fr: "lien" }, premise: { en: "premise", fr: "prémisse" },
   test: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: 0 } },
@@ -59,7 +60,7 @@ describe("stage A", () => {
     expect(JSON.stringify(a)).not.toContain("Alami");
   });
 
-  it("counts unusable answers per proposer, summed across findings", async () => {
+  it("counts unusable answers per finding, not summed across findings (rule 5 bootstraps per finding)", async () => {
     const flaky = (call: ModelCall): string => (Number(call.key.split(":").pop()) % 2 === 0 ? answer(call) : "not json");
     const mixed = new Map(PROPOSERS.map((p) => [
       p.id,
@@ -67,7 +68,9 @@ describe("stage A", () => {
     ]));
     const a = await runStageA(data, findings, mixed, { concurrency: 2, terms: null });
     const p3 = a.proposers.find((p) => p.id === "P3")!;
-    expect(p3.unusable).toBe(2 * findings.length); // samples 1 and 3 of every 5 are unusable
+    for (const f of findings) expect(p3.unusable[f.id]).toBe(2); // samples 1 and 3 of every 5 are unusable
+    const p1 = a.proposers.find((p) => p.id === "P1")!;
+    for (const f of findings) expect(p1.unusable[f.id]).toBe(0);
   });
 
   it("judges a candidate's link test only when its data test passed and the link is about the finding", async () => {
@@ -93,10 +96,113 @@ describe("stage A", () => {
     expect(withoutLinkTest.link).toBeNull();
   });
 
-  it("gives the same candidates in the same order regardless of concurrency", async () => {
-    const freshRunners = () => new Map(PROPOSERS.map((p) => [p.id, makeRunner(stubTransport(answer), { cacheDir: mkdtempSync(join(tmpdir(), "po-")), datasetVersion: "t", stageVersions: {} })]));
-    const a1 = await runStageA(data, findings, freshRunners(), { concurrency: 1, terms: null });
-    const a3 = await runStageA(data, findings, freshRunners(), { concurrency: 3, terms: null });
-    expect(a3.candidates.map((c) => c.candidateId)).toEqual(a1.candidates.map((c) => c.candidateId));
+  it("gives an identical link test the same placebos whichever proposer offered it", async () => {
+    const f0 = findings[0]!;
+    const withLink = () => JSON.stringify({ hypotheses: [{
+      claim: { en: "c", fr: "c" }, link: { en: "l", fr: "l" }, premise: { en: "p", fr: "p" },
+      test: { check: "compare", left: { of: { unit: "self" }, field: "education.higher", year: 2024 }, op: ">", right: { value: 0 } },
+      linkTest: { link: "peers", premise: "education.higher", outcome: f0.measure, level: f0.level, direction: "higher" },
+      artefact: false,
+    }] });
+    // P1 and P2 both offer the exact same premise, test and link test on the same finding.
+    const mixed = new Map(PROPOSERS.map((p) => [
+      p.id,
+      makeRunner(stubTransport((p.id === "P1" || p.id === "P2") ? withLink : answer), { cacheDir: mkdtempSync(join(tmpdir(), "ls-")), datasetVersion: "t", stageVersions: {} }),
+    ]));
+    const a = await runStageA(data, [f0], mixed, { concurrency: 1, terms: null });
+    const p1Link = a.candidates.find((c) => c.proposer === "P1" && c.findingId === f0.id)!.link!;
+    const p2Link = a.candidates.find((c) => c.proposer === "P2" && c.findingId === f0.id)!.link!;
+    expect(p1Link.placeboEffects).toEqual(p2Link.placeboEffects);
+  });
+
+  it("keeps propose's own rank and lays candidates out by proposer, then finding, then rank", async () => {
+    const h = (field: string) => ({
+      claim: { en: field, fr: field }, link: { en: "l", fr: "l" }, premise: { en: "p", fr: "p" },
+      test: { check: "compare", left: { of: { unit: "self" }, field, year: 2024 }, op: ">", right: { value: 0 } },
+      linkTest: null, artefact: false,
+    });
+    // 3 distinct hypotheses, every sample, tied on support: propose's own order (first
+    // proposed) decides rank, so it's always education.higher (0), then economy... (1), then
+    // housing... (2), whichever finding or proposer, unaffected by how findings interleave.
+    const claims = ["education.higher", "economy.perBusiness.jobs", "housing.occupancy.vacant"];
+    const multi = () => JSON.stringify({ hypotheses: claims.map(h) });
+    const mixed = new Map(PROPOSERS.map((p) => [p.id, makeRunner(stubTransport(multi), { cacheDir: mkdtempSync(join(tmpdir(), "mr-")), datasetVersion: "t", stageVersions: {} })]));
+
+    const a = await runStageA(data, findings, mixed, { concurrency: 2, terms: null });
+
+    const expectedOrder = PROPOSERS.flatMap((p) => findings.flatMap((f) => [0, 1, 2].map((rank) => `${p.id}:${f.id}:${rank}`)));
+    expect(a.candidates.map((c) => `${c.proposer}:${c.findingId}:${c.rank}`)).toEqual(expectedOrder);
+    expect(a.candidates.every((c) => c.candidate.claim.en === claims[c.rank])).toBe(true);
+  });
+
+  it("checks every proposer has a runner before making any call", async () => {
+    const calls: string[] = [];
+    const counting = () => makeRunner(stubTransport((call) => { calls.push(call.model); return answer(call); }), { cacheDir: mkdtempSync(join(tmpdir(), "mp-")), datasetVersion: "t", stageVersions: {} });
+    // P1 and P2 (which come first) do have runners; P3 and P4 don't.
+    const partial = new Map(PROPOSERS.slice(0, 2).map((p) => [p.id, counting()]));
+    await expect(runStageA(data, findings, partial, { concurrency: 1, terms: null })).rejects.toThrow(/no runner for proposer/);
+    expect(calls).toEqual([]);
+  });
+
+  it("resumes without re-asking a question the model already answered, even an unusable one", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "resume-"));
+    let calls = 0;
+    const flaky = (call: ModelCall): string => {
+      calls++;
+      return Number(call.key.split(":").pop()) % 3 === 0 ? "not json" : answer(call);
+    };
+    const resumable = new Map(PROPOSERS.map((p) => [p.id, makeRunner(stubTransport(flaky), { cacheDir, datasetVersion: "t", stageVersions: {} })]));
+
+    const a1 = await runStageA(data, findings, resumable, { concurrency: 2, terms: null });
+    expect(calls).toBeGreaterThan(0);
+
+    calls = 0;
+    const a2 = await runStageA(data, findings, resumable, { concurrency: 2, terms: null });
+    expect(calls).toBe(0);
+    expect(a2).toEqual(a1);
+  });
+
+  describe("halting", () => {
+    const failing = (message: string): Runner => async () => { throw new Error(message); };
+
+    it("halts at once on a fatal error and makes far fewer calls than a full run", async () => {
+      let calls = 0;
+      const enoent: Runner = async () => { calls++; throw new Error("couldn't start claude: spawn claude ENOENT"); };
+      const runnersAll = new Map(PROPOSERS.map((p) => [p.id, enoent]));
+      await expect(runStageA(data, allFindings, runnersAll, { concurrency: 3, terms: null })).rejects.toThrow(/couldn't start claude/);
+      // A full run would be 4 proposers x 16 findings x 5 samples = 320 calls.
+      expect(calls).toBeLessThan(10);
+    });
+
+    it("halts at once when a usage limit outlasted its wait", async () => {
+      let calls = 0;
+      const limited: Runner = async () => { calls++; throw new LimitError("the usage limit didn't reset within 6 hours", null); };
+      const runnersAll = new Map(PROPOSERS.map((p) => [p.id, limited]));
+      await expect(runStageA(data, allFindings, runnersAll, { concurrency: 3, terms: null })).rejects.toThrow(/usage limit/);
+      expect(calls).toBeLessThan(10);
+    });
+
+    it("doesn't halt on 2 failures in a row when a success follows", async () => {
+      let n = 0;
+      const flaky: Runner = async (call) => {
+        n++;
+        if (n <= 2) throw new Error("claude exited 1: overloaded");
+        return { text: answer(call), model: call.model, promptHash: "x", cached: false, ms: 1, usage: NO_USAGE };
+      };
+      const runnersFlaky = new Map(PROPOSERS.map((p) => [p.id, flaky]));
+      const a = await runStageA(data, findings, runnersFlaky, { concurrency: 1, terms: null });
+      expect(a.candidates.length).toBeGreaterThan(0);
+      expect(a.proposers.find((p) => p.id === "P1")!.failed).toBe(2);
+      for (const id of ["P2", "P3", "P4"]) expect(a.proposers.find((p) => p.id === id)!.failed).toBe(0);
+    });
+
+    it("halts after 3 ordinary failures in a row", async () => {
+      let n = 0;
+      const alwaysFailing = failing("claude exited 1: something broke");
+      const countingFailing: Runner = async (call) => { n++; return alwaysFailing(call); };
+      const runnersAll = new Map(PROPOSERS.map((p) => [p.id, countingFailing]));
+      await expect(runStageA(data, findings, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/3 proposer calls in a row failed/);
+      expect(n).toBeLessThan(10);
+    });
   });
 });

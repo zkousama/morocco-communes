@@ -1,4 +1,5 @@
 import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -9,6 +10,7 @@ import {
   ollamaTransport,
   parseClaudeOutput,
   stubTransport,
+  writeJsonAtomic,
   type Effort,
   type ModelCall,
 } from "../src/model.ts";
@@ -223,5 +225,21 @@ describe("the claude child", () => {
     const { env } = claudeInvocation({ ...call, traceparent: "00-a-b-01" }, { OTEL_EXPORTER_OTLP_ENDPOINT: "http://x", CLAUDE_CODE_SESSION_ID: "s" });
     expect(env.CLAUDE_CODE_ENABLE_TELEMETRY).toBe("1");
     expect(env.CLAUDE_CODE_SESSION_ID).toBeUndefined();
+  });
+});
+
+describe("writeJsonAtomic", () => {
+  it("writes valid JSON that reads back the same value, creating directories as needed", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "wja-"));
+    const path = join(dir, "nested", "file.json");
+    await writeJsonAtomic(path, { a: 1, b: [1, 2, 3] });
+    expect(JSON.parse(await readFile(path, "utf8"))).toEqual({ a: 1, b: [1, 2, 3] });
+  });
+
+  it("never leaves a stray temp file behind", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "wja-"));
+    const path = join(dir, "file.json");
+    await writeJsonAtomic(path, { ok: true });
+    expect(readdirSync(dir)).toEqual(["file.json"]);
   });
 });

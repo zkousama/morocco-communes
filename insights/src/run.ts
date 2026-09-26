@@ -149,8 +149,13 @@ function linkSignature(test: LinkTest): string {
   return JSON.stringify(sorted);
 }
 
-/** A link test's seed, from the finding it belongs to and its own signature, so a re-run picks the same placebos. */
-function linkSeed(findingId: string, test: LinkTest): number {
+/**
+ * A link test's seed, from the finding it belongs to and its own signature, so a re-run
+ * picks the same placebos, and so does the pilot's own stage A, which shares this instead of
+ * keeping a second seed of its own: the same link test gets the same placebos whichever
+ * proposer offered it.
+ */
+export function linkSeed(findingId: string, test: LinkTest): number {
   return parseInt(hash(`${findingId}:${linkSignature(test)}`).slice(0, 8), 16);
 }
 
