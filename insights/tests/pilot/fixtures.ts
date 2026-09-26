@@ -23,9 +23,14 @@
  * counter-tests across the runs that broke them, others share just the one. Every pool
  * candidate ranked below the top 3 within its finding gets broken by A1 at least once, so a
  * rank-based measure has real breaks outside the top 3 to count, not just an empty set.
+ *
+ * Ratings: a finished rating of `ratingPlan(a, b, PILOT_SEED)`, every item answered: yes on
+ * 7 reasons in 10 (no on 2, a skip on the last), sound on every other disagreement, each
+ * counter-test judged in turn, and every drift item answered as its original was, bar one.
  */
 import { NO_USAGE, type Usage } from "../../src/model.ts";
 import type { LinkTest } from "../../src/links.ts";
+import { ratingPlan, type Ratings } from "../../src/pilot/rate.ts";
 import { candidateIdOf, samplePool } from "../../src/pilot/sample.ts";
 import { ADVERSARIES, MAX_SAMPLES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS } from "../../src/pilot/setups.ts";
 import type { StageA, StageACandidate, StageAProposer, StageB, StageBVerdict } from "../../src/pilot/stages.ts";
@@ -243,4 +248,43 @@ export function fakeStageB(a: StageA): StageB {
   }
   const termMatches = pool.map((entry, i) => ({ candidateId: entry.candidateId, termMatch: i === TERM_MATCH_INDEX }));
   return { pool, verdicts, termMatches };
+}
+
+const ANSWERED_AT = "2026-09-26T00:00:00.000Z";
+const flip = (answer: "yes" | "no"): "yes" | "no" => (answer === "yes" ? "no" : "yes");
+
+/**
+ * A finished rating over `ratingPlan(a, b, PILOT_SEED)`: every item answered, in plan order.
+ * Reasons go yes, yes, ..., no, no, skip in tens (7 yes in 10); disagreements alternate
+ * sound and unsound, their counter-tests cycling yes, no and skip; every drift item repeats
+ * its original's answer except the first whose original wasn't a skip, which flips it.
+ */
+export function fakeRatings(a: StageA, b: StageB): Ratings {
+  const items = ratingPlan(a, b, PILOT_SEED);
+  const answers: Ratings["answers"] = [];
+  const answerOf = new Map<string, "yes" | "no" | "skip">();
+  let reasons = 0;
+  let disagreements = 0;
+  let flipped = false;
+  for (const item of items) {
+    if (item.kind === "reason") {
+      const i = reasons++;
+      const answer = i % 10 < 7 ? "yes" : i % 10 < 9 ? "no" : "skip";
+      answers.push({ itemId: item.itemId, answer, at: ANSWERED_AT });
+      answerOf.set(item.itemId, answer);
+    } else if (item.kind === "disagreement") {
+      const i = disagreements++;
+      const answer = i % 2 === 0 ? "yes" : "no";
+      const cycle = ["yes", "no", "skip"] as const;
+      const counters = Object.fromEntries(item.counterIds.map((id, k) => [id, cycle[(i + k) % 3]!]));
+      answers.push({ itemId: item.itemId, answer, counters, at: ANSWERED_AT });
+      answerOf.set(item.itemId, answer);
+    } else {
+      const original = answerOf.get(item.of)!;
+      const flipHere = !flipped && original !== "skip";
+      if (flipHere) flipped = true;
+      answers.push({ itemId: item.itemId, answer: flipHere ? flip(original) : original, at: ANSWERED_AT });
+    }
+  }
+  return { items, answers };
 }

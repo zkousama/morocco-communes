@@ -540,10 +540,15 @@ async function writeCacheFile(path: string, entry: CacheEntry): Promise<void> {
  * among them).
  */
 export async function writeJsonAtomic(path: string, value: unknown): Promise<void> {
+  await writeTextAtomic(path, JSON.stringify(value, null, 2));
+}
+
+/** `writeJsonAtomic`'s temp-and-rename write for text that's already what the file should hold, such as a README. */
+export async function writeTextAtomic(path: string, text: string): Promise<void> {
   const dir = dirname(path);
   await mkdir(dir, { recursive: true });
   const tmpFile = join(dir, `.tmp-${hash(`${process.pid}-${Date.now()}-${Math.random()}`).slice(0, 16)}`);
-  await writeFile(tmpFile, JSON.stringify(value, null, 2));
+  await writeFile(tmpFile, text);
   await rename(tmpFile, path);
 }
 

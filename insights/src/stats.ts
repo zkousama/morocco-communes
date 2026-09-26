@@ -2,7 +2,7 @@
  * The arithmetic later tasks share: a seeded generator for reproducible permutations and
  * placebo choices, the tests a link runs across a level's places, the Benjamini-Hochberg
  * correction a batch of link tests is judged by, a Wilson interval and a kappa for the
- * grading tasks still to come.
+ * grading tasks, and a seeded bootstrap for the pilot's intervals.
  */
 
 /** mulberry32: a small, fast, seedable generator. Same seed, same stream, every run. */
@@ -187,4 +187,42 @@ export function cohenKappa(a: string[], b: string[]): number {
   if (expected === 1) return 0;
   const observed = agree / n;
   return (observed - expected) / (1 - expected);
+}
+
+/** The `p` quantile of already-sorted `values`, interpolating between the 2 nearest (the usual "type 7" definition). */
+function quantile(sorted: number[], p: number): number {
+  const h = (sorted.length - 1) * p;
+  const lo = Math.floor(h);
+  const hi = Math.min(lo + 1, sorted.length - 1);
+  return sorted[lo]! + (h - lo) * (sorted[hi]! - sorted[lo]!);
+}
+
+/**
+ * A seeded percentile bootstrap: each of `rounds` rounds draws `groups.length` groups with
+ * replacement (a finding's whole set of items, say), flattens them into one sample and
+ * computes `statistic` on it; the interval is the middle `confidence` of those values. A
+ * round whose statistic isn't a finite number (a share of nothing, when every group drawn
+ * was empty) is left out rather than dragging the interval to NaN. With no group at all, or
+ * no round that gave a number, both ends are NaN: there's no interval to give.
+ */
+export function bootstrap<T>(
+  groups: T[][],
+  statistic: (sample: T[]) => number,
+  rounds: number,
+  seed: number,
+  confidence = 0.95,
+): { low: number; high: number } {
+  if (groups.length === 0) return { low: NaN, high: NaN };
+  const random = rng(seed);
+  const values: number[] = [];
+  for (let round = 0; round < rounds; round++) {
+    const sample: T[] = [];
+    for (let i = 0; i < groups.length; i++) sample.push(...groups[Math.floor(random() * groups.length)]!);
+    const value = statistic(sample);
+    if (Number.isFinite(value)) values.push(value);
+  }
+  if (values.length === 0) return { low: NaN, high: NaN };
+  values.sort((x, y) => x - y);
+  const tail = (1 - confidence) / 2;
+  return { low: quantile(values, tail), high: quantile(values, 1 - tail) };
 }

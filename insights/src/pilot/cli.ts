@@ -28,14 +28,14 @@ import { ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts"
 import { committedCandidates, runStageA, runStageB, SetupError, type StageA } from "./stages.ts";
 
 const CACHE_DIR = join(".cache", "insights", "pilot", "cache");
-const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
-const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
+export const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
+export const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
 const CANDIDATES_PATH = join("insights", "pilot", "candidates.json");
 const DEFAULT_CONCURRENCY = 3;
 
 /** Every input token a call spent, whether fresh or read back from the API's own cache. */
-const inputOf = (usage: Usage): number => usage.input + usage.cacheRead + usage.cacheWrite;
-const k = (n: number): string => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n)));
+export const inputOf = (usage: Usage): number => usage.input + usage.cacheRead + usage.cacheWrite;
+export const k = (n: number): string => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n)));
 const usd = (n: number): string => `$${n.toFixed(2)}`;
 
 /** `pnpm insights:pilot`'s flags: `--stage a` or `--stage b`, and an optional `--concurrency`. */

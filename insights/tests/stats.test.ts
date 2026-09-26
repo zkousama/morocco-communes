@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { benjaminiHochberg, cohenKappa, mannWhitneyP, spearman, wilson } from "../src/stats.ts";
+import { benjaminiHochberg, bootstrap, cohenKappa, mannWhitneyP, spearman, wilson } from "../src/stats.ts";
 
 describe("stats", () => {
   it("wilson matches the worked example for 45 of 50", () => {
@@ -21,5 +21,47 @@ describe("stats", () => {
   });
   it("mann-whitney gives a small p for separated groups", () => {
     expect(mannWhitneyP([1, 2, 3, 4, 5, 6], [10, 11, 12, 13, 14, 15])).toBeLessThan(0.01);
+  });
+});
+
+describe("bootstrap", () => {
+  const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length;
+
+  it("brackets the mean of a steady sample tightly, and is the same for the same seed", () => {
+    const groups = Array.from({ length: 16 }, () => [1, 1, 0, 1]);
+    const one = bootstrap(groups, mean, 2000, 7);
+    expect(one.low).toBeCloseTo(0.75, 5);
+    expect(one.high).toBeCloseTo(0.75, 5);
+    expect(bootstrap(groups, mean, 2000, 7)).toEqual(one);
+  });
+  it("resamples whole groups, so a spread between groups widens the interval around the mean", () => {
+    const groups = [[1, 1], [0, 0], [1, 1], [0, 0], [1, 1], [0, 0], [1, 1], [0, 0]];
+    const { low, high } = bootstrap(groups, mean, 2000, 7);
+    expect(low).toBeLessThan(0.5);
+    expect(high).toBeGreaterThan(0.5);
+    expect(low).toBeGreaterThanOrEqual(0);
+    expect(high).toBeLessThanOrEqual(1);
+  });
+  it("gives a different interval for a different seed on a spread sample", () => {
+    const groups = [[1], [0], [1], [1], [0], [1], [0], [1], [1], [0]];
+    expect(bootstrap(groups, mean, 200, 1)).not.toEqual(bootstrap(groups, mean, 200, 2));
+  });
+  it("narrows with a lower confidence", () => {
+    const groups = [[1], [0], [1], [1], [0], [1], [0], [1], [1], [0]];
+    const wide = bootstrap(groups, mean, 2000, 7, 0.95);
+    const narrow = bootstrap(groups, mean, 2000, 7, 0.5);
+    expect(narrow.high - narrow.low).toBeLessThan(wide.high - wide.low);
+  });
+  it("leaves out a round whose statistic can't be computed, rather than reporting NaN", () => {
+    // A round drawing only the empty group has nothing to average.
+    const groups = [[], [1], [0]];
+    const { low, high } = bootstrap(groups, mean, 2000, 7);
+    expect(Number.isFinite(low)).toBe(true);
+    expect(Number.isFinite(high)).toBe(true);
+  });
+  it("has no interval to give without a group", () => {
+    const { low, high } = bootstrap([], mean, 2000, 7);
+    expect(Number.isNaN(low)).toBe(true);
+    expect(Number.isNaN(high)).toBe(true);
   });
 });

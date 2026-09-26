@@ -73,8 +73,10 @@ export const HIGH_EFFORT_RIGHT_SHARE = 2 / 3;
 export const FULL_RUN_ADVERSARY_CALLS = 2400;
 
 /**
- * Rule 3: A5 qualifying by kappa still has to answer `FULL_RUN_ADVERSARY_CALLS` this many
- * hours, one call at a time, or the next qualifier takes the full run instead.
+ * Rule 3: A5's speed check. Its seconds per call times `FULL_RUN_ADVERSARY_CALLS`, one call
+ * at a time, has to fit inside this many hours. An A5 that qualifies on kappa and rightness
+ * but doesn't fit counts as not qualifying; in the Opus-proposer fallback, an A5 pick that
+ * doesn't fit hands the job to A4 instead.
  */
 export const A5_MAX_HOURS = 48;
 

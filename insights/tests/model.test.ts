@@ -13,6 +13,7 @@ import {
   stubTransport,
   withRetries,
   writeJsonAtomic,
+  writeTextAtomic,
   type Effort,
   type ModelCall,
   type Transport,
@@ -270,5 +271,15 @@ describe("writeJsonAtomic", () => {
     const path = join(dir, "file.json");
     await writeJsonAtomic(path, { ok: true });
     expect(readdirSync(dir)).toEqual(["file.json"]);
+  });
+});
+
+describe("writeTextAtomic", () => {
+  it("writes the text as given, leaving no temp file behind", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "wta-"));
+    const path = join(dir, "README.md");
+    await writeTextAtomic(path, "# Pilot\n");
+    expect(await readFile(path, "utf8")).toBe("# Pilot\n");
+    expect(readdirSync(dir)).toEqual(["README.md"]);
   });
 });
