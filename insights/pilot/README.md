@@ -43,6 +43,9 @@ adversary runs argue with every candidate in it:
 A1 and A2 are the same setup run twice. How far those 2 runs disagree is the noise floor
 every other comparison between runs is read against.
 
+A5, Gemini 3.8 Flash, was dropped before it could be measured: the free tier caps it at 20
+requests a day ([the amendment](preregistration.md#amendment-26-september-2026)).
+
 The owner then rated the candidates blind: first a sample of the reasons, then every
 candidate the runs disagreed on (capped at 40, with a seeded sample above that), then 10 of
 those items again for a drift check. No item showed its setup, model or stage.

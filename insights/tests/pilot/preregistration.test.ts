@@ -30,6 +30,27 @@ import {
 const text = readFileSync("insights/pilot/preregistration.md", "utf8");
 const TOTAL_FINDINGS = FINDINGS_BY_KIND.extreme + FINDINGS_BY_KIND.change + FINDINGS_BY_KIND.gap;
 
+/** Where the dated amendments start: everything above it is the design as registered. */
+const AMENDMENT = "\n## Amendment";
+
+describe("the amendment", () => {
+  const at = text.indexOf(AMENDMENT);
+  const amendment = at < 0 ? "" : text.slice(at);
+
+  it("comes after every registered section, dated in its heading", () => {
+    expect(at, "an '## Amendment' heading").toBeGreaterThan(0);
+    expect(amendment).toMatch(/^\n## Amendment, \d{1,2} [A-Z][a-z]+ \d{4}\n/);
+    const headings = amendment.match(/^## .*$/gm) ?? [];
+    expect(headings.every((h) => h.startsWith("## Amendment"))).toBe(true);
+  });
+
+  it("names A5 and its model, and says it's dropped", () => {
+    expect(amendment).toContain("A5");
+    expect(amendment).toContain("Gemini 3.8 Flash");
+    expect(amendment).toContain("dropped");
+  });
+});
+
 describe("the sampled findings it lists", () => {
   it("are exactly what sampleFindings(detect(loadData()), PILOT_SEED) returns today", () => {
     const chosen = sampleFindings(detect(loadData()), PILOT_SEED);
@@ -182,7 +203,10 @@ describe("the numbers it states", () => {
   });
 
   it("leaves no other number typed into the file", () => {
-    let prose = text;
+    // An amendment is a dated record of what happened, not a rule: its numbers (a quota, a
+    // count of answers) trace to no constant, so the scan stops where the amendments start.
+    const at = text.indexOf(AMENDMENT);
+    let prose = at < 0 ? text : text.slice(0, at);
     prose = prose.replace(/^\s*\|.*$/gm, " "); // every markdown table: data, checked elsewhere
     prose = prose.replace(/^\s*\d+\.\s+/gm, ""); // the decision rules' own "1.".."6."
     prose = prose.replace(/[ \t\r\n]+/g, " "); // so a phrase split across a wrapped line still matches
