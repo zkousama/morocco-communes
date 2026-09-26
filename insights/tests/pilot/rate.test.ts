@@ -37,6 +37,58 @@ const lines = new Map(a.findingIds.map((id) => [id, { en: `line ${id}`, fr: `lig
 const unitName: UnitNamer = (code) => `unit ${code}`;
 const noIo: RatingIO = { log: () => {} };
 
+describe("the fixtures themselves", () => {
+  it("gives rule 5 a curve to measure: some candidates aren't found by sample 0", () => {
+    expect(a.candidates.some((c) => !c.sampleIndexes.includes(0))).toBe(true);
+    expect(a.candidates.some((c) => c.sampleIndexes.includes(0))).toBe(true);
+  });
+  it("gives rule 6 candidates outside the top 3: some findings have ranks 3 and 4, and a real break lands on one in the pool", () => {
+    const rankById = new Map(a.candidates.map((c) => [c.candidateId, c.rank]));
+    expect(a.candidates.some((c) => c.rank >= 3)).toBe(true);
+    const lowRankInPool = b.pool.filter((entry) => (rankById.get(entry.candidateId) ?? 0) >= 3);
+    expect(lowRankInPool.length).toBeGreaterThan(0);
+    const brokeOne = lowRankInPool.some((entry) => b.verdicts.some((v) => v.candidateId === entry.candidateId && broke(v)));
+    expect(brokeOne).toBe(true);
+  });
+  it("keeps rank consistent with support: rank 0 is always the most supported within its finding and proposer", () => {
+    const byFindingProposer = new Map<string, typeof a.candidates>();
+    for (const c of a.candidates) {
+      const key = `${c.proposer}:${c.findingId}`;
+      byFindingProposer.set(key, [...(byFindingProposer.get(key) ?? []), c]);
+    }
+    for (const group of byFindingProposer.values()) {
+      const byRank = [...group].sort((x, y) => x.rank - y.rank);
+      for (let i = 1; i < byRank.length; i++) expect(byRank[i]!.candidate.support).toBeLessThanOrEqual(byRank[i - 1]!.candidate.support);
+    }
+  });
+  it("keeps stage A's own link invariant: link is only set when passed, and always carries the same LinkTest candidate.linkTest proposed", () => {
+    for (const c of a.candidates) {
+      if (!c.passed) {
+        expect(c.link).toBeNull();
+        continue;
+      }
+      if (c.link) {
+        expect(c.candidate.linkTest).not.toBeNull();
+        expect(c.link.link).toBe(c.candidate.linkTest!.link);
+        expect((c.link as { x: string }).x).toBe((c.candidate.linkTest as { x: string }).x);
+      }
+    }
+    expect(a.candidates.some((c) => c.passed && c.link)).toBe(true); // the invariant has something real to hold, not just vacuously true
+  });
+  it("gives some data tests a refusal (tautology, unknown field) and some a missing figure, not just pass or plain fail", () => {
+    const refused = a.candidates.filter((c) => c.outcome.status === "refused");
+    expect(refused.some((c) => c.outcome.reason === "tautology")).toBe(true);
+    expect(refused.some((c) => c.outcome.reason === "unknown field")).toBe(true);
+    expect(a.candidates.some((c) => c.outcome.status === "failed" && c.outcome.reason === "missing")).toBe(true);
+  });
+  it("keeps a proposer's replies consistent with its own answered models", () => {
+    for (const p of a.proposers) {
+      expect(p.replies.length).toBeGreaterThan(0);
+      expect(p.answered).toEqual([...new Set(p.replies.map((r) => r.model))].sort());
+    }
+  });
+});
+
 describe("the rating plan", () => {
   const plan = ratingPlan(a, b, 1);
   it("puts reasons first, disagreements next, and drift items last", () => {
@@ -194,8 +246,24 @@ describe("describeCheck", () => {
     const described = describeCheck(check, unitName);
     expect(described.en).toContain("more than");
     expect(described.en).toContain("this place");
-    expect(described.fr).toContain("plus que");
+    expect(described.fr).toContain("supérieur à");
     expect(described.fr).toContain("ce lieu");
+  });
+  it("reads >= and <= as 'au moins'/'au plus', never 'plus que'/'moins que'", () => {
+    const atLeast = describeCheck({ ...check, op: ">=" }, unitName);
+    const atMost = describeCheck({ ...check, op: "<=" }, unitName);
+    expect(atLeast.fr).toContain("au moins");
+    expect(atMost.fr).toContain("au plus");
+    for (const described of [describeCheck(check, unitName), describeCheck({ ...check, op: "<" }, unitName), atLeast, atMost]) {
+      expect(described.fr).not.toContain("plus que");
+      expect(described.fr).not.toContain("moins que");
+    }
+  });
+  it("never elides 'de le' into anything but 'du', for a country subject", () => {
+    const country: Check = { ...check, left: { ...check.left, of: { unit: "country" } } };
+    const described = describeCheck(country, unitName);
+    expect(described.fr).toContain("du pays");
+    expect(described.fr).not.toContain("de le pays");
   });
   it("names a unit by its resolved name for a code subject", () => {
     const withCode: Check = { ...check, left: { ...check.left, of: { unit: "code", code: "01.001" } } };
@@ -212,7 +280,7 @@ describe("describeCheck", () => {
     expect(described.en).toContain("less than");
     expect(described.en).toContain("2014 to 2024");
     expect(described.fr).toContain("sa province ou région");
-    expect(described.fr).toContain("moins que");
+    expect(described.fr).toContain("inférieur à");
   });
   it("describes a rank check: the subject, the field label, the year, the position and the area", () => {
     const rank: Check = { check: "rank", of: { unit: "self" }, field: "measure", year: 2024, within: "province", position: "top", share: 0.1 };
@@ -221,6 +289,12 @@ describe("describeCheck", () => {
     expect(described.en).toContain("its province");
     expect(described.fr).toContain("10%");
     expect(described.fr).toContain("sa province");
+  });
+  it("contracts 'du haut du pays' for a rank within the whole country, never 'de le pays'", () => {
+    const rank: Check = { check: "rank", of: { unit: "self" }, field: "measure", year: 2024, within: "country", position: "top", share: 0.1 };
+    const described = describeCheck(rank, unitName);
+    expect(described.fr).toContain("du haut du pays");
+    expect(described.fr).not.toContain("de le pays");
   });
 });
 
@@ -269,7 +343,6 @@ describe("the screen", () => {
     const plan = ratingPlan(a, b, 1);
     const original = plan.find((i) => i.kind === "reason")!;
     const drift: RatingItem = { kind: "drift", itemId: "drift:test-reason", of: original.itemId };
-    expect(drift.kind).toBe("drift"); // a drift item genuinely exists to check, never skipped
     expect(screen(drift, a, b, lines)).toBe(screen(original, a, b, lines));
   });
   it("resolves a drift-of-disagreement with the same, sorted counterIds as the original", () => {
@@ -415,18 +488,33 @@ describe("runRating", () => {
 
   it("resumes at the first unanswered item and never asks an answered one again", async () => {
     const reasons = ratingPlan(a, b, 1).filter((i) => i.kind === "reason").slice(0, 3);
-    const start: Ratings = { items: reasons, answers: [{ itemId: reasons[0]!.itemId, answer: "yes", at: "t" }] };
+    const start: Ratings = { items: reasons, answers: [] };
     const dir = mkdtempSync(join(tmpdir(), "runrating-"));
     const path = join(dir, "ratings.json");
-    let calls = 0;
-    const rl: Prompter = {
+
+    // The first run answers just the first item, then quits, saving that much to disk.
+    let firstCalls = 0;
+    const firstRl: Prompter = {
       question: async () => {
-        calls++;
+        firstCalls++;
+        return firstCalls === 1 ? "y" : "q";
+      },
+    };
+    const afterFirstRun = await runRating(a, b, lines, unitName, start, path, firstRl, noIo);
+    expect(afterFirstRun.answers).toHaveLength(1);
+
+    // The second run starts from what the first run actually wrote to disk, not from a
+    // hand-built object that only claims to be the same.
+    const onDiskAfterFirstRun = JSON.parse(await readFile(path, "utf8")) as Ratings;
+    let secondCalls = 0;
+    const secondRl: Prompter = {
+      question: async () => {
+        secondCalls++;
         return "y";
       },
     };
-    const result = await runRating(a, b, lines, unitName, start, path, rl, noIo);
-    expect(calls).toBe(2); // only the 2 remaining items were ever asked
+    const result = await runRating(a, b, lines, unitName, onDiskAfterFirstRun, path, secondRl, noIo);
+    expect(secondCalls).toBe(2); // only the 2 remaining items were ever asked
     expect(result.answers.map((x) => x.itemId)).toEqual(reasons.map((r) => r.itemId));
   });
 

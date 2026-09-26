@@ -133,13 +133,13 @@ export function appendRegrade(file: GradedFile, entry: GradedFile["regrades"][nu
   return { grades: file.grades, regrades: [...file.regrades, entry] };
 }
 
-/** Exported so the pilot's own `rate.ts` rounds a counter-test's numbers the same way, rather than keeping a second copy. */
+/** Exported alongside `formatNumbers`, which rounds every number through it, in case a caller ever needs the same rounding on its own. */
 export function round(value: number, decimals: number): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
 }
 
-/** Exported for the same reason as `round`: `rate.ts` formats a counter-test's own numbers with it. */
+/** Exported so the pilot's own `rate.ts` formats a counter-test's numbers the same way, rather than keeping a second copy. */
 export function formatNumbers(numbers: Record<string, number>): string {
   const keys = Object.keys(numbers).sort();
   if (keys.length === 0) return "none";

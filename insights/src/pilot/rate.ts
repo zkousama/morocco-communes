@@ -162,23 +162,28 @@ export function screen(item: RatingItem, a: StageA, b: StageB, lines: Map<string
 /** Resolves a `{unit:"code", code}` subject to a real name, or null when the code isn't one the dataset has (or when the caller has nothing to resolve with, as every test's synthetic checks never use this subject at all). */
 export type UnitNamer = (code: string) => string | null;
 
+// ">"/"<" read as "supérieur à"/"inférieur à" in French, never the more literal "plus que"/
+// "moins que"; ">="/"<=" already read naturally as "au moins"/"au plus".
 const OP_WORDS: Record<"compare" | "change", Record<string, { en: string; fr: string }>> = {
   compare: {
-    ">": { en: "more than", fr: "plus que" },
-    "<": { en: "less than", fr: "moins que" },
+    ">": { en: "more than", fr: "supérieur à" },
+    "<": { en: "less than", fr: "inférieur à" },
     ">=": { en: "at least", fr: "au moins" },
     "<=": { en: "at most", fr: "au plus" },
   },
   change: {
-    ">": { en: "more than", fr: "plus que" },
-    "<": { en: "less than", fr: "moins que" },
+    ">": { en: "more than", fr: "supérieur à" },
+    "<": { en: "less than", fr: "inférieur à" },
   },
 };
 
+// Each phrase already carries its own French preposition ("de sa province", "du pays"),
+// since "de" elides to "du" before "le" and every template below reads "... % du haut
+// ${within.fr}" with nothing of its own in between.
 const WITHIN: Record<"province" | "region" | "country", { en: string; fr: string }> = {
-  province: { en: "its province", fr: "sa province" },
-  region: { en: "its région", fr: "sa région" },
-  country: { en: "the country", fr: "le pays" },
+  province: { en: "of its province", fr: "de sa province" },
+  region: { en: "of its région", fr: "de sa région" },
+  country: { en: "of the country", fr: "du pays" },
 };
 
 const POSITION: Record<"top" | "bottom", { en: string; fr: string }> = {
@@ -191,21 +196,26 @@ function fieldLabel(path: string): { en: string; fr: string } {
   return field(path)?.label ?? { en: path, fr: path };
 }
 
-/** A check's subject, in plain words: "this place", "its province or région", "its neighbours' median", "the country", or a named unit. */
+/**
+ * A check's subject, in plain words: "this place", "its province or région", "its
+ * neighbours' median", "the country", or a named unit. The French side already carries its
+ * own "de"/"du" (every call site below reads it straight after a bare "de"-less join), so
+ * "de le pays" never comes up: it's "du pays" from here on.
+ */
 function subjectPhrase(subject: Subject, unitName: UnitNamer): { en: string; fr: string } {
-  if (subject.unit === "self") return { en: "this place", fr: "ce lieu" };
-  if (subject.unit === "parent") return { en: "its province or région", fr: "sa province ou région" };
-  if (subject.unit === "country") return { en: "the country", fr: "le pays" };
-  if (subject.unit === "neighbours") return { en: "its neighbours' median", fr: "la médiane de ses voisins" };
+  if (subject.unit === "self") return { en: "this place", fr: "de ce lieu" };
+  if (subject.unit === "parent") return { en: "its province or région", fr: "de sa province ou région" };
+  if (subject.unit === "country") return { en: "the country", fr: "du pays" };
+  if (subject.unit === "neighbours") return { en: "its neighbours' median", fr: "de la médiane de ses voisins" };
   const name = unitName(subject.code);
-  return name ? { en: name, fr: name } : { en: `the unit ${subject.code}`, fr: `l’unité ${subject.code}` };
+  return name ? { en: name, fr: `de ${name}` } : { en: `the unit ${subject.code}`, fr: `de l’unité ${subject.code}` };
 }
 
 /** One reference (a subject, a field and a year), in plain words. */
 function refPhrase(ref: Ref, unitName: UnitNamer): { en: string; fr: string } {
   const subject = subjectPhrase(ref.of, unitName);
   const label = fieldLabel(ref.field);
-  return { en: `${subject.en}'s ${label.en} in ${ref.year}`, fr: `${label.fr} de ${subject.fr} en ${ref.year}` };
+  return { en: `${subject.en}'s ${label.en} in ${ref.year}`, fr: `${label.fr} ${subject.fr} en ${ref.year}` };
 }
 
 function describeCompare(check: Extract<Check, { check: "compare" }>, unitName: UnitNamer): { en: string; fr: string } {
@@ -221,7 +231,7 @@ function describeChange(check: Extract<Check, { check: "change" }>, unitName: Un
   const op = OP_WORDS.change[check.op]!;
   return {
     en: `the change in ${subject.en}'s ${label.en} from 2014 to 2024 is ${op.en} ${check.value}`,
-    fr: `le changement de ${label.fr} de ${subject.fr} entre 2014 et 2024 est ${op.fr} ${check.value}`,
+    fr: `le changement de ${label.fr} ${subject.fr} entre 2014 et 2024 est ${op.fr} ${check.value}`,
   };
 }
 
@@ -232,8 +242,8 @@ function describeRank(check: Extract<Check, { check: "rank" }>, unitName: UnitNa
   const position = POSITION[check.position];
   const sharePct = Math.round(check.share * 100);
   return {
-    en: `${subject.en}'s ${label.en} in ${check.year} is in the ${position.en} ${sharePct}% of ${within.en}`,
-    fr: `${label.fr} de ${subject.fr} en ${check.year} est dans les ${sharePct}% du ${position.fr} de ${within.fr}`,
+    en: `${subject.en}'s ${label.en} in ${check.year} is in the ${position.en} ${sharePct}% ${within.en}`,
+    fr: `${label.fr} ${subject.fr} en ${check.year} est dans les ${sharePct}% du ${position.fr} ${within.fr}`,
   };
 }
 
@@ -244,9 +254,9 @@ export function describeCheck(check: Check, unitName: UnitNamer): { en: string; 
   return describeRank(check, unitName);
 }
 
-/** One counter-test in plain words: the check it is (subject, field label, year, comparison) and the numbers its outcome computed, in English then French. Never which run offered it, and never the adversary's own reason. */
+/** One counter-test in plain words: the check it is (subject, field label, year, comparison) and the numbers its outcome computed, in English then French. Never which run offered it, and never the adversary's own reason. Looked up among the verdicts that actually broke the candidate, so the threshold and numbers shown are the breaking run's own, never a same-signature verdict that happened to survive. */
 export function counterText(candidateId: string, counterId: string, b: StageB, unitName: UnitNamer): string {
-  const match = b.verdicts.find((v) => v.candidateId === candidateId && v.counter && counterIdOf(candidateId, v.counter) === counterId);
+  const match = b.verdicts.find((v) => v.candidateId === candidateId && broke(v) && v.counter && counterIdOf(candidateId, v.counter) === counterId);
   if (!match?.counter) return ["counter-test: (not available)", "  (non disponible)"].join("\n");
   const described = describeCheck(match.counter, unitName);
   const numbers = match.counterOutcome ? formatNumbers(match.counterOutcome.numbers) : "none";
