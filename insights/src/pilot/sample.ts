@@ -2,8 +2,8 @@
  * The pilot's seeded samples: the 16 findings both stages share, the pool a proposer's
  * passing candidates draw into, the reasons the owner rates blind, and the candidates
  * where the adversary runs disagree. Every draw here is seeded (mulberry32, via `rng`),
- * so a re-run reproduces the same pilot from the same findings and candidates without
- * calling a model again.
+ * over a copy sorted into a fixed order first, so the result depends only on the set
+ * that's drawn from and the seed, never on the order its caller happened to hand it in.
  */
 import { createHash } from "node:crypto";
 import type { Finding, Kind } from "../detect.ts";
@@ -22,6 +22,8 @@ function shuffle<T>(values: T[], random: () => number): void {
   }
 }
 
+const byString = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+
 /** A candidate's id: the first 12 hex characters of sha256 of what makes it that candidate. */
 export function candidateIdOf(findingId: string, proposerId: string, test: Check): string {
   return createHash("sha256")
@@ -39,12 +41,16 @@ const KINDS_LARGEST_FIRST = [...SAMPLED_KINDS].sort((a, b) => FINDINGS_BY_KIND[b
  * The 16 findings both pilot stages share: `FINDINGS_BY_KIND`'s counts of extremes,
  * changes and gaps, artefacts excluded, drawn from a fresh shuffle of each kind (one
  * continuous seeded stream across the 3 shuffles, so the whole draw is reproducible from
- * `seed` alone). A kind with fewer non-artefact findings than its count throws rather than
- * silently returning fewer: a shrunken sample is a different pilot, not this one.
+ * `seed` alone). Each kind's findings are sorted by id before the shuffle, so the draw
+ * depends only on `seed` and which findings `detect` returned, never on the order it
+ * returned them in. A kind with fewer non-artefact findings than its count throws rather
+ * than silently returning fewer: a shrunken sample is a different pilot, not this one.
  *
  * If the draw lands no province among the 16, the largest kind that still has an unpicked
- * province swaps its last-picked finding for that province: today's data only ever puts a
- * province among the changes, but the search doesn't assume that.
+ * province swaps its last-picked *commune* finding for that province (today's data only
+ * ever puts a province among the changes, but the search doesn't assume that); a kind
+ * whose picks hold no commune to swap out throws rather than silently keeping a sample
+ * with no province in it.
  */
 export function sampleFindings(findings: Finding[], seed: number): Finding[] {
   const random = rng(seed);
@@ -52,7 +58,7 @@ export function sampleFindings(findings: Finding[], seed: number): Finding[] {
   const pools = new Map<Kind, Finding[]>();
   const picked = new Map<Kind, Finding[]>();
   for (const kind of SAMPLED_KINDS) {
-    const pool = findings.filter((f) => f.kind === kind);
+    const pool = findings.filter((f) => f.kind === kind).sort((a, b) => byString(a.id, b.id));
     shuffle(pool, random);
     const count = FINDINGS_BY_KIND[kind];
     if (pool.length < count) {
@@ -68,7 +74,11 @@ export function sampleFindings(findings: Finding[], seed: number): Finding[] {
     if (!swapKind) throw new Error("sampleFindings: no province-level finding is available in any kind");
     const province = pools.get(swapKind)!.find((f) => f.level === "province")!;
     const kindPicked = picked.get(swapKind)!;
-    kindPicked[kindPicked.length - 1] = province;
+    const swapIndex = kindPicked.map((f) => f.level).lastIndexOf("commune");
+    if (swapIndex === -1) {
+      throw new Error(`sampleFindings: "${swapKind}"'s picks hold no commune finding to swap for its province`);
+    }
+    kindPicked[swapIndex] = province;
   }
 
   return SAMPLED_KINDS.flatMap((kind) => picked.get(kind)!);
@@ -82,8 +92,10 @@ export interface PoolEntry {
 
 /**
  * Up to `perProposer` passing candidates per proposer, seeded, from whichever proposer
- * setups appear in `candidates`. A proposer with fewer passing candidates than
- * `perProposer` contributes all of them.
+ * setups appear in `candidates`. Proposers are visited in id order, and each proposer's
+ * passing candidates are sorted by `candidateId` before the shuffle, so the result depends
+ * only on the set of candidates handed in, never on their order. A proposer with fewer
+ * passing candidates than `perProposer` contributes all of them.
  */
 export function samplePool<T extends { candidateId: string; proposer: string; findingId: string; passed: boolean }>(
   candidates: T[],
@@ -100,8 +112,8 @@ export function samplePool<T extends { candidateId: string; proposer: string; fi
   }
 
   const out: PoolEntry[] = [];
-  for (const list of byProposer.values()) {
-    const pool = [...list];
+  for (const proposer of [...byProposer.keys()].sort(byString)) {
+    const pool = byProposer.get(proposer)!.sort((a, b) => byString(a.candidateId, b.candidateId));
     shuffle(pool, random);
     for (const c of pool.slice(0, perProposer)) {
       out.push({ candidateId: c.candidateId, proposer: c.proposer, findingId: c.findingId });
@@ -111,10 +123,14 @@ export function samplePool<T extends { candidateId: string; proposer: string; fi
 }
 
 /**
- * One passing candidate's id per finding per proposer, for `perProposer` findings chosen
- * from `findingIds` with the seed. A proposer with no passing candidate for a chosen
- * finding simply contributes nothing for it, so a proposer's share can come in under
- * `perProposer`.
+ * One passing candidate's id per finding per proposer, for `perProposer` findings drawn at
+ * random from `findingIds` with the seed, the same `perProposer` findings for every
+ * proposer. Proposers are visited in id order; for each proposer and finding, one of that
+ * pair's passing candidates is drawn at random (never just the first or the most-repeated
+ * one, which would bias whatever the rating measures), from candidates sorted by
+ * `candidateId` first, so the result depends only on the set of candidates and finding ids
+ * handed in, never on their order. A proposer with no passing candidate for a drawn finding
+ * simply contributes nothing for it, so a proposer's share can come in under `perProposer`.
  */
 export function sampleRated<T extends { candidateId: string; proposer: string; findingId: string; passed: boolean }>(
   candidates: T[],
@@ -123,11 +139,11 @@ export function sampleRated<T extends { candidateId: string; proposer: string; f
   seed: number,
 ): string[] {
   const random = rng(seed);
-  const shuffledFindings = [...findingIds];
+  const shuffledFindings = [...findingIds].sort(byString);
   shuffle(shuffledFindings, random);
   const chosenFindings = shuffledFindings.slice(0, perProposer);
 
-  const proposers = [...new Set(candidates.map((c) => c.proposer))];
+  const proposers = [...new Set(candidates.map((c) => c.proposer))].sort(byString);
   const byProposerFinding = new Map<string, T[]>();
   for (const c of candidates) {
     if (!c.passed) continue;
@@ -136,13 +152,15 @@ export function sampleRated<T extends { candidateId: string; proposer: string; f
     list.push(c);
     byProposerFinding.set(key, list);
   }
+  for (const list of byProposerFinding.values()) list.sort((a, b) => byString(a.candidateId, b.candidateId));
 
   const out: string[] = [];
   for (const proposer of proposers) {
     for (const findingId of chosenFindings) {
       const options = byProposerFinding.get(`${proposer}:${findingId}`);
       if (!options || options.length === 0) continue;
-      out.push(options[0]!.candidateId);
+      const drawn = options[Math.floor(random() * options.length)]!;
+      out.push(drawn.candidateId);
     }
   }
   return out;
@@ -150,33 +168,44 @@ export function sampleRated<T extends { candidateId: string; proposer: string; f
 
 /**
  * Every candidate id where the adversary runs don't all agree, grouped by the sorted set
- * of runs whose verdict broke it (`true`): a candidate 4 of 5 runs pass and one breaks
- * groups with every other candidate that same one run alone breaks, regardless of what the
- * other runs said. At or under `cap`, every disagreement is returned; above it, a seeded
- * round-robin takes from each group in turn, so the sample spreads across the different
- * ways the runs split rather than favouring whichever group happens to be biggest.
+ * of runs whose verdict broke it, and drawn from in a fixed order (candidate ids sorted,
+ * then group keys sorted) before any shuffle, so the result depends only on the set of
+ * verdicts handed in, never on `verdicts`' own iteration order.
+ *
+ * `verdicts` maps a candidate id to a map of run id to whether that run's counter-test
+ * broke the candidate (`true`) or the candidate survived it (`false`). A run whose answer
+ * was unusable is left out of that candidate's map entirely, never coded as `false`, which
+ * would invent a disagreement that isn't one; a candidate any run stopped for safety is
+ * left out of `verdicts` altogether.
+ *
+ * A candidate where every included run agrees isn't a disagreement. At or under `cap`,
+ * every disagreement is returned; above it, a seeded round-robin takes from each group in
+ * turn, so the sample spreads across the different ways the runs split rather than
+ * favouring whichever group happens to be biggest.
  */
 export function sampleDisagreements(verdicts: Map<string, Map<string, boolean>>, cap: number, seed: number): string[] {
   const groups = new Map<string, string[]>();
-  for (const [candidateId, byRun] of verdicts) {
+  for (const candidateId of [...verdicts.keys()].sort(byString)) {
+    const byRun = verdicts.get(candidateId)!;
     const values = [...byRun.values()];
-    if (values.every((v) => v === values[0])) continue; // every run agrees: not a disagreement
+    if (values.length === 0 || values.every((v) => v === values[0])) continue; // every run agrees: not a disagreement
     const brokeBy = [...byRun.entries()]
       .filter(([, broke]) => broke)
       .map(([run]) => run)
-      .sort();
+      .sort(byString);
     const key = JSON.stringify(brokeBy);
     const list = groups.get(key) ?? [];
     list.push(candidateId);
     groups.set(key, list);
   }
 
-  const all = [...groups.values()].flat();
+  const sortedKeys = [...groups.keys()].sort(byString);
+  const all = sortedKeys.flatMap((key) => groups.get(key)!);
   if (all.length <= cap) return all;
 
   const random = rng(seed);
-  const shuffledGroups = [...groups.values()].map((list) => {
-    const copy = [...list];
+  const shuffledGroups = sortedKeys.map((key) => {
+    const copy = [...groups.get(key)!]; // already sorted by candidateId, built from the sorted keys above
     shuffle(copy, random);
     return copy;
   });
