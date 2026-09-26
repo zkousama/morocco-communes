@@ -180,7 +180,8 @@ A jury rated, so there's no drift check.
 
 The rules were applied as registered. They chose Haiku 4.5 to propose, with 4 samples, and
 Opus 5.5 at high effort to argue, with every reason argued with as before.
-[`insights/setup.json`](../setup.json) now holds that choice.
+The full run's [`insights/setup.json`](../setup.json) takes all of it except the proposer,
+[changed by the owner](#the-proposers-without-a-rating) on the evidence below.
 
 2 findings stand without the rating. High effort changes Opus's verdicts more than a second
 run at the same effort does (kappa 0.63 between medium and high, against 0.70 between the 2
@@ -196,6 +197,27 @@ between −0.02 and 0.10), and the jury matched the owner's 20 answers no better
 (kappa 0). Raw agreement ran high only because nearly every reason was rated unsound. Those 3 choices
 follow the rules on that signal, and the full run's setup gets checked against this pilot's
 data before any run uses it.
+
+## The proposers without a rating
+
+This comparison wasn't in the preregistration. It reads only what stages A and B measured,
+with no rating, on the same pool of 30 passing reasons per proposer:
+
+| | Haiku 4.5 | Sonnet 5, medium | Sonnet 5, high | Opus 5.5, medium |
+| --- | --- | --- | --- | --- |
+| Passing reasons per finding | 11.3 | 8.8 | 9.4 | 7.9 |
+| Reasons with a link test | 26% | 84% | 84% | 72% |
+| Verdicts from the Opus runs that let a reason stand | 7% | 24% | 38% | 30% |
+| Reasons every Opus run let stand | 0 of 30 | 5 of 30 | 9 of 30 | 6 of 30 |
+| Cost in stage A | $5.76 | $3.32 | $5.33 | $4.71 |
+| Cost per consistent link | $0.41 | $0.12 | $0.21 | $0.22 |
+
+A reason has to survive the adversary to be published, and Sonnet 5 at high effort gives the
+most that survive, while Haiku's reasons almost all fall. Every adversary here is a Claude
+model too, so these rates are one family judging its own. On this evidence the owner chose
+Sonnet 5 at high effort to propose in the full run, in place of the registered rules' Haiku.
+The rules' other choices stand: 4 samples, Opus 5.5 at high effort, and every reason argued
+with.
 
 ## What it cost
 
