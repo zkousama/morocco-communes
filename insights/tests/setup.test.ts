@@ -24,4 +24,10 @@ describe("the setup", () => {
   it("allows no effort, for a model that takes none", () => {
     expect(parseSetup({ ...good, propose: { transport: "claude", model: "haiku", samples: 5 } }).propose.effort).toBeUndefined();
   });
+  it("refuses a misspelt key rather than run without it, and names it", () => {
+    const { effort: _, ...proposeWithout } = good.propose;
+    expect(() => parseSetup({ ...good, propose: { ...proposeWithout, efort: "high" } })).toThrow('insights/setup.json: propose: unknown key "efort"');
+    expect(() => parseSetup({ ...good, falsify: { transport: "claude", model: "opus", efort: "medium" } })).toThrow('insights/setup.json: falsify: unknown key "efort"');
+    expect(() => parseSetup({ ...good, attackShowOnly: true })).toThrow('insights/setup.json: unknown key "attackShowOnly"');
+  });
 });

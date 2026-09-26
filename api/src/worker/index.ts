@@ -281,7 +281,7 @@ app.get("/api/communes/near", (c) => {
 });
 
 /**
- * The query-string shapes from the brief. A path-keyed asset store cannot match on a
+ * The query-string shapes the API documents. A path-keyed asset store cannot match on a
  * query string, so these are resolved here: one filter rewrites to the file that already
  * holds the answer, and anything more, several filters, a population bound or an order
  * other than the code's, is filtered and sorted from the records held in memory.

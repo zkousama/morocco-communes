@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { geminiTransport, LimitError, TransientError } from "../src/model.ts";
+import { classify, geminiTransport, LimitError, TransientError, withRetries } from "../src/model.ts";
 
 const local = { terms: [], keys: { GEMINI_API_KEY: "secret-key-123" } };
 const call = { model: "gemini-3.8-flash", system: "s", prompt: "p", stage: "falsify", key: "k" };
@@ -47,6 +47,30 @@ describe("the gemini transport", () => {
     respond(400, { error: { code: 400, message: "bad request" } });
     const error = await geminiTransport(local)(call).catch((e) => e);
     expect(String(error.message)).not.toContain("secret-key-123");
+  });
+  it("keeps the key out of an error even when the answer quotes it back", async () => {
+    for (const status of [400, 429, 503]) {
+      respond(status, { error: { code: status, message: "API key secret-key-123 not valid" } });
+      const error = await geminiTransport(local)(call).catch((e) => e);
+      expect(String(error.message), `a ${status}`).not.toContain("secret-key-123");
+    }
+  });
+  it("reads a 400, 401, 403 or 404 as fatal: a bad key, model or request never heals with a retry", async () => {
+    for (const status of [400, 401, 403, 404]) {
+      respond(status, { error: { code: status, message: "no good" } });
+      const error = await geminiTransport(local)(call).catch((e) => e);
+      expect(classify(error), `a ${status}`).toBe("fatal");
+      expect(String(error.message)).toContain(`gemini answered ${status}`);
+      expect(String(error.message)).not.toContain("secret-key-123");
+    }
+  });
+  it("stops at once on a fatal status, without a single retry", async () => {
+    respond(403, { error: { code: 403, status: "PERMISSION_DENIED", message: "denied" } });
+    const waits: number[] = [];
+    const wrapped = withRetries(geminiTransport(local), { tries: 3, backoffMs: [5], limitPollMs: 1000, limitMaxMs: 10_000, sleep: async (ms) => { waits.push(ms); } });
+    await expect(wrapped(call)).rejects.toThrow(/gemini answered 403/);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(waits).toEqual([]);
   });
   it("needs a key, and a live run", async () => {
     await expect(geminiTransport({ terms: [], keys: {} })(call)).rejects.toThrow(/GEMINI_API_KEY/);

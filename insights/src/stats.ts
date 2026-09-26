@@ -1,8 +1,8 @@
 /**
- * The arithmetic later tasks share: a seeded generator for reproducible permutations and
- * placebo choices, the tests a link runs across a level's places, the Benjamini-Hochberg
- * correction a batch of link tests is judged by, a Wilson interval and a kappa for the
- * grading tasks, and a seeded bootstrap for the pilot's intervals.
+ * The arithmetic the rest of the pipeline shares: a seeded generator for reproducible
+ * permutations and placebo choices, the tests a link runs across a level's places, the
+ * Benjamini-Hochberg correction a batch of link tests is judged by, a Wilson interval and a
+ * kappa for the grading, and a seeded bootstrap for the pilot's intervals.
  */
 
 /** mulberry32: a small, fast, seedable generator. Same seed, same stream, every run. */

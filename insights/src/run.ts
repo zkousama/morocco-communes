@@ -5,7 +5,7 @@
  * hypothesis's fate is final until the whole run's link tests have been judged together,
  * since a link's p-value is only meaningful against the batch it was corrected within.
  * `pipeline` does the run and returns it as data; `publishable` shapes a finished run into
- * the files a later task writes.
+ * the files `--publish` writes.
  */
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";

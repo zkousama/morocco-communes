@@ -288,6 +288,18 @@ describe("the measures, worked by hand", () => {
     expect(r.adversaries.A1!.tokens.input).toBe(400);
   });
 
+  it("times A5's speed check per answered call with its waits counted in, and totals what it waited", () => {
+    const waited = micro();
+    for (const v of waited.b.verdicts) if (v.run === "A5" && v.model !== null) v.waitedMs = 70_000;
+    const w = analyse(waited.a, waited.b, waited.ratings, NOW);
+    expect(w.adversaries.A5!.secondsPerCall).toBe(3); // the answering time alone, as before
+    expect(w.adversaries.A5!.secondsPerCallWithWaits).toBe(73);
+    expect(w.adversaries.A5!.waitedSeconds).toBe(210);
+    expect(w.speedCheck).toMatchObject({ run: "A5", secondsPerCall: 73, waitedSeconds: 210, maxHours: A5_MAX_HOURS, fits: false });
+    expect(w.speedCheck.hours).toBeCloseTo((73 * FULL_RUN_ADVERSARY_CALLS) / 3600, 10);
+    expect(r.speedCheck).toMatchObject({ secondsPerCall: 3, waitedSeconds: 0, fits: true });
+  });
+
   it("says how many candidates each proposer put in the pool", () => {
     expect(r.poolByProposer).toEqual({ P1: 1, P2: 1, P3: 1, P4: 1 });
   });
@@ -318,6 +330,7 @@ describe("the measures on the fixtures", () => {
       expect(out.costUsd).toBe(p.usage.costUsd);
       expect(out.tokens).toEqual(p.usage);
       expect(out.secondsPerCall).toBeCloseTo(p.ms / p.replies.length / 1000, 10);
+      expect(out.costPerCall).toBeCloseTo(p.usage.costUsd / p.replies.length, 10);
       const samples = a.findingIds.length * MAX_SAMPLES;
       const unusable = Object.values(p.unusable).reduce((s, n) => s + n, 0);
       expect(out.usable.value).toBeCloseTo((samples - unusable) / samples, 10);
@@ -478,6 +491,16 @@ describe("rule 1, the proposer", () => {
     for (const p of Object.values(r.proposers)) { p.yesRate = null; p.rated = 0; }
     expect(() => decide(r)).toThrow(/rule 1/);
   });
+  it("states each proposer's cost per answered call beside its total, still choosing on the total", () => {
+    const r = base();
+    r.proposers.P3!.yesRate = iv(0.8); r.proposers.P3!.costUsd = 10; r.proposers.P3!.costPerCall = 0.05;
+    r.proposers.P2!.yesRate = iv(0.75); r.proposers.P2!.costUsd = 4; r.proposers.P2!.costPerCall = 0.5;
+    r.proposers.P4!.yesRate = iv(0.1); r.proposers.P1!.yesRate = iv(0.1);
+    const d = decide(r).proposer;
+    expect(d.choice).toBe("P2"); // cheaper in total, though dearer a call
+    expect(d.because).toContain("P2 at $4.00 ($0.500 a call)");
+    expect(d.because).toContain("P3 at $10.00 ($0.050 a call)");
+  });
 });
 
 describe("rule 2, the adversary's effort", () => {
@@ -564,7 +587,7 @@ function rule3(opts: {
   r.adversaries.A3!.rightOnDisagreements = right(opts.right3, 0.6);
   r.adversaries.A4!.rightOnDisagreements = right(opts.right4, 0.6);
   r.adversaries.A5!.rightOnDisagreements = right(opts.right5, 0.6);
-  r.adversaries.A5!.secondsPerCall = opts.a5Seconds === undefined ? 10 : opts.a5Seconds;
+  r.adversaries.A5!.secondsPerCallWithWaits = opts.a5Seconds === undefined ? 10 : opts.a5Seconds;
   return r;
 }
 
@@ -635,6 +658,18 @@ describe("rule 3, the adversary's model", () => {
   });
   it("counts an A5 with no answered call as too slow", () => {
     expect(decide(rule3({ k4: 0.5, a5Seconds: null })).adversaryModel.choice).toBe("A1");
+  });
+  it("counts A5's waits in: an A5 whose answering time alone fits but whose waits push it over fails the check", () => {
+    const waited = micro();
+    for (const v of waited.b.verdicts) if (v.run === "A5" && v.model !== null) v.waitedMs = 70_000;
+    const measured = analyse(waited.a, waited.b, waited.ratings, NOW).adversaries.A5!;
+    expect(hoursFor(measured.secondsPerCall!)).toBeLessThanOrEqual(A5_MAX_HOURS);
+    const r = rule3({ k4: 0.5 });
+    r.adversaries.A5 = { ...r.adversaries.A5!, secondsPerCall: measured.secondsPerCall, secondsPerCallWithWaits: measured.secondsPerCallWithWaits, waitedSeconds: measured.waitedSeconds };
+    const d = decide(r).adversaryModel;
+    expect(d.choice).toBe("A1");
+    expect(d.because).toContain("waits included");
+    expect(d.because).toContain(`over ${A5_MAX_HOURS}`);
   });
   it("gives the job to the more right of 2 qualifiers", () => {
     expect(decide(rule3({ right4: 0.8, right5: 0.7 })).adversaryModel.choice).toBe("A4");
@@ -849,6 +884,15 @@ describe("the tables", () => {
   });
   it("keeps to the copy rules: no em dash", () => {
     expect(md).not.toContain("—");
+  });
+  it("states A5's speed check, waits included, with the total time it waited beside it", () => {
+    const check = results.speedCheck;
+    expect(md).toContain(`A5's speed check, one call at a time, waits included: ${check.secondsPerCall!.toFixed(1)} seconds a call`);
+    expect(md).toMatch(/A5's speed check[^\n]*waited [^\n]* in all/);
+    expect(md).toContain("| Waited |");
+  });
+  it("puts each proposer's cost per answered call beside its total", () => {
+    expect(md).toContain("| Setup | Yes rate | Rated | Cost at list price | Cost per call |");
   });
 });
 

@@ -97,7 +97,7 @@ console.log(`geometry: ${arrondissementOsm.size} arrondissements`);
 
 const { unresolved, claimed } = crosswalkInputs(hierarchy, units2014);
 // Sorted, because Map iteration order would otherwise decide which unit a pass sees
-// first, and the plan forbids the output depending on anything but the input.
+// first, and the output has to depend on the input alone.
 const unclaimed = [...units2014.values()]
   .filter((u) => u.kind !== "arrondissement" && !claimed.has(u.codeDigits))
   .sort((a, b) => a.codeDigits.localeCompare(b.codeDigits));

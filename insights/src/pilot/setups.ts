@@ -73,10 +73,11 @@ export const HIGH_EFFORT_RIGHT_SHARE = 2 / 3;
 export const FULL_RUN_ADVERSARY_CALLS = 2400;
 
 /**
- * Rule 3: A5's speed check. Its seconds per call times `FULL_RUN_ADVERSARY_CALLS`, one call
- * at a time, has to fit inside this many hours. An A5 that qualifies on kappa and rightness
- * but doesn't fit counts as not qualifying; in the Opus-proposer fallback, an A5 pick that
- * doesn't fit hands the job to A4 instead.
+ * Rule 3: A5's speed check. Its average time per call with the waits counted in (`ms +
+ * waitedMs`, since the free tier's rate limits are what could make the full run too slow)
+ * times `FULL_RUN_ADVERSARY_CALLS`, one call at a time, has to fit inside this many hours.
+ * An A5 that qualifies on kappa and rightness but doesn't fit counts as not qualifying; in
+ * the Opus-proposer fallback, an A5 pick that doesn't fit hands the job to A4 instead.
  */
 export const A5_MAX_HOURS = 48;
 

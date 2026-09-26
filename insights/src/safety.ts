@@ -9,16 +9,26 @@ export type Refusal = "individuals" | "groups" | "blame" | "terms";
 
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+/** Curly apostrophes read as straight ones, so "l’école" matches "l'école". */
+const normalise = (text: string): string => text.replace(/[‘’ʼ]/g, "'");
+
 /**
- * Any of `words`, case aside, standing as a whole word. `\b` only knows ASCII letters, so
- * "école" would end at the é; a lookaround on any Unicode letter doesn't.
+ * Any of `words`, case aside, standing as a whole word, each run of whitespace inside one
+ * matching any run in the text. `\b` only knows ASCII letters, so "école" would end at the é;
+ * a lookaround on any Unicode letter doesn't.
  */
 const wholeWords = (words: string[]): RegExp =>
-  new RegExp(`(?<!\\p{L})(?:${words.map((w) => escape(w).replace(/ /g, "\\s+")).join("|")})(?!\\p{L})`, "iu");
+  new RegExp(`(?<!\\p{L})(?:${words.map((w) => escape(w).replace(/\s+/g, "\\s+")).join("|")})(?!\\p{L})`, "iu");
 
-/** `terms`, as `refusal` matches them: whole words, case aside; null when there's nothing to match. */
+/**
+ * `terms`, as `refusal` matches them: whole words, case aside. Each term is read the way the
+ * text is (curly apostrophes as straight ones) and trimmed, so one typed with a curly
+ * apostrophe or an extra space still matches, and a blank one is dropped rather than
+ * matching everything. Null when there's nothing left to match.
+ */
 export function termsPattern(terms: string[]): RegExp | null {
-  return terms.length === 0 ? null : wholeWords(terms);
+  const cleaned = terms.map((term) => normalise(term).trim()).filter((term) => term.length > 0);
+  return cleaned.length === 0 ? null : wholeWords(cleaned);
 }
 
 // Case matters here, since the name after the title is what makes it a person: "Mr Alami",
@@ -28,9 +38,6 @@ const individuals = [
   new RegExp(String.raw`(?<!\p{L})${HONORIFIC}\s+\p{Lu}`, "u"),
   new RegExp(String.raw`(?<!\p{L})(?:[Tt]he\s+[Mm]ayor|[Tt]he\s+[Gg]overnor|[Ll]e\s+[Mm]aire|[Ll]e\s+[Gg]ouverneur)\s*,?\s+(?:${HONORIFIC}\s+)?\p{Lu}`, "u"),
 ];
-
-/** Curly apostrophes read as straight ones, so "l’école" matches "l'école". */
-const normalise = (text: string): string => text.replace(/[‘’ʼ]/g, "'");
 
 /** Which rule `text` breaks: a private term first, then a named person; null when neither. The model applies the rest of the policy. */
 export function refusal(text: string, terms: RegExp | null = null): Refusal | null {

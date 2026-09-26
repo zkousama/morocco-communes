@@ -1,11 +1,11 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { loadData } from "../../src/data.ts";
 import { detect } from "../../src/detect.ts";
 import { NO_ANSWER } from "../../src/falsify.ts";
-import { LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Runner } from "../../src/model.ts";
+import { geminiTransport, LimitError, makeRunner, NO_USAGE, RETRY_DEFAULTS, stubTransport, withRetries, type ModelCall, type Runner } from "../../src/model.ts";
 import { STOP_AFTER_FAILURES } from "../../src/run.ts";
 import type { Check } from "../../src/vocabulary.ts";
 import { committedCandidates, runStageA, runStageB, type StageA, type StageACandidate, type StageB, type StageBVerdict } from "../../src/pilot/stages.ts";
@@ -492,6 +492,22 @@ describe("stage B", () => {
       await expect(runStageB(data, a, runnersAll, { concurrency: 3, terms: null })).rejects.toThrow(/couldn't start claude/);
       // A full run over this pool would be 12 candidates x 5 adversaries = 60 calls.
       expect(calls).toBeLessThan(10);
+    });
+
+    it("halts at once when the gemini transport answers a status no retry heals, such as a bad key", async () => {
+      const a = await runStageA(data, findings, runners, { concurrency: 1, terms: null });
+      const fetchMock = vi.fn(async () => new Response(JSON.stringify({ error: { code: 401, message: "no good" } }), { status: 401 }));
+      vi.stubGlobal("fetch", fetchMock);
+      process.env.INSIGHTS_LIVE = "1";
+      try {
+        const gemini = withRetries(geminiTransport({ terms: [], keys: { GEMINI_API_KEY: "placeholder-key" } }), { ...RETRY_DEFAULTS, sleep: async () => {} });
+        const runnersAll = new Map(ADVERSARIES.map((r) => [r.id, makeRunner(gemini, { cacheDir: mkdtempSync(join(tmpdir(), "g401-")), datasetVersion: "t", stageVersions: {} })]));
+        await expect(runStageB(data, a, runnersAll, { concurrency: 1, terms: null })).rejects.toThrow(/an adversary call failed: gemini answered 401/);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+      } finally {
+        delete process.env.INSIGHTS_LIVE;
+        vi.unstubAllGlobals();
+      }
     });
 
     it("halts after 3 ordinary failures in a row", async () => {

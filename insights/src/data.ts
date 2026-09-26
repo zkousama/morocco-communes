@@ -1,7 +1,7 @@
 /**
  * Every unit's figures, read off the dataset the same way the pipeline and the API do:
  * `readLevel` for a level's records, whichever shape they come in, and each source
- * matched to a unit by code. Later tasks read only what's built here.
+ * matched to a unit by code. The rest of the pipeline reads only what's built here.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

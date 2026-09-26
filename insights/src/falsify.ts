@@ -70,10 +70,12 @@ ${catalogue}`;
 /** Folded into a run's id, as the proposer's is. */
 export const PROMPT_HASH = hash(SYSTEM);
 
+// A model in JSON mode often writes every key in the example, the ones that don't apply as
+// null, so "refuse": null reads the same as leaving it out.
 const replySchema = z.object({
   counter: checkSchema.nullable(),
   reason: z.string().trim().min(1),
-  refuse: z.enum(["individuals", "groups", "blame"]).optional(),
+  refuse: z.enum(["individuals", "groups", "blame"]).nullish(),
 });
 
 /** A reply's parsed verdict fields, or null when the text isn't valid JSON in the expected shape. */

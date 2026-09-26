@@ -28,30 +28,36 @@ export const SETUP_PATH = "insights/setup.json";
 const effortSchema = z.enum(["low", "medium", "high", "xhigh", "max"]);
 const transportSchema = z.enum(["claude", "ollama", "gemini"]);
 
-const roleSchema = z.object({
-  transport: transportSchema,
-  model: z.string().min(1),
-  effort: effortSchema.optional(),
-});
+// Strict throughout: a misspelt key ("efort", say) is refused by name, never quietly
+// dropped, which would run the role without the setting it meant to give.
+const roleSchema = z
+  .object({
+    transport: transportSchema,
+    model: z.string().min(1),
+    effort: effortSchema.optional(),
+  })
+  .strict();
 
 const setupSchema = z
   .object({
-    propose: roleSchema.extend({ samples: z.number().int().min(1).max(5) }),
+    propose: roleSchema.extend({ samples: z.number().int().min(1).max(5) }).strict(),
     falsify: roleSchema,
     attackShownOnly: z.boolean(),
     decidedBy: z.string().nullable(),
   })
+  .strict()
   .refine((setup) => setup.propose.transport !== setup.falsify.transport || setup.propose.model !== setup.falsify.model, {
     message: "the adversary can't be the proposer's own model (the same model): pick a different one",
   });
 
-/** Parses an already-JSON-parsed setup, throwing a plain message (never a raw `ZodError`) on a bad shape or the same-model rule. */
+/** Parses an already-JSON-parsed setup, throwing a plain message (never a raw `ZodError`) on a bad shape, a key it doesn't know or the same-model rule. */
 export function parseSetup(json: unknown): Setup {
   const result = setupSchema.safeParse(json);
   if (!result.success) {
     const issue = result.error.issues[0]!;
     const path = issue.path.length > 0 ? `${issue.path.join(".")}: ` : "";
-    throw new Error(`insights/setup.json: ${path}${issue.message}`);
+    const message = issue.code === "unrecognized_keys" ? `unknown key ${issue.keys.map((key) => JSON.stringify(key)).join(", ")}` : issue.message;
+    throw new Error(`insights/setup.json: ${path}${message}`);
   }
   return result.data as Setup;
 }

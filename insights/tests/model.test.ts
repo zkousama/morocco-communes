@@ -228,6 +228,12 @@ describe("the claude child", () => {
     expect(env.PATH).toBe("/usr/bin");
   });
 
+  it("never hands the child the private folder's location", () => {
+    const { env } = claudeInvocation(call, { INSIGHTS_LOCAL: "/placeholder/private", PATH: "/usr/bin" });
+    expect(env).not.toHaveProperty("INSIGHTS_LOCAL");
+    expect(env.PATH).toBe("/usr/bin");
+  });
+
   it("turns its telemetry on only when a collector is set", () => {
     expect(claudeInvocation(withTrace, {}).env).not.toHaveProperty("TRACEPARENT");
     const traced = claudeInvocation(withTrace, { OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector.test" }).env;

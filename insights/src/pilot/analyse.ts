@@ -24,8 +24,13 @@
  *   show them; a break lands on a shown reason when that rank is under `PUBLISHED_CAP`. It
  *   pools the breaks of all 5 runs.
  * - Cost is each call's recorded `costUsd`, the list price the CLI reports; Gemini's free tier
- *   records 0. Seconds per call is the recorded answering time (waits for retries and limits
- *   already left out), averaged over the calls that came back.
+ *   records 0. Rule 1 reads each proposer's total; its cost per call, over the calls that came
+ *   back, is reported beside it. Seconds per call is the recorded answering time (waits for
+ *   retries and limits already left out), averaged over the calls that came back.
+ * - Rule 3's speed check for A5 times each call with its waits put back in (`ms + waitedMs`,
+ *   both recorded per verdict), averaged over the calls that came back, since the free tier's
+ *   rate limits are what could make the full run too slow. The total it waited is reported
+ *   beside the check.
  */
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
@@ -96,6 +101,7 @@ export interface ProposerResults {
   yesRate: Interval | null; // the owner's yes rate on the rated reasons; null with none answered yes or no
   rated: number; // reasons answered yes or no
   costUsd: number; // at list price, as recorded
+  costPerCall: number | null; // costUsd over the calls that came back; null with no call back
   tokens: Usage;
   secondsPerCall: number | null; // null with no call back
 }
@@ -108,7 +114,9 @@ export interface AdversaryResults {
   calls: number;
   costUsd: number;
   tokens: Usage;
-  secondsPerCall: number | null;
+  secondsPerCall: number | null; // the answering time alone, over the calls that came back
+  secondsPerCallWithWaits: number | null; // each call's answering time plus its waits, over the calls that came back
+  waitedSeconds: number; // every wait its calls made for a retry or a limit, summed
   rightOnDisagreements: Interval | null;
   disagreementsRated: number; // rated disagreements it argued, skips left out
   countersHeld: Interval | null; // its counter-tests the owner judged to break the reason
@@ -121,6 +129,16 @@ export interface SafetyByRun {
   categories: Record<string, number>;
   refusedWithoutTerm: number; // refused, with no private term matched
   termButPassed: number; // a private term matched, and it argued the candidate anyway
+}
+
+/** Rule 3's speed check, as the rule reads it off the checked run's own measures. */
+export interface SpeedCheck {
+  run: string;
+  secondsPerCall: number | null; // waits included; null with no call back
+  waitedSeconds: number; // the total it waited, reported beside the check
+  hours: number | null; // `FULL_RUN_ADVERSARY_CALLS` calls one at a time at that pace
+  maxHours: number;
+  fits: boolean; // never with no call back to time
 }
 
 export interface Decision {
@@ -149,6 +167,7 @@ export interface Results {
   agreement: Record<string, Interval | null>; // "A1|A2" -> agreementOf the 2 runs, every pair; null with no candidate both answered
   noiseFloor: Interval | null; // A1 against A2
   extraBreaks: { inPool: number; rated: number; right: number }; // rule 2: candidates A3 broke and A1 passed
+  speedCheck: SpeedCheck; // rule 3's check on A5, with the total time it waited
   samplesCurve: Record<string, Interval[]>; // proposer -> share of its good reasons found with the first 1..MAX_SAMPLES samples; empty with no good reason
   goodReasons: Record<string, number>;
   shownBreaks: { breaks: number; shown: number; share: Interval | null }; // rule 6, across every run
@@ -178,9 +197,20 @@ export function unfinishedRating(ratings: Ratings): string | null {
   return `the rating isn't finished: ${left} of ${ratings.items.length} items still to rate; run \`pnpm insights:pilot:rate\` to finish it`;
 }
 
-/** A5's hours for the full run's adversary calls, one call at a time. */
+/** A5's hours for the full run's adversary calls, one call at a time, at `secondsPerCall` each. */
 export function hoursFor(secondsPerCall: number): number {
   return (secondsPerCall * FULL_RUN_ADVERSARY_CALLS) / 3600;
+}
+
+/**
+ * Rule 3's speed check on `run`: its seconds per call with the waits counted in, since the
+ * free tier's rate limits are what could make the full run too slow, and whether
+ * `FULL_RUN_ADVERSARY_CALLS` of them one at a time fit in `A5_MAX_HOURS`.
+ */
+export function speedCheckOf(run: string, x: AdversaryResults): SpeedCheck {
+  const s = x.secondsPerCallWithWaits;
+  const hours = s === null ? null : hoursFor(s);
+  return { run, secondsPerCall: s, waitedSeconds: x.waitedSeconds, hours, maxHours: A5_MAX_HOURS, fits: hours !== null && hours <= A5_MAX_HOURS };
 }
 
 const share = (xs: boolean[]): number => (xs.length === 0 ? NaN : xs.filter(Boolean).length / xs.length);
@@ -299,6 +329,7 @@ function proposerResults(
     yesRate: interval(byFinding(a.findingIds, rated.map((r) => ({ findingId: at(r.candidate), value: r.answer.answer === "yes" }))), share),
     rated: rated.length,
     costUsd: p.usage.costUsd,
+    costPerCall: p.replies.length === 0 ? null : p.usage.costUsd / p.replies.length,
     tokens: { ...p.usage },
     secondsPerCall: p.replies.length === 0 ? null : p.ms / p.replies.length / 1000,
   };
@@ -414,6 +445,8 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
       costUsd: mine.reduce((sum, x) => sum + x.v.usage.costUsd, 0),
       tokens: mine.reduce((sum, x) => addUsage(sum, x.v.usage), NO_USAGE),
       secondsPerCall: calls.length === 0 ? null : calls.reduce((sum, x) => sum + x.v.ms, 0) / calls.length / 1000,
+      secondsPerCallWithWaits: calls.length === 0 ? null : calls.reduce((sum, x) => sum + x.v.ms + x.v.waitedMs, 0) / calls.length / 1000,
+      waitedSeconds: mine.reduce((sum, x) => sum + x.v.waitedMs, 0) / 1000,
       rightOnDisagreements: interval(byFinding(a.findingIds, right), share),
       disagreementsRated: right.length,
       countersHeld: interval(byFinding(a.findingIds, held), share),
@@ -500,6 +533,7 @@ export function analyse(a: StageA, b: StageB, ratings: Ratings, now: Date = new 
     agreement,
     noiseFloor: agreement[`${MEDIUM_RUN}|${REPEAT_RUN}`] ?? null,
     extraBreaks,
+    speedCheck: speedCheckOf(SPEED_CHECKED, adversaries[SPEED_CHECKED]!),
     samplesCurve,
     goodReasons,
     shownBreaks,
@@ -542,6 +576,11 @@ export function effortName(role: PilotRole): string {
 
 const pct = (x: number): string => `${Math.round(x * 100)}%`;
 const two = (x: number): string => x.toFixed(2);
+/** One call's cost, to a tenth of a cent, since a cheap call rounds to $0.00 at `usd`'s cent. */
+const perCall = (x: number | null): string => (x === null ? "no call came back" : `$${x.toFixed(3)} a call`);
+/** A wait as a person reads it: seconds under a minute, minutes under 2 hours, then hours. */
+const duration = (seconds: number): string =>
+  seconds < 60 ? `${Math.round(seconds)} s` : seconds < 7200 ? `${Math.round(seconds / 60)} min` : `${(seconds / 3600).toFixed(1)} hours`;
 const points = (x: number): string => String(Math.round(x * 100));
 const list = (ids: string[]): string => (ids.length <= 1 ? ids.join("") : `${ids.slice(0, -1).join(", ")} and ${ids.at(-1)}`);
 
@@ -567,6 +606,9 @@ function ruleProposer(r: Omit<Results, "decisions">): Decision {
   const rate = (id: string) => r.proposers[id]!.yesRate!.value;
   const cost = (id: string) => r.proposers[id]!.costUsd;
   const order = (id: string) => PROPOSERS.findIndex((p) => p.id === id);
+  // The rule reads the total; the cost per call is stated beside it, since a setup whose
+  // calls failed more often spends less in all without being cheaper to run.
+  const priced = (id: string) => `${id} at ${usd(cost(id))} (${perCall(r.proposers[id]!.costPerCall)})`;
 
   const best = Math.max(...rated.map(rate));
   const leaders = rated.filter((id) => rate(id) === best);
@@ -577,7 +619,7 @@ function ruleProposer(r: Omit<Results, "decisions">): Decision {
 
   const parts = [
     `Best yes rate: ${pct(best)} (${list(leaders)}).`,
-    `Within ${points(PROPOSER_MARGIN)} points of it: ${within.map((id) => `${id} at ${usd(cost(id))}`).join(", ")}.`,
+    `Within ${points(PROPOSER_MARGIN)} points of it: ${within.map(priced).join(", ")}.`,
     `Cheapest of those: ${chosen}${next !== undefined && cost(next) === cost(chosen!) ? `, tied on cost with ${next} and ${rate(next) === rate(chosen!) ? "first in setup order" : "ahead on yes rate"}` : ""}.`,
   ];
   if (unrated.length > 0) parts.push(`${list(unrated)} had no rated reason, so ${unrated.length === 1 ? "it wasn't" : "they weren't"} in the running.`);
@@ -630,20 +672,20 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
   const opusRun = effort === "high" ? HIGH_RUN : MEDIUM_RUN;
   const proposer = roleOf(PROPOSERS, proposerId);
   const right = (id: string): number | null => r.adversaries[id]?.rightOnDisagreements?.value ?? null;
-  const seconds = (id: string): number | null => r.adversaries[id]?.secondsPerCall ?? null;
-  const fits = (id: string): boolean => {
-    if (id !== SPEED_CHECKED) return true;
-    const s = seconds(id);
-    return s !== null && hoursFor(s) <= A5_MAX_HOURS;
-  };
-  /** Why a run fails the speed check, to follow its id. */
-  const tooSlow = (id: string): string => {
-    const s = seconds(id);
+  // Read fresh off the run's own measures, waits included, never off `r.speedCheck`, so the
+  // rule and what it reads can't drift apart.
+  const check = speedCheckOf(SPEED_CHECKED, r.adversaries[SPEED_CHECKED]!);
+  const fits = (id: string): boolean => id !== SPEED_CHECKED || check.fits;
+  /** Why the checked run fails the speed check, to follow its id. */
+  const tooSlow = (): string => {
     const calls = FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US");
-    return s === null
+    return check.hours === null
       ? `has no answered call to time, so it can't show ${calls} calls fit in ${A5_MAX_HOURS} hours`
-      : `would take ${Math.round(hoursFor(s))} hours for ${calls} calls one at a time, over ${A5_MAX_HOURS}`;
+      : `would take ${check.hours.toFixed(1)} hours for ${calls} calls one at a time, waits included (it waited ${duration(check.waitedSeconds)} in all), over ${A5_MAX_HOURS}`;
   };
+  /** The checked run's speed check when it passes, to follow "and" or a possessive. */
+  const fast = (): string =>
+    `${FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US")} calls one at a time would take ${check.hours!.toFixed(1)} hours, waits included (it waited ${duration(check.waitedSeconds)} in all), within ${A5_MAX_HOURS}`;
   const rightText = (id: string): string => {
     const x = right(id);
     return x === null ? `${id} has no rated disagreement it argued` : `${id} is right on ${pct(x)} of the rated disagreements`;
@@ -683,7 +725,7 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
       continue;
     }
     if (!fits(id)) {
-      notes.push(`${id} qualifies on kappa and rightness, but ${tooSlow(id)}, which counts as not qualifying.`);
+      notes.push(`${id} qualifies on kappa and rightness, but ${tooSlow()}, which counts as not qualifying.`);
       continue;
     }
     const role = roleOf(ADVERSARIES, id);
@@ -691,7 +733,7 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
       notes.push(`${id} qualifies, but it's ${modelName(role)}, the proposer's own model, so it's skipped.`);
       continue;
     }
-    notes.push(`${id} qualifies: kappa ${two(kappa!.value)}, right on ${pct(mine)} against ${opusRun}'s ${pct(theirs)}.`);
+    notes.push(`${id} qualifies: kappa ${two(kappa!.value)}, right on ${pct(mine)} against ${opusRun}'s ${pct(theirs)}${id === SPEED_CHECKED ? `, and ${fast()}` : ""}.`);
     standing.push(id);
   }
 
@@ -710,7 +752,8 @@ function ruleAdversary(r: Omit<Results, "decisions">, proposerId: string, effort
   if (left.length === 0) throw new Error("rule 3: every adversary shares the proposer's model");
   const pick = left.length === 1 ? left[0]! : moreRight(left[0]!, left[1]!);
   const chosen = fits(pick) ? pick : TOO_SLOW_GOES_TO;
-  const slowNote = chosen === pick ? "" : ` ${pick} ${tooSlow(pick)}, so the job goes to ${TOO_SLOW_GOES_TO}.`;
+  const slowNote =
+    pick !== SPEED_CHECKED ? "" : chosen === pick ? ` ${pick}'s ${fast()}.` : ` ${pick} ${tooSlow()}, so the job goes to ${TOO_SLOW_GOES_TO}.`;
   return {
     choice: chosen,
     rule,
@@ -849,10 +892,21 @@ export function tables(r: Results): string {
     );
   }
   out.push("");
-  out.push(...header(["Setup", "Yes rate", "Rated", "Cost at list price", "Tokens in", "Tokens out", "Seconds per call"]));
+  out.push(...header(["Setup", "Yes rate", "Rated", "Cost at list price", "Cost per call", "Tokens in", "Tokens out", "Seconds per call"]));
   for (const role of PROPOSERS) {
     const p = r.proposers[role.id]!;
-    out.push(cells([role.id, pctRange(p.yesRate), p.rated, usd(p.costUsd), compactCount(inputOf(p.tokens)), compactCount(p.tokens.output), seconds(p.secondsPerCall)]));
+    out.push(
+      cells([
+        role.id,
+        pctRange(p.yesRate),
+        p.rated,
+        usd(p.costUsd),
+        p.costPerCall === null ? "none" : `$${p.costPerCall.toFixed(3)}`,
+        compactCount(inputOf(p.tokens)),
+        compactCount(p.tokens.output),
+        seconds(p.secondsPerCall),
+      ]),
+    );
   }
 
   out.push("", "### Adversaries", "");
@@ -875,7 +929,9 @@ export function tables(r: Results): string {
     );
   }
   out.push("");
-  out.push(...header(["Run", "Own family's reasons broken", "Everyone else's", "Gap", "Cost at list price", "Tokens in", "Tokens out", "Seconds per call"]));
+  out.push(
+    ...header(["Run", "Own family's reasons broken", "Everyone else's", "Gap", "Cost at list price", "Tokens in", "Tokens out", "Seconds per call", "Seconds per call with waits", "Waited"]),
+  );
   for (const role of ADVERSARIES) {
     const x = r.adversaries[role.id]!;
     const family = x.family;
@@ -889,9 +945,21 @@ export function tables(r: Results): string {
         compactCount(inputOf(x.tokens)),
         compactCount(x.tokens.output),
         seconds(x.secondsPerCall),
+        seconds(x.secondsPerCallWithWaits),
+        duration(x.waitedSeconds),
       ]),
     );
   }
+  const check = speedCheckOf(SPEED_CHECKED, r.adversaries[SPEED_CHECKED]!);
+  const calls = FULL_RUN_ADVERSARY_CALLS.toLocaleString("en-US");
+  out.push(
+    "",
+    `${SPEED_CHECKED}'s speed check, one call at a time, waits included: ${
+      check.secondsPerCall === null || check.hours === null
+        ? `no call came back to time, so it can't show ${calls} calls fit in ${A5_MAX_HOURS} hours`
+        : `${check.secondsPerCall.toFixed(1)} seconds a call, so ${calls} calls would take ${check.hours.toFixed(1)} hours, ${check.fits ? "within" : "over"} ${A5_MAX_HOURS}`
+    }; it waited ${duration(check.waitedSeconds)} in all.`,
+  );
   out.push("", `${HIGH_RUN}'s extra breaks, the candidates it broke and ${MEDIUM_RUN} passed: ${r.extraBreaks.inPool} in the pool, ${r.extraBreaks.rated} rated, ${r.extraBreaks.right} of those judged right.`);
 
   out.push("", "### Agreement", "");

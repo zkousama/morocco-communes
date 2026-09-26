@@ -7,6 +7,7 @@ import { detect, EXTREME_POPULATION_FLOOR, EXTREME_TAIL_SHARE, type Finding } fr
 import { FIELDS } from "../src/fields.ts";
 import { makeRunner, stubTransport, type ModelCall } from "../src/model.ts";
 import { context, propose, semanticEntropy } from "../src/propose.ts";
+import { termsPattern } from "../src/safety.ts";
 import { breakdown, findingLine, subjectOf } from "../src/text.ts";
 import { numbers, percent } from "../../site/src/lib/format.ts";
 
@@ -82,11 +83,31 @@ describe("propose", () => {
     expect(p.candidates[0]!.linkTest).toBeNull();
   });
 
+  it("reads a null artefact or link test as missing, as a model in JSON mode often writes them", async () => {
+    const parsed = JSON.parse(good);
+    parsed.hypotheses[0].artefact = null;
+    parsed.hypotheses[0].linkTest = null;
+    const p = await propose(finding, data, runner(JSON.stringify(parsed)));
+    expect(p.candidates).toHaveLength(1);
+    expect(p.candidates[0]!.artefact).toBe(false);
+    expect(p.candidates[0]!.linkTest).toBeNull();
+  });
+
   it("drops a candidate the safety check refuses", async () => {
     const bad = JSON.parse(good);
     bad.hypotheses[0].claim.en = "Mr Alami closed the clinic";
     const p = await propose(finding, data, runner(JSON.stringify(bad)));
     expect(p.candidates).toEqual([]);
+  });
+
+  it("drops a candidate on a private term, counts it as one, and keeps the rest", async () => {
+    const parsed = JSON.parse(good);
+    const termed = { ...parsed.hypotheses[0], premise: { en: "The Zorblat opened here", fr: "p" }, test: { check: "change", of: { unit: "self" }, field: "labour.activityRate", op: ">", value: 0 } };
+    const p = await propose(finding, data, runner(JSON.stringify({ hypotheses: [parsed.hypotheses[0], termed] })), { model: "sonnet" }, termsPattern(["zorblat"]));
+    expect(p.candidates.map((c) => c.test.check)).toEqual(["compare"]);
+    expect(p.refusals).toEqual({ terms: 1 });
+    const without = await propose(finding, data, runner(JSON.stringify({ hypotheses: [parsed.hypotheses[0], termed] })));
+    expect(without.candidates).toHaveLength(2);
   });
 
   it("asks each sample under its own key, one after another, and keeps who answered", async () => {

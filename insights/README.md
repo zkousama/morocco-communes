@@ -17,13 +17,13 @@ pnpm insights:score                                  # turns the grades into ins
 pnpm insights --publish                              # writes data/v1/insights/ if the gate passes
 ```
 
-It needs Node, pnpm and the `claude` command-line tool signed in: every proposal is a
-`claude -p` call, charged to that login's subscription rather than an API bill, and the
-counter-argument is too unless `insights/setup.json` sends it to Ollama or Gemini instead.
+It needs Node, pnpm and the `claude` command-line tool signed in: a role on the `claude`
+transport makes each call with `claude -p`, charged to that login's subscription rather than
+an API bill. Ollama and Gemini are optional transports for either role, proposer or
+adversary, and `insights/setup.json` says which one each role uses: Ollama runs locally,
+Gemini on its free tier with a `GEMINI_API_KEY` in `keys.env` under `INSIGHTS_LOCAL`.
 Nothing calls a model without `INSIGHTS_LIVE=1` set, so a stray `pnpm insights` never spends
-a real call by accident. Ollama and Gemini are optional, and only for running the adversary
-under a different model: Ollama locally, Gemini on its free tier with a `GEMINI_API_KEY` in
-`keys.env` under `INSIGHTS_LOCAL`.
+a real call by accident.
 
 Each `claude -p` call runs from the system's temp directory, apart from this repository and
 your own setup, with local settings only and the flags `--strict-mcp-config` (with no MCP

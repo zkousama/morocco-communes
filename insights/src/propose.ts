@@ -177,7 +177,7 @@ const hypothesisSchema = z.object({
   premise: words,
   test: checkSchema,
   linkTest: z.unknown().optional(), // read on its own below: a wrong one costs the link test, never the hypothesis
-  artefact: z.boolean().optional(),
+  artefact: z.boolean().nullish(), // null reads as left out: a model in JSON mode often writes every key
 });
 
 type Hypothesis = Omit<Candidate, "support" | "samples">;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classify, claudeFailure, LimitError, TransientError, withRetries, type Transport } from "../src/model.ts";
+import { classify, claudeFailure, LimitError, parseClaudeOutput, TransientError, withRetries, type Transport } from "../src/model.ts";
 import { NO_USAGE } from "../src/model.ts";
 
 const call = { model: "sonnet", system: "s", prompt: "p", stage: "propose", key: "k" };
@@ -85,6 +85,13 @@ describe("withRetries", () => {
     expect(c.now()).toBeGreaterThanOrEqual(10_000);
     expect(c.waits).toEqual([4000, 4000, 2000]);
   });
+  it("logs a wait under a minute in seconds, and a longer one in minutes", async () => {
+    const c = clock();
+    const lines: string[] = [];
+    const s = scripted([new LimitError("429", 30_000), new LimitError("429", 900_000), "ok"]);
+    await withRetries(s.transport, { tries: 3, backoffMs: [5], limitPollMs: 1000, limitMaxMs: 3_600_000, sleep: c.sleep, log: (line) => lines.push(line) })(call);
+    expect(lines).toEqual(["limit reached, waiting 30 s: 429", "limit reached, waiting 15 min: 429"]);
+  });
   it("never retries a missing binary", async () => {
     const c = clock();
     const s = scripted([new Error("couldn't start claude: spawn claude ENOENT")]);
@@ -102,5 +109,35 @@ describe("a nonzero exit", () => {
   });
   it("falls back to stderr when stdout isn't the CLI's JSON", () => {
     expect(claudeFailure(2, "", "line one\nboom").message).toBe("claude exited 2: line one boom");
+  });
+});
+
+describe("a limit message on a clean exit", () => {
+  const cli = (result: string) => JSON.stringify({ type: "result", is_error: false, result, usage: { input_tokens: 1, output_tokens: 1 } });
+
+  it("reads as a limit, never as an answer, even with is_error false", () => {
+    for (const message of ["You've hit your limit · resets 3pm (Africa/Casablanca)", "Claude AI usage limit reached|1758880800"]) {
+      let error: unknown = null;
+      try {
+        parseClaudeOutput(cli(message), "sonnet");
+      } catch (e) {
+        error = e;
+      }
+      expect(error, message).toBeInstanceOf(LimitError);
+      expect(classify(error)).toBe("limit");
+    }
+  });
+  it("is waited out like any limit, so it's never handed back to be cached", async () => {
+    const c = clock();
+    let n = 0;
+    const transport: Transport = async (call) => parseClaudeOutput(cli(n++ === 0 ? "You've hit your limit · resets 3pm" : '{"ok":true}'), call.model);
+    const reply = await withRetries(transport, { tries: 3, backoffMs: [5], limitPollMs: 1000, limitMaxMs: 10_000, sleep: c.sleep })(call);
+    expect(reply.text).toBe('{"ok":true}');
+    expect(c.waits).toEqual([1000]);
+  });
+  it("still reads a JSON answer that happens to say \"rate limit\" as an answer", () => {
+    const answer = '{"hypotheses":[{"claim":{"en":"A moderate limit on new building","fr":"x"}}]}';
+    expect(parseClaudeOutput(cli(answer), "sonnet").text).toBe(answer);
+    expect(parseClaudeOutput(cli("```json\n" + answer + "\n```"), "sonnet").text).toContain("moderate limit");
   });
 });

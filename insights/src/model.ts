@@ -90,10 +90,11 @@ function requireLive(name: string): void {
 
 /**
  * Determines whether an environment variable should not be passed to the child process.
- * Filters out API keys and session-specific settings from the parent.
+ * Filters out API keys, session-specific settings from the parent, and `INSIGHTS_LOCAL`, so
+ * the private folder's location never reaches the child either.
  */
 export const CHILD_ENV_DROP = (key: string): boolean =>
-  key === "ANTHROPIC_API_KEY" || key === "CLAUDECODE" || key === "CLAUDE_EFFORT" || key.startsWith("CLAUDE_CODE_");
+  key === "ANTHROPIC_API_KEY" || key === "CLAUDECODE" || key === "CLAUDE_EFFORT" || key === "INSIGHTS_LOCAL" || key.startsWith("CLAUDE_CODE_");
 
 /** Private settings read from outside the repository: extra terms the safety check also refuses, and keys for optional transports. */
 export interface Local {
@@ -200,6 +201,14 @@ export class TransientError extends Error {
   }
 }
 
+/** A failure no retry heals, such as a bad key, an unknown model or a malformed request: given up on at once. */
+export class FatalError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FatalError";
+  }
+}
+
 const FATAL_RE = /couldn't start claude|ENOENT|credit balance/i;
 const LIMIT_RE = /usage limit|hit your (?:\w+ )*limit|rate.?limit|too many requests|resource.?exhausted/i;
 
@@ -207,6 +216,7 @@ const LIMIT_RE = /usage limit|hit your (?:\w+ )*limit|rate.?limit|too many reque
 export function classify(error: unknown): "limit" | "transient" | "fatal" {
   if (error instanceof LimitError) return "limit";
   if (error instanceof TransientError) return "transient";
+  if (error instanceof FatalError) return "fatal";
   const message = messageOf(error);
   if (FATAL_RE.test(message)) return "fatal";
   if (LIMIT_RE.test(message)) return "limit";
@@ -285,7 +295,7 @@ export function withRetries(transport: Transport, o: RetryOptions): Transport {
           }
           const asked = (error instanceof LimitError && error.retryAfterMs) || o.limitPollMs;
           const wait = Math.min(asked, o.limitMaxMs - waited);
-          o.log?.(`limit reached, waiting ${Math.round(wait / 60_000)} min: ${messageOf(error)}`);
+          o.log?.(`limit reached, waiting ${wait < 60_000 ? `${Math.round(wait / 1000)} s` : `${Math.round(wait / 60_000)} min`}: ${messageOf(error)}`);
           await o.sleep(wait);
           waited += wait;
           waitedMs += wait;
@@ -343,11 +353,23 @@ export function claudeTransport(options?: { timeoutMs?: number }): Transport {
 }
 
 /**
+ * Whether a CLI result is its own limit notice rather than an answer: short plain text that
+ * `LIMIT_RE` matches. Every stage asks for JSON, so an answer opens with a brace, a bracket or
+ * a code fence, and a hypothesis that happens to say "a moderate limit" is never read as one.
+ */
+function isLimitNotice(text: string): boolean {
+  const t = text.trim();
+  return t.length <= 300 && !/^(?:[{[]|```)/.test(t) && LIMIT_RE.test(t);
+}
+
+/**
  * Reads one `claude -p --output-format json` result: its text, the model that actually
  * answered (an alias like "sonnet" doesn't say), and its tokens and cost. The same fields
  * `evals/run.ts` reads off the CLI's JSON, each defaulting to 0 when the CLI leaves it out.
  * Throws exactly what `claudeTransport` threw inline before this was pulled out of it:
- * unparseable output, `is_error`, or no `result`.
+ * unparseable output, `is_error`, or no `result`. A `result` that's the CLI's own limit notice
+ * throws a `LimitError` even when `is_error` is false, so a limit is waited out and never
+ * handed back to be cached as an answer.
  */
 export function parseClaudeOutput(stdout: string, requestedModel: string): { text: string; model: string; usage: Usage } {
   let parsed: {
@@ -370,6 +392,7 @@ export function parseClaudeOutput(stdout: string, requestedModel: string): { tex
   }
   if (parsed.is_error) throw new Error(`claude reported an error: ${parsed.result ?? stdout.slice(0, 300)}`);
   if (typeof parsed.result !== "string") throw new Error(`claude's output had no result: ${stdout.slice(0, 300)}`);
+  if (isLimitNotice(parsed.result)) throw new LimitError(`claude reported a limit: ${parsed.result.trim()}`, null);
 
   const answered = Object.values(parsed.modelUsage ?? {})[0]?.canonicalModel;
   const u = parsed.usage ?? {};
@@ -405,11 +428,21 @@ export function ollamaTransport(url?: string): Transport {
   };
 }
 
-/** A Google API error body's own message, read defensively; never touches the key, which never appears in the body. */
-function geminiErrorMessage(body: unknown): string {
+/**
+ * A Google API error body's own message, read defensively, with the key blanked out wherever
+ * it turns up: the body shouldn't ever quote it, but a thrown message is printed, so it's
+ * never left to chance.
+ */
+function geminiErrorMessage(body: unknown, key: string): string {
   const message = (body as { error?: { message?: string } } | undefined)?.error?.message;
-  return typeof message === "string" ? message : "no error message";
+  return typeof message === "string" ? withoutKey(message, key) : "no error message";
 }
+
+/** `text` with every occurrence of `key` replaced, so no message ever carries it. */
+const withoutKey = (text: string, key: string): string => text.split(key).join("[key]");
+
+/** Gemini's statuses no retry heals: a malformed request, a bad or missing key, a key without access, an unknown model. */
+const GEMINI_FATAL = new Set([400, 401, 403, 404]);
 
 /**
  * How long a 429 asked to wait, in milliseconds: the error body's own `RetryInfo.retryDelay`
@@ -431,7 +464,9 @@ function geminiRetryAfterMs(body: unknown, res: Response): number | null {
  * key comes from `local.keys.GEMINI_API_KEY` and travels only in the `x-goog-api-key`
  * header, never the URL, never a thrown message. A 429 becomes a `LimitError` carrying
  * however long it asked to wait; 500, 503 and 504 become a `TransientError`, as does a
- * timeout or a network failure; any other non-2xx becomes a plain `Error`. On success, the
+ * timeout or a network failure; 400, 401, 403 and 404 become a `FatalError`, since a bad
+ * key, model or request fails the same way every time and should halt the stage at once
+ * rather than retry; any other non-2xx becomes a plain `Error`. On success, the
  * text is the answer's non-thinking parts joined, or "" when there are no candidates or the
  * one there stopped for a reason other than running out of room or finishing cleanly, since
  * an unreadable answer is the stage's problem to record, not a crash here.
@@ -461,7 +496,7 @@ export function geminiTransport(local: Local | null, options?: { timeoutMs?: num
       });
     } catch (error) {
       if (controller.signal.aborted) throw new TransientError(`gemini timed out after ${timeoutMs}ms`);
-      throw new TransientError(`gemini: network error: ${messageOf(error)}`);
+      throw new TransientError(`gemini: network error: ${withoutKey(messageOf(error), key)}`);
     } finally {
       clearTimeout(timer);
     }
@@ -469,11 +504,11 @@ export function geminiTransport(local: Local | null, options?: { timeoutMs?: num
     const body: unknown = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      if (res.status === 429) throw new LimitError(`gemini's usage limit: ${geminiErrorMessage(body)}`, geminiRetryAfterMs(body, res));
-      if (res.status === 500 || res.status === 503 || res.status === 504) {
-        throw new TransientError(`gemini answered ${res.status}: ${geminiErrorMessage(body)}`);
-      }
-      throw new Error(`gemini answered ${res.status}: ${geminiErrorMessage(body)}`);
+      const message = `gemini answered ${res.status}: ${geminiErrorMessage(body, key)}`;
+      if (res.status === 429) throw new LimitError(`gemini's usage limit: ${geminiErrorMessage(body, key)}`, geminiRetryAfterMs(body, res));
+      if (res.status === 500 || res.status === 503 || res.status === 504) throw new TransientError(message);
+      if (GEMINI_FATAL.has(res.status)) throw new FatalError(message);
+      throw new Error(message);
     }
 
     const parsed = body as {

@@ -29,4 +29,19 @@ describe("private terms", () => {
     expect(termsPattern([])).toBeNull();
     expect(refusal("The Zorblat moved the market", null)).toBeNull();
   });
+  it("reads a term the way it reads the text: a curly apostrophe as a straight one", () => {
+    const curly = termsPattern(["qu’ix"]);
+    expect(refusal("the qu'ix vane", curly)).toBe("terms");
+    expect(refusal("the qu’ix vane", curly)).toBe("terms");
+  });
+  it("trims a term and matches its inner spaces however many there are", () => {
+    const spaced = termsPattern(["  quix  vane\t"]);
+    expect(refusal("a quix vane was built", spaced)).toBe("terms");
+    expect(refusal("a quix\tvane was built", spaced)).toBe("terms");
+    expect(refusal("a quixvane was built", spaced)).toBeNull();
+  });
+  it("never lets a blank term match everything", () => {
+    expect(termsPattern(["   ", "\t"])).toBeNull();
+    expect(refusal("anything at all", termsPattern(["", "zorblat"]))).toBeNull();
+  });
 });

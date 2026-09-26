@@ -59,6 +59,11 @@ describe("falsify", () => {
     expect(calls).toBe(2);
   });
 
+  it("reads a null refuse as no refusal, as a model in JSON mode often writes it", async () => {
+    const v = await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "x", refuse: null })), { model: "opus" });
+    expect(v).toMatchObject({ survived: true, stage: null, reason: "x", model: "opus" });
+  });
+
   it("keeps the adversary's reason, and who gave it, on a candidate that survives", async () => {
     const v = await falsify(candidate, finding, data, run(JSON.stringify({ counter: null, reason: "nothing breaks it" })), { model: "opus" });
     expect(v).toMatchObject({ survived: true, stage: null, reason: "nothing breaks it", model: "opus" });

@@ -2,7 +2,7 @@
  * The figures worth a second look: communes at the extreme end of a measure, units whose
  * measure moved a lot since 2014, communes and provinces far from their parent's figure,
  * and the slow-moving swings that look more like a data artefact than a real change.
- * Later tasks explain a finding; this one only decides it exists.
+ * The stages after it explain a finding; this one only decides it exists.
  */
 import { createHash } from "node:crypto";
 import type { Data, Unit } from "./data.ts";

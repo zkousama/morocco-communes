@@ -51,7 +51,7 @@ function parseItemId(itemId: string): { kind: "reason" | "disagreement"; candida
   return { kind: itemId.slice(0, at) as "reason" | "disagreement", candidateId: itemId.slice(at + 1) };
 }
 
-/** Whether a run's verdict is what broke the candidate: a real counter-test that came out true, never a stop the adversary never got to argue. Exported so Task 16's analysis can attribute a rated answer back to the runs it judges. */
+/** Whether a run's verdict is what broke the candidate: a real counter-test that came out true, never a stop the adversary never got to argue. Exported for the analysis (`analyse.ts`), which attributes a rated answer back to the runs it judges. */
 export function broke(v: StageBVerdict): boolean {
   return v.survived === false && v.stage === "falsify" && v.unusable === null;
 }

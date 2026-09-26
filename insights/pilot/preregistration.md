@@ -77,7 +77,9 @@ detection can't quietly change the sample it draws from:
 Every per-finding measure gets a 95% bootstrap interval, resampling the findings 2,000 times
 with a fixed seed. The pilot is built to catch only large differences; "What this pilot can
 tell apart" below says how large. Seconds per call: the time the model took to answer, with
-waits for rate limits and retries left out.
+waits for rate limits and retries left out. Rule 3's speed check for A5 is the exception: it
+uses the time each call took with its waits counted in, since the free tier's rate limits are
+what could make the full run too slow, and the write-up gives the total A5 waited beside it.
 
 For each proposer setup: how many answers were usable; how many data tests passed, were
 refused (tautology, unknown field) or came back missing; how many distinct reasons turned up
@@ -125,8 +127,8 @@ neither.
    effort, A3 for high), the run they'd be replacing. If both qualify, whichever is
    right more often on the disagreements wins; a tie goes to the cheaper one, A5, since
    Google's free tier costs nothing. A5's win still needs its own speed check: at one call
-   at a time, its seconds per call times 2,400 calls has to fit inside 48 hours, or it
-   doesn't count, the same as failing to qualify. A qualifier is also skipped outright if it
+   at a time, its average time per call, waits included, times 2,400 calls has to fit inside
+   48 hours, or it doesn't count, the same as failing to qualify. A qualifier is also skipped outright if it
    shares a model with the chosen proposer. Whichever candidate is left standing after all
    that takes the job. If nothing is left standing, the Opus run rule 2 chose keeps the job,
    unless that run's model is the proposer's own: then, since Opus can't be the adversary
