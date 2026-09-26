@@ -1,0 +1,186 @@
+{
+  "items": [
+    "reason:3c5c178313b3",
+    "disagreement:9218118e52e6",
+    "disagreement:e6b0ea427b16",
+    "disagreement:51c2b68a9949",
+    "disagreement:c327f673d0d4",
+    "reason:cc3e3420b752",
+    "disagreement:42b0f9eaf41f",
+    "disagreement:11fc14462e40",
+    "reason:dd91d1ec6fa0",
+    "reason:c5fd551d4753",
+    "reason:abb63cb00c33",
+    "disagreement:28a7705e1929",
+    "disagreement:200014a2a132",
+    "reason:f6507e0fabaa",
+    "reason:0a6923629d2d",
+    "reason:91586bf68356",
+    "disagreement:72ad9ad2d596",
+    "reason:94a887dbc2d1",
+    "disagreement:214ea609734e",
+    "disagreement:3badc80a816a"
+  ],
+  "answers": [
+    {
+      "itemId": "reason:3c5c178313b3",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "unsure"
+    },
+    {
+      "itemId": "disagreement:9218118e52e6",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "no",
+      "counters": {
+        "b2895108a51d": "no"
+      }
+    },
+    {
+      "itemId": "disagreement:e6b0ea427b16",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "unsure",
+      "counters": {
+        "2ca6176a15f7": "unsure",
+        "8ec9439fe6ba": "no",
+        "bb0a51612ac4": "unsure"
+      }
+    },
+    {
+      "itemId": "disagreement:51c2b68a9949",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "5d41ae13de06": "no"
+      }
+    },
+    {
+      "itemId": "disagreement:c327f673d0d4",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "815321385c74": "no",
+        "972d47f5a3c1": "no"
+      }
+    },
+    {
+      "itemId": "reason:cc3e3420b752",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "disagreement:42b0f9eaf41f",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "1a49f092c59b": "no",
+        "1c62d6c63218": "no",
+        "6c77c42f7613": "no"
+      }
+    },
+    {
+      "itemId": "disagreement:11fc14462e40",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "0a1bbd4e1ca7": "no"
+      }
+    },
+    {
+      "itemId": "reason:dd91d1ec6fa0",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "reason:c5fd551d4753",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "reason:abb63cb00c33",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "disagreement:28a7705e1929",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "8f2b4692a24d": "no"
+      }
+    },
+    {
+      "itemId": "disagreement:200014a2a132",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "b923ea849c7b": "no"
+      }
+    },
+    {
+      "itemId": "reason:f6507e0fabaa",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "reason:0a6923629d2d",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "reason:91586bf68356",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "disagreement:72ad9ad2d596",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "0f854c790748": "no",
+        "ce8df306d853": "yes"
+      }
+    },
+    {
+      "itemId": "reason:94a887dbc2d1",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes"
+    },
+    {
+      "itemId": "disagreement:214ea609734e",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "1a39653475eb": "no",
+        "4bf26d0ee0d7": "no"
+      }
+    },
+    {
+      "itemId": "disagreement:3badc80a816a",
+      "claimBeyondPremise": "yes",
+      "linkExplainsFinding": "yes",
+      "ignoresObviousAlternative": "yes",
+      "counters": {
+        "9e87bf67e29e": "no"
+      }
+    }
+  ]
+}
