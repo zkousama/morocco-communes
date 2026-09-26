@@ -60,6 +60,46 @@ describe("the amendment", () => {
   });
 });
 
+describe("the second amendment, on who rates", () => {
+  const heading = "\n## Amendment, 26 September 2026: who rates\n";
+  const at = text.indexOf(heading);
+  const amendment = at < 0 ? "" : text.slice(at);
+
+  it("comes after the first amendment", () => {
+    expect(at, "its heading").toBeGreaterThan(text.indexOf(AMENDMENT));
+  });
+
+  it("names the 3 judges' models, and the one that can stand in for J2", () => {
+    for (const model of ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "@cf/meta/llama-3.3-70b-instruct-fp8-fast", "@cf/google/gemma-4-26b-a4b-it"]) {
+      expect(amendment).toContain(model);
+    }
+    for (const id of ["J1", "J2", "J3"]) expect(amendment).toContain(`| ${id} |`);
+  });
+
+  it("says the rules read the jury alone, and records the discarded answers", () => {
+    expect(amendment).toContain("The rules read the jury's answers alone.");
+    expect(amendment).toContain("59 answers entered while trying out the rating tool were discarded before any analysis.");
+  });
+
+  it("says how the judges ran, and the free-tier guard", () => {
+    expect(amendment).toContain("default reasoning and temperature 0");
+    expect(amendment).toContain("9,000 neurons");
+  });
+
+  it("states the owner's spot-check: its sample and seed, that it came first, and that it's reported only", () => {
+    expect(amendment).toContain("20 items");
+    expect(amendment).toContain(String(PILOT_SEED));
+    expect(amendment).toContain("before the jury ran");
+    expect(amendment).toContain("reported only");
+  });
+
+  it("says what the owner could look up while answering, and that the judges look up nothing", () => {
+    const flat = amendment.replace(/\s+/g, " "); // a phrase can wrap across a line
+    expect(flat).toContain("look up a place or an event");
+    expect(flat).toContain("from the item's text alone, with no search");
+  });
+});
+
 describe("the sampled findings it lists", () => {
   it("are exactly what sampleFindings(detect(loadData()), PILOT_SEED) returns today", () => {
     const chosen = sampleFindings(detect(loadData()), PILOT_SEED);

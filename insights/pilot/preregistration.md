@@ -187,3 +187,52 @@ against the Opus run rule 2 chose. When the proposer is Opus 5.5 and nothing's l
 the job goes to A4, the only challenger left. Measures pooled across runs, and the
 disagreements the owner rates, cover A1 to A4. Every measure that needs A5 is reported as
 not measured. The rest of the design stays as registered above.
+
+## Amendment, 26 September 2026: who rates
+
+The owner's blind rating is replaced by a jury of 3 models. None of them is made by
+Anthropic, which made every proposer and every adversary measured:
+
+| Judge | Provider | Model | Family |
+| --- | --- | --- | --- |
+| J1 | Groq | `openai/gpt-oss-120b` | OpenAI |
+| J2 | Groq | `qwen/qwen3.8-27b` (preview) | Alibaba |
+| J3 | Cloudflare | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Meta |
+
+If J2's model has been withdrawn, so its first call answers 404, J2 becomes
+`@cf/google/gemma-4-26b-a4b-it` on Cloudflare (Google) before any of its answers count, and
+the jury's file records the switch. That's the only substitution allowed.
+
+Each judge answers every item once, at its model's default reasoning and temperature 0, from
+the same blind text the owner would have seen, in English and French. A judge on Cloudflare
+stops for the day before the day's calls would pass 9,000 neurons, inside the free allowance.
+For each reason, a judge answers 3 checks with yes, no or unsure:
+
+1. Does the claim say more than the premise and its numbers show?
+2. Does the link explain the figure that stands out, rather than something else?
+3. Is there an obvious other explanation the reason ignores?
+
+A reason is sound when the answers are no, yes and no. For each counter-test on a
+disagreement, the judge also answers whether it breaks the reason: whether its result shows
+the reason can't be what's driving the figure, say when places that share the premise don't
+share the outcome.
+
+Each question goes to the majority of the judges' yes and no answers. An unsure or unusable
+answer abstains, and a tie, or fewer than 2 answers, leaves the question unsure. A reason
+with any check left unsure counts as a skip, and so does a counter-test with no majority.
+The drift check doesn't apply to a jury: its items are skipped, and no drift is reported.
+
+The rules read the jury's answers alone. Agreement between the judges is reported as a
+measure of how stable their answers are, and it's never read as whether they're right. The 6
+rules and the rest of the design stay as registered.
+
+The owner answered the same questions on 20 items, drawn from the reasons and disagreements
+with the seed 20260925, before the jury ran: the jury's command refuses to start until all
+20 have an answer. How often the owner and the jury agree on them is reported only, and the
+jury's answers feed the rules whatever it comes to. While answering, the owner may look up a
+place or an event on the web or in other sources; searching for the pilot itself, asking any
+AI model and seeing any of the jury's output stay off limits until all 20 are answered. The
+judges answer from the item's text alone, with no search, and the agreement is read with that
+difference in mind.
+
+59 answers entered while trying out the rating tool were discarded before any analysis.
