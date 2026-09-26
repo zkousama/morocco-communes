@@ -133,15 +133,43 @@ export function appendRegrade(file: GradedFile, entry: GradedFile["regrades"][nu
   return { grades: file.grades, regrades: [...file.regrades, entry] };
 }
 
-function round(value: number, decimals: number): number {
+/** Exported so the pilot's own `rate.ts` rounds a counter-test's numbers the same way, rather than keeping a second copy. */
+export function round(value: number, decimals: number): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
 }
 
-function formatNumbers(numbers: Record<string, number>): string {
+/** Exported for the same reason as `round`: `rate.ts` formats a counter-test's own numbers with it. */
+export function formatNumbers(numbers: Record<string, number>): string {
   const keys = Object.keys(numbers).sort();
   if (keys.length === 0) return "none";
   return keys.map((key) => `${key}=${round(numbers[key]!, 2)}`).join(", ");
+}
+
+/**
+ * The finding line, the claim, the premise with its numbers, and the link, each in English
+ * then French: the part of `formatItem` that has nothing to do with a link test's own
+ * verdict, pulled out and exported so the pilot's `rate.ts` can build the same block for a
+ * candidate that isn't a `Hypothesis` at all, rather than keeping a copy that could drift
+ * from this one.
+ */
+export function formatReasonBlock(
+  line: { en: string; fr: string },
+  claim: { en: string; fr: string },
+  premise: { en: string; fr: string },
+  numbers: Record<string, number>,
+  link: { en: string; fr: string },
+): string {
+  return [
+    line.en,
+    `  ${line.fr}`,
+    `claim: ${claim.en}`,
+    `  ${claim.fr}`,
+    `premise: ${premise.en} (${formatNumbers(numbers)})`,
+    `  ${premise.fr}`,
+    `link: ${link.en}`,
+    `  ${link.fr}`,
+  ].join("\n");
 }
 
 /**
@@ -167,18 +195,9 @@ function formatLinkTest(linkTest: NonNullable<Hypothesis["linkTest"]>): string {
  * surely as the verdict word would.
  */
 export function formatItem(item: { finding: Finding; line: { en: string; fr: string }; hypothesis: Hypothesis }): string {
-  const lines = [
-    item.line.en,
-    `  ${item.line.fr}`,
-    `claim: ${item.hypothesis.claim.en}`,
-    `  ${item.hypothesis.claim.fr}`,
-    `premise: ${item.hypothesis.premise.en} (${formatNumbers(item.hypothesis.evidence.numbers)})`,
-    `  ${item.hypothesis.premise.fr}`,
-    `link: ${item.hypothesis.link.en}`,
-    `  ${item.hypothesis.link.fr}`,
-  ];
-  if (item.hypothesis.linkTest && item.hypothesis.linkTest.verdict !== "refused") lines.push(`link test: ${formatLinkTest(item.hypothesis.linkTest)}`);
-  return lines.join("\n");
+  const base = formatReasonBlock(item.line, item.hypothesis.claim, item.hypothesis.premise, item.hypothesis.evidence.numbers, item.hypothesis.link);
+  if (item.hypothesis.linkTest && item.hypothesis.linkTest.verdict !== "refused") return `${base}\nlink test: ${formatLinkTest(item.hypothesis.linkTest)}`;
+  return base;
 }
 
 const RUN_PATH = ".cache/insights/runs/latest.json";

@@ -13,15 +13,19 @@ import { readFile } from "node:fs/promises";
 import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
-import { detect, type Finding } from "../detect.ts";
-import { loadData, type Data } from "../data.ts";
+import { detect } from "../detect.ts";
+import { loadData } from "../data.ts";
+import { field } from "../fields.ts";
 import { findingLine } from "../text.ts";
-import { hash, messageOf, readLocal, writeJsonAtomic } from "../model.ts";
+import { formatNumbers, formatReasonBlock } from "../grade.ts";
+import { hash, messageOf, readLocal, writeJsonAtomic, type Local } from "../model.ts";
+import { localWarning } from "../run.ts";
 import { refusal, termsPattern } from "../safety.ts";
-import { signature, type Check, type Outcome } from "../vocabulary.ts";
-import { sampleDisagreements, sampleRated } from "./sample.ts";
+import { rng } from "../stats.ts";
+import { signature, type Check, type Ref, type Subject } from "../vocabulary.ts";
+import { sampleDisagreements, sampleRated, shuffle } from "./sample.ts";
 import { DISAGREEMENT_CAP, DRIFT_ITEMS, PILOT_SEED, RATED_PER_PROPOSER } from "./setups.ts";
-import type { StageA, StageACandidate, StageB, StageBVerdict } from "./stages.ts";
+import type { StageA, StageB, StageBVerdict } from "./stages.ts";
 
 export type RatingItem =
   | { kind: "reason"; itemId: string; candidateId: string }
@@ -38,16 +42,6 @@ export const RATINGS_PATH = "insights/pilot/ratings.json";
 const STAGE_A_PATH = join(".cache", "insights", "pilot", "stage-a.json");
 const STAGE_B_PATH = join(".cache", "insights", "pilot", "stage-b.json");
 
-/** Fisher-Yates, in place, driven by an already-seeded generator: rate.ts's own copy, so it never reaches into sample.ts's unexported helper. */
-function shuffleInPlace<T>(values: T[], random: () => number): void {
-  for (let i = values.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    const vi = values[i]!;
-    values[i] = values[j]!;
-    values[j] = vi;
-  }
-}
-
 /** A short, stable id for a candidate playing a given role in the plan: never a text, and stable across a resumed run. */
 const itemIdFor = (kind: "reason" | "disagreement", candidateId: string): string => `${kind}:${candidateId}`;
 
@@ -57,17 +51,17 @@ function parseItemId(itemId: string): { kind: "reason" | "disagreement"; candida
   return { kind: itemId.slice(0, at) as "reason" | "disagreement", candidateId: itemId.slice(at + 1) };
 }
 
-/** Whether a run's verdict is what broke the candidate: a real counter-test that came out true, never a stop the adversary never got to argue. */
-function broke(v: StageBVerdict): boolean {
+/** Whether a run's verdict is what broke the candidate: a real counter-test that came out true, never a stop the adversary never got to argue. Exported so Task 16's analysis can attribute a rated answer back to the runs it judges. */
+export function broke(v: StageBVerdict): boolean {
   return v.survived === false && v.stage === "falsify" && v.unusable === null;
 }
 
-/** A stable id for one counter-test, scoped to the candidate it's about: never the run that offered it. */
-function counterIdOf(candidateId: string, check: Check): string {
+/** A stable id for one counter-test, scoped to the candidate it's about: never the run that offered it. Exported for the same reason as `broke`. */
+export function counterIdOf(candidateId: string, check: Check): string {
   return hash(`${candidateId}:${signature(check)}`).slice(0, 12);
 }
 
-/** Every distinct counter-test (by signature) that broke `candidateId`, across whichever runs offered it, in a fixed order. */
+/** Every distinct counter-test (by signature) that broke `candidateId`, across whichever runs offered it, sorted by the id itself rather than by which run happened to answer first. */
 function counterIdsFor(candidateId: string, b: StageB): string[] {
   const seen = new Set<string>();
   const ids: string[] = [];
@@ -78,18 +72,21 @@ function counterIdsFor(candidateId: string, b: StageB): string[] {
     seen.add(sig);
     ids.push(counterIdOf(candidateId, v.counter));
   }
-  return ids;
+  return ids.sort();
 }
 
 /**
  * `ratingPlan`'s 3 parts: the blind reasons (`sampleRated`), the disagreements
  * (`sampleDisagreements`), and 10 drift items repeating some of the first 2, each part
- * shuffled with `seed` on its own. `terms`, when given, drops a reason candidate (from any
- * of its 6 texts) the private terms would have caught: stage A never ran the terms check
- * itself, and a reason candidate isn't always in stage B's own pool, so stage B's
- * `termMatches` can't be relied on to cover it. A candidate dropped this way isn't replaced
- * by another; the caller may end up rating fewer than 60 reasons. Every candidate any run
- * stopped for safety is left out of both the reasons and the disagreements.
+ * shuffled with its own fresh `rng(seed)` stream. `terms`, when given, drops a reason
+ * candidate (from any of its 6 texts) the private terms would have caught: stage A never
+ * ran the terms check itself, and a reason candidate isn't always in stage B's own pool, so
+ * stage B's `termMatches` can't always cover it either way. A reason candidate that IS in
+ * the pool and already flagged there is dropped too, so a caller can't skip the terms check
+ * for a reason just because its own text alone doesn't trip `refusal`. A candidate dropped
+ * either way isn't replaced by another; the caller may end up rating fewer than 60 reasons.
+ * Every candidate any run stopped for safety is left out of both the reasons and the
+ * disagreements.
  */
 export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | null = null): RatingItem[] {
   const safetyIds = new Set(b.verdicts.filter((v) => v.stage === "safety").map((v) => v.candidateId));
@@ -98,7 +95,7 @@ export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | n
 
   const rated = sampleRated(a.candidates, a.findingIds, RATED_PER_PROPOSER, seed);
   const reasonIds = rated.filter((candidateId) => {
-    if (safetyIds.has(candidateId)) return false;
+    if (safetyIds.has(candidateId) || termMatchIds.has(candidateId)) return false;
     const c = candidateById.get(candidateId)!;
     const texts = [c.candidate.claim, c.candidate.link, c.candidate.premise].flatMap((t) => [t.en, t.fr]);
     return !texts.some((text) => refusal(text, terms) === "terms");
@@ -108,7 +105,7 @@ export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | n
     itemId: itemIdFor("reason", candidateId),
     candidateId,
   }));
-  shuffleInPlace(reasonItems, rngLocal(seed));
+  shuffle(reasonItems, rng(seed));
 
   const verdictsByCandidate = new Map<string, Map<string, boolean>>();
   for (const v of b.verdicts) {
@@ -124,10 +121,10 @@ export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | n
     candidateId,
     counterIds: counterIdsFor(candidateId, b),
   }));
-  shuffleInPlace(disagreementItems, rngLocal(seed));
+  shuffle(disagreementItems, rng(seed));
 
   const pool: RatingItem[] = [...reasonItems, ...disagreementItems];
-  shuffleInPlace(pool, rngLocal(seed));
+  shuffle(pool, rng(seed));
   const driftItems: (RatingItem & { kind: "drift" })[] = pool.slice(0, DRIFT_ITEMS).map((item) => ({
     kind: "drift",
     itemId: `drift:${item.itemId}`,
@@ -137,21 +134,8 @@ export function ratingPlan(a: StageA, b: StageB, seed: number, terms: RegExp | n
   return [...reasonItems, ...disagreementItems, ...driftItems];
 }
 
-// mulberry32, the same generator stats.ts's rng() is: rate.ts keeps its own copy so a fresh,
-// independent stream can be spun up for each of the plan's 3 parts from the same seed value.
-function rngLocal(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** The kind and candidate `item` is really about: itself, or, for a drift item, whatever it repeats. */
-function resolve(item: RatingItem, b: StageB): { kind: "reason" | "disagreement"; candidateId: string; counterIds: string[] } {
+/** The kind, candidate and (for a disagreement) counterIds `item` is really about: itself, or, for a drift item, whatever it repeats, recomputed rather than trusted from a stale copy. Exported so a test can check a drift item resolves exactly as the item it repeats did. */
+export function resolve(item: RatingItem, b: StageB): { kind: "reason" | "disagreement"; candidateId: string; counterIds: string[] } {
   if (item.kind === "reason") return { kind: "reason", candidateId: item.candidateId, counterIds: [] };
   if (item.kind === "disagreement") return { kind: "disagreement", candidateId: item.candidateId, counterIds: item.counterIds };
   const original = parseItemId(item.of);
@@ -160,71 +144,113 @@ function resolve(item: RatingItem, b: StageB): { kind: "reason" | "disagreement"
     : { kind: "reason", candidateId: original.candidateId, counterIds: [] };
 }
 
-let cachedData: Data | null = null;
-let cachedFindings: Map<string, Finding> | null = null;
-
-/**
- * The finding a candidate's own id names, and the dataset to read it against, loaded and
- * cached once: stage A never stores enough to render the finding line itself (only its
- * id), so this is read back off the real dataset, the same `detect(data)` stage A drew its
- * findings from. Null when the id isn't one `detect(data)` gives (every test fixture's own
- * finding ids, which are never real ones, so a test never touches this at all).
- */
-function findingFor(findingId: string): { finding: Finding; data: Data } | null {
-  if (!cachedData || !cachedFindings) {
-    cachedData = loadData();
-    cachedFindings = new Map(detect(cachedData).map((f) => [f.id, f]));
-  }
-  const finding = cachedFindings.get(findingId);
-  return finding ? { finding, data: cachedData } : null;
+/** `findingId`s from `a.findingIds` that aren't keys of `lines`: stage A's own findings the caller's line map can't render. Empty when every one resolves. */
+export function missingFindingIds(findingIds: string[], lines: Map<string, unknown>): string[] {
+  return findingIds.filter((id) => !lines.has(id));
 }
 
-/** "the finding line", bilingual: the real sentence when the id resolves against the dataset, a plain placeholder otherwise. */
-function findingLineText(findingId: string): { en: string; fr: string } {
-  const found = findingFor(findingId);
-  return found ? findingLine(found.finding, found.data) : { en: "this finding", fr: "ce constat" };
-}
-
-function round(value: number, decimals: number): number {
-  const factor = 10 ** decimals;
-  return Math.round(value * factor) / factor;
-}
-
-function formatNumbers(numbers: Record<string, number>): string {
-  const keys = Object.keys(numbers).sort();
-  if (keys.length === 0) return "none";
-  return keys.map((key) => `${key}=${round(numbers[key]!, 2)}`).join(", ");
-}
-
-/** The finding line, the claim, the premise with its numbers, and the link, each in English then French. Never the setup, the model, the effort, the stage or a verdict. */
-function candidateBlock(c: StageACandidate): string {
-  const line = findingLineText(c.findingId);
-  return [
-    line.en,
-    `  ${line.fr}`,
-    `claim: ${c.candidate.claim.en}`,
-    `  ${c.candidate.claim.fr}`,
-    `premise: ${c.candidate.premise.en} (${formatNumbers(c.outcome.numbers)})`,
-    `  ${c.candidate.premise.fr}`,
-    `link: ${c.candidate.link.en}`,
-    `  ${c.candidate.link.fr}`,
-  ].join("\n");
-}
-
-/** What the rater sees for `item`: a drift item shows exactly what the item it repeats showed, never which one that was. */
-export function screen(item: RatingItem, a: StageA, b: StageB): string {
+/** What the rater sees for `item`: the finding line, the claim, the premise with its numbers, and the link, each in English then French. Never the setup, the model, the effort, the stage or a verdict. A drift item shows exactly what the item it repeats showed. `lines` must hold every finding id in `a.findingIds` (`main` refuses to start otherwise; a test passes its own synthetic map). */
+export function screen(item: RatingItem, a: StageA, b: StageB, lines: Map<string, { en: string; fr: string }>): string {
   const { candidateId } = resolve(item, b);
   const c = a.candidates.find((x) => x.candidateId === candidateId);
   if (!c) throw new Error(`screen: no stage A candidate for "${candidateId}"`);
-  return candidateBlock(c);
+  const line = lines.get(c.findingId);
+  if (!line) throw new Error(`screen: no finding line for "${c.findingId}"`);
+  return formatReasonBlock(line, c.candidate.claim, c.candidate.premise, c.outcome.numbers, c.candidate.link);
 }
 
-/** One counter-test in plain words: its own fields and the numbers its outcome read, never which run offered it. */
-function counterText(candidateId: string, counterId: string, b: StageB): string {
+/** Resolves a `{unit:"code", code}` subject to a real name, or null when the code isn't one the dataset has (or when the caller has nothing to resolve with, as every test's synthetic checks never use this subject at all). */
+export type UnitNamer = (code: string) => string | null;
+
+const OP_WORDS: Record<"compare" | "change", Record<string, { en: string; fr: string }>> = {
+  compare: {
+    ">": { en: "more than", fr: "plus que" },
+    "<": { en: "less than", fr: "moins que" },
+    ">=": { en: "at least", fr: "au moins" },
+    "<=": { en: "at most", fr: "au plus" },
+  },
+  change: {
+    ">": { en: "more than", fr: "plus que" },
+    "<": { en: "less than", fr: "moins que" },
+  },
+};
+
+const WITHIN: Record<"province" | "region" | "country", { en: string; fr: string }> = {
+  province: { en: "its province", fr: "sa province" },
+  region: { en: "its région", fr: "sa région" },
+  country: { en: "the country", fr: "le pays" },
+};
+
+const POSITION: Record<"top" | "bottom", { en: string; fr: string }> = {
+  top: { en: "top", fr: "haut" },
+  bottom: { en: "bottom", fr: "bas" },
+};
+
+/** A field's own bilingual label, or its bare path when it isn't one the catalogue knows (only ever a test's own made-up field). */
+function fieldLabel(path: string): { en: string; fr: string } {
+  return field(path)?.label ?? { en: path, fr: path };
+}
+
+/** A check's subject, in plain words: "this place", "its province or région", "its neighbours' median", "the country", or a named unit. */
+function subjectPhrase(subject: Subject, unitName: UnitNamer): { en: string; fr: string } {
+  if (subject.unit === "self") return { en: "this place", fr: "ce lieu" };
+  if (subject.unit === "parent") return { en: "its province or région", fr: "sa province ou région" };
+  if (subject.unit === "country") return { en: "the country", fr: "le pays" };
+  if (subject.unit === "neighbours") return { en: "its neighbours' median", fr: "la médiane de ses voisins" };
+  const name = unitName(subject.code);
+  return name ? { en: name, fr: name } : { en: `the unit ${subject.code}`, fr: `l’unité ${subject.code}` };
+}
+
+/** One reference (a subject, a field and a year), in plain words. */
+function refPhrase(ref: Ref, unitName: UnitNamer): { en: string; fr: string } {
+  const subject = subjectPhrase(ref.of, unitName);
+  const label = fieldLabel(ref.field);
+  return { en: `${subject.en}'s ${label.en} in ${ref.year}`, fr: `${label.fr} de ${subject.fr} en ${ref.year}` };
+}
+
+function describeCompare(check: Extract<Check, { check: "compare" }>, unitName: UnitNamer): { en: string; fr: string } {
+  const left = refPhrase(check.left, unitName);
+  const op = OP_WORDS.compare[check.op]!;
+  const right = "value" in check.right ? { en: String(check.right.value), fr: String(check.right.value) } : refPhrase(check.right, unitName);
+  return { en: `${left.en} is ${op.en} ${right.en}`, fr: `${left.fr} est ${op.fr} ${right.fr}` };
+}
+
+function describeChange(check: Extract<Check, { check: "change" }>, unitName: UnitNamer): { en: string; fr: string } {
+  const subject = subjectPhrase(check.of, unitName);
+  const label = fieldLabel(check.field);
+  const op = OP_WORDS.change[check.op]!;
+  return {
+    en: `the change in ${subject.en}'s ${label.en} from 2014 to 2024 is ${op.en} ${check.value}`,
+    fr: `le changement de ${label.fr} de ${subject.fr} entre 2014 et 2024 est ${op.fr} ${check.value}`,
+  };
+}
+
+function describeRank(check: Extract<Check, { check: "rank" }>, unitName: UnitNamer): { en: string; fr: string } {
+  const subject = subjectPhrase(check.of, unitName);
+  const label = fieldLabel(check.field);
+  const within = WITHIN[check.within];
+  const position = POSITION[check.position];
+  const sharePct = Math.round(check.share * 100);
+  return {
+    en: `${subject.en}'s ${label.en} in ${check.year} is in the ${position.en} ${sharePct}% of ${within.en}`,
+    fr: `${label.fr} de ${subject.fr} en ${check.year} est dans les ${sharePct}% du ${position.fr} de ${within.fr}`,
+  };
+}
+
+/** A check, in plain words: the subject, the field's own label, the year and the comparison. Never which run offered it, and never the adversary's own reason for offering it. */
+export function describeCheck(check: Check, unitName: UnitNamer): { en: string; fr: string } {
+  if (check.check === "compare") return describeCompare(check, unitName);
+  if (check.check === "change") return describeChange(check, unitName);
+  return describeRank(check, unitName);
+}
+
+/** One counter-test in plain words: the check it is (subject, field label, year, comparison) and the numbers its outcome computed, in English then French. Never which run offered it, and never the adversary's own reason. */
+export function counterText(candidateId: string, counterId: string, b: StageB, unitName: UnitNamer): string {
   const match = b.verdicts.find((v) => v.candidateId === candidateId && v.counter && counterIdOf(candidateId, v.counter) === counterId);
-  if (!match?.counter) return "counter-test: (not available)";
-  const outcome: Outcome | null = match.counterOutcome;
-  return `counter-test: ${JSON.stringify(match.counter)} (${outcome ? formatNumbers(outcome.numbers) : "none"})`;
+  if (!match?.counter) return ["counter-test: (not available)", "  (non disponible)"].join("\n");
+  const described = describeCheck(match.counter, unitName);
+  const numbers = match.counterOutcome ? formatNumbers(match.counterOutcome.numbers) : "none";
+  return [`counter-test: ${described.en} (${numbers})`, `  ${described.fr} (${numbers})`].join("\n");
 }
 
 const isMissing = (error: unknown): boolean => (error as NodeJS.ErrnoException)?.code === "ENOENT";
@@ -263,26 +289,50 @@ async function loadRatings(path: string): Promise<Ratings> {
   }
 }
 
+/**
+ * Why a *new* plan can't be built, from `localWarning` (`insights/src/run.ts`): no
+ * `INSIGHTS_LOCAL` at all, or one with no terms in it. Null when there's nothing to refuse.
+ * `ratingsIsEmpty` is `ratings.items.length === 0`; an existing saved plan (`false`) is
+ * never blocked, since the terms check that mattered already ran when that plan was built.
+ */
+export function refuseNewPlanReason(ratingsIsEmpty: boolean, local: Local | null): string | null {
+  if (!ratingsIsEmpty) return null;
+  return localWarning(local);
+}
+
 /** The one method the rating loop needs from a readline interface: narrowed so a test can hand it a plain stub instead of a real terminal. */
 export interface Prompter {
   question(prompt: string): Promise<string>;
 }
 
-async function askAnswer(rl: Prompter, question: string): Promise<"yes" | "no" | "skip" | "quit"> {
+/** Where `runRating` and the functions it calls print: a test hands in one that records lines instead of writing to the terminal. */
+export interface RatingIO {
+  log: (line: string) => void;
+}
+
+async function askAnswer(rl: Prompter, io: RatingIO, question: string): Promise<"yes" | "no" | "skip" | "quit"> {
   for (;;) {
     const raw = (await rl.question(question)).trim().toLowerCase();
     if (raw === "y") return "yes";
     if (raw === "n") return "no";
     if (raw === "s") return "skip";
     if (raw === "q") return "quit";
-    console.log("type y, n, s or q");
+    io.log("type y, n, s or q");
   }
 }
 
-/** Walks `item`'s whole question flow (the reason, then, for a disagreement, each counter-test), or "quit" the moment the owner does. */
-export async function answerItem(item: RatingItem, a: StageA, b: StageB, rl: Prompter): Promise<Ratings["answers"][number] | "quit"> {
-  console.log(screen(item, a, b));
-  const main = await askAnswer(rl, "is this reason sound? (y/n/s/q) ");
+/** Walks `item`'s whole question flow (the reason, then, for a disagreement, each counter-test), or "quit" the moment the owner does; quitting mid-item discards that item's own progress, not anything already recorded before it. */
+export async function answerItem(
+  item: RatingItem,
+  a: StageA,
+  b: StageB,
+  lines: Map<string, { en: string; fr: string }>,
+  unitName: UnitNamer,
+  rl: Prompter,
+  io: RatingIO,
+): Promise<Ratings["answers"][number] | "quit"> {
+  io.log(screen(item, a, b, lines));
+  const main = await askAnswer(rl, io, "is this reason sound? (y/n/s/q) ");
   if (main === "quit") return "quit";
 
   const resolved = resolve(item, b);
@@ -292,8 +342,8 @@ export async function answerItem(item: RatingItem, a: StageA, b: StageB, rl: Pro
 
   const counters: Record<string, "yes" | "no" | "skip"> = {};
   for (const counterId of resolved.counterIds) {
-    console.log(counterText(resolved.candidateId, counterId, b));
-    const answer = await askAnswer(rl, "does this break it? (y/n/s/q) ");
+    io.log(counterText(resolved.candidateId, counterId, b, unitName));
+    const answer = await askAnswer(rl, io, "does this break it? (y/n/s/q) ");
     if (answer === "quit") return "quit";
     counters[counterId] = answer;
   }
@@ -306,30 +356,43 @@ export function remainingItems(ratings: Ratings): RatingItem[] {
   return ratings.items.filter((item) => !answered.has(item.itemId));
 }
 
-async function runRating(a: StageA, b: StageB, ratingsPath: string, start: Ratings): Promise<void> {
+/**
+ * Asks every remaining item in turn (`remainingItems`), saving `start` plus every answer so
+ * far to `ratingsPath` with `writeJsonAtomic` right after each one, so a crash or a `q` never
+ * loses an answer already given. Returns the final `Ratings`, the same one now on disk.
+ * Takes the prompter, the stage data and line map, and where to print, all as parameters, so
+ * it never touches a real terminal, `process.stdin` or the real `insights/pilot/ratings.json`
+ * in a test.
+ */
+export async function runRating(
+  a: StageA,
+  b: StageB,
+  lines: Map<string, { en: string; fr: string }>,
+  unitName: UnitNamer,
+  start: Ratings,
+  ratingsPath: string,
+  rl: Prompter,
+  io: RatingIO,
+): Promise<Ratings> {
   const remaining = remainingItems(start);
   if (remaining.length === 0) {
-    console.log("nothing left to rate");
-    return;
+    io.log("nothing left to rate");
+    return start;
   }
 
   let ratings = start;
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    for (const [i, item] of remaining.entries()) {
-      console.log(`\n[${i + 1}/${remaining.length}]`);
-      const result = await answerItem(item, a, b, rl);
-      if (result === "quit") {
-        console.log("saved, quitting");
-        return;
-      }
-      ratings = { ...ratings, answers: [...ratings.answers, result] };
-      await writeJsonAtomic(ratingsPath, ratings);
+  for (const [i, item] of remaining.entries()) {
+    io.log(`\n[${i + 1}/${remaining.length}]`);
+    const result = await answerItem(item, a, b, lines, unitName, rl, io);
+    if (result === "quit") {
+      io.log("saved, quitting");
+      return ratings;
     }
-    console.log("done");
-  } finally {
-    rl.close();
+    ratings = { ...ratings, answers: [...ratings.answers, result] };
+    await writeJsonAtomic(ratingsPath, ratings);
   }
+  io.log("done");
+  return ratings;
 }
 
 async function main(): Promise<void> {
@@ -340,15 +403,43 @@ async function main(): Promise<void> {
     return;
   }
 
-  let ratings = await loadRatings(RATINGS_PATH);
-  if (ratings.items.length === 0) {
-    const local = readLocal(process.env);
-    const terms = termsPattern(local?.terms ?? []);
-    ratings = { items: ratingPlan(stages.a, stages.b, PILOT_SEED, terms), answers: [] };
-    await writeJsonAtomic(RATINGS_PATH, ratings);
+  const data = loadData();
+  const findingById = new Map(detect(data).map((f) => [f.id, f]));
+  const lines = new Map<string, { en: string; fr: string }>();
+  for (const id of stages.a.findingIds) {
+    const finding = findingById.get(id);
+    if (finding) lines.set(id, findingLine(finding, data));
+  }
+  const missing = missingFindingIds(stages.a.findingIds, lines);
+  if (missing.length > 0) {
+    console.log(`${missing.length} of stage A's finding id${missing.length === 1 ? "" : "s"} ${missing.length === 1 ? "doesn't" : "don't"} match the dataset detect(data) gives now; rerun the pilot's stage A, or check the dataset version`);
+    process.exitCode = 1;
+    return;
+  }
+  const unitName: UnitNamer = (code) => data.units.get(code)?.name.fr ?? null;
+
+  const ratings = await loadRatings(RATINGS_PATH);
+  const local = readLocal(process.env);
+  const newPlanRefusal = refuseNewPlanReason(ratings.items.length === 0, local);
+  if (newPlanRefusal) {
+    console.log(newPlanRefusal);
+    process.exitCode = 1;
+    return;
   }
 
-  await runRating(stages.a, stages.b, RATINGS_PATH, ratings);
+  let toRate = ratings;
+  if (toRate.items.length === 0) {
+    const terms = termsPattern(local?.terms ?? []);
+    toRate = { items: ratingPlan(stages.a, stages.b, PILOT_SEED, terms), answers: [] };
+    await writeJsonAtomic(RATINGS_PATH, toRate);
+  }
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    await runRating(stages.a, stages.b, lines, unitName, toRate, RATINGS_PATH, rl, { log: (line) => console.log(line) });
+  } finally {
+    rl.close();
+  }
 }
 
 // Runs the CLI when this file is the entry point, not when a test imports it.

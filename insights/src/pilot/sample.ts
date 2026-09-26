@@ -12,8 +12,8 @@ import type { Check } from "../vocabulary.ts";
 import { signature } from "../vocabulary.ts";
 import { FINDINGS_BY_KIND } from "./setups.ts";
 
-/** Fisher-Yates, in place, over whatever array is handed in; callers pass a copy. */
-function shuffle<T>(values: T[], random: () => number): void {
+/** Fisher-Yates, in place, over whatever array is handed in; callers pass a copy. Exported so `rate.ts` shuffles its own plan the same way rather than keeping a second copy. */
+export function shuffle<T>(values: T[], random: () => number): void {
   for (let i = values.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     const vi = values[i]!;
