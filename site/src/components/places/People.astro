@@ -299,19 +299,21 @@ const empty = views.length === 0;
     // One section to a page: the buttons show the census they name and hide the other.
     const section = document.querySelector<HTMLElement>(".people[data-census]");
     const years = section?.querySelector<HTMLElement>(".years");
-    if (years) years.hidden = false;
-    years?.addEventListener("click", (event) => {
-      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-year]");
-      if (!button) return;
-      const year = button.dataset.year!;
-      section.dataset.census = year;
-      for (const other of section.querySelectorAll<HTMLButtonElement>(".years button")) {
-        other.setAttribute("aria-pressed", String(other === button));
-      }
-      for (const block of section.querySelectorAll<HTMLElement>(".census")) {
-        block.hidden = block.dataset.year !== year;
-      }
-    });
+    if (section && years) {
+      years.hidden = false;
+      years.addEventListener("click", (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-year]");
+        if (!button) return;
+        const year = button.dataset.year!;
+        section.dataset.census = year;
+        for (const other of section.querySelectorAll<HTMLButtonElement>(".years button")) {
+          other.setAttribute("aria-pressed", String(other === button));
+        }
+        for (const block of section.querySelectorAll<HTMLElement>(".census")) {
+          block.hidden = block.dataset.year !== year;
+        }
+      });
+    }
   </script>
 )}
 

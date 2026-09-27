@@ -13,7 +13,7 @@ export interface PlaceFacts {
   code: string;
   /** The unit it sits in, or Morocco for a région. */
   parent?: { name: string; href: string };
-  osm?: { relationId?: number; wikidata?: string } | null;
+  osm?: { relationId?: number; wikidata?: string | null } | null;
   centroid?: { lat: number; lng: number } | null;
 }
 

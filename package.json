@@ -16,7 +16,7 @@
     "rollup:deploy": "wrangler deploy --config workers/rollup/wrangler.toml",
     "deploy:live": "wrangler d1 migrations apply communes_demand --remote && ATTENTION=remote SITE_URL=https://communes.pages.dev pnpm build && pnpm run deploy && pnpm rollup:deploy",
     "api:smoke": "node --experimental-strip-types api/smoke.ts",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p site/tsconfig.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p site/tsconfig.json && astro check --root site",
     "check": "pnpm typecheck && pnpm test",
     "site:dev": "astro dev --root site",
     "site:build": "pnpm site:data && astro build --root site",
