@@ -377,6 +377,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
     {
       title: "List communes",
       description:
+        "Which commune has the most or the least of something is one call here: sort by that figure, and every commune in the filter comes " +
+        "back in order with its value, with no need to look them up one by one. " +
         "Communes filtered by région, province or préfecture, cercle, type or population, 50 to a page, " +
         "in code order or sorted by name, population, change since 2014, density, area, any census indicator or any establishment count. " +
         "Filters combine; each unit can be given by code or slug. With no filter it lists every commune, " +
@@ -530,7 +532,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "education, work, employment status and how people get to work, and for households their size, dwelling, occupancy, amenities, wastewater, waste and cooking fuel.\n\n" +
         "Reading them: shares and rates are percentages from 0 to 100. Null means HCP publishes no figure there. Most come from the long " +
         "questionnaire, which went to a random 20% of households in communes of 2,000 households or more, so there they're estimates.\n\n" +
-        "Ranking and comparing: to order communes by one figure, call list_communes with sort set to its path. To compare the régions, the " +
+        "Ranking and comparing: to order communes by one figure, call list_communes with sort set to its path, rather than this once per " +
+        "commune. To compare the régions, the " +
         "provinces or the arrondissements, give level without a unit and get them all in one call.\n\n" +
         "The 2014 census is here too, under census. Age, education, local languages, illiteracy, fertility, disability, work, the ways of " +
         "getting to work, dwellings, amenities, wastewater and waste ask what 2024 asks and can be read against it. Where people work and how " +
@@ -753,7 +756,9 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "are, what their walls and roofs are made of, how many are on the public electricity, water and sewerage networks, and HCP's housing " +
         "shortfall. Every figure but the count is a percentage of that unit's urban dwellings. " +
         "This counts dwellings, not households: a vacant flat is here and in nobody's census record, and get_indicators describes the dwelling " +
-        "each household lives in, for the whole country rather than the towns. A unit with no urban area has nothing here.",
+        "each household lives in, for the whole country rather than the towns. A unit with no urban area has nothing here. " +
+        "For the households with running water or electricity in any commune, rural ones included, use get_indicators' amenities topic, " +
+        "and its wastewater topic for a public sewer; list_communes can sort by either, as in amenities.runningWater.",
       inputSchema: {
         unit: z
           .string()

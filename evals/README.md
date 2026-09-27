@@ -91,6 +91,12 @@ before the change.
   préfectures d'arrondissements HCP publishes. Asked how many establishments Casablanca
   has, a model now makes 2 calls and reports 150,953 with where it came from; asked which
   commune holds the most jobs, 1.
+- **A ranking read one commune at a time (26 to 52).** Asked which commune in Tiznit
+  province has the lowest share of households with running water, Haiku took 26 calls or
+  more in 10 of 20 tries: it listed the province's communes unsorted and read each one's
+  figures, and 2 of those tries read towns' dwellings from `get_housing` rather than
+  households. `list_communes` now opens by saying that a most-or-least question is one
+  sorted call, and both figure tools point to it. All 20 tries then took 1 or 2 calls.
 
 After those changes, on all 49 questions:
 
