@@ -1,5 +1,5 @@
 /**
- * Turns a graded set into the numbers the gate is judged by: the owner's blind yes/no
+ * Turns a graded set into the numbers the gate is judged by: the blind yes/no
  * answers become published precision with a Wilson interval, a re-grade's agreement with
  * the first pass becomes a kappa, and every published hypothesis graded yes has its
  * premise's data test corrupted by `mutate.mutations` and re-run with `evaluate`, to see
@@ -84,7 +84,7 @@ export function computeMetrics(graded: Graded[], regrades: GradedFile["regrades"
 const plantSeed = (id: string): number => parseInt(hash(id).slice(0, 8), 16);
 
 /**
- * Every published hypothesis the owner graded yes, its premise's data test corrupted every
+ * Every published hypothesis graded yes, its premise's data test corrupted every
  * way `mutations` finds for it and re-run with `evaluate` against its own finding: a mutant
  * is `caught` when the corrupted test stops passing (a refusal counts too).
  */

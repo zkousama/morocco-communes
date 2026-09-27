@@ -70,7 +70,7 @@ project's host with `/api/public/otel` added, and `OTEL_EXPORTER_OTLP_HEADERS` t
   findings out. A run also stops early when 3 proposer or adversary calls fail in a row, as
   they do once a subscription's limit is reached. Its file is still written, with `partial`
   true and `stopped` saying why.
-- **`insights/graded.json`**: the owner's blind grades, appended to as `pnpm insights:grade`
+- **`insights/graded.json`**: the blind grades, appended to as `pnpm insights:grade`
   runs and never overwritten. Each grade keeps the `runId` it was drawn from, and grading,
   scoring and publishing only read the latest run's, so a new run needs its own graded set,
   whatever changed to make it. Deleting the file starts grading over.

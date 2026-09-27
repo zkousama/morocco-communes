@@ -1,5 +1,5 @@
 /**
- * The owner grades a blind sample of hypotheses in the terminal: one per finding, published
+ * A blind sample of hypotheses is graded in the terminal: one per finding, published
  * and rejected mixed, with the gate, the stage and the reason left out so the read can't
  * lean on them. `sample` and `regradeSample` are the pure draw a re-run repeats for the same
  * seed; `pnpm insights:grade` and `pnpm insights:regrade` are the interactive loops that show
@@ -187,7 +187,7 @@ function formatLinkTest(linkTest: NonNullable<Hypothesis["linkTest"]>): string {
 }
 
 /**
- * What the owner sees for one item: the finding line, the claim, the premise with its
+ * What the grader sees for one item: the finding line, the claim, the premise with its
  * numbers, the link, and the link test's result when there is one - each in English, with
  * its French on the next line indented 2 spaces. Never the gate, the stage or the reason -
  * grading is blind to all 3. A refused link test gets no line at all, the same as no test:
