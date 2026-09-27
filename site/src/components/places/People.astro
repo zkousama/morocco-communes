@@ -11,6 +11,7 @@ import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
 import { figure, national, type Census, type IndicatorRecord, type Topics } from "../../lib/indicators";
+import { mismatches } from "../../../../api/src/lib/mismatch.ts";
 
 interface Props {
   locale: Locale;
@@ -149,18 +150,30 @@ const holds = (v: ReturnType<typeof view>) =>
 const views = [view(record, before, "2024"), ...(before ? [view(before, record, "2014")] : [])].filter(holds);
 const both = views.length > 1;
 
+// A local language whose share the two censuses can't both have right, said under the
+// languages in either census.
+const flagged = both ? mismatches(record.people.total?.all, before?.people.total?.all) : [];
+const mismatch =
+  flagged.length === 0
+    ? null
+    : fill(p.mismatch, {
+        figures: flagged
+          .map((m) => fill(p.mismatchFigure, { language: names[m.path.split(".")[1]!] ?? m.path, then: share(m.then), now: share(m.now) }))
+          .join(p.mismatchJoin),
+      });
+
 /**
  * A census's topics, in the order HCP asks them, with the empty ones dropped. 2024 has 3
  * and 2014 has 6, so the layout places them by count rather than by name.
  */
 const topicsOf = (v: ReturnType<typeof view>) =>
   [
-    { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used },
-    { heading: p.languagesRead, body: v.readBody, rows: v.read },
-    { heading: p.commute, body: p.commuteBody, rows: v.commute },
-    { heading: p.workplace, body: p.workplaceBody, rows: v.workplace },
-    { heading: p.profession, body: p.professionBody, rows: v.profession },
-    { heading: p.diploma, body: p.diplomaBody, rows: v.diploma },
+    { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used, flag: mismatch },
+    { heading: p.languagesRead, body: v.readBody, rows: v.read, flag: null },
+    { heading: p.commute, body: p.commuteBody, rows: v.commute, flag: null },
+    { heading: p.workplace, body: p.workplaceBody, rows: v.workplace, flag: null },
+    { heading: p.profession, body: p.professionBody, rows: v.profession, flag: null },
+    { heading: p.diploma, body: p.diplomaBody, rows: v.diploma, flag: null },
   ].filter((block) => block.rows.length > 0);
 
 // One scale for the pyramid, so a band's bar means the same width in either census.
@@ -266,6 +279,11 @@ const empty = views.length === 0;
                     </li>
                   ))}
                 </ul>
+                {block.flag && (
+                  <p class="mismatch">
+                    {block.flag} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -284,6 +302,11 @@ const empty = views.length === 0;
                     </li>
                   ))}
                 </ul>
+                {block.flag && (
+                  <p class="mismatch">
+                    {block.flag} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
+                  </p>
+                )}
               </div>
               ))}
             </div>
@@ -318,6 +341,15 @@ const empty = views.length === 0;
 )}
 
 <style>
+  .mismatch {
+    margin: 0.75rem 0 0;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 2px solid var(--brass);
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    max-width: 42ch;
+  }
+
   h3 {
     font-size: var(--t-sm);
     font-weight: 500;

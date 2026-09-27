@@ -113,6 +113,10 @@ export const places = {
     moroccoFigure: "{v} across Morocco",
     languagesUsed: "Local languages used",
     languagesUsedBody: "Many people use more than one, so these add up to more than 100%.",
+    mismatch: "The two censuses don’t line up here: {figures}. Both are HCP’s figures. The population didn’t change enough to explain it, so the answer was most likely recorded differently.",
+    mismatchFigure: "{language} {then} in 2014, {now} in 2024",
+    mismatchJoin: "; ",
+    mismatchMore: "How these are spotted",
     languagesRead: "Languages read and written",
     languagesReadBody: "By those aged 10 and over who can read.",
     languageNames: {
@@ -340,6 +344,10 @@ export const places = {
     moroccoFigure: "{v} dans tout le Maroc",
     languagesUsed: "Langues locales utilisées",
     languagesUsedBody: "Beaucoup en utilisent plusieurs, d’où un total au-delà de 100 %.",
+    mismatch: "Les deux recensements ne concordent pas ici : {figures}. Les deux chiffres sont ceux du HCP. La population n’a pas assez changé pour l’expliquer : la réponse a sans doute été enregistrée autrement.",
+    mismatchFigure: "{language} {then} en 2014, {now} en 2024",
+    mismatchJoin: " ; ",
+    mismatchMore: "Comment on les repère",
     languagesRead: "Langues lues et écrites",
     languagesReadBody: "Par les alphabètes de 10 ans et plus.",
     languageNames: {

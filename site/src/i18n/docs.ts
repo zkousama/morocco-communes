@@ -260,6 +260,15 @@ export const docs = {
         "Casablanca and the 5 other cities with arrondissements have no 2014 figures of their own: the census published those cities by arrondissement, and each arrondissement is here. The 13 cercles redrawn since and 1 urban centre have none either, and `2014/unplaced.json` names them.",
         "These are the fields that ask something 2024 doesn’t:",
       ],
+      mismatches: "Where the two censuses don’t line up",
+      mismatchesBody: [
+        "Some places have 2014 and 2024 figures that can’t both describe the same people. Only the local languages people use are checked: their shares barely move, and 9 in 10 moved less than 8 points between the censuses.",
+        "A share is flagged when it moved more than 30 points, and by more than the population itself changed, so people moving in or out can’t account for it. Both figures are HCP’s own, as published. The flag says the censuses disagree, not which one is right.",
+        "The flag shows under the languages on each place’s page. These are all of them:",
+      ],
+      mismatchPlace: "Place",
+      mismatchLanguage: "Language",
+      mismatchPeople: "Population",
       get: "Getting them",
       getBody: [
         "`/api/communes/tanger/indicators` gives one unit’s, for any level, and `/api/indicators.json` Morocco’s. Both carry 2014 under `2014`.",
@@ -612,6 +621,15 @@ export const docs = {
         "Casablanca et les 5 autres villes à arrondissements n’ont pas de chiffres 2014 à elles : le recensement les publiait par arrondissement, et chaque arrondissement est ici. Les 13 cercles redécoupés depuis et 1 centre urbain n’en ont pas non plus, et `2014/unplaced.json` les nomme.",
         "Voici les champs qui mesurent ce que 2024 ne mesure pas :",
       ],
+      mismatches: "Là où les deux recensements ne concordent pas",
+      mismatchesBody: [
+        "Certains lieux ont des chiffres de 2014 et de 2024 qui ne peuvent pas décrire les mêmes personnes. Seules les langues locales utilisées sont vérifiées : leurs parts bougent peu, et 9 sur 10 ont bougé de moins de 8 points entre les deux recensements.",
+        "Une part est signalée quand elle a bougé de plus de 30 points, et de plus que la population elle-même, si bien que les arrivées et les départs ne peuvent pas l’expliquer. Les deux chiffres sont ceux du HCP, tels que publiés. Le signalement dit que les recensements divergent, pas lequel a raison.",
+        "Le signalement apparaît sous les langues, sur la page de chaque lieu. Les voici tous :",
+      ],
+      mismatchPlace: "Lieu",
+      mismatchLanguage: "Langue",
+      mismatchPeople: "Population",
       get: "Les obtenir",
       getBody: [
         "`/api/communes/tanger/indicators` donne ceux d’une unité, à tous les niveaux, et `/api/indicators.json` ceux du Maroc. Les deux portent 2014 sous `2014`.",
