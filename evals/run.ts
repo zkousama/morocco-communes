@@ -24,6 +24,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CASES, type Case, type Expect } from "./cases.ts";
+import { setAside, type Call } from "./calls.ts";
 
 const args = process.argv.slice(2);
 const option = (name: string) => {
@@ -40,14 +41,6 @@ const TIMEOUT_MS = 240_000;
 
 const SYSTEM =
   "You are a helpful assistant. Answer the user's question. Use the tools you have when they help, and say so plainly when they can't answer it.";
-
-interface Call {
-  tool: string;
-  input: unknown;
-  error: boolean;
-  /** What a failed call said, to read why. */
-  message?: string;
-}
 
 /** What a run consumed, as the CLI's result event reports it. */
 interface Usage {
@@ -79,6 +72,10 @@ interface Run {
   /** The CLI's version, and the tools it says the model could see. */
   cli: string;
   tools: string[];
+  /** The server's state when the CLI started, as its init event gives it: "connected" or not yet. */
+  server: string;
+  /** First calls the CLI refused before the server's tools were there, left out of calls. */
+  refused: Call[];
   failed?: string;
 }
 
@@ -131,6 +128,7 @@ async function ask(question: string, config: string, cwd: string): Promise<Run> 
   let stopReason = "";
   let cli = "";
   let tools: string[] = [];
+  let server = "";
   for (const line of out.split("\n")) {
     if (!line.trim()) continue;
     let event: {
@@ -146,6 +144,7 @@ async function ask(question: string, config: string, cwd: string): Promise<Run> 
       model?: string;
       claude_code_version?: string;
       tools?: string[];
+      mcp_servers?: { name?: string; status?: string }[];
       usage?: {
         input_tokens?: number;
         output_tokens?: number;
@@ -178,6 +177,7 @@ async function ask(question: string, config: string, cwd: string): Promise<Run> 
     if (event.type === "system" && event.subtype === "init") {
       cli = event.claude_code_version ?? "";
       tools = (event.tools ?? []).map((t) => t.replace("mcp__morocco-communes__", ""));
+      server = event.mcp_servers?.find((m) => m.name === "morocco-communes")?.status ?? "";
       model = event.model ?? model;
     }
     if (event.type === "result") {
@@ -212,6 +212,8 @@ async function ask(question: string, config: string, cwd: string): Promise<Run> 
     stopReason,
     cli,
     tools,
+    server,
+    refused: [],
     ...(code !== 0 || !answer ? { failed: `exit ${code}: ${err.trim().split("\n").slice(-2).join(" ")}` } : {}),
   };
 }
@@ -325,6 +327,7 @@ const selected = resolved.filter(
   ({ c, expect }) => (!ONLY || ONLY.includes(c.id)) && (!TOOL || (expect.tools ?? []).includes(TOOL)),
 );
 const tooling = await toolList();
+const served = new Set(Object.keys(tooling.descriptions));
 const startedAt = new Date();
 console.log(
   `${selected.length} cases on ${MODEL}, against ${API}: dataset ${datasetVersion}, ` +
@@ -350,14 +353,16 @@ const results = await pool(selected, CONCURRENCY, async ({ c, expect }) => {
   // model's own memory: the server never reached it. That measures nothing, so it is
   // asked once more, and a second empty run is reported as the failure it is.
   const empty = first.calls.length === 0 && !first.failed;
-  const run = empty ? retried(first, await ask(c.question, config, cwd)) : first;
+  const asked = empty ? retried(first, await ask(c.question, config, cwd)) : first;
+  const run = { ...asked, ...setAside(asked.calls, served) };
   cli ||= run.cli;
   const g = grade(run, expect);
   const mark = g.pass ? (g.slow ? "slow" : "pass") : "FAIL";
   console.log(
     `${mark.padEnd(5)} ${c.id.padEnd(26)} ${String(run.calls.length).padStart(2)} calls ${(run.ms / 1000).toFixed(0).padStart(4)} s ` +
       `${k(inputOf(run.usage)).padStart(7)} in ${k(run.usage.output).padStart(6)} out ${usd(run.costUsd).padStart(7)}  ` +
-      `${run.calls.map((x) => x.tool + (x.error ? "!" : "")).join(" → ")}${empty ? "  (asked twice: the first run reached no tools)" : ""}`,
+      `${run.calls.map((x) => x.tool + (x.error ? "!" : "")).join(" → ")}${empty ? "  (asked twice: the first run reached no tools)" : ""}` +
+      `${run.refused.length > 0 ? `  (${run.refused.length} refused before the tools were there, server ${run.server || "unknown"} at start)` : ""}`,
   );
   if (!g.pass) console.log(`      missing ${g.missing.join("; ")}`);
   for (const call of run.calls.filter((x) => x.error)) console.log(`      ${call.tool} failed: ${call.message}`);
@@ -388,6 +393,7 @@ const totalsOf = (rows: Result[]) => ({
   calls: sum(rows, (r) => r.calls.length),
   turns: sum(rows, (r) => r.turns),
   toolErrors: sum(rows, (r) => r.calls.filter((c) => c.error).length),
+  refused: sum(rows, (r) => r.refused.length),
   slow: rows.filter((r) => r.slow).length,
   usage: rows.reduce((u, r) => addUsage(u, r.usage), NO_USAGE),
   costUsd: sum(rows, (r) => r.costUsd),

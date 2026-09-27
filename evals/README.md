@@ -29,8 +29,11 @@ data is rebuilt. A figure matches however it's written: `6,124`, `6 124`, `٦١�
 rounded to the precision the data gives it.
 
 A case passes when the answer holds every expected name and figure and the expected tools
-were called, and counts as slow when it took more calls than its budget. Results go to
-`evals/results/`, which isn't committed, with every call, its input and any error.
+were called, and counts as slow when it took more calls than its budget. A first call the
+CLI refuses with "No such tool available", naming a tool the server serves, came before the
+server's tools were there, so it's listed apart and not counted; the server's state at the
+start is recorded beside it. Results go to `evals/results/`, which isn't committed, with
+every call, its input and any error.
 
 Each case also records what it cost, read off the CLI's own result event: input tokens
 split into fresh, written to the cache and read back from it, output tokens and the part

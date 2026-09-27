@@ -8,6 +8,7 @@ export default defineConfig({
       "site/tests/**/*.test.ts",
       "packages/*/tests/**/*.test.ts",
       "insights/tests/**/*.test.ts",
+      "evals/tests/**/*.test.ts",
     ],
     // Many of these read the whole dataset or emit the whole API tree, some 10,000 files,
     // and a shared CI runner is several times slower than a laptop. The defaults suit
