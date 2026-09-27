@@ -282,7 +282,7 @@ const communesRoute = path(locale, "communes/");
       pending ||= requestAnimationFrame(draw);
     };
 
-    // A button, key or double-click eases to its view in 240ms. Pinches, drags and the wheel
+    // A button, key or double tap eases to its view in 240ms. Pinches, drags and the wheel
     // move the map at once.
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
     let aim: View | null = null;
@@ -457,14 +457,11 @@ const communesRoute = path(locale, "communes/");
     svg.addEventListener("pointerleave", (event) => {
       if (event.pointerType === "mouse") hide();
     });
-    // A mouse click opens the commune. A tap shows it first, with a link, since there's no
-    // hover to read it by. The page opens a moment after the click, in case it's the first
-    // of a double-click, which zooms in instead.
-    let clicks = 0;
+    // A mouse click opens the commune at once. A tap shows it first, with a link, since
+    // there's no hover to read it by, and a double tap zooms in.
     svg.addEventListener("click", async (event) => {
       if (dragged) return;
       const mouse = ((event as PointerEvent).pointerType || lastType) === "mouse";
-      const ticket = ++clicks;
       if (mouse && event.detail > 1) return;
       const gap = (event.target as Element).closest<SVGPathElement>("path[data-gap]");
       if (gap) return showGap(gap, event.clientX, event.clientY);
@@ -474,14 +471,12 @@ const communesRoute = path(locale, "communes/");
       const row = rows?.[shape.dataset.c ?? ""];
       if (!row) return;
       if (!mouse) return show(shape, event.clientX, event.clientY, true);
-      window.setTimeout(() => {
-        if (ticket === clicks) window.location.href = `${d.base}${row[0]}/`;
-      }, 300);
+      window.location.href = `${d.base}${row[0]}/`;
     });
+    // A double-click's first click has already opened a commune, so only a double tap zooms.
     svg.addEventListener("dblclick", (event) => {
       event.preventDefault();
-      clicks++;
-      if (!dragged) zoomBy(2, { x: event.clientX, y: event.clientY });
+      if (lastType !== "mouse" && !dragged) zoomBy(2, { x: event.clientX, y: event.clientY });
     });
 
     // Buttons and keys --------------------------------------------------------------------
