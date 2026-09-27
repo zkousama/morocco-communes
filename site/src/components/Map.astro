@@ -129,8 +129,10 @@ const communesRoute = path(locale, "communes/");
     whole,
     zoomAt,
     type Point,
+    type Rect,
     type View,
   } from "../lib/zoom";
+  import { placeTip } from "../lib/tip";
 
   type Row = [
     slug: string,
@@ -178,16 +180,25 @@ const communesRoute = path(locale, "communes/");
     let anchor: Point | null = null;
     let tipWidth = 0;
     let tipHeight = 0;
+    // Where the zoom buttons are in the frame, so the tooltip doesn't cover them. They're
+    // measured when it opens and when the reset button comes or goes.
+    const controls = atlas.querySelector<HTMLElement>(".zoom");
+    let buttons: Rect | null = null;
+    const measureButtons = () => {
+      buttons =
+        controls && !controls.hidden
+          ? { left: controls.offsetLeft, top: controls.offsetTop, width: controls.offsetWidth, height: controls.offsetHeight }
+          : null;
+    };
     const place = (x: number, y: number, frameBox: DOMRect) => {
-      const left = Math.min(Math.max(x - frameBox.left + 14, 0), frameBox.width - tipWidth);
-      const below = y - frameBox.top + 14;
-      const top = below + tipHeight > frameBox.height ? y - frameBox.top - tipHeight - 14 : below;
-      tip.style.transform = `translate(${left}px, ${Math.max(top, 0)}px)`;
+      const at = placeTip({ x: x - frameBox.left, y: y - frameBox.top }, { width: tipWidth, height: tipHeight }, frameBox, buttons);
+      tip.style.transform = `translate(${at.x}px, ${at.y}px)`;
     };
     const open = (x: number, y: number) => {
       tip.hidden = false;
       tipWidth = tip.offsetWidth;
       tipHeight = tip.offsetHeight;
+      measureButtons();
       const frameBox = bounds();
       anchor = toMap(view, box, frameBox, { x, y });
       place(x, y, frameBox);
@@ -230,7 +241,6 @@ const communesRoute = path(locale, "communes/");
     // Drawing -----------------------------------------------------------------------------
 
     const hatch = svg.querySelector("pattern");
-    const controls = atlas.querySelector<HTMLElement>(".zoom");
     const zoomIn = controls?.querySelector<HTMLButtonElement>('[data-zoom="in"]');
     const zoomOut = controls?.querySelector<HTMLButtonElement>('[data-zoom="out"]');
     const reset = controls?.querySelector<HTMLButtonElement>('[data-zoom="reset"]');
@@ -257,6 +267,7 @@ const communesRoute = path(locale, "communes/");
       if (reset && reset.hidden === zoomed) {
         if (!zoomed && document.activeElement === reset) zoomIn?.focus();
         reset.hidden = !zoomed;
+        if (!tip.hidden) measureButtons();
       }
       if (anchor && !tip.hidden) {
         const p = toScreen(view, box, frameBox, anchor);
@@ -751,7 +762,9 @@ const communesRoute = path(locale, "communes/");
     display: grid;
     gap: 0.1rem;
     min-width: 11rem;
-    max-width: 16rem;
+    /* Never wider than the room beside the zoom buttons, so on a phone a long name wraps
+       and the tooltip can still move clear of them. */
+    max-width: min(16rem, 100% - 3.75rem);
     padding: 0.55rem 0.75rem;
     background: var(--paper);
     border: 1px solid var(--rule);
