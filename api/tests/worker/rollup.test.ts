@@ -1,13 +1,16 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import * as worker from "../../../workers/rollup/src/index.ts";
 import rollup from "../../../workers/rollup/src/index.ts";
 import { PRUNE, ROLLUP } from "../../../workers/rollup/src/sql.ts";
 
+const MIGRATIONS = new URL("../../../migrations/", import.meta.url);
+
+/** The live database's tables, every migration applied in order. */
 function db() {
   const database = new DatabaseSync(":memory:");
-  database.exec(readFileSync(new URL("../../../migrations/0001_demand.sql", import.meta.url), "utf8"));
+  for (const file of readdirSync(MIGRATIONS).sort()) database.exec(readFileSync(new URL(file, MIGRATIONS), "utf8"));
   return database;
 }
 
@@ -191,6 +194,57 @@ describe("the nightly run", () => {
     insert(database, "2026-06-26", "01.511.01.0", 1);
     await night(database);
     expect(database.prepare("SELECT DISTINCT day FROM events ORDER BY day").all()).toEqual([{ day: "2026-06-26" }]);
+  });
+});
+
+describe("the ranking the public page reads", () => {
+  const ranking = (database: DatabaseSync) => database.prepare("SELECT code, n, since FROM ranking ORDER BY n DESC, code").all();
+
+  /** A day's views of a place as the rollup has already counted them. */
+  const counted = (database: DatabaseSync, day: string, code: string, n: number, over: { name?: string; via?: string; bot?: number } = {}) =>
+    database
+      .prepare("INSERT INTO daily (day, kind, code, name, via, bot, n) VALUES (?, 'place', ?, ?, ?, ?, ?)")
+      .run(day, code, over.name ?? "place", over.via ?? "browser", over.bot ?? 0, n);
+
+  it("is written each night from the last 30 days, with places opened 5 times or more", async () => {
+    const database = db();
+    insert(database, "2026-09-23", "01.511.01.0", 6);
+    counted(database, "2026-08-25", "04.421.01.0", 5);
+    counted(database, "2026-08-24", "07.351.01.0", 50);
+    insert(database, "2026-09-23", "09.271.01.0", 4);
+    await night(database);
+    expect(ranking(database)).toEqual([
+      { code: "01.511.01.0", n: 6, since: "2026-08-25" },
+      { code: "04.421.01.0", n: 5, since: "2026-08-25" },
+    ]);
+  });
+
+  it("replaces the night before's, so a place that dropped below 5 goes", async () => {
+    const database = db();
+    database.prepare("INSERT INTO ranking (code, n, since) VALUES ('09.271.01.0', 40, '2026-08-01')").run();
+    insert(database, "2026-09-23", "01.511.01.0", 6);
+    await night(database);
+    await night(database);
+    expect(ranking(database)).toEqual([{ code: "01.511.01.0", n: 6, since: "2026-08-25" }]);
+  });
+
+  it("counts only people's page views, not crawlers or API lookups", async () => {
+    const database = db();
+    counted(database, "2026-09-20", "01.511.01.0", 9, { bot: 1 });
+    counted(database, "2026-09-20", "01.511.01.0", 9, { name: "communes/:id", via: "curl" });
+    counted(database, "2026-09-20", "04.421.01.0", 5);
+    await night(database);
+    expect(ranking(database)).toEqual([{ code: "04.421.01.0", n: 5, since: "2026-08-25" }]);
+  });
+
+  it("is filled when the table is made, so the page isn't empty until the first night", () => {
+    const database = new DatabaseSync(":memory:");
+    const files = readdirSync(MIGRATIONS).sort();
+    database.exec(readFileSync(new URL(files[0]!, MIGRATIONS), "utf8"));
+    const recent = new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10);
+    counted(database, recent, "01.511.01.0", 7);
+    for (const file of files.slice(1)) database.exec(readFileSync(new URL(file, MIGRATIONS), "utf8"));
+    expect(database.prepare("SELECT code, n FROM ranking").all()).toEqual([{ code: "01.511.01.0", n: 7 }]);
   });
 });
 

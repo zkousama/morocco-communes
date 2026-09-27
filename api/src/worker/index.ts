@@ -19,6 +19,8 @@ import type { D1Database } from "@cloudflare/workers-types";
 import { isBot, localeOf, recordDemand, scrubText, viaSiteOf, type DemandKind } from "./demand.ts";
 import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
 import { downloads } from "../../../site/src/generated/downloads.ts";
+import { pagesOf } from "../lib/pages.ts";
+import { SHOWN_FROM } from "../../../workers/rollup/src/sql.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -35,6 +37,8 @@ const communes = rawCommunes as unknown as ListedCommune[];
 const indicators = rawIndicators as IndicatorTable;
 // The 6 communes divided into arrondissements, whose boundaries a point lookup reads too.
 const cities = new Set((rawArrondissements as { communeCode: string }[]).map((a) => a.communeCode));
+// Each place's name and page on the site, for the most looked-up list.
+const pages = pagesOf(index, rawArrondissements as { code: string; communeCode: string }[]);
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -363,6 +367,32 @@ app.get("/api/communes", async (c) => {
     }, meta),
     "computed",
   );
+});
+
+/**
+ * The most looked-up places as the rollup Worker worked them out last night, for the page
+ * that lists them, which is otherwise only as fresh as the last deploy. At most 100 rows a
+ * read, and it changes once a night, so a browser can keep it for an hour. A 503 leaves the
+ * page showing the list it was built with.
+ */
+app.get("/api/most-looked-up", async (c) => {
+  const url = new URL(c.req.url);
+  let rows: { code: string; n: number; since: string }[];
+  try {
+    if (!c.env.DEMAND) throw new Error("no database bound");
+    rows = (await c.env.DEMAND.prepare("SELECT code, n, since FROM ranking ORDER BY n DESC, code").all<{ code: string; n: number; since: string }>())
+      .results;
+  } catch {
+    return new Response(null, { status: 503, headers: { "retry-after": "3600" } });
+  }
+  const places = rows.flatMap(({ code, n }) => {
+    const page = pages.get(code);
+    return page && n >= SHOWN_FROM ? [{ code, name: page.name, route: page.route, n }] : [];
+  });
+  const since = rows[0]?.since ?? "";
+  return new Response(JSON.stringify(envelope({ since, places }, { self: url.pathname })), {
+    headers: { "content-type": "application/json", "cache-control": "public, max-age=3600", "x-api-tier": "computed" },
+  });
 });
 
 /**

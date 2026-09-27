@@ -13,21 +13,23 @@
 import { execFileSync } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { RANKING, SHOWN_FROM } from "../../workers/rollup/src/sql.ts";
 
 export interface Row {
   code: string;
   n: number;
 }
 
-export const publishable = (rows: Row[]): Row[] => rows.filter((row) => row.n >= 5).map(({ code, n }) => ({ code, n }));
+export const publishable = (rows: Row[]): Row[] => rows.filter((row) => row.n >= SHOWN_FROM).map(({ code, n }) => ({ code, n }));
 
 /**
- * Filtered before the LIMIT, so crawlers can't fill the 100 first. Only the beacon names a
- * row "place": an API lookup is named by its route, and its via is whatever the caller's
- * User-Agent starts with, which can be "browser" too.
+ * The rollup Worker's own query, so the list built into the page and the one it asks for
+ * each night can't differ. Filtered before the LIMIT, so crawlers can't fill the 100 first.
+ * Only the beacon names a row "place": an API lookup is named by its route, and its via is
+ * whatever the caller's User-Agent starts with, which can be "browser" too. On one line,
+ * with the day written in, since `wrangler d1 execute --command` binds nothing.
  */
-export const ranking = (since: string): string =>
-  `SELECT code, SUM(n) AS n FROM daily WHERE day >= '${since}' AND kind = 'place' AND name = 'place' AND via = 'browser' AND bot = 0 GROUP BY code ORDER BY n DESC LIMIT 100`;
+export const ranking = (since: string): string => RANKING.replaceAll("?1", `'${since}'`).replace(/\s+/g, " ");
 
 /** The first day counted: 30 days back from now, as `YYYY-MM-DD`. */
 export const sinceDate = (now = Date.now()): string => new Date(now - 30 * 86_400_000).toISOString().slice(0, 10);

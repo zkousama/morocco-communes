@@ -5,6 +5,9 @@
  * or an arrondissement, whose link goes to its city's page, the way the search box already
  * sends it there. A code the dataset no longer has, or that never had a page, is dropped
  * rather than shown broken.
+ *
+ * The list is built in, and the page then asks the API for last night's, so it doesn't
+ * wait for a deploy to change.
  */
 import Base from "../layouts/Base.astro";
 import { attention, since } from "../generated/attention.ts";
@@ -27,24 +30,61 @@ const rows = attention
 ---
 
 <Base locale={locale} route="most-looked-up/" title={copy.attention} description={copy.attentionBody}>
-  <article class="page">
+  <article class="page" data-base={path(locale)} data-locale={locale}>
     <h1>{copy.attention}</h1>
     <p class="lede">{copy.attentionBody}</p>
-    {rows.length === 0 ? (
-      <p>{copy.attentionEmpty}</p>
-    ) : (
-      <ol class="ranking">
-        {rows.map((row) => (
-          <li>
-            <a href={row.href}>{row.name}</a>
-            <span class="num">{n.format(row.n)}</span>
-          </li>
-        ))}
-      </ol>
-    )}
-    <p class="note">{copy.attentionSince} {since}</p>
+    <p class="empty" hidden={rows.length > 0}>{copy.attentionEmpty}</p>
+    <ol class="ranking" hidden={rows.length === 0}>
+      {rows.map((row) => (
+        <li>
+          <a href={row.href}>{row.name}</a>
+          <span class="num">{n.format(row.n)}</span>
+        </li>
+      ))}
+    </ol>
+    <p class="note">{copy.attentionSince} <span class="since">{since}</span></p>
   </article>
 </Base>
+
+<script>
+  interface Place {
+    name: string;
+    route: string;
+    n: number;
+  }
+
+  // Last night's ranking in place of the one built in. Without an answer, the built one stays.
+  const page = document.querySelector<HTMLElement>("article.page[data-base]");
+  const list = page?.querySelector<HTMLOListElement>(".ranking");
+  const empty = page?.querySelector<HTMLElement>(".empty");
+  const since = page?.querySelector<HTMLElement>(".since");
+  if (page && list && empty && since) {
+    fetch("/api/most-looked-up")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { data?: { since?: string; places?: Place[] } } | null) => {
+        const places = body?.data?.places;
+        if (!Array.isArray(places)) return;
+        const n = new Intl.NumberFormat(page.dataset.locale === "fr" ? "fr-FR" : "en-GB");
+        list.replaceChildren(
+          ...places.map((place) => {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = `${page.dataset.base}${place.route}`;
+            link.textContent = place.name;
+            const count = document.createElement("span");
+            count.className = "num";
+            count.textContent = n.format(place.n);
+            item.append(link, count);
+            return item;
+          }),
+        );
+        list.hidden = places.length === 0;
+        empty.hidden = places.length > 0;
+        if (body?.data?.since) since.textContent = body.data.since;
+      })
+      .catch(() => {});
+  }
+</script>
 
 <style>
   .page {
@@ -72,7 +112,8 @@ const rows = attention
     padding: 0;
   }
 
-  .ranking li {
+  /* Global inside the list, since the rows the script writes carry no scoped attribute. */
+  .ranking :global(li) {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -81,19 +122,19 @@ const rows = attention
     border-bottom: 1px solid var(--rule);
   }
 
-  .ranking li:first-child {
+  .ranking :global(li:first-child) {
     border-top: 1px solid var(--rule);
   }
 
-  .ranking a {
+  .ranking :global(a) {
     text-decoration: none;
   }
 
-  .ranking a:hover {
+  .ranking :global(a:hover) {
     color: var(--brass);
   }
 
-  .num {
+  .ranking :global(.num) {
     color: var(--quiet);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;

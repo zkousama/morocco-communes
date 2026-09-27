@@ -37,3 +37,20 @@ export const ROLLUP = `WITH kept AS (
 
 /** Every row from before the given day. */
 export const PRUNE = "DELETE FROM events WHERE day < ?1";
+
+/** How many times a place has to be opened before the public ranking names it. */
+export const SHOWN_FROM = 5;
+
+/**
+ * The public ranking: places people opened in a browser since ?1, most first. Crawlers
+ * don't count, and neither does an API lookup, whose name is its route rather than "place".
+ */
+export const RANKING = `SELECT code, SUM(n) AS n FROM daily
+  WHERE day >= ?1 AND kind = 'place' AND name = 'place' AND via = 'browser' AND bot = 0
+  GROUP BY code HAVING SUM(n) >= ${SHOWN_FROM} ORDER BY n DESC LIMIT 100`;
+
+/** Last night's ranking out, before tonight's goes in. */
+export const UNRANK = "DELETE FROM ranking";
+
+/** Tonight's ranking, for the page to read without working it out on every visit. */
+export const RANK = `INSERT INTO ranking (code, n, since) SELECT code, n, ?1 FROM (${RANKING})`;
