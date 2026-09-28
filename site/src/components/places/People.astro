@@ -13,7 +13,7 @@ import { numbers, percent } from "../../lib/format";
 import { figure, national, type Census, type IndicatorRecord, type Topics } from "../../lib/indicators";
 import { mismatches } from "../../../../api/src/lib/mismatch.ts";
 import { foldTopics } from "../../lib/fold";
-import { mismatchNote, noteUnder } from "../../lib/mismatch";
+import { amenityNote, languageNote } from "../../lib/mismatch";
 
 interface Props {
   locale: Locale;
@@ -152,10 +152,11 @@ const holds = (v: ReturnType<typeof view>) =>
 const views = [view(record, before, "2024"), ...(before ? [view(before, record, "2014")] : [])].filter(holds);
 const both = views.length > 1;
 
-// The figures the two censuses can't both have right, said in one note in either census.
+// The figures the site keeps out of comparisons, said in either census: a language under
+// the languages, an amenity under the headline figures, where running water is.
 const flagged = both ? mismatches(record, before) : [];
-const mismatch = mismatchNote(locale, flagged);
-const under = noteUnder(flagged);
+const languagesNote = languageNote(locale, flagged);
+const amenitiesNote = amenityNote(locale, flagged, record.code ?? "");
 
 /**
  * A census's topics, in the order HCP asks them, with the empty ones dropped, split into
@@ -224,9 +225,9 @@ const folds = views.some((v) => topicsOf(v).folded.length > 0);
               ))}
             </dl>
           )}
-          {mismatch && under === "figures" && (
+          {amenitiesNote && (
             <p class="mismatch">
-              {mismatch} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
+              {amenitiesNote} <a href={path(locale, "docs/indicators/#falls")}>{p.mismatchMore}</a>
             </p>
           )}
 
@@ -283,9 +284,9 @@ const folds = views.some((v) => topicsOf(v).folded.length > 0);
                     </li>
                   ))}
                 </ul>
-                {mismatch && under === "languages" && (
+                {languagesNote && (
                   <p class="mismatch">
-                    {mismatch} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
+                    {languagesNote} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
                   </p>
                 )}
               </div>

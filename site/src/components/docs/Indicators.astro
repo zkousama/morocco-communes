@@ -11,10 +11,11 @@ import { docs } from "../../i18n/docs";
 import { inline } from "../../lib/inline";
 import { path, type Locale } from "../../i18n/ui";
 import { indicatorsOf } from "../../lib/indicators";
-import { figureName } from "../../lib/mismatch";
+import { afterQuake, figureName } from "../../lib/mismatch";
 import { pageOf } from "../../lib/places";
 import { percent } from "../../lib/format";
-import { mismatches } from "../../../../api/src/lib/mismatch.ts";
+import { fill } from "../../i18n/places";
+import { AMENITIES, LANGUAGES, mismatches } from "../../../../api/src/lib/mismatch.ts";
 
 interface Props {
   locale: Locale;
@@ -86,9 +87,20 @@ const flagged = [...indicatorsOf.values()]
     const before = r["2014"]?.people.total?.all?.population?.legal;
     const after = r.people.total?.all?.population?.legal;
     const moved = before && after ? ((after - before) / before) * 100 : null;
-    return mismatches(r, r["2014"]).map((m) => ({ ...m, name: page.name.fr, href: path(locale, page.route), moved }));
+    return mismatches(r, r["2014"]).map((m) => ({ ...m, code: r.code!, name: page.name.fr, href: path(locale, page.route), moved }));
   })
   .sort((a, b) => Math.abs(b.now - b.then) - Math.abs(a.now - a.then));
+const falls = flagged.filter((m) => AMENITIES.includes(m.path));
+const fallen = new Set(falls.map((m) => m.code));
+const groups = [
+  { id: undefined, heading: d.mismatchLanguages, body: d.mismatchLanguagesBody, rows: flagged.filter((m) => LANGUAGES.includes(m.path)) },
+  {
+    id: "falls",
+    heading: d.mismatchAmenities,
+    body: d.mismatchAmenitiesBody.map((line) => fill(line, { n: [...fallen].filter(afterQuake).length, total: fallen.size })),
+    rows: falls,
+  },
+];
 const share = (v: number) => percent(locale, v, { fixed: true });
 
 const toc = [
@@ -235,30 +247,38 @@ const toc = [
     <ul class="notes">
       {d.mismatchesBody.map((line) => <li set:html={inline(line)} />)}
     </ul>
-    <div class="scroll">
-      <table class="mismatches">
-        <thead>
-          <tr>
-            <th scope="col">{d.mismatchPlace}</th>
-            <th scope="col">{d.mismatchFigure}</th>
-            <th scope="col" class="num">2014</th>
-            <th scope="col" class="num">2024</th>
-            <th scope="col" class="num">{d.mismatchPeople}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {flagged.map((m) => (
-            <tr>
-              <td><a href={m.href}>{m.name}</a></td>
-              <td>{figureName(locale, m.path)}</td>
-              <td class="num">{share(m.then)}</td>
-              <td class="num">{share(m.now)}</td>
-              <td class="num">{m.moved === null ? "—" : percent(locale, m.moved, { signed: true, digits: 0 })}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    {groups.map((g) => (
+      <div class="topic" id={g.id}>
+        <h3>{g.heading}</h3>
+        <ul class="notes">
+          {g.body.map((line) => <li set:html={inline(line)} />)}
+        </ul>
+        <div class="scroll">
+          <table class="mismatches">
+            <thead>
+              <tr>
+                <th scope="col">{d.mismatchPlace}</th>
+                <th scope="col">{d.mismatchFigure}</th>
+                <th scope="col" class="num">2014</th>
+                <th scope="col" class="num">2024</th>
+                <th scope="col" class="num">{d.mismatchPeople}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {g.rows.map((m) => (
+                <tr>
+                  <td><a href={m.href}>{m.name}</a></td>
+                  <td>{figureName(locale, m.path)}</td>
+                  <td class="num">{share(m.then)}</td>
+                  <td class="num">{share(m.now)}</td>
+                  <td class="num">{m.moved === null ? "—" : percent(locale, m.moved, { signed: true, digits: 0 })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ))}
   </section>
 
   <section id="get">

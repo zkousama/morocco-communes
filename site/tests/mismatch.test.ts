@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { CHECKED } from "../../api/src/lib/mismatch.ts";
-import { figureName, mismatchNote, noteUnder } from "../src/lib/mismatch";
+import { afterQuake, amenityNote, figureName, languageNote } from "../src/lib/mismatch";
+import { communes } from "../src/lib/places";
 
-describe("the census note", () => {
+const codeOf = (name: string) => communes.find((c) => c.name.fr === name)!.code;
+
+describe("the census notes", () => {
   const water = { path: "amenities.runningWater", then: 97.2, now: 3 };
+  const power = { path: "amenities.electricity", then: 92.7, now: 56.2 };
+  const kitchen = { path: "amenities.kitchen", then: 96, now: 56 };
   const darija = { path: "localLanguages.darija", then: 5, now: 60 };
 
   it("names every figure the check covers, in both languages", () => {
@@ -14,21 +19,32 @@ describe("the census note", () => {
     expect(figureName("fr", "localLanguages.tarifit")).toBe("Tarifit");
   });
 
-  it("reads an amenity in lower case, and a language as a name", () => {
-    expect(mismatchNote("en", [darija, water])).toBe(
-      "The two censuses don’t line up here: Darija 5.0% in 2014, 60.0% in 2024; running water 97.2% in 2014, 3.0% in 2024. Both are HCP’s figures. The population didn’t change enough to explain it, so the answer was most likely recorded differently.",
+  it("say the languages don't line up, and nothing about amenities", () => {
+    expect(languageNote("en", [darija, water])).toBe(
+      "The two censuses don’t line up here: Darija 5.0% in 2014, 60.0% in 2024. Both are HCP’s figures. The population didn’t change enough to explain it, so the answer was most likely recorded differently.",
     );
-    expect(mismatchNote("fr", [water])).toBe(
-      "Les deux recensements ne concordent pas ici : eau courante 97,2\u202f% en 2014, 3,0\u202f% en 2024. Les deux chiffres sont ceux du HCP. La population n’a pas assez changé pour l’expliquer : la réponse a sans doute été enregistrée autrement.",
+    expect(languageNote("en", [water])).toBeNull();
+  });
+
+  it("state an amenity's fall with no cause", () => {
+    expect(amenityNote("en", [darija, water], codeOf("Lounasda"))).toBe(
+      "Between the two censuses, households with running water went from 97.2% to 3.0%. Both are HCP’s figures. A fall this large is rare, and the site keeps it out of comparisons.",
+    );
+    expect(amenityNote("en", [darija], codeOf("Lounasda"))).toBeNull();
+  });
+
+  it("add the earthquake in the provinces it affected", () => {
+    expect(amenityNote("en", [water, power], codeOf("Ijoukak"))).toBe(
+      "Between the two censuses, households with running water went from 97.2% to 3.0%; households with electricity went from 92.7% to 56.2%. Both are HCP’s figures. Falls this large are rare, and the site keeps them out of comparisons. The 2024 census came a year after the September 2023 earthquake.",
+    );
+    expect(amenityNote("fr", [kitchen], codeOf("Anougal"))).toBe(
+      "Entre les deux recensements, les ménages ayant une cuisine sont passés de 96,0\u202f% à 56,0\u202f%. Les deux chiffres sont ceux du HCP. Une baisse aussi forte est rare, et le site l’écarte des comparaisons. Le recensement de 2024 a eu lieu un an après le séisme de septembre 2023.",
     );
   });
 
-  it("has nothing to say when nothing is flagged", () => {
-    expect(mismatchNote("en", [])).toBeNull();
-  });
-
-  it("sits under the languages when a language is flagged, and under the headline figures otherwise", () => {
-    expect(noteUnder([water, darija])).toBe("languages");
-    expect(noteUnder([water])).toBe("figures");
+  it("place Al Haouz, Taroudannt, Azilal, Chichaoua, Marrakech and Ouarzazate after the earthquake, and not El Kelâa des Sraghna", () => {
+    for (const name of ["Ijoukak", "Tigouga", "Tisqi", "Adassil", "Ouarzazate"]) expect(afterQuake(codeOf(name)), name).toBe(true);
+    expect(communes.some((c) => c.code.startsWith("07.351.") && afterQuake(c.code))).toBe(true);
+    expect(afterQuake(codeOf("Lounasda"))).toBe(false);
   });
 });
