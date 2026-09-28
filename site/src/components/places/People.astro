@@ -321,20 +321,16 @@ const folds = views.some((v) => topicsOf(v).folded.length > 0);
   )}
 </section>
 
-{folds && (
+{both && folds && (
   <script is:inline>
-    // Run as the page is read rather than after it loads, so a phone never draws the fold
-    // open and then shuts it. Each census has its own; opening one opens the other, so the
-    // 2014 / 2024 switch keeps what the reader chose.
+    // Each census has its own fold; opening one opens the other, so the 2014 / 2024 switch
+    // keeps what the reader chose.
     (function () {
       var folds = document.querySelectorAll(".people details.more");
-      if (window.matchMedia("(max-width: 48rem)").matches) {
-        for (var i = 0; i < folds.length; i++) folds[i].open = false;
-      }
-      for (var j = 0; j < folds.length; j++) {
-        folds[j].addEventListener("toggle", function (event) {
+      for (var i = 0; i < folds.length; i++) {
+        folds[i].addEventListener("toggle", function (event) {
           var open = event.target.open;
-          for (var k = 0; k < folds.length; k++) if (folds[k].open !== open) folds[k].open = open;
+          for (var j = 0; j < folds.length; j++) if (folds[j].open !== open) folds[j].open = open;
         });
       }
     })();
@@ -395,21 +391,6 @@ const folds = views.some((v) => topicsOf(v).folded.length > 0);
   .spread {
     columns: 2;
     column-gap: clamp(1.5rem, 4vw, 3rem);
-  }
-
-  .more summary {
-    margin-bottom: 1.25rem;
-    font-size: var(--t-sm);
-    color: var(--quiet);
-    cursor: pointer;
-  }
-
-  .more summary:hover {
-    color: var(--ink);
-  }
-
-  .more:not([open]) summary {
-    margin-bottom: 0;
   }
 
   .block {

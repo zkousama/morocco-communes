@@ -329,34 +329,37 @@ getCommune("${c.slug}");`;
 
   <section id="data">
     <h2>{p.inTheData}</h2>
-    <dl class="data">
-      <div><dt>{p.code}</dt><dd><code>{c.code}</code></dd></div>
-      <div><dt>{p.codeDigits}</dt><dd><code>{c.codeDigits}</code></dd></div>
-      <div><dt>{p.slug}</dt><dd><code>{c.slug}</code></dd></div>
-      <div><dt>{p.record}</dt><dd><a href={`/api/communes/${c.code}.json`}><code>/api/communes/{c.code}.json</code></a></dd></div>
-      {c.areaKm2 !== null && (
-        <div><dt>{p.boundary}</dt><dd><a href={`/api/communes/${c.code}/boundary.geojson`}><code>/api/communes/{c.code}/boundary.geojson</code></a></dd></div>
-      )}
-      {census && (
-        <div><dt>{p.census}</dt><dd><a href={`/api/communes/${c.code}/indicators.json`}><code>/api/communes/{c.code}/indicators.json</code></a></dd></div>
-      )}
-      {economy && (
-        <div><dt>{p.work}</dt><dd><a href={`/api/communes/${c.code}/economy.json`}><code>/api/communes/{c.code}/economy.json</code></a></dd></div>
-      )}
-      {housing && (
-        <div><dt>{p.dwellingsTitle}</dt><dd><a href={`/api/communes/${c.code}/housing.json`}><code>/api/communes/{c.code}/housing.json</code></a></dd></div>
-      )}
-      {insights && (
-        <div><dt>{p.insightsTitle}</dt><dd><a href={`/api/communes/${c.code}/insights.json`}><code>/api/communes/{c.code}/insights.json</code></a></dd></div>
-      )}
-      {bordering.length > 0 && (
-        <div><dt>{p.bordering}</dt><dd><a href={`/api/communes/${c.code}/neighbours.json`}><code>/api/communes/{c.code}/neighbours.json</code></a></dd></div>
-      )}
-      {c.osm && (
-        <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
-      )}
-    </dl>
-    <Code locale={locale} label={p.inJs} code={snippet} lang="js" />
+    <details class="more" open>
+      <summary>{p.moreData}</summary>
+      <dl class="data">
+        <div><dt>{p.code}</dt><dd><code>{c.code}</code></dd></div>
+        <div><dt>{p.codeDigits}</dt><dd><code>{c.codeDigits}</code></dd></div>
+        <div><dt>{p.slug}</dt><dd><code>{c.slug}</code></dd></div>
+        <div><dt>{p.record}</dt><dd><a href={`/api/communes/${c.code}.json`}><code>/api/communes/{c.code}.json</code></a></dd></div>
+        {c.areaKm2 !== null && (
+          <div><dt>{p.boundary}</dt><dd><a href={`/api/communes/${c.code}/boundary.geojson`}><code>/api/communes/{c.code}/boundary.geojson</code></a></dd></div>
+        )}
+        {census && (
+          <div><dt>{p.census}</dt><dd><a href={`/api/communes/${c.code}/indicators.json`}><code>/api/communes/{c.code}/indicators.json</code></a></dd></div>
+        )}
+        {economy && (
+          <div><dt>{p.work}</dt><dd><a href={`/api/communes/${c.code}/economy.json`}><code>/api/communes/{c.code}/economy.json</code></a></dd></div>
+        )}
+        {housing && (
+          <div><dt>{p.dwellingsTitle}</dt><dd><a href={`/api/communes/${c.code}/housing.json`}><code>/api/communes/{c.code}/housing.json</code></a></dd></div>
+        )}
+        {insights && (
+          <div><dt>{p.insightsTitle}</dt><dd><a href={`/api/communes/${c.code}/insights.json`}><code>/api/communes/{c.code}/insights.json</code></a></dd></div>
+        )}
+        {bordering.length > 0 && (
+          <div><dt>{p.bordering}</dt><dd><a href={`/api/communes/${c.code}/neighbours.json`}><code>/api/communes/{c.code}/neighbours.json</code></a></dd></div>
+        )}
+        {c.osm && (
+          <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
+        )}
+      </dl>
+      <Code locale={locale} label={p.inJs} code={snippet} lang="js" />
+    </details>
     <p class="report"><a href={`${REPO_URL}/issues/new?template=data-error.yml&title=${encodeURIComponent(`${c.name.fr} (${c.code})`)}`}>{p.report}</a></p>
   </section>
 </Place>

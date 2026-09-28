@@ -104,27 +104,30 @@ const right = blocks.slice(2).filter((b) => b.rows.length > 0);
   )}
 
   {(left.length > 0 || right.length > 0) && (
-    <div class="pair even">
-      {[left, right].map((column) => (
-        <div>
-          {column.map((block) => (
-            <>
-              <h3>{block.heading}</h3>
-              <p class="note">{block.body}</p>
-              <ul class="bars">
-                {block.rows.map((b) => (
-                  <li>
-                    <span class="label">{b.label}</span>
-                    <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
-                    <span class="value">{share(b.value)}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ))}
-        </div>
-      ))}
-    </div>
+    <details class="more" open>
+      <summary>{p.moreWork}</summary>
+      <div class="pair even">
+        {[left, right].map((column) => (
+          <div>
+            {column.map((block) => (
+              <>
+                <h3>{block.heading}</h3>
+                <p class="note">{block.body}</p>
+                <ul class="bars">
+                  {block.rows.map((b) => (
+                    <li>
+                      <span class="label">{b.label}</span>
+                      <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                      <span class="value">{share(b.value)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ))}
+          </div>
+        ))}
+      </div>
+    </details>
   )}
 </section>
 

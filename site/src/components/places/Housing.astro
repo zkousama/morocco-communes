@@ -82,42 +82,45 @@ const ages = bars("age", ["under20", "20-49", "50+"], ageNames);
   )}
 
   {(kinds.length > 0 || ages.length > 0) && (
-    <div class="pair even">
-      <div>
-        {kinds.length > 0 && (
-          <>
-            <h3>{p.byKind}</h3>
-            <p class="note">{p.byKindBody}</p>
-            <ul class="bars">
-              {kinds.map((b) => (
-                <li>
-                  <span class="label">{b.label}</span>
-                  <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
-                  <span class="value">{share(b.value)}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+    <details class="more" open>
+      <summary>{p.moreDwellings}</summary>
+      <div class="pair even">
+        <div>
+          {kinds.length > 0 && (
+            <>
+              <h3>{p.byKind}</h3>
+              <p class="note">{p.byKindBody}</p>
+              <ul class="bars">
+                {kinds.map((b) => (
+                  <li>
+                    <span class="label">{b.label}</span>
+                    <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                    <span class="value">{share(b.value)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+        <div>
+          {ages.length > 0 && (
+            <>
+              <h3>{p.byAge}</h3>
+              <p class="note">{p.byAgeBody}</p>
+              <ul class="bars">
+                {ages.map((b) => (
+                  <li>
+                    <span class="label">{b.label}</span>
+                    <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                    <span class="value">{share(b.value)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
       </div>
-      <div>
-        {ages.length > 0 && (
-          <>
-            <h3>{p.byAge}</h3>
-            <p class="note">{p.byAgeBody}</p>
-            <ul class="bars">
-              {ages.map((b) => (
-                <li>
-                  <span class="label">{b.label}</span>
-                  <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
-                  <span class="value">{share(b.value)}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
-    </div>
+    </details>
   )}
 </section>
 

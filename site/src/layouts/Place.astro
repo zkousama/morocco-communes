@@ -42,6 +42,16 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede, d
       <p class="lede">{lede}</p>
     </header>
     <slot />
+    <script is:inline>
+      // The detail under a section's headline figures is open in the markup, so every
+      // figure shows without JavaScript. A phone starts with it shut, and this runs as the
+      // page is read rather than after it loads, so the page is never drawn open first.
+      (function () {
+        if (!window.matchMedia("(max-width: 48rem)").matches) return;
+        var folds = document.querySelectorAll(".place details.more");
+        for (var i = 0; i < folds.length; i++) folds[i].open = false;
+      })();
+    </script>
   </article>
 </Base>
 
@@ -222,6 +232,21 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede, d
 
   .place :global(.scroll) {
     overflow-x: auto;
+  }
+
+  .place :global(.more summary) {
+    margin: 1.25rem 0;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    cursor: pointer;
+  }
+
+  .place :global(.more summary:hover) {
+    color: var(--ink);
+  }
+
+  .place :global(.more:not([open]) summary) {
+    margin-bottom: 0;
   }
 
   .place :global(table) {
