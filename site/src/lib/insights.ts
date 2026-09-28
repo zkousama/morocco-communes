@@ -1,12 +1,12 @@
 /**
- * The insights the pipeline published, read once at build time for the région, province
- * and commune pages, and the grading numbers the methods page quotes, the ones the
- * published run passed with. Nothing is published on a fresh checkout, so both start
- * empty; only a missing file or directory reads that way, and a file that doesn't parse
- * fails the build, as it does for the API.
+ * The standout figures the insights pipeline published, read once at build time for the
+ * commune pages, and the words for the context beside each. Nothing is published on a
+ * fresh checkout, so the map starts empty; only a missing directory reads that way, and a
+ * file that doesn't parse fails the build, as it does for the API.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { FALL, SWING } from "../../../api/src/lib/mismatch.ts";
 import {
   ARTEFACT_POPULATION_CHANGE_CEILING,
   CHANGE_GAP_POPULATION_FLOOR,
@@ -19,79 +19,33 @@ import {
   MAX_HOUSEHOLD_SIZE,
   MAX_PEOPLE_PER_ROOM,
   Z_THRESHOLD,
-  type Kind,
 } from "../../../insights/src/detect.ts";
-import { field, type Level } from "../../../insights/src/fields.ts";
-import { PER_SIDE, REGRADE_N } from "../../../insights/src/grade.ts";
-import { EFFECT_FLOOR, FALSE_DISCOVERY_RATE, MIN_UNITS, PERMUTATION_ROUNDS, PLACEBO_COUNT } from "../../../insights/src/links.ts";
-import { MUTATIONS, NUMBER_SHIFT } from "../../../insights/src/mutate.ts";
-import { PUBLISHED_CAP, type PublishedHypothesis } from "../../../insights/src/run.ts";
-import { PRECISION_FLOOR, type Metrics } from "../../../insights/src/score.ts";
-import { readSetup } from "../../../insights/src/setup.ts";
-import type { Check } from "../../../insights/src/vocabulary.ts";
+import { field } from "../../../insights/src/fields.ts";
+import type { CommuneFile, Published } from "../../../insights/src/run.ts";
+import { figure as withUnit } from "../../../insights/src/text.ts";
 import { fill, places } from "../i18n/places";
 import type { Locale } from "../i18n/ui";
-import { numbers, percent } from "./format";
-
-/** One unit's file under `data/v1/insights/`, as `publishable` in insights/src/run.ts writes it. */
-export interface UnitInsights {
-  code: string;
-  level: Level;
-  checkedAt: string;
-  findings: {
-    id: string;
-    kind: Kind;
-    measure: string;
-    line: { en: string; fr: string };
-    breakdown: { field: string; label: { en: string; fr: string }; value: number }[] | null;
-    hypotheses: PublishedHypothesis[];
-  }[];
-}
-
-const LEVELS = ["regions", "provinces", "communes"];
+import { moroccoLine } from "./context";
+import { numbers } from "./format";
 
 const isMissing = (error: unknown): boolean => (error as NodeJS.ErrnoException)?.code === "ENOENT";
 
-/** Every unit file under `dir`, by the unit's code. Empty when nothing has been published. */
-export function readUnitInsights(dir: string): Map<string, UnitInsights> {
-  const out = new Map<string, UnitInsights>();
-  for (const level of LEVELS) {
-    let names: string[];
-    try {
-      names = readdirSync(join(dir, level));
-    } catch (error) {
-      if (isMissing(error)) continue;
-      throw error;
-    }
-    for (const name of names.filter((n) => n.endsWith(".json"))) {
-      const unit = JSON.parse(readFileSync(join(dir, level, name), "utf8")) as UnitInsights;
-      out.set(unit.code, unit);
-    }
-  }
-  return out;
-}
-
-/** The numbers the published run passed its gate with, from the record a publish writes, or null before the first publish. */
-export function readMetrics(path: string): Metrics | null {
+/** Every commune file under `dir`, by the commune's code. Empty when nothing has been published. */
+export function readInsights(dir: string): Map<string, CommuneFile> {
+  let names: string[];
   try {
-    return (JSON.parse(readFileSync(path, "utf8")) as { metrics: Metrics }).metrics;
+    names = readdirSync(join(dir, "communes"));
   } catch (error) {
-    if (isMissing(error)) return null;
+    if (isMissing(error)) return new Map();
     throw error;
   }
+  const files = names.filter((n) => n.endsWith(".json")).map((n) => JSON.parse(readFileSync(join(dir, "communes", n), "utf8")) as CommuneFile);
+  return new Map(files.map((f) => [f.code, f]));
 }
 
-export const insightsOf = readUnitInsights("data/v1/insights");
-export const metrics = readMetrics("insights/published.json");
-const setup = readSetup();
+export const insightsOf = readInsights("data/v1/insights");
 
-/**
- * The pipeline's own settings, for the methods page to state rather than retype: shares
- * as fractions, the rest as counts. A number the code only writes inline is pinned to the
- * page by site/tests/insights.test.ts instead. `samples` and `attackShownOnly` come from
- * the committed `insights/setup.json` rather than a constant, since the pilot can change
- * either.
- */
+/** The pipeline's own settings, for the methods page to state rather than retype: shares as fractions, the rest as counts. */
 export const method = {
   extremeFloor: EXTREME_POPULATION_FLOOR,
   extremeTail: EXTREME_TAIL_SHARE,
@@ -104,58 +58,59 @@ export const method = {
   householdSize: MAX_HOUSEHOLD_SIZE,
   kept: DEFAULT_CAP,
   perPlace: DEFAULT_PER_UNIT,
-  samples: setup.propose.samples,
-  shuffles: PERMUTATION_ROUNDS,
-  placebos: PLACEBO_COUNT,
-  fewestPlaces: MIN_UNITS,
-  falseDiscoveryRate: FALSE_DISCOVERY_RATE,
-  effectFloor: EFFECT_FLOOR,
-  shown: PUBLISHED_CAP,
-  attackShownOnly: setup.attackShownOnly,
-  perSide: PER_SIDE,
-  regraded: REGRADE_N,
-  precisionFloor: PRECISION_FLOOR,
-  mutations: MUTATIONS,
-  numberShift: NUMBER_SHIFT,
+  swing: SWING,
+  fall: FALL,
+  neighbourFloor: CHANGE_GAP_POPULATION_FLOOR,
 };
 
-/** The section's opening line: the one about reasons, or, when every finding is only flagged as a possible error in the data, one that says there are none. */
-export function introOf(locale: Locale, record: UnitInsights): string {
-  const p = places[locale];
-  return record.findings.some((f) => f.hypotheses.length > 0) ? p.insightsBody : p.insightsBodyFlagged;
-}
+const isShare = (path: string) => field(path)?.unit === "percent";
 
-/** The label a reason gets when what it proposes is that the figure is an error in the data, or null for an ordinary one. */
-export function flagOf(locale: Locale, hypothesis: { artefact?: boolean }): string | null {
-  return hypothesis.artefact ? places[locale].insightsArtefact : null;
-}
-
-/** A figure at the precision the census publishes it: shares to one decimal, fertility to 2. */
-function figure(locale: Locale, path: string, value: number): string {
-  const unit = field(path)?.unit;
-  if (unit === "percent") return percent(locale, value, { fixed: true });
-  return numbers(locale, unit === "births per woman" ? 2 : 1, true).format(value);
+/** A change as a signed amount: points for a share, the figure's own unit otherwise. */
+function signed(locale: Locale, path: string, change: number): string {
+  const sign = change < 0 ? "−" : change > 0 ? "+" : "";
+  if (!isShare(path)) return `${sign}${withUnit(path, Math.abs(change), locale)}`;
+  const body = numbers(locale, 1, true).format(Math.abs(change));
+  // French keeps "point" singular below 2, as it does "enfant".
+  const unit = locale === "fr" && Math.abs(change) < 2 ? "point" : "points";
+  return `${sign}${body} ${unit}`;
 }
 
 /**
- * The figures a premise's data test read, in words: what it compared, the 2 years it
- * spanned, or where the place ranked. Null when one of them is missing, which a published
- * premise never has, since its test passed.
+ * The communes it borders on the same figure, in words: their median and the one furthest
+ * off, with that one's name kept apart so the page can link it. A change is set against
+ * their change. Null when none could be compared.
  */
-export function evidenceNumbers(locale: Locale, check: Check, read: Record<string, number | undefined>): string | null {
+export function nearLine(locale: Locale, f: Published): { before: string; name: string; code: string; after: string } | null {
+  const near = f.context.neighbours;
+  if (!near) return null;
   const p = places[locale];
-  const n = numbers(locale);
-  const known = (...values: (number | undefined)[]) => values.every((v) => v != null && Number.isFinite(v));
-  if (check.check === "compare") {
-    if (!known(read.left, read.right)) return null;
-    const rightField = "field" in check.right ? check.right.field : check.left.field;
-    return fill(p.insightsAgainst, { a: figure(locale, check.left.field, read.left!), b: figure(locale, rightField, read.right!) });
-  }
-  const f = (v: number) => figure(locale, check.field, v);
-  if (check.check === "change") {
-    if (!known(read.y2014, read.y2024)) return null;
-    return fill(p.insightsChange, { from: f(read.y2014!), to: f(read.y2024!) });
-  }
-  if (!known(read.value, read.rank, read.of)) return null;
-  return fill(p.insightsRank, { value: f(read.value!), rank: n.format(read.rank!), of: n.format(read.of!) });
+  const amount = (v: number) => (f.kind === "change" ? signed(locale, f.measure, v) : withUnit(f.measure, v, locale));
+  const value = amount(near.furthest.value);
+  const sentence =
+    near.compared === 1
+      ? fill(p.insightsNearOne, { value: f.kind === "change" ? fill(p.insightsSince, { value }) : value })
+      : fill(near.compared === near.bordering ? p.insightsNearAll : p.insightsNearSome, {
+          n: near.compared,
+          of: near.bordering,
+          median: fill(f.kind === "change" ? p.insightsMedianChange : p.insightsMedian, { value: amount(near.median) }),
+          value,
+        });
+  const [before, after] = sentence.split("{place}") as [string, string];
+  return { before, name: near.furthest.name.fr, code: near.furthest.code, after };
+}
+
+/**
+ * The same figure in 2014, then Morocco's move: in whole points for a share, as the since-2014
+ * line puts it, and as its 2 figures otherwise. A change's own line already has both of its
+ * years, so it gets Morocco's alone. Null where 2014 can't be set beside it.
+ */
+export function since2014Line(locale: Locale, f: Published): string | null {
+  const since = f.context.since2014;
+  if (!since) return null;
+  const p = places[locale];
+  const digits = field(f.measure)?.unit === "births per woman" ? 2 : 1;
+  const morocco = isShare(f.measure)
+    ? moroccoLine(locale, since.morocco.then, since.morocco.now)
+    : fill(p.insightsMoroccoFrom, { then: numbers(locale, digits, true).format(since.morocco.then), now: withUnit(f.measure, since.morocco.now, locale) });
+  return f.kind === "change" ? morocco : `${fill(p.insightsThen, { then: withUnit(f.measure, since.then, locale) })} ${morocco}`;
 }

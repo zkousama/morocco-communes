@@ -21,8 +21,6 @@ import {
   type ModelCall,
   type Transport,
 } from "../src/model.ts";
-import { newIds, traceparent } from "../src/trace.ts";
-
 const call: ModelCall = { model: "sonnet", system: "s", prompt: "p", stage: "propose", key: "finding-1:0" };
 
 // one cache and one call counter shared by every runner a test makes
@@ -96,10 +94,8 @@ describe("the runner", () => {
 
   it("shares one cache entry for 2 calls differing only in traceparent", async () => {
     const s = setup();
-    const a = newIds();
-    const b = newIds();
-    const first = await s.runner()({ ...call, traceparent: traceparent(a.traceId, a.spanId) });
-    const second = await s.runner()({ ...call, traceparent: traceparent(b.traceId, b.spanId) });
+    const first = await s.runner()({ ...call, traceparent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01" });
+    const second = await s.runner()({ ...call, traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01" });
     expect(second.cached).toBe(true);
     expect(second.text).toBe(first.text);
     expect(s.count()).toBe(1);

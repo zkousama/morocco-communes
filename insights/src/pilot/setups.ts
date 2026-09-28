@@ -9,8 +9,8 @@ import type { Role } from "../setup.ts";
 /** Rule 5's "5 samples", and the proposer's own upper bound: the pipeline's own sample count, not a second copy of it. */
 export { SAMPLES as MAX_SAMPLES } from "../propose.ts";
 
-/** Rule 6's "top 3": how many reasons by support a page actually shows, read off the run itself, not a second copy of it. */
-export { PUBLISHED_CAP } from "../run.ts";
+/** Rule 6's "top 3": how many reasons by support a page showed when the pilot ran. */
+export const PUBLISHED_CAP = 3;
 
 export interface PilotRole extends Role {
   id: string;

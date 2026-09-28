@@ -18,7 +18,6 @@ import { detect } from "../detect.ts";
 import { loadData, type Data } from "../data.ts";
 import { field } from "../fields.ts";
 import { findingLine } from "../text.ts";
-import { formatNumbers, formatReasonBlock } from "../grade.ts";
 import { hash, messageOf, readLocal, writeJsonAtomic, type Local } from "../model.ts";
 import { localWarning, refusal, termsPattern } from "../safety.ts";
 import { rng } from "../stats.ts";
@@ -178,6 +177,35 @@ export function screenInputs(
     };
   }
   return { ok: true, lines, unitName: (code) => data.units.get(code)?.name.fr ?? null };
+}
+
+const round = (value: number, decimals: number): number => Math.round(value * 10 ** decimals) / 10 ** decimals;
+
+/** A data test's numbers, sorted by name, each to 2 decimals. */
+export function formatNumbers(numbers: Record<string, number>): string {
+  const keys = Object.keys(numbers).sort();
+  if (keys.length === 0) return "none";
+  return keys.map((key) => `${key}=${round(numbers[key]!, 2)}`).join(", ");
+}
+
+/** The finding line, the claim, the premise with its numbers, and the link, each in English then French. */
+export function formatReasonBlock(
+  line: { en: string; fr: string },
+  claim: { en: string; fr: string },
+  premise: { en: string; fr: string },
+  numbers: Record<string, number>,
+  link: { en: string; fr: string },
+): string {
+  return [
+    line.en,
+    `  ${line.fr}`,
+    `claim: ${claim.en}`,
+    `  ${claim.fr}`,
+    `premise: ${premise.en} (${formatNumbers(numbers)})`,
+    `  ${premise.fr}`,
+    `link: ${link.en}`,
+    `  ${link.fr}`,
+  ].join("\n");
 }
 
 /** What the rater sees for `item`: the finding line, the claim, the premise with its numbers, and the link, each in English then French. Never the setup, the model, the effort, the stage or a verdict. A drift item shows exactly what the item it repeats showed. `lines` must hold every finding id in `a.findingIds` (`main` refuses to start otherwise; a test passes its own synthetic map). */

@@ -265,7 +265,8 @@ function amount(unit: string, value: number, locale: Locale): string {
   }
 }
 
-const figure = (path: string, value: number, locale: Locale): string => amount(field(path)?.unit ?? "", value, locale);
+/** A field's figure with its unit, as a line writes it; exported so the site's context lines write it the same way. */
+export const figure = (path: string, value: number, locale: Locale): string => amount(field(path)?.unit ?? "", value, locale);
 
 const PLURAL: Record<Level, Words> = {
   region: w("régions", "régions"),

@@ -166,16 +166,21 @@ export function largestMove(here: Unit, morocco: Unit["record"]): Move | null {
   return best;
 }
 
+/** Morocco's change on a share between the censuses, in whole points. */
+export function moroccoLine(locale: Locale, then: number, now: number): string {
+  const p = places[locale];
+  // Rounded to the published decimal first, so 82.9 − 73 is 9.9 before it's 10.
+  const change = Math.round(Math.round((now - then) * 10) / 10);
+  const points = Math.abs(change) === 1 ? p.movedPoint : fill(p.movedPoints, { n: Math.abs(change) });
+  return change === 0 ? p.movedFlat : fill(change > 0 ? p.movedRise : p.movedFall, { points });
+}
+
 /** The commune's two figures as HCP publishes them, then Morocco's change beside them in whole points. */
 export function moveLine(locale: Locale, move: Move): string {
   const p = places[locale];
   const share = (v: number) => percent(locale, v, { fixed: true });
   const commune = fill(p.movedLine, { what: (p.moved as Record<string, string>)[move.path]!, then: share(move.then), now: share(move.now) });
-  // Rounded to the published decimal first, so 82.9 − 73 is 9.9 before it's 10.
-  const change = Math.round(Math.round((move.moroccoNow - move.moroccoThen) * 10) / 10);
-  const points = Math.abs(change) === 1 ? p.movedPoint : fill(p.movedPoints, { n: Math.abs(change) });
-  const morocco = change === 0 ? p.movedFlat : fill(change > 0 ? p.movedRise : p.movedFall, { points });
-  return `${commune} ${morocco}`;
+  return `${commune} ${moroccoLine(locale, move.moroccoThen, move.moroccoNow)}`;
 }
 
 export interface Twin {
