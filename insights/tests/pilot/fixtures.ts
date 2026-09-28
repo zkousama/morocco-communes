@@ -30,12 +30,11 @@
  * counter-test judged in turn, and every drift item answered as its original was, bar one.
  */
 import { NO_USAGE, type Usage } from "../../src/model.ts";
-import type { LinkTest } from "../../src/links.ts";
+import type { LinkResult, LinkTest } from "../../src/links.ts";
 import { ratingPlan, type Ratings } from "../../src/pilot/rate.ts";
 import { candidateIdOf, samplePool } from "../../src/pilot/sample.ts";
 import { ACTIVE_ADVERSARIES, DROPPED_ADVERSARIES, MAX_SAMPLES, PILOT_SEED, POOL_PER_PROPOSER, PROPOSERS } from "../../src/pilot/setups.ts";
 import type { StageA, StageACandidate, StageAProposer, StageB, StageBVerdict } from "../../src/pilot/stages.ts";
-import type { LinkResult } from "../../src/run.ts";
 import type { Check, Outcome } from "../../src/vocabulary.ts";
 
 const FINDINGS_PER_PROPOSER = 16;

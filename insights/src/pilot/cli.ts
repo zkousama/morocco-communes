@@ -35,8 +35,8 @@ import {
   type Local,
   type Runner,
 } from "../model.ts";
-import { localWarning, transportFor } from "../run.ts";
-import { termsPattern } from "../safety.ts";
+import { localWarning, termsPattern } from "../safety.ts";
+import { transportFor } from "../setup.ts";
 import { sampleFindings } from "./sample.ts";
 import { ACTIVE_ADVERSARIES, PILOT_SEED, PROPOSERS, type PilotRole } from "./setups.ts";
 import { committedCandidates, runStageA, runStageB, SetupError, type StageA } from "./stages.ts";

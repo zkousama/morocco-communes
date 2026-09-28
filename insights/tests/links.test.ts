@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { FIELDS } from "../src/fields.ts";
-import { judgeLinks, runLink, type LinkOutcome } from "../src/links.ts";
+import { aboutThisFinding, judgeLinks, runLink, type LinkOutcome } from "../src/links.ts";
+import type { Check } from "../src/vocabulary.ts";
 
 const data = loadData();
 
@@ -126,5 +127,52 @@ describe("link tests: refuses what it can't compute", () => {
       1,
     );
     expect(outcome.n).toBeLessThan(withCrosswalk);
+  });
+});
+
+describe("what makes a link test about its figure", () => {
+  const base = { id: "t", code: "01.511.01.0", level: "commune", value: 30, reference: 10, score: 4, direction: "high" } as const;
+  const unoccupied = { ...base, measure: "housing.occupancy.unoccupied", kind: "extreme" } as const;
+  const crowding = { ...base, measure: "households.peoplePerRoom", kind: "extreme" } as const;
+  const reads = (field: string): Check => ({ check: "compare", left: { of: { unit: "self" }, field, year: 2024 }, op: ">", right: { value: 0 } });
+
+  it("refuses the 3 pairings the review found consistent", () => {
+    expect(aboutThisFinding(
+      { link: "together", x: crowding.measure, y: crowding.measure, year: 2024, level: "commune", direction: "positive" },
+      reads(crowding.measure), crowding,
+    )).toBe(false);
+    expect(aboutThisFinding(
+      { link: "together", x: "housing.occupancy.seasonal", y: unoccupied.measure, year: 2024, level: "commune", direction: "positive" },
+      reads("housing.occupancy.seasonal"), unoccupied,
+    )).toBe(false);
+    expect(aboutThisFinding(
+      { link: "peers", premise: "housing.occupancy.vacant", outcome: unoccupied.measure, level: "commune", direction: "higher" },
+      reads("housing.occupancy.vacant"), unoccupied,
+    )).toBe(false);
+  });
+
+  it("refuses a premise the data test doesn't read", () => {
+    const test = { link: "together", x: "education.higher", y: crowding.measure, year: 2024, level: "commune", direction: "negative" } as const;
+    expect(aboutThisFinding(test, reads("labour.activityRate"), crowding)).toBe(false);
+    expect(aboutThisFinding(test, reads("education.higher"), crowding)).toBe(true);
+  });
+
+  it("reads both sides of a comparison as fields the data test reads", () => {
+    const test = { link: "together", x: "education.higher", y: crowding.measure, year: 2024, level: "commune", direction: "negative" } as const;
+    const both: Check = { check: "compare", left: { of: { unit: "self" }, field: "labour.activityRate", year: 2024 }, op: ">", right: { of: { unit: "country" }, field: "education.higher", year: 2024 } };
+    expect(aboutThisFinding(test, both, crowding)).toBe(true);
+  });
+
+  it("refuses another outcome, or another level", () => {
+    const test = { link: "together", x: "education.higher", y: "fertility.totalFertilityRate", year: 2024, level: "commune", direction: "negative" } as const;
+    expect(aboutThisFinding(test, reads("education.higher"), crowding)).toBe(false);
+    expect(aboutThisFinding({ ...test, y: crowding.measure, level: "province" }, reads("education.higher"), crowding)).toBe(false);
+  });
+
+  it("asks a change finding's together test to pair changes", () => {
+    const moved = { ...crowding, kind: "change" } as const;
+    const test = { link: "together", x: "education.higher", y: moved.measure, year: 2024, level: "commune", direction: "negative" } as const;
+    expect(aboutThisFinding(test, reads("education.higher"), moved)).toBe(false);
+    expect(aboutThisFinding({ ...test, year: "change" }, reads("education.higher"), moved)).toBe(true);
   });
 });

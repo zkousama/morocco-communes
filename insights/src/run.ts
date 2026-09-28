@@ -15,44 +15,30 @@ import type { Data } from "./data.ts";
 import { loadData } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
 import { falsify, NO_ANSWER, PROMPT_HASH as FALSIFY_PROMPT_HASH, UNREADABLE } from "./falsify.ts";
-import { judgeLinks, runLink, type LinkOutcome, type LinkTest } from "./links.ts";
+import { aboutThisFinding, judgeLinks, linkSeed, runLink, type LinkOutcome, type LinkResult } from "./links.ts";
 import {
   addUsage,
-  claudeTransport,
-  geminiTransport,
   hash,
   LimitError,
   makeRunner,
   messageOf,
   NO_USAGE,
-  ollamaTransport,
   readLocal,
   RETRY_DEFAULTS,
+  STOP_AFTER_FAILURES,
   withRetries,
-  type Local,
   type Runner,
-  type Transport,
   type Usage,
 } from "./model.ts";
 import { mapPool } from "./pool.ts";
 import { propose, PROMPT_HASH as PROPOSE_PROMPT_HASH, type Candidate, type Proposal } from "./propose.ts";
-import { termsPattern } from "./safety.ts";
+import { localWarning, termsPattern } from "./safety.ts";
 import { guard, METRICS_PATH, type Metrics } from "./score.ts";
-import { readSetup, type Role, type Setup } from "./setup.ts";
+import { readSetup, transportFor, type Setup } from "./setup.ts";
 import { breakdown, findingLine } from "./text.ts";
 import { newIds, traceparent, exportSpans, type Span } from "./trace.ts";
-import { evaluate, fieldsRead, type Check, type Outcome } from "./vocabulary.ts";
-import { familyOf, type Level } from "./fields.ts";
-
-/** A link test as it was judged: `reason` says why a refused one couldn't be run. */
-export type LinkResult = LinkTest & {
-  verdict: "consistent" | "not consistent" | "refused";
-  p: number;
-  effect: number;
-  size: number;
-  placeboEffects: number[];
-  reason?: string;
-};
+import { evaluate, type Check, type Outcome } from "./vocabulary.ts";
+import type { Level } from "./fields.ts";
 
 export interface Hypothesis {
   claim: { en: string; fr: string };
@@ -142,23 +128,6 @@ function runIdOf(startedAt: string, datasetVersion: string, models: { propose: s
   return hash(JSON.stringify([startedAt, [PROPOSE_PROMPT_HASH, FALSIFY_PROMPT_HASH], STAGE_VERSIONS, datasetVersion, models])).slice(0, 12);
 }
 
-/** A link test's own fields, sorted: unlike a `Check`'s signature, none of them are floats that need rounding. */
-function linkSignature(test: LinkTest): string {
-  const sorted: Record<string, unknown> = {};
-  for (const key of Object.keys(test).sort()) sorted[key] = (test as Record<string, unknown>)[key];
-  return JSON.stringify(sorted);
-}
-
-/**
- * A link test's seed, from the finding it belongs to and its own signature, so a re-run
- * picks the same placebos, and so does the pilot's own stage A, which shares this instead of
- * keeping a second seed of its own: the same link test gets the same placebos whichever
- * proposer offered it.
- */
-export function linkSeed(findingId: string, test: LinkTest): number {
-  return parseInt(hash(`${findingId}:${linkSignature(test)}`).slice(0, 8), 16);
-}
-
 /** A candidate still alive after `falsify`, waiting on a link verdict the whole run decides together. */
 interface Pending {
   order: number;
@@ -193,27 +162,6 @@ export function orderByDemand<T extends { code: string; score: number }>(finding
 }
 
 const NOT_ABOUT_THIS_FIGURE = "not about this figure";
-
-/**
- * Whether a candidate's link test is about the figure it's meant to explain, and so worth
- * running at all; one that isn't is refused, "not about this figure". Its outcome has to be
- * the finding's own measure, read at the finding's own level. Its premise has to be a field
- * the candidate's own data test reads, so the link tested is the one the checked premise
- * stands on, and outside the measure's family, since a figure paired with itself or with
- * another part of the same whole goes with it by construction. A change finding's
- * `together` test has to pair changes too: a 2024 pattern says nothing about why a figure
- * moved.
- */
-export function aboutThisFinding(test: LinkTest, check: Check, finding: Finding): boolean {
-  const [premise, outcome] = test.link === "together" ? [test.x, test.y] : [test.premise, test.outcome];
-  if (outcome !== finding.measure || test.level !== finding.level) return false;
-  if (!fieldsRead(check).includes(premise) || familyOf(finding.measure).has(premise)) return false;
-  if (finding.kind === "change" && test.link === "together" && test.year !== "change") return false;
-  return true;
-}
-
-/** How many calls in a row may fail before a run stops: past a subscription's limit, every call fails the same way. */
-export const STOP_AFTER_FAILURES = 3;
 
 /**
  * `run`, counting the calls that fail in a row. The one that makes `STOP_AFTER_FAILURES`
@@ -810,30 +758,6 @@ export function parseArgs(args: string[]): {
     only: rawOnly?.split(","),
     concurrency: rawConcurrency === undefined ? undefined : Number(rawConcurrency),
   };
-}
-
-/**
- * The line a live run warns with about the private backstop, or null when there's nothing to
- * warn about. `local` is null when `INSIGHTS_LOCAL` isn't set at all; a folder that's set but
- * whose `terms.txt` is missing or empty reads no differently from that, since either way the
- * run has no private terms, so it warns too, under its own wording that names no path.
- */
-export function localWarning(local: Local | null): string | null {
-  if (!local) return "insights: INSIGHTS_LOCAL isn't set, so no private terms are checked";
-  if (local.terms.length === 0) return "insights: no private terms are checked";
-  return null;
-}
-
-/** The transport a role's `transport` field names, built the one way regardless of whether it's playing proposer or adversary. */
-export function transportFor(role: Role, local: Local | null): Transport {
-  switch (role.transport) {
-    case "claude":
-      return claudeTransport();
-    case "ollama":
-      return ollamaTransport();
-    case "gemini":
-      return geminiTransport(local);
-  }
 }
 
 /** A mistake in how the run was started: said in one line, with nothing run. */

@@ -6,7 +6,7 @@
  */
 import { readFileSync } from "node:fs";
 import { z } from "zod";
-import type { Effort } from "./model.ts";
+import { claudeTransport, geminiTransport, ollamaTransport, type Effort, type Local, type Transport } from "./model.ts";
 
 export type TransportName = "claude" | "ollama" | "gemini";
 
@@ -92,4 +92,16 @@ export function formatSetup(setup: Setup): string {
 /** Reads and parses `path` (`SETUP_PATH` unless given), throwing a plain message when the file is missing, unparseable or invalid. */
 export function readSetup(path: string = SETUP_PATH): Setup {
   return parseSetup(JSON.parse(readFileSync(path, "utf8")));
+}
+
+/** The transport a role's `transport` field names, built the one way regardless of whether it's playing proposer or adversary. */
+export function transportFor(role: Role, local: Local | null): Transport {
+  switch (role.transport) {
+    case "claude":
+      return claudeTransport();
+    case "ollama":
+      return ollamaTransport();
+    case "gemini":
+      return geminiTransport(local);
+  }
 }

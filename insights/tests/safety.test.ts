@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { refusal, termsPattern } from "../src/safety.ts";
+import { localWarning, refusal, termsPattern } from "../src/safety.ts";
 
 describe("refusal", () => {
   it("refuses a named person", () => {
@@ -43,5 +43,19 @@ describe("private terms", () => {
   it("never lets a blank term match everything", () => {
     expect(termsPattern(["   ", "\t"])).toBeNull();
     expect(refusal("anything at all", termsPattern(["", "zorblat"]))).toBeNull();
+  });
+});
+
+describe("the private-terms warning", () => {
+  it("warns, without naming a path, when INSIGHTS_LOCAL isn't set", () => {
+    expect(localWarning(null)).toBe("insights: INSIGHTS_LOCAL isn't set, so no private terms are checked");
+  });
+
+  it("still warns, without naming a path, when the folder has no terms", () => {
+    expect(localWarning({ terms: [], keys: {} })).toBe("insights: no private terms are checked");
+  });
+
+  it("says nothing once there's at least one term", () => {
+    expect(localWarning({ terms: ["zorblat"], keys: {} })).toBeNull();
   });
 });

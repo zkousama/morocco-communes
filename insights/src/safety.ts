@@ -5,6 +5,8 @@
  * catches a named person in code, and any private terms the run was given.
  */
 
+import type { Local } from "./model.ts";
+
 export type Refusal = "individuals" | "groups" | "blame" | "terms";
 
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -44,5 +46,17 @@ export function refusal(text: string, terms: RegExp | null = null): Refusal | nu
   const t = normalise(text);
   if (terms && terms.test(t)) return "terms";
   if (individuals.some((pattern) => pattern.test(t))) return "individuals";
+  return null;
+}
+
+/**
+ * The line a run warns with about the private backstop, or null when there's nothing to
+ * warn about. `local` is null when `INSIGHTS_LOCAL` isn't set at all; a folder that's set but
+ * whose `terms.txt` is missing or empty reads no differently from that, since either way the
+ * run has no private terms, so it warns too, under its own wording that names no path.
+ */
+export function localWarning(local: Local | null): string | null {
+  if (!local) return "insights: INSIGHTS_LOCAL isn't set, so no private terms are checked";
+  if (local.terms.length === 0) return "insights: no private terms are checked";
   return null;
 }

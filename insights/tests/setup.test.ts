@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { parseSetup, readSetup } from "../src/setup.ts";
+import { describe, expect, it, vi } from "vitest";
+import { parseSetup, readSetup, transportFor, type Role } from "../src/setup.ts";
 
 const good = {
   propose: { transport: "claude", model: "sonnet", effort: "high", samples: 5 },
@@ -29,5 +29,28 @@ describe("the setup", () => {
     expect(() => parseSetup({ ...good, propose: { ...proposeWithout, efort: "high" } })).toThrow('insights/setup.json: propose: unknown key "efort"');
     expect(() => parseSetup({ ...good, falsify: { transport: "claude", model: "opus", efort: "medium" } })).toThrow('insights/setup.json: falsify: unknown key "efort"');
     expect(() => parseSetup({ ...good, attackShowOnly: true })).toThrow('insights/setup.json: unknown key "attackShowOnly"');
+  });
+});
+
+describe("transportFor", () => {
+  const roleFor = (transport: Role["transport"]): Role => ({ transport, model: "a-model" });
+
+  it("returns a working function for each transport name", () => {
+    for (const transport of ["claude", "ollama", "gemini"] as const) {
+      expect(typeof transportFor(roleFor(transport), null)).toBe("function");
+    }
+  });
+
+  it("calling the gemini one with INSIGHTS_LIVE unset rejects with the live-run message, never touching fetch", async () => {
+    delete process.env.INSIGHTS_LIVE;
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    try {
+      const transport = transportFor(roleFor("gemini"), null);
+      await expect(transport({ model: "a-model", system: "s", prompt: "p", stage: "falsify", key: "k" })).rejects.toThrow(/INSIGHTS_LIVE/);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

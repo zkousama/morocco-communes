@@ -32,11 +32,10 @@
 import type { Data } from "../data.ts";
 import { detect, type Finding } from "../detect.ts";
 import { falsify, NO_ANSWER, UNREADABLE, type Verdict } from "../falsify.ts";
-import { addUsage, classify, LimitError, messageOf, NO_USAGE, type Runner, type Usage } from "../model.ts";
+import { addUsage, classify, LimitError, messageOf, NO_USAGE, STOP_AFTER_FAILURES, type Runner, type Usage } from "../model.ts";
 import { mapPool } from "../pool.ts";
 import { propose, type Candidate, type Proposal } from "../propose.ts";
-import { judgeLinks, runLink } from "../links.ts";
-import { aboutThisFinding, linkSeed, STOP_AFTER_FAILURES, type LinkResult } from "../run.ts";
+import { aboutThisFinding, judgeLinks, linkSeed, runLink, type LinkResult } from "../links.ts";
 import { refusal } from "../safety.ts";
 import { evaluate, type Check, type Outcome } from "../vocabulary.ts";
 import { candidateIdOf, samplePool, type PoolEntry } from "./sample.ts";

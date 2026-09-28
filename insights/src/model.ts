@@ -186,6 +186,9 @@ export function claudeInvocation(call: ModelCall, parentEnv: NodeJS.ProcessEnv):
   return { args, cwd: tmpdir(), env };
 }
 
+/** How many calls in a row may fail before a run stops: past a subscription's limit, every call fails the same way. */
+export const STOP_AFTER_FAILURES = 3;
+
 /** A subscription's usage limit: waited out, not counted as a failure. `retryAfterMs` is how long the caller was told to wait, when it said. */
 export class LimitError extends Error {
   readonly retryAfterMs: number | null;

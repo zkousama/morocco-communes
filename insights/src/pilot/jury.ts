@@ -32,6 +32,7 @@ import {
   NO_USAGE,
   readLocal,
   RETRY_DEFAULTS,
+  STOP_AFTER_FAILURES,
   withRetries,
   writeJsonAtomic,
   type Local,
@@ -40,7 +41,6 @@ import {
   type Runner,
   type Usage,
 } from "../model.ts";
-import { STOP_AFTER_FAILURES } from "../run.ts";
 import { agreementOf, JURY_PATH } from "./analyse.ts";
 import { CHECKLIST_GUIDE, CHECKS, MEASURES, TRI, verdictOf, type ChecklistAnswer, type CheckName, type Measure, type Tri } from "./checklist.ts";
 import { CACHE_DIR, STAGE_A_PATH, STAGE_B_PATH } from "./cli.ts";

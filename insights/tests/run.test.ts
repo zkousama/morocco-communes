@@ -1,16 +1,15 @@
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
 import { familyOf } from "../src/fields.ts";
 import { runLink } from "../src/links.ts";
 import { hash, LimitError, makeRunner, NO_USAGE, stubTransport, type ModelCall, type Usage } from "../src/model.ts";
-import { aboutThisFinding, localWarning, parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, transportFor, type Item, type RunFile } from "../src/run.ts";
-import { parseSetup, type Role } from "../src/setup.ts";
+import { parseArgs, pipeline, publishable, publishIfAllowed, readBaseline, summary, type Item, type RunFile } from "../src/run.ts";
+import { parseSetup } from "../src/setup.ts";
 import type { Metrics } from "../src/score.ts";
-import type { Check } from "../src/vocabulary.ts";
 
 const data = loadData();
 const proposal = JSON.stringify({ hypotheses: [{
@@ -415,53 +414,6 @@ describe("a link test that isn't about the finding", () => {
   });
 });
 
-describe("what makes a link test about its figure", () => {
-  const base = { id: "t", code: "01.511.01.0", level: "commune", value: 30, reference: 10, score: 4, direction: "high" } as const;
-  const unoccupied = { ...base, measure: "housing.occupancy.unoccupied", kind: "extreme" } as const;
-  const crowding = { ...base, measure: "households.peoplePerRoom", kind: "extreme" } as const;
-  const reads = (field: string): Check => ({ check: "compare", left: { of: { unit: "self" }, field, year: 2024 }, op: ">", right: { value: 0 } });
-
-  it("refuses the 3 pairings the review found consistent", () => {
-    expect(aboutThisFinding(
-      { link: "together", x: crowding.measure, y: crowding.measure, year: 2024, level: "commune", direction: "positive" },
-      reads(crowding.measure), crowding,
-    )).toBe(false);
-    expect(aboutThisFinding(
-      { link: "together", x: "housing.occupancy.seasonal", y: unoccupied.measure, year: 2024, level: "commune", direction: "positive" },
-      reads("housing.occupancy.seasonal"), unoccupied,
-    )).toBe(false);
-    expect(aboutThisFinding(
-      { link: "peers", premise: "housing.occupancy.vacant", outcome: unoccupied.measure, level: "commune", direction: "higher" },
-      reads("housing.occupancy.vacant"), unoccupied,
-    )).toBe(false);
-  });
-
-  it("refuses a premise the data test doesn't read", () => {
-    const test = { link: "together", x: "education.higher", y: crowding.measure, year: 2024, level: "commune", direction: "negative" } as const;
-    expect(aboutThisFinding(test, reads("labour.activityRate"), crowding)).toBe(false);
-    expect(aboutThisFinding(test, reads("education.higher"), crowding)).toBe(true);
-  });
-
-  it("reads both sides of a comparison as fields the data test reads", () => {
-    const test = { link: "together", x: "education.higher", y: crowding.measure, year: 2024, level: "commune", direction: "negative" } as const;
-    const both: Check = { check: "compare", left: { of: { unit: "self" }, field: "labour.activityRate", year: 2024 }, op: ">", right: { of: { unit: "country" }, field: "education.higher", year: 2024 } };
-    expect(aboutThisFinding(test, both, crowding)).toBe(true);
-  });
-
-  it("refuses another outcome, or another level", () => {
-    const test = { link: "together", x: "education.higher", y: "fertility.totalFertilityRate", year: 2024, level: "commune", direction: "negative" } as const;
-    expect(aboutThisFinding(test, reads("education.higher"), crowding)).toBe(false);
-    expect(aboutThisFinding({ ...test, y: crowding.measure, level: "province" }, reads("education.higher"), crowding)).toBe(false);
-  });
-
-  it("asks a change finding's together test to pair changes", () => {
-    const moved = { ...crowding, kind: "change" } as const;
-    const test = { link: "together", x: "education.higher", y: moved.measure, year: 2024, level: "commune", direction: "negative" } as const;
-    expect(aboutThisFinding(test, reads("education.higher"), moved)).toBe(false);
-    expect(aboutThisFinding({ ...test, year: "change" }, reads("education.higher"), moved)).toBe(true);
-  });
-});
-
 describe("how many hypotheses a finding keeps", () => {
   const finding = pickIsolatedFinding(STAGE_TEST_FIELDS);
   // Sample i proposes the first (5 - i) fields, so across the 5 samples each field gets a
@@ -621,42 +573,5 @@ describe("publishing", () => {
     const result = await publishIfAllowed({ outDir, publishedPath, run: { runId: "run-b", partial: false }, metrics: worse, baseline, files: new Map([["index.json", []]]) });
     expect(result.written).toBe(false);
     expect(JSON.parse(readFileSync(publishedPath, "utf8")).runId).toBe("run-a");
-  });
-});
-
-describe("the private-terms warning", () => {
-  it("warns, without naming a path, when INSIGHTS_LOCAL isn't set", () => {
-    expect(localWarning(null)).toBe("insights: INSIGHTS_LOCAL isn't set, so no private terms are checked");
-  });
-
-  it("still warns, without naming a path, when the folder has no terms", () => {
-    expect(localWarning({ terms: [], keys: {} })).toBe("insights: no private terms are checked");
-  });
-
-  it("says nothing once there's at least one term", () => {
-    expect(localWarning({ terms: ["zorblat"], keys: {} })).toBeNull();
-  });
-});
-
-describe("transportFor", () => {
-  const roleFor = (transport: Role["transport"]): Role => ({ transport, model: "a-model" });
-
-  it("returns a working function for each transport name", () => {
-    for (const transport of ["claude", "ollama", "gemini"] as const) {
-      expect(typeof transportFor(roleFor(transport), null)).toBe("function");
-    }
-  });
-
-  it("calling the gemini one with INSIGHTS_LIVE unset rejects with the live-run message, never touching fetch", async () => {
-    delete process.env.INSIGHTS_LIVE;
-    const fetchSpy = vi.fn();
-    vi.stubGlobal("fetch", fetchSpy);
-    try {
-      const transport = transportFor(roleFor("gemini"), null);
-      await expect(transport({ model: "a-model", system: "s", prompt: "p", stage: "falsify", key: "k" })).rejects.toThrow(/INSIGHTS_LIVE/);
-      expect(fetchSpy).not.toHaveBeenCalled();
-    } finally {
-      vi.unstubAllGlobals();
-    }
   });
 });

@@ -9,8 +9,11 @@
 import { z } from "zod";
 import { regionOfCode } from "../../pipeline/src/lib/levels.ts";
 import type { Data, Unit } from "./data.ts";
+import type { Finding } from "./detect.ts";
 import { familyOf, field, FIELDS, type Field, type Level } from "./fields.ts";
+import { hash } from "./model.ts";
 import { benjaminiHochberg, mannWhitneyP, permutationP, rng, spearman } from "./stats.ts";
+import { fieldsRead, type Check } from "./vocabulary.ts";
 
 export type LinkTest =
   | { link: "together"; x: string; y: string; year: 2024 | "change"; level: Level; direction: "positive" | "negative" }
@@ -268,4 +271,48 @@ export function judgeLinks(outcomes: LinkOutcome[], q = FALSE_DISCOVERY_RATE): (
     const beatsPlacebos = outcome.placeboEffects.every((placebo) => Math.abs(outcome.effect) > Math.abs(placebo));
     return isDiscovery.get(i) && outcome.held && beatsPlacebos && outcome.size >= EFFECT_FLOOR ? "consistent" : "not consistent";
   });
+}
+
+/** A link test as it was judged: `reason` says why a refused one couldn't be run. */
+export type LinkResult = LinkTest & {
+  verdict: "consistent" | "not consistent" | "refused";
+  p: number;
+  effect: number;
+  size: number;
+  placeboEffects: number[];
+  reason?: string;
+};
+
+/** A link test's own fields, sorted: unlike a `Check`'s signature, none of them are floats that need rounding. */
+function linkSignature(test: LinkTest): string {
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(test).sort()) sorted[key] = (test as Record<string, unknown>)[key];
+  return JSON.stringify(sorted);
+}
+
+/**
+ * A link test's seed, from the finding it belongs to and its own signature, so a re-run
+ * picks the same placebos: the same link test gets the same placebos whichever proposer
+ * offered it.
+ */
+export function linkSeed(findingId: string, test: LinkTest): number {
+  return parseInt(hash(`${findingId}:${linkSignature(test)}`).slice(0, 8), 16);
+}
+
+/**
+ * Whether a candidate's link test is about the figure it's meant to explain, and so worth
+ * running at all; one that isn't is refused, "not about this figure". Its outcome has to be
+ * the finding's own measure, read at the finding's own level. Its premise has to be a field
+ * the candidate's own data test reads, so the link tested is the one the checked premise
+ * stands on, and outside the measure's family, since a figure paired with itself or with
+ * another part of the same whole goes with it by construction. A change finding's
+ * `together` test has to pair changes too: a 2024 pattern says nothing about why a figure
+ * moved.
+ */
+export function aboutThisFinding(test: LinkTest, check: Check, finding: Finding): boolean {
+  const [premise, outcome] = test.link === "together" ? [test.x, test.y] : [test.premise, test.outcome];
+  if (outcome !== finding.measure || test.level !== finding.level) return false;
+  if (!fieldsRead(check).includes(premise) || familyOf(finding.measure).has(premise)) return false;
+  if (finding.kind === "change" && test.link === "together" && test.year !== "change") return false;
+  return true;
 }
