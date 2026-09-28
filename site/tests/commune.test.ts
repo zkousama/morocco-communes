@@ -19,4 +19,9 @@ describe("a commune page's layout", () => {
     expect(at('<nav class="contents" aria-label={p.onThisPage}>')).toBeGreaterThan(at('<div class="context">'));
     expect(at('<nav class="contents" aria-label={p.onThisPage}>')).toBeLessThan(at("<h2>{p.where}</h2>"));
   });
+
+  it("spaces the section links apart with no separator, which would start a wrapped line", () => {
+    expect(source).not.toMatch(/\.contents li[^{]*::before/);
+    expect(source).toMatch(/\.contents ul \{[^}]*flex-wrap: wrap;/);
+  });
 });

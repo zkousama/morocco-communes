@@ -391,21 +391,16 @@ getCommune("${c.slug}");`;
   }
 
   /* Quiet like the breadcrumb, and wrapping the same way, so a phone gets 2 or 3 short
-     lines rather than a page wider than the screen. */
+     lines rather than a page wider than the screen. Space alone parts the links: a
+     separator would start a wrapped line. */
   .contents ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 0.5rem;
+    gap: 0.25rem 1.25rem;
     list-style: none;
     margin: 1.25rem 0 0;
     padding: 0;
     font-size: var(--t-sm);
-  }
-
-  .contents li + li::before {
-    content: "·";
-    margin-inline-end: 0.5rem;
-    color: var(--quiet);
   }
 
   .contents a {
