@@ -457,7 +457,7 @@ export const mcp = {
     {
       "name": "get_insights",
       "title": "Figures that stand out in a commune",
-      "description": "For a commune, up to 3 of its 2024 census figures that stand out: among the highest or lowest communes, moved far more or less than other communes since 2014, or far from its province's figure. Each comes with its context as numbers, worked out from the census: the commune's other figures here, the communes it borders on the same figure (their median and the one furthest from it), and the same figure in 2014 beside Morocco's, where the two censuses can be compared. Figures the two censuses measure differently, shares by sex and likely errors in the data are left out. No language model writes or judges any of it. Only communes have these, and most have none.",
+      "description": "For a commune, up to 3 of its 2024 census figures that stand out: among the highest or lowest communes, moved far more or less than other communes since 2014, or far from its province's figure. Each comes with its context as numbers, worked out from the census: the commune's other figures here, the communes it borders on the same figure (their median and the one furthest from it), and the same figure in 2014 beside Morocco's, where the two censuses can be compared. A commune with any figure the two censuses disagree on is left out, on its own page and as a neighbour. Figures they measure differently, shares by sex and likely errors in the data are left out too. No language model writes or judges any of it. Only communes have these, and most have none.",
       "params": [
         {
           "name": "unit",

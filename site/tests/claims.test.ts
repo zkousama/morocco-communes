@@ -55,4 +55,12 @@ describe("the counts the prose states", () => {
     expect(readme).toContain(`asks a model ${CASES.length} questions`);
     expect(text("evals/README.md")).toContain(`holds ${CASES.length} questions`);
   });
+
+  it("gives the changelog the published insights counts", () => {
+    const index = json<{ findings: number }[]>("data/v1/insights/index.json");
+    const figures = index.reduce((n, r) => n + r.findings, 0);
+    const changelog = text("CHANGELOG.md");
+    expect(changelog).toContain(`${figures} figures`);
+    expect(changelog).toContain(`${index.length} communes`);
+  });
 });
