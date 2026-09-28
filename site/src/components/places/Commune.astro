@@ -195,6 +195,13 @@ getCommune("${c.slug}");`;
     </div>
   </dl>
 
+  {(gapPage || twinPage) && (
+    <div class="context">
+      {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
+      {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
+    </div>
+  )}
+
   <section class="pair">
     <div>
       <h2>{p.where}</h2>
@@ -239,13 +246,6 @@ getCommune("${c.slug}");`;
         srText={`${c.name.fr} ${signed(change.pct)}`}
       />
     </section>
-  )}
-
-  {(gapPage || twinPage) && (
-    <div class="context">
-      {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
-      {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
-    </div>
   )}
 
   {census && <People locale={locale} record={census} name={c.name.fr} />}
@@ -361,10 +361,10 @@ getCommune("${c.slug}");`;
     font-weight: 500;
   }
 
-  /* A lead-in to the census figures below, spaced like a section but without a heading, so
-     two sentences don't take the room of one. */
+  /* Read with the headline numbers rather than as a section of its own, so it sits close
+     under them and has no heading. */
   .context {
-    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+    padding-top: 1.25rem;
   }
 
   .context p {
