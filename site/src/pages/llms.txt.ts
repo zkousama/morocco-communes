@@ -30,7 +30,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Census indicators](${at("/api/communes/tanger/indicators")}): HCP's 2024 figures for one unit, for the whole of it and its urban and rural parts, for men and women; /api/{level}/{code}/indicators for any unit, /api/indicators.json for Morocco
 - [Economic establishments](${at("/api/communes/tiznit/economy")}): the 2024 count of establishments, businesses, permanent jobs and weekly souks for one unit; /api/{level}/{code}/economy for any unit, /api/economy.json for Morocco
 - [Urban housing](${at("/api/communes/tiznit/housing")}): the 2024 urban dwellings of one unit, by occupancy, kind, age, materials and networks; /api/housing.json for Morocco
-- [Insights](${at("/api/insights.json")}): possible reasons a language model proposed for a 2024 census figure that stands out, each resting on a census fact that was checked; /api/{level}/{code}/insights.json for one unit
+- [Insights](${at("/api/insights.json")}): a commune's 2024 census figures that stand out, each with its neighbours and 2014 worked out from the census, with no language model involved; /api/communes/{code}/insights.json for one commune
 - [Version](${at("/api/version.json")}): dataset version, record counts and when each source was read
 
 ## Pages
@@ -46,7 +46,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Python package](${at("/docs/python/")}): \`morocco-communes\` on PyPI, every table as a pandas DataFrame, offline
 - [Glossary](${at("/docs/glossary/")}): what the units, the census terms, the establishments and the dwelling types mean, with HCP's own wording where it defines one
 - [Census figures](${at("/docs/indicators/")}): every census indicator from 2024 and 2014, with HCP's heading for it, its unit, its path and CSV column, and how to read it
-- [How the insights are made](${at("/docs/insights/")}): how a figure that stands out is picked, how each possible reason a language model proposes for it is checked, and how the checks are graded
+- [How the insights are made](${at("/docs/insights/")}): how a figure that stands out is picked, what's left out, and how its context is worked out
 
 ## Data
 

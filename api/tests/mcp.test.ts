@@ -40,14 +40,20 @@ emitIndicators(tree as never, indicatorRecords);
 const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree as never, economyRecords);
 emitHousing(tree as never, await readHousing("data/v1"));
-// No insights are published yet, so a hand-written unit stands in for one: Rabat, with a
-// single finding and no hypotheses that survived.
+// A hand-written unit stands in for a published one, so these tests don't move each time the
+// pipeline is re-run: Rabat, with one figure and its context.
 emitInsights(tree as never, {
   units: [{
-    code: "04.421.01.0", level: "commune", datasetVersion: "1.8.0", checkedAt: "2026-09-24",
+    code: "04.421.01.0", level: "commune", name: { fr: "Rabat", ar: "الرباط" }, datasetVersion: "1.9.0",
     findings: [{ id: "abc123def456", kind: "extreme", measure: "fertility.totalFertilityRate",
+      value: 1.19, reference: 2.2, score: 3.4, direction: "low",
       line: { en: "Fertility is 1.19 children per woman", fr: "La fécondité est de 1,19 enfant par femme" },
-      breakdown: null, hypotheses: [] }],
+      breakdown: null,
+      context: {
+        others: [],
+        neighbours: { bordering: 4, compared: 3, median: 1.62, furthest: { code: "04.441.01.0", name: { fr: "Salé", ar: "سلا" }, value: 1.9 } },
+        since2014: { then: 1.6, now: 1.19, morocco: { then: 2.2, now: 1.97 } },
+      } }],
   }],
   index: [{ code: "04.421.01.0", level: "commune", findings: 1 }],
 });
@@ -541,26 +547,49 @@ describe("get_housing", () => {
 });
 
 describe("get_insights", () => {
-  type Found = { unit: Record<string, unknown>; findings: { line: { en: string } }[] };
+  type Found = { unit: Record<string, unknown>; findings: Record<string, unknown>[] };
   const found = (r: Result) => r.structuredContent as unknown as Found;
 
-  it("gives a place's findings", async () => {
+  it("gives a commune's figures, with their lines", async () => {
     const r = await call("get_insights", { unit: "rabat" });
     expect(r.isError).toBeFalsy();
     expect(found(r).unit).toMatchObject({ code: "04.421.01.0" });
-    expect(found(r).findings[0]!.line.en).toContain("1.19");
+    expect(found(r).findings[0]).toMatchObject({ line: { en: "Fertility is 1.19 children per woman" } });
   });
 
-  it("says what kind of figure each finding is, and which measure", async () => {
+  it("says what kind of figure each one is, which measure, its value and which way it stands out", async () => {
     const r = await call("get_insights", { unit: "rabat" });
-    expect(found(r).findings[0]).toMatchObject({ kind: "extreme", measure: "fertility.totalFertilityRate" });
+    expect(found(r).findings[0]).toMatchObject({
+      kind: "extreme", measure: "fertility.totalFertilityRate", value: 1.19, reference: 2.2, direction: "low",
+    });
   });
 
-  it("says no reasons are published for a place with none, without an error", async () => {
+  it("gives each figure's context as numbers: its neighbours and 2014", async () => {
+    const r = await call("get_insights", { unit: "rabat" });
+    expect(found(r).findings[0]!.context).toEqual({
+      others: [],
+      neighbours: { bordering: 4, compared: 3, median: 1.62, furthest: { code: "04.441.01.0", name: { fr: "Salé", ar: "سلا" }, value: 1.9 } },
+      since2014: { then: 1.6, now: 1.19, morocco: { then: 2.2, now: 1.97 } },
+    });
+  });
+
+  it("carries nothing from the old model-written records", async () => {
+    const r = await call("get_insights", { unit: "rabat" });
+    expect(found(r).findings[0]).not.toHaveProperty("hypotheses");
+  });
+
+  it("says no figures are published for a commune with none, without an error", async () => {
     const r = await call("get_insights", { unit: "tiznit" });
     expect(r.isError).toBeFalsy();
     expect(found(r).findings).toEqual([]);
-    expect(text(r)).toContain("No possible reasons are published for Tiznit.");
+    expect(text(r)).toContain("No figures are published for Tiznit.");
+  });
+
+  it("says only communes have them when asked about a province", async () => {
+    const r = await call("get_insights", { unit: "tiznit", level: "province" });
+    expect(r.isError).toBeFalsy();
+    expect(found(r).findings).toEqual([]);
+    expect(text(r)).toContain("only communes");
   });
 });
 

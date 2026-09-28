@@ -331,12 +331,12 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
       "/api/insights.json": {
         get: {
           operationId: "listInsights",
-          summary: "Every unit with a published insight",
+          summary: "Every commune with a published figure that stands out",
           description:
-            "Possible reasons a language model proposed for a 2024 census figure that stands out, each resting on a fact about the place that was checked against the census; see the methods page for how one earns a place here. " +
-            "Each row is a unit's code, its level and how many findings it has; read `/api/{collection}/{code}/insights.json` for the findings themselves, with `collection` from the level (regions, provinces, communes or arrondissements). " +
-            "Most units aren't listed: they have no figure that stood out, or none survived the checks.",
-          responses: { "200": ok("Every unit with a published insight.", { type: "array", items: { type: "object" } }) },
+            "A commune's 2024 census figures that stand out, up to 3, each with its context worked out from the census: the communes it borders on the same figure, and the same figure in 2014 beside Morocco's, where the two censuses can be compared. No language model writes or judges any of it; see the methods page for how a figure is picked. " +
+            "Each row is a commune's code, its level and how many figures it has; read `/api/communes/{code}/insights.json` for the figures themselves. " +
+            "Most communes aren't listed: none of their figures stood out, or those that did were left out.",
+          responses: { "200": ok("Every commune with a published figure that stands out.", { type: "array", items: { type: "object" } }) },
         },
       },
       "/api/regions.json": {

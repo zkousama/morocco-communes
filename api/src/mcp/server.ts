@@ -57,7 +57,9 @@ const INSTRUCTIONS =
   "get_economy gives the 2024 count of economic establishments for the same units: businesses by sector, by size and by when they were founded, " +
   "and the permanent jobs they hold. " +
   "get_housing gives the 2024 urban housing stock: how many dwellings a town has, how many stand empty, what kind they are and what they are made of. " +
-  "get_insights gives possible reasons a language model proposed for a 2024 census figure that stands out. Each rests on a fact about the place that was checked against the census, and its link to the figure is tested for consistency across places where a test fits, or marked as proposed only.";
+  "get_insights gives up to 3 of a commune's 2024 census figures that stand out, each with its context worked out from the census: " +
+  "the communes it borders on the same figure, and the same figure in 2014 beside Morocco's, where the two censuses can be compared. " +
+  "No language model writes or judges any of it.";
 
 /** Where each level's files live. */
 const COLLECTION: Record<Level, string> = {
@@ -821,15 +823,17 @@ export function createMcpServer(deps: McpDeps): McpServer {
   server.registerTool(
     "get_insights",
     {
-      title: "Possible reasons for a figure that stands out",
+      title: "Figures that stand out in a commune",
       description:
-        "For a place with a 2024 census figure that stands out, up to 3 possible reasons a language model proposed. " +
-        "Each rests on a fact about the place, checked against the census, and a link between that fact and the figure, " +
-        "tested for consistency across places of the same level where a test fits it, and marked proposed only otherwise. " +
-        "This explains a figure rather than stating it; get_indicators, get_economy and get_housing give the figures themselves. " +
-        "Most places have nothing here yet.",
+        "For a commune, up to 3 of its 2024 census figures that stand out: among the highest or lowest communes, " +
+        "moved far more or less than other communes since 2014, or far from its province's figure. " +
+        "Each comes with its context as numbers, worked out from the census: the commune's other figures here, " +
+        "the communes it borders on the same figure (their median and the one furthest from it), " +
+        "and the same figure in 2014 beside Morocco's, where the two censuses can be compared. " +
+        "Figures the two censuses measure differently, shares by sex and likely errors in the data are left out. " +
+        "No language model writes or judges any of it. Only communes have these, and most have none.",
       inputSchema: {
-        unit: z.string().min(1).describe("A région, province, commune or arrondissement, by code or slug."),
+        unit: z.string().min(1).describe("A commune, by code or slug."),
         level: z
           .enum(LEVELS)
           .optional()
@@ -842,25 +846,41 @@ export function createMcpServer(deps: McpDeps): McpServer {
           name_fr: z.string(),
           name_ar: z.string().nullable(),
         }),
-        message: z.string().optional().describe("Present when no reasons are published for this place."),
+        message: z.string().optional().describe("Present when no figures are published for this place."),
         findings: z.array(
           z.object({
+            id: z.string(),
             kind: z
-              .enum(["extreme", "change", "gap", "artefact"])
-              .describe("extreme: among the highest or lowest communes; change: moved far more or less than others since 2014; gap: far from its parent's figure; artefact: may be an error in the data."),
+              .enum(["extreme", "change", "gap"])
+              .describe("extreme: among the highest or lowest communes; change: moved far more or less than other communes since 2014; gap: far from its province's figure."),
             measure: z.string().describe("The figure's field, as get_indicators, get_economy and get_housing name it."),
+            value: z.number().describe("The 2024 figure, or for a change the points it moved since 2014."),
+            reference: z.number().describe("What it stands out from: the communes' mean, its province's figure, or 0 for a change."),
+            direction: z.enum(["high", "low"]),
             line: z.object({ en: z.string(), fr: z.string() }),
             breakdown: z.unknown().nullable().describe("The parts the figure is made of, where the dataset has them."),
-            hypotheses: z.array(
-              z.object({
-                claim: z.object({ en: z.string(), fr: z.string() }),
-                link: z.object({ en: z.string(), fr: z.string() }),
-                premise: z.object({ en: z.string(), fr: z.string() }),
-                evidence: z.object({ kind: z.string(), check: z.unknown(), numbers: z.record(z.string(), z.number()) }),
-                linkTest: z.unknown().nullable().describe("null where no link test fits or was proposed; otherwise its verdict, p-value and effect."),
-                artefact: z.boolean().describe("true when the reason given is that the figure may be an error in the data."),
-              }),
-            ),
+            context: z.object({
+              others: z
+                .array(z.object({ id: z.string(), kind: z.string(), measure: z.string() }))
+                .describe("The commune's other figures here."),
+              neighbours: z
+                .object({
+                  bordering: z.number().describe("How many communes it borders."),
+                  compared: z.number().describe("How many of them have the figure to compare; the median is over these."),
+                  median: z.number(),
+                  furthest: z.object({
+                    code: z.string(),
+                    name: z.object({ fr: z.string(), ar: z.string().nullable() }),
+                    value: z.number(),
+                  }).describe("The bordering commune whose figure is furthest from this one's."),
+                })
+                .nullable()
+                .describe("The bordering communes on the same figure, or for a change on the same change; null when none can be compared."),
+              since2014: z
+                .object({ then: z.number(), now: z.number(), morocco: z.object({ then: z.number(), now: z.number() }) })
+                .nullable()
+                .describe("The figure in 2014 and 2024, here and across Morocco; null where the two censuses can't be compared."),
+            }),
           }),
         ),
       },
@@ -876,41 +896,38 @@ export function createMcpServer(deps: McpDeps): McpServer {
         name_fr: nameOf.get(found.code) ?? found.code,
         name_ar: arNameOf.get(found.code) ?? null,
       };
-      const body = await fetchJson(`/api/${COLLECTION[found.level]}/${found.code}/insights.json`);
+      if (found.level !== "commune") {
+        return ok({ unit: unitOut, findings: [], message: `These figures cover only communes, and ${unitOut.name_fr} is a ${found.level}.` });
+      }
+      const body = await fetchJson(`/api/communes/${found.code}/insights.json`);
       if (!body) {
-        return ok({ unit: unitOut, findings: [], message: `No possible reasons are published for ${unitOut.name_fr}.` });
+        return ok({ unit: unitOut, findings: [], message: `No figures are published for ${unitOut.name_fr}.` });
       }
       const record = body.data as unknown as {
         findings: {
-          kind: "extreme" | "change" | "gap" | "artefact";
+          id: string;
+          kind: "extreme" | "change" | "gap";
           measure: string;
+          value: number;
+          reference: number;
+          direction: "high" | "low";
           line: { en: string; fr: string };
           breakdown: unknown;
-          hypotheses: {
-            claim: { en: string; fr: string };
-            link: { en: string; fr: string };
-            premise: { en: string; fr: string };
-            evidence: { kind: string; check: unknown; numbers: Record<string, number> };
-            linkTest: unknown;
-            artefact?: boolean;
-          }[];
+          context: { others: unknown[]; neighbours: unknown; since2014: unknown };
         }[];
       };
       return ok({
         unit: unitOut,
         findings: record.findings.map((f) => ({
+          id: f.id,
           kind: f.kind,
           measure: f.measure,
+          value: f.value,
+          reference: f.reference,
+          direction: f.direction,
           line: f.line,
           breakdown: f.breakdown,
-          hypotheses: f.hypotheses.map((h) => ({
-            claim: h.claim,
-            link: h.link,
-            premise: h.premise,
-            evidence: h.evidence,
-            linkTest: h.linkTest,
-            artefact: h.artefact ?? false,
-          })),
+          context: f.context,
         })),
       });
     },

@@ -117,12 +117,12 @@ export const SPEC_FR: Record<string, string> = {
   "getNationalHousing.description": "Les mêmes chiffres pour toutes les villes du pays réunies.",
   "getNationalHousing.200": "Le parc logement urbain du Maroc.",
 
-  "listInsights.summary": "Chaque unité qui a un constat publié",
+  "listInsights.summary": "Chaque commune qui a un chiffre publié qui se détache",
   "listInsights.description":
-    "Des raisons possibles qu'un modèle de langage a proposées pour un chiffre du recensement de 2024 qui se détache, chacune reposant sur un fait du lieu vérifié dans le recensement ; voir la page méthode pour savoir comment un constat y trouve sa place. " +
-    "Chaque ligne donne le code d'une unité, son niveau et le nombre de constats qu'elle a ; lire `/api/{collection}/{code}/insights.json` pour les constats eux-mêmes, `collection` venant du niveau (regions, provinces, communes ou arrondissements). " +
-    "La plupart des unités n'y figurent pas : aucun chiffre ne s'y détache chez elles, ou aucun constat n'a passé les vérifications.",
-  "listInsights.200": "Chaque unité qui a un constat publié.",
+    "Les chiffres du recensement de 2024 d'une commune qui se détachent, 3 au plus, chacun avec son contexte tiré du recensement : les communes voisines sur le même chiffre, et le même chiffre en 2014 à côté de celui du Maroc, là où les deux recensements se comparent. Aucun modèle de langage n'en écrit ni n'en juge rien ; voir la page méthode pour savoir comment un chiffre est choisi. " +
+    "Chaque ligne donne le code d'une commune, son niveau et le nombre de ses chiffres ; lire `/api/communes/{code}/insights.json` pour les chiffres eux-mêmes. " +
+    "La plupart des communes n'y figurent pas : aucun de leurs chiffres ne s'est détaché, ou ceux qui l'ont fait ont été écartés.",
+  "listInsights.200": "Chaque commune qui a un chiffre publié qui se détache.",
 
   "listRegions.summary": "Les 12 régions",
   "listRegions.200": "Toutes les régions.",
@@ -312,7 +312,7 @@ export const docs = {
         "Every figure but the count of dwellings is a percentage of that unit's urban dwellings, to one decimal.",
         "784 units have an urban stock. A unit with no urban area has no record, and null inside a record is a figure the workbook leaves out, which it writes as `_`.",
         "`dwellings.deficitRate` is HCP's quantitative housing shortfall: the households living in unsound dwellings, plus the households beyond the sound shared dwellings they occupy, over the sound dwellings that are occupied or vacant. Households on top and dwellings underneath, so it passes 100% where the shortfall is larger than the sound stock.",
-        "`/api/communes/tiznit/housing` gives one unit's and `/api/housing.json` Morocco's. The MCP server's `get_housing` tool gives them to an assistant, and `get_insights` gives a language model's possible reasons for one that stands out.",
+        "`/api/communes/tiznit/housing` gives one unit's and `/api/housing.json` Morocco's. The MCP server's `get_housing` tool gives them to an assistant, and `get_insights` gives a commune's figures that stand out, with its neighbours and 2014 beside each one.",
       ],
       dwellingTopics: {
         dwellings: "Dwellings",
@@ -683,7 +683,7 @@ export const docs = {
         "Tous les chiffres sauf le nombre de logements sont des pourcentages des logements urbains de l'unité, à une décimale.",
         "784 unités ont un parc urbain. Une unité sans partie urbaine n'a pas de fiche, et null dans une fiche est un chiffre que le classeur laisse de côté, écrit `_`.",
         "`dwellings.deficitRate` est le taux de déficit quantitatif du HCP : les ménages vivant dans des logements insalubres, plus les ménages en excédent sur les logements salubres de cohabitation qu'ils occupent, rapportés aux logements salubres occupés et vacants. Des ménages au numérateur et des logements au dénominateur : le taux dépasse donc 100 % là où le déficit est plus grand que le parc salubre.",
-        "`/api/communes/tiznit/housing` donne celui d'une unité et `/api/housing.json` celui du Maroc. L'outil `get_housing` du serveur MCP les donne à un assistant, et `get_insights` donne les raisons possibles qu'un modèle de langage propose pour un chiffre qui se détache.",
+        "`/api/communes/tiznit/housing` donne celui d'une unité et `/api/housing.json` celui du Maroc. L'outil `get_housing` du serveur MCP les donne à un assistant, et `get_insights` donne les chiffres d'une commune qui se détachent, avec ses voisines et 2014 à côté de chacun.",
       ],
       dwellingTopics: {
         dwellings: "Logements",
