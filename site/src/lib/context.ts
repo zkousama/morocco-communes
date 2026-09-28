@@ -75,17 +75,15 @@ export const GAP = 30;
 export const SMALLEST_NEXT_DOOR = 1000;
 export const SMALLEST_TWIN = 5000;
 
-/** The figures the two censuses disagree on for this commune. */
-const flaggedIn = (unit: Unit) => new Set(mismatches(unit.record, unit.record["2014"]).map((m) => m.path));
-
 /**
- * A unit's figures, in the order of `measures`. One the two censuses disagree on for this
- * commune reads as missing, since it can't be set against anyone else's either.
+ * Whether the site keeps any of this commune's figures out of comparisons. Such a commune is
+ * left out of all three lines, on either side: whatever set that figure apart between the
+ * censuses may have moved its others too.
  */
-function readings(unit: Unit, measures: Measure[]): (number | null)[] {
-  const flagged = flaggedIn(unit);
-  return measures.map((m) => (flagged.has(m.path) ? null : m.read(unit.record)));
-}
+const flagged = (unit: Unit) => mismatches(unit.record, unit.record["2014"]).length > 0;
+
+/** A unit's figures, in the order of `measures`. */
+const readings = (unit: Unit, measures: Measure[]) => measures.map((m) => m.read(unit.record));
 
 export interface Gap {
   code: string;
@@ -97,11 +95,11 @@ export interface Gap {
 
 /** The widest gap between a commune and any of its neighbours on any figure, or null if none reaches GAP. */
 export function largestGap(here: Unit, around: Unit[]): Gap | null {
-  if (here.population < SMALLEST_NEXT_DOOR) return null;
+  if (here.population < SMALLEST_NEXT_DOOR || flagged(here)) return null;
   const mine = readings(here, NEXT_DOOR);
   let best: Gap | null = null;
   for (const there of around) {
-    if (there.population < SMALLEST_NEXT_DOOR) continue;
+    if (there.population < SMALLEST_NEXT_DOOR || flagged(there)) continue;
     const theirs = readings(there, NEXT_DOOR);
     for (let i = 0; i < NEXT_DOOR.length; i++) {
       const a = mine[i];
@@ -149,13 +147,9 @@ const readIn = (census: Census | null | undefined, path: string, homes: boolean)
  * The figure the commune itself moved furthest on since 2014, either way, or null if none
  * moved MOVED points. Morocco's figures ride along for the line to set beside it, so a
  * figure Morocco has none for is skipped.
- *
- * A commune with any flagged figure gets no line: whatever set that figure apart between the
- * censuses may have moved its others too.
  */
 export function largestMove(here: Unit, morocco: Unit["record"]): Move | null {
-  if (here.population < SMALLEST_MOVED || (here.population2014 ?? 0) < SMALLEST_MOVED) return null;
-  if (flaggedIn(here).size > 0) return null;
+  if (here.population < SMALLEST_MOVED || (here.population2014 ?? 0) < SMALLEST_MOVED || flagged(here)) return null;
   let best: Move | null = null;
   for (const { path, path2014, homes } of SINCE_2014) {
     const now = readIn(here.record, path, homes);
@@ -199,7 +193,7 @@ const regionOfCode = (code: string) => code.slice(0, 2);
  */
 export function nearestTwins(units: Unit[]): Map<string, Twin> {
   const eligible = units.flatMap((u) => {
-    if (u.population < SMALLEST_TWIN) return [];
+    if (u.population < SMALLEST_TWIN || flagged(u)) return [];
     const values = readings(u, TWIN);
     return values.every((v) => v !== null) ? [{ code: u.code, values: values as number[] }] : [];
   });

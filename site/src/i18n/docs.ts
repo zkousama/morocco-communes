@@ -263,7 +263,7 @@ export const docs = {
       mismatches: "Figures kept out of comparisons",
       mismatchesBody: [
         "The site leaves some places’ 2014 and 2024 figures out of its comparisons. Two kinds are checked, both because they change slowly. Either way, a share is only flagged when it moved by more than the population itself changed, so people moving in or out can’t account for it.",
-        "A flagged figure is left out of the lines that set a commune beside a neighbour and beside its closest match. A commune with any flagged figure gets no line on what moved since 2014. Each place’s page says which of its figures are flagged.",
+        "A commune with any flagged figure isn’t compared with a neighbour or its closest match, on its own page or on another commune’s, and it gets no line on what moved since 2014. Each place’s page says which of its figures are flagged.",
       ],
       mismatchLanguages: "Local languages",
       mismatchLanguagesBody: [
@@ -634,7 +634,7 @@ export const docs = {
       mismatches: "Chiffres écartés des comparaisons",
       mismatchesBody: [
         "Le site écarte de ses comparaisons certains chiffres de 2014 et de 2024. Deux sortes de chiffres sont vérifiées, parce qu’ils changent lentement. Dans les deux cas, une part n’est signalée que si elle a bougé de plus que la population elle-même, si bien que les arrivées et les départs ne peuvent pas l’expliquer.",
-        "Un chiffre signalé est écarté des lignes qui mettent une commune à côté d’une voisine et de celle qui lui ressemble le plus. Une commune qui a un chiffre signalé n’a pas de ligne sur ce qui a bougé depuis 2014. La page de chaque lieu dit lesquels de ses chiffres sont signalés.",
+        "Une commune qui a un chiffre signalé n’est comparée ni à une voisine ni à celle qui lui ressemble le plus, sur sa page comme sur celle d’une autre commune, et elle n’a pas de ligne sur ce qui a bougé depuis 2014. La page de chaque lieu dit lesquels de ses chiffres sont signalés.",
       ],
       mismatchLanguages: "Langues locales",
       mismatchLanguagesBody: [

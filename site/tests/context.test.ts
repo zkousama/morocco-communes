@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Topics } from "../../api/src/lib/indicators.ts";
 import { largestGap, largestMove, moveLine, movedMost, nearestTwins, nextDoor, SINCE_2014, twinOf, type Move, type Unit } from "../src/lib/context.ts";
+import { mismatches } from "../../api/src/lib/mismatch.ts";
+import { indicatorsOf } from "../src/lib/indicators.ts";
 import { communes } from "../src/lib/places.ts";
 import { places } from "../src/i18n/places.ts";
 
@@ -17,6 +19,23 @@ const unit = (code: string, population: number, people: Topics, homes: Topics = 
     "2014": null,
   },
 });
+
+/** The unit with a kitchen share that fell 80 points since 2014 while its population held still. */
+const kitchenFell = (u: Unit): Unit => {
+  const all = { ...u.record.people.total!.all, population: { legal: u.population } };
+  u.record.people.total = { ...u.record.people.total!, all };
+  u.record.households.total = { ...u.record.households.total, amenities: { ...u.record.households.total?.amenities, kitchen: 10 } };
+  u.record["2014"] = {
+    people: { total: { all: { population: { legal: u.population } }, male: {}, female: {} }, urban: null, rural: null },
+    households: { total: { amenities: { kitchen: 90 } }, urban: null, rural: null },
+  };
+  return u;
+};
+
+const hasFlag = (code: string) => {
+  const r = indicatorsOf.get(code);
+  return r ? mismatches(r, r["2014"]).length > 0 : false;
+};
 
 describe("next door", () => {
   const french = (v: number) => ({ languagesReadAndWritten: { french: v } });
@@ -43,13 +62,18 @@ describe("next door", () => {
     expect(largestGap(here, [there])).toBeNull();
   });
 
-  it("skips an amenity the two censuses disagree on", () => {
-    const here = unit("a", 5000, { population: { legal: 5000 } }, { amenities: { runningWater: 3 } });
-    here.record["2014"] = {
-      people: { total: { all: { population: { legal: 5000 } }, male: {}, female: {} }, urban: null, rural: null },
-      households: { total: { amenities: { runningWater: 97 } }, urban: null, rural: null },
-    };
-    expect(largestGap(here, [unit("b", 5000, {}, { amenities: { runningWater: 90 } })])).toBeNull();
+  it("shows nothing for a commune with a flagged figure, even on a figure next door doesn't use", () => {
+    expect(largestGap(kitchenFell(unit("a", 5000, french(10))), [unit("b", 5000, french(90))])).toBeNull();
+  });
+
+  it("never sets a commune beside a flagged neighbour, even on a figure next door doesn't use", () => {
+    const here = unit("a", 5000, french(10));
+    expect(largestGap(here, [kitchenFell(unit("b", 5000, french(90))), unit("c", 5000, french(50))])).toMatchObject({ code: "c", gap: 40 });
+  });
+
+  it("sets Bni Bounsar beside someone other than Taghzout, and Taghzout beside no one", () => {
+    expect(nextDoor(codeOf("Bni Bounsar"))?.code).not.toBe(codeOf("Taghzout"));
+    expect(nextDoor(codeOf("Taghzout"))).toBeNull();
   });
 
   it("skips a figure either commune has no value for", () => {
@@ -223,7 +247,7 @@ describe("what moved most since 2014", () => {
 
 describe("twins", () => {
   it("matches the answers checked on 2026-09-28", () => {
-    for (const [from, to] of [["Agadir", "Kénitra"], ["Fès", "Tétouan"], ["Ouarzazate", "Targuist"], ["Tafraout", "Nador"]]) {
+    for (const [from, to] of [["Agadir", "Kénitra"], ["Fès", "Tétouan"], ["Ouarzazate", "Missour"], ["Tafraout", "Nador"]]) {
       expect(twinOf(codeOf(from!))?.code, from).toBe(codeOf(to!));
     }
   });
@@ -277,5 +301,22 @@ describe("twins", () => {
     const twins = nearestTwins([...four, disputed]);
     expect(twins.has("04.001.01.01")).toBe(false);
     expect([...twins.values()].map((t) => t.code)).not.toContain("04.001.01.01");
+  });
+
+  it("leaves out a commune with a flagged figure twins don't use, even one the same on every figure they do", () => {
+    const twins = nearestTwins([...four, kitchenFell(unit("04.001.01.01", 9000, full(20), homes))]);
+    expect(twins.has("04.001.01.01")).toBe(false);
+    expect([...twins.values()].map((t) => t.code)).not.toContain("04.001.01.01");
+  });
+});
+
+describe("the published pages", () => {
+  it("never show a flagged commune on either side of next door or a twin", () => {
+    for (const c of communes) {
+      const gap = nextDoor(c.code);
+      const twin = twinOf(c.code);
+      if (gap) expect(hasFlag(c.code) || hasFlag(gap.code), `${c.name.fr} next door`).toBe(false);
+      if (twin) expect(hasFlag(c.code) || hasFlag(twin.code), `${c.name.fr} twin`).toBe(false);
+    }
   });
 });
