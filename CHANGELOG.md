@@ -4,6 +4,14 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.9.0
+
+- `amenities.bathroom` is no longer compared across the two censuses: 2014 asked about a
+  bath, Bain, and 2024 asks about a room with water, Pièce d'eau. Its 2014 field has no
+  `comparableTo` now, and a note says why, so 72 fields line up with 2024 rather than 73.
+  The API's `change.amenities.bathroom` and `2014.amenities.bathroom` sorts are gone with
+  it.
+
 ## 1.8.0
 
 - HCP's own definitions, in `indicators/fields.json` and `housing/fields.json`. The 2024
