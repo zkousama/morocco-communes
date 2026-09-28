@@ -13,8 +13,8 @@ figure. Some figures that stand out are left out:
 
 - a possible error in the data, such as a slow-moving figure that swings in a place whose
   population barely moved;
-- a figure the two censuses disagree on for that commune, the same ones `api/src/lib/mismatch.ts`
-  flags, since neither of HCP's 2 figures is set against anything;
+- a commune with any figure the two censuses disagree on, the same ones `api/src/lib/mismatch.ts`
+  flags, since whatever set that figure apart may have moved its others too;
 - the shares of men and women, since several southern communes count special populations;
 - anything whose line uses a term the safety policy holds back.
 
@@ -55,16 +55,15 @@ The same dataset always gives the same files, so a re-run with nothing changed l
 - `neighbours` is `null` when none of the communes it borders can be compared. Otherwise:
   - `bordering` is how many communes it borders, from `../geometry/adjacency.json`;
   - `compared` is how many of those have the figure to compare. A neighbour of fewer than
-    2,000 people is left out, and so is one whose figure the two censuses disagree on. For a
+    2,000 people is left out, and so is one with any figure the two censuses disagree on. For a
     change, a neighbour matched to 2014 through the crosswalk is left out too;
   - `median` is the median of the figure across the compared neighbours, or of their change
     for a change;
   - `furthest` is the compared neighbour whose figure is furthest from this commune's, with
     its `code`, `name` and `value`.
-- `since2014` is `null` where the 2014 census didn't ask the figure the same way, where the
-  two censuses disagree on it for this commune, or where the commune was matched to 2014
-  through the crosswalk. Otherwise `then` and `now` are the commune's 2014 and 2024 figures,
-  and `morocco` holds the country's.
+- `since2014` is `null` where the 2014 census didn't ask the figure the same way, or where the
+  commune was matched to 2014 through the crosswalk. Otherwise `then` and `now` are the
+  commune's 2014 and 2024 figures, and `morocco` holds the country's.
 
 ## Licence
 

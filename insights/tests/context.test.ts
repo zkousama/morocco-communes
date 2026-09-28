@@ -45,7 +45,8 @@ const finding = (over: Partial<Finding> = {}): Finding => ({
 
 describe("which standout figures are kept", () => {
   const data = fixture([
-    { code: "a", mismatched: new Set(["amenities.runningWater"]) },
+    { code: "a" },
+    { code: "flagged", mismatched: new Set(["amenities.kitchen"]) },
     { code: "p", level: "province", parent: "01" },
   ]);
 
@@ -57,9 +58,9 @@ describe("which standout figures are kept", () => {
     expect(dropped(finding({ kind: "artefact" }), data)).toBe("artefact");
   });
 
-  it("drops a figure the two censuses disagree on for that commune, and only that figure", () => {
-    expect(dropped(finding({ measure: "amenities.runningWater" }), data)).toBe("flagged");
-    expect(dropped(finding({ measure: "amenities.electricity" }), data)).toBeNull();
+  it("drops every figure of a commune the two censuses disagree on, even one they agree on", () => {
+    expect(dropped(finding({ code: "flagged", measure: "amenities.kitchen" }), data)).toBe("flagged");
+    expect(dropped(finding({ code: "flagged", measure: "amenities.electricity" }), data)).toBe("flagged");
   });
 
   it("drops the shares of men and women", () => {
@@ -105,9 +106,9 @@ describe("its bordering communes on the same figure", () => {
     expect(n).toMatchObject({ bordering: 3, compared: 2, median: 15 });
   });
 
-  it("leaves out a neighbour whose figure the two censuses disagree on", () => {
+  it("leaves out a neighbour with any figure the two censuses disagree on, even one this comparison doesn't use", () => {
     const data = around([10, 20]);
-    data.units.get("n0")!.mismatched.add(measure);
+    data.units.get("n0")!.mismatched.add("amenities.kitchen");
     expect(neighboursOn(finding(), data)).toMatchObject({ compared: 1, median: 20, furthest: { code: "n1" } });
   });
 

@@ -18,7 +18,7 @@ published across how many communes. The same dataset always gives the same files
 - **`src/detect.ts`** finds the figures that stand out: extremes, changes since 2014 and gaps
   from a province's figure.
 - **`src/filter.ts`** leaves out possible errors in the data, anything that isn't a commune's,
-  the figures `api/src/lib/mismatch.ts` flags for that commune, and the shares of men and women.
+  every figure of a commune `api/src/lib/mismatch.ts` flags, and the shares of men and women.
 - **`src/context.ts`** works out each figure's context: the commune's other figures, the
   communes it borders on the same figure, and the same figure in 2014 beside Morocco's.
 - **`src/run.ts`** writes the line for each figure, holds back any whose words break the

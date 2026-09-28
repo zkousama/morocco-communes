@@ -34,13 +34,20 @@ describe("the pipeline", () => {
     expect(run.counts.published + Object.values(run.counts.dropped).reduce((a, b) => a + b, 0)).toBe(findings.length);
   });
 
-  it("publishes only communes, no artefact, no sex share and no flagged figure", () => {
+  it("publishes only communes, no artefact, no sex share and no flagged commune", () => {
     for (const f of published) {
       const unit = data.units.get(f.code)!;
       expect(unit.level).toBe("commune");
       expect(f.kind).not.toBe("artefact");
       expect(f.measure.startsWith("sex.")).toBe(false);
-      expect(unit.mismatched.has(f.measure)).toBe(false);
+      expect(unit.mismatched.size).toBe(0);
+    }
+  });
+
+  it("never names a flagged commune as a neighbour", () => {
+    for (const f of published) {
+      const furthest = f.context.neighbours?.furthest.code;
+      if (furthest) expect(data.units.get(furthest)!.mismatched.size).toBe(0);
     }
   });
 

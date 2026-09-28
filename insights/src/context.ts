@@ -51,9 +51,9 @@ function reading(unit: Unit, finding: Finding): number | null {
 
 /**
  * The communes it borders on the same figure: their median, and the one furthest from this
- * commune's own. A neighbour whose figure the two censuses disagree on is left out, and so is
- * one under `CHANGE_GAP_POPULATION_FLOOR`, where a few households can swing a share on their
- * own. Null when none is left to compare.
+ * commune's own. A neighbour with any figure the two censuses disagree on is left out, and so
+ * is one under `CHANGE_GAP_POPULATION_FLOOR`, where a few households can swing a share on
+ * their own. Null when none is left to compare.
  */
 export function neighboursOn(finding: Finding, data: Data): Neighbours | null {
   const unit = data.units.get(finding.code);
@@ -61,7 +61,7 @@ export function neighboursOn(finding: Finding, data: Data): Neighbours | null {
   const here = reading(unit, finding) ?? finding.value;
   const around = unit.neighbours.flatMap((code) => {
     const n = data.units.get(code);
-    if (!n || n.population.y2024 < CHANGE_GAP_POPULATION_FLOOR || n.mismatched.has(finding.measure)) return [];
+    if (!n || n.population.y2024 < CHANGE_GAP_POPULATION_FLOOR || n.mismatched.size > 0) return [];
     const value = reading(n, finding);
     return value === null ? [] : [{ n, value }];
   });

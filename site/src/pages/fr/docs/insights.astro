@@ -67,12 +67,13 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       ou un ménage de plus de {count(method.householdSize)} personnes.
     </p>
     <p>
-      L’est aussi un chiffre sur lequel les deux recensements ne concordent pas pour cette commune. Pour une langue
+      L’est aussi une commune dont un chiffre ne concorde pas entre les deux recensements. Pour une langue
       locale, c’est une part qui a bougé de plus de {count(method.swing)} points entre 2014 et 2024, dans un sens ou
       dans l’autre. Pour l’eau courante, l’électricité, le réseau public d’assainissement, les toilettes et la
       cuisine, c’est une part qui a baissé de plus de {count(method.fall)} points. Dans les deux cas, l’écart doit
       dépasser la variation de la population elle-même, en pourcentage. Les deux chiffres sont ceux du HCP, tels
-      que publiés. Les deux recensements ne concordent pas, donc aucun n’est comparé à quoi que ce soit.
+      que publiés. Les deux recensements ne concordent pas, donc la commune n’est comparée à aucune voisine, et
+      elle n’a pas de section ici.
     </p>
     <p>
       Les parts d’hommes et de femmes sont écartées aussi, car plusieurs communes du Sud comptent des populations
@@ -91,15 +92,14 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       <strong>Ses communes voisines.</strong> Deux communes sont voisines quand leurs limites dans OpenStreetMap
       partagent un segment. À côté de chaque chiffre figurent la médiane du même chiffre dans ces communes, et
       celle qui s’écarte le plus du chiffre de la commune. Une voisine de moins de {count(method.neighbourFloor)}{" "}
-      habitants est laissée de côté, comme une voisine dont le chiffre ne concorde pas entre les deux
+      habitants est laissée de côté, comme une voisine dont un chiffre ne concorde pas entre les deux
       recensements. Pour une évolution depuis 2014, c’est leur évolution qui est comparée, et une voisine
       rapprochée de 2014 par la table de correspondance est laissée de côté.
     </p>
     <p>
       <strong>2014 et le Maroc.</strong> Quand le recensement de 2014 posait la question de la même façon, la page
       donne le chiffre de la commune en 2014 et l’évolution de celui du Maroc, en points entiers pour une part. Pas
-      pour un chiffre sur lequel les deux recensements ne concordent pas, ni pour une commune rapprochée par la
-      table de correspondance.
+      pour une commune rapprochée par la table de correspondance.
     </p>
   </section>
 

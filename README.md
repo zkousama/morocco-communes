@@ -204,8 +204,8 @@ A commune page can show up to 3 of its 2024 figures that stand out: where the co
 among the highest or lowest, moved far more or less than others since 2014, or sits far from
 its province. Beside each is the median across the communes it borders, the neighbour
 furthest from it, and, where the two censuses can be compared, its 2014 figure and how
-Morocco's moved. Possible errors in the data, figures the two censuses disagree on and the
-shares of men and women are left out.
+Morocco's moved. Possible errors in the data, a commune with any figure the two censuses
+disagree on, and the shares of men and women are left out.
 
 `pnpm insights` works all of it out from `data/v1/` and writes `data/v1/insights/`, with no
 model and no network call. The API serves the same files at

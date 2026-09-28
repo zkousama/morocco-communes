@@ -67,11 +67,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       {count(method.peoplePerRoom)} people per room or a household of more than {count(method.householdSize)}.
     </p>
     <p>
-      So is a figure the two censuses disagree on for that commune. For a local language, that’s a share that moved
+      So is a commune with any figure the two censuses disagree on. For a local language, that’s a share that moved
       more than {count(method.swing)} points between 2014 and 2024, either way. For running water, electricity, the
       public sewer, a toilet and a kitchen, it’s a share that fell more than {count(method.fall)} points. Either
       way, the move has to be larger than the population itself changed, in percent. Both figures are HCP’s, as
-      published. The two censuses disagree, so neither is set against anything.
+      published. The two censuses disagree, so the commune isn’t set against a neighbour, and it has no section here.
     </p>
     <p>
       The shares of men and women are left out too, since several southern communes count special populations.
@@ -89,13 +89,13 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       <strong>The communes it borders.</strong> Two communes border each other when their OpenStreetMap boundaries
       share a segment. Beside each figure is the median of the same figure across those communes, and the one
       furthest from this commune’s own. A neighbour of fewer than {count(method.neighbourFloor)} people is left
-      out, and so is one whose figure the two censuses disagree on. For a change since 2014, their change is
+      out, and so is one with any figure the two censuses disagree on. For a change since 2014, their change is
       compared, and a neighbour matched to 2014 through the crosswalk is left out.
     </p>
     <p>
       <strong>2014 and Morocco.</strong> Where the 2014 census asked the figure the same way, the page gives the
-      commune’s 2014 figure and how Morocco’s moved, in whole points for a share. It doesn’t for a figure the two
-      censuses disagree on, or for a commune matched through the crosswalk.
+      commune’s 2014 figure and how Morocco’s moved, in whole points for a share. It doesn’t for a commune
+      matched through the crosswalk.
     </p>
   </section>
 
