@@ -24,7 +24,7 @@ with no entry in it.
 | `economy/` | the 2024 count of economic establishments for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `housing/` | the 2024 urban housing stock, by dwelling, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
-| `insights/` | possible reasons for the 2024 figures that stand out, each resting on a checked census fact, JSON | the text this repository's own; the figures HCP, on CC BY 4.0 terms |
+| `insights/` | each commune's 2024 figures that stand out, with its neighbours and 2014 beside each, JSON | the lines this repository's own; the figures HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
 
 The licences differ by directory and `geometry/` carries its own LICENSE. Five fields on
@@ -198,11 +198,28 @@ Arabic names are in the data and Arabic queries work; the interface is English a
 It's static because nothing in it needs a server, so the hand-written Worker stays
 the only Worker and the pages cost nothing to serve.
 
+## Insights
+
+A commune page can show up to 3 of its 2024 figures that stand out: where the commune is
+among the highest or lowest, moved far more or less than others since 2014, or sits far from
+its province. Beside each is the median across the communes it borders, the neighbour
+furthest from it, and, where the two censuses can be compared, its 2014 figure and how
+Morocco's moved. Possible errors in the data, figures the two censuses disagree on and the
+shares of men and women are left out.
+
+`pnpm insights` works all of it out from `data/v1/` and writes `data/v1/insights/`, with no
+model and no network call. The API serves the same files at
+`/api/communes/{code}/insights.json`, and the MCP server's `get_insights` gives them to an
+assistant. [The methods page](https://communes.pages.dev/docs/insights/) says how a figure is
+picked, and `insights/pilot/` holds the study of an earlier design that asked a language
+model for reasons.
+
 ## Running it
 
 ```sh
 pnpm install
 pnpm dataset:build     # rebuilds data/v1 from the cached sources
+pnpm insights          # rebuilds data/v1/insights from the rest of data/v1
 pnpm build             # the docs site, then the API tree, into dist/
 pnpm api:dev           # wrangler pages dev on :8788, serving the site and the API together
 pnpm api:smoke         # probes a running deployment

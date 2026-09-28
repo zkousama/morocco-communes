@@ -2,7 +2,7 @@
  * The setup a run reads: which model plays proposer and adversary, at what effort, how
  * many samples the proposer asks, and whether the adversary only sees the reasons a page
  * would show. The pilot chooses these by measurement and commits the result to
- * `insights/setup.json`; the full run only ever reads it.
+ * `insights/setup.json`, and its later stages only ever read it.
  */
 import { readFileSync } from "node:fs";
 import { z } from "zod";

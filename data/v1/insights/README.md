@@ -1,95 +1,73 @@
-# Insights, v1
+# Insights, v2
 
-Possible reasons for the 2024 census figures that stand out, checked and argued over before
-they're published. See [the methods page](https://communes.pages.dev/docs/insights/) for how
-a figure earns a place here.
+A commune's 2024 census figures that stand out, each with its context worked out from the
+census. No language model writes or judges any of it. See
+[the methods page](https://communes.pages.dev/docs/insights/) for how a figure is picked and
+what's left out.
 
 ## What's in it
 
-A finding is one figure that stands out: a commune at the extreme end of a measure, a unit
-whose figure moved far more, or far less, than others of its level since 2014, a commune or
-province far from its own province's or région's figure, or a slow-moving figure whose swing
-looks more like an error in the data than a real change.
+A figure stands out when a commune is at the extreme end of a measure, when its figure moved
+far more or far less than other communes' since 2014, or when it's far from its province's
+figure. Some figures that stand out are left out:
 
-A finding can carry a few hypotheses for why. A hypothesis has a claim, the possible reason
-in a few words; a premise, a fact about the place; and a link, why that fact would explain
-the figure. The premise is always checked: a data test reads one figure or more from the
-census and comes out true or false, and only a premise whose test passed makes it here. The
-link is different, since it's a claim about cause that the census alone can't settle. Where a
-link test fits, it checks whether the premise goes with the outcome across every place of
-that level, more closely than 3 unrelated measures do and by enough to matter, and the link
-is shown as tested for consistency. Otherwise it's shown as proposed only, with no test
-behind it.
+- a possible error in the data, such as a slow-moving figure that swings in a place whose
+  population barely moved;
+- a figure the two censuses disagree on for that commune, the same ones `api/src/lib/mismatch.ts`
+  flags, since neither of HCP's 2 figures is set against anything;
+- the shares of men and women, since several southern communes count special populations;
+- anything whose line uses a term the safety policy holds back.
 
-Every claim, premise and link here was written by a language model. Each premise was then
-checked, each hypothesis argued against by a second model trying to break it, and, where it
-fits, its link tested across places, all by this repository's own build. Nothing here is asserted as HCP's own finding, and a checked
-premise or a consistent link doesn't make a hypothesis true, only one that survived the
-checks this build runs.
-
-A reason may describe an action, such as a public programme, but never judge one, and it
-never names a private person or generalises about an ethnic, religious or regional group.
+Beside each figure that's left is its context, as numbers: the commune's other figures here,
+the communes it borders on the same figure, and the same figure in 2014 beside Morocco's.
 
 ## Files
 
-- `regions/<code>.json`, `provinces/<code>.json`, `communes/<code>.json` and
-  `arrondissements/<code>.json` hold one file per unit that has at least one finding worth
-  publishing: a possible data artefact, or a finding with at least one hypothesis that
-  survived every check. A unit whose findings all failed those checks has no file.
-- `index.json` lists every unit with a file: its code, its level and how many findings it
+- `communes/<code>.json` holds one file per commune with at least one figure published.
+  Most communes have none.
+- `index.json` lists every commune with a file: its code, its level and how many figures it
   holds.
 
-## Reading a unit's file
+`pnpm insights` writes both from the rest of `data/v1/`, with no model and no network call.
+The same dataset always gives the same files, so a re-run with nothing changed leaves no diff.
 
-- `code`, `level` and `name` are the unit's own, the same as `../attributes/`.
-- `datasetVersion` is the dataset version the checks read, and `checkedAt` is the date the
-  pipeline last checked this unit, `YYYY-MM-DD`.
-- `findings` is a list. Each finding has an `id`; a `kind`, one of `extreme`, `change`,
-  `gap` or `artefact`; a `measure`, the field's path, the same one the API sorts communes by;
-  a `line`, the sentence stating the figure, in English and French; a `breakdown`, the parts
-  the figure is made of where the dataset has them, or `null`; and `hypotheses`, up to 3 of
-  the ones that survived, the highest-support first. An artefact finding has no hypotheses:
-  it's flagged rather than explained.
+## Reading a commune's file
 
-## Reading a hypothesis
+- `code`, `level` and `name` are the commune's own, the same as `../attributes/`.
+- `datasetVersion` is the dataset version the figures were read from.
+- `findings` holds up to 3 figures, the one that stands out most first. Each has:
+  - `id`, which stays the same across runs for the same commune, measure and kind;
+  - `kind`: `extreme`, `change` or `gap`;
+  - `measure`, the field's path, the same one the API sorts communes by;
+  - `value`, the 2024 figure, or for a change the points it moved since 2014;
+  - `reference`, what it stands out from: the mean across communes for an extreme, the
+    province's figure for a gap, and 0 for a change;
+  - `score`, how far it stands out, in standard deviations;
+  - `direction`, `high` or `low`;
+  - `line`, the sentence stating the figure, in English and French;
+  - `breakdown`, the parts the figure is made of where the dataset has them, or `null`;
+  - `context`, set out below.
 
-- `claim`, `premise` and `link` are each given in English and French.
-- `evidence` is the data test that checked the premise: `kind` is `data`, `check` is the
-  test itself, in the same vocabulary the methods page sets out, and `numbers` are the exact
-  figures it read, so its result can be checked without running anything again.
-- `linkTest` is `null` where no link test was proposed. Otherwise it holds the test as
-  proposed: `link`, `together` or `peers`; the 2 fields it pairs, `x` and `y` or `premise`
-  and `outcome`; its `level`; a `together` test's `year`; and the `direction` it claims.
-  Then how it was judged:
-  - `verdict` is `consistent` or `refused`, since a hypothesis whose link test comes back
-    `not consistent` doesn't survive.
-  - `p` is the test's own raw p-value. The verdict comes from the Benjamini-Hochberg
-    procedure, run over every link test in the same run, so a small `p` on its own doesn't
-    make a link consistent.
-  - `effect` is the size and direction of what the test found, and `placeboEffects` the
-    same test's effect with 3 unrelated measures in place of the premise's, which `effect`
-    has to beat.
-  - `size` is that effect's strength on a scale a placebo doesn't move: the correlation's
-    own size for a `together` test, and for `peers` its median difference divided by the
-    figure's spread across both halves. A link needs a `size` of at least 0.2 to count as
-    consistent.
-  - `reason` is there only when the verdict is `refused`, and says why the test couldn't
-    run: `not about this figure` when it doesn't pair a field the premise's data test read
-    with the figure's own measure, `too few units` with fewer than 30 places to compare, and
-    so on. A refused test has a `p` of 1, an `effect` of 0, a `size` of 0 and no placebos,
-    and its link is shown as proposed only.
-- `artefact` is `true` when the hypothesis is that the figure itself may be an error in the
-  data, or a change in how the census asked. It has a premise and a data test like any
-  other, and the place page labels it as a possible error.
-- `support` counts how many of the model's 5 independent tries proposed this same premise, a
-  plain count rather than a probability.
-- `stage` and `reason` are carried over from the run that produced this file. Every
-  hypothesis here made it to `stage: "published"`, so `reason` is always `null`; they're kept
-  so the field means the same thing here as it does in the run itself.
+## Reading the context
+
+- `others` lists the commune's other figures in the same file, each by `id`, `kind` and
+  `measure`.
+- `neighbours` is `null` when none of the communes it borders can be compared. Otherwise:
+  - `bordering` is how many communes it borders, from `../geometry/adjacency.json`;
+  - `compared` is how many of those have the figure to compare. A neighbour of fewer than
+    2,000 people is left out, and so is one whose figure the two censuses disagree on. For a
+    change, a neighbour matched to 2014 through the crosswalk is left out too;
+  - `median` is the median of the figure across the compared neighbours, or of their change
+    for a change;
+  - `furthest` is the compared neighbour whose figure is furthest from this commune's, with
+    its `code`, `name` and `value`.
+- `since2014` is `null` where the 2014 census didn't ask the figure the same way, where the
+  two censuses disagree on it for this commune, or where the commune was matched to 2014
+  through the crosswalk. Otherwise `then` and `now` are the commune's 2014 and 2024 figures,
+  and `morocco` holds the country's.
 
 ## Licence
 
-The figures a data test reads are HCP's, on the same CC BY 4.0 terms as the rest of
-`data/v1/`: credit the Haut-Commissariat au Plan, RGPH 2024, and say what was changed. The
-claims, premises and links are text this repository's own pipeline wrote, with the premises
-checked.
+The figures are HCP's, on the same CC BY 4.0 terms as the rest of `data/v1/`: credit the
+Haut-Commissariat au Plan, RGPH 2024, and say what was changed. The lines are fixed sentences
+this repository's own pipeline fills in.
