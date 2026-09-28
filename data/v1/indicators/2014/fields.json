@@ -2242,7 +2242,7 @@
       "heading": "Équipements de base du logement",
       "category": "Bain",
       "unit": "percent",
-      "comparableTo": "amenities.bathroom"
+      "note": "2014 asked about a bath, Bain; 2024 asks about a Pièce d'eau, a room with water. The share fell in 58% of communes between the censuses, against 14% for the other amenities, so the two are left apart."
     },
     {
       "path": "amenities.electricity",

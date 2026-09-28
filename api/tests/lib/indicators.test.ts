@@ -54,6 +54,7 @@ describe("the two censuses", () => {
     expect(COMPARABLE_2014.get("illiteracy.rate10Plus")).toBe("illiteracy.rate10Plus");
     expect(COMPARABLE_2014.has("maritalStatus.single")).toBe(false);
     expect(COMPARABLE_2014.has("schooling.rate6to11")).toBe(false);
+    expect(COMPARABLE_2014.has("amenities.bathroom")).toBe(false);
     expect(table.paths2014).toHaveLength(COMPARABLE_2014.size);
   });
 

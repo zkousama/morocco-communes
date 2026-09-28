@@ -134,7 +134,13 @@ describe("the field list", () => {
     for (const f of changed) expect(f.note, `${f.topic}.${f.key}`).toBeTruthy();
     const topics = new Set(changed.map((f) => f.topic));
     expect([...topics].sort()).toEqual([
-      "cookingFuel", "employmentStatus", "equipment", "householdWaste", "labour", "languageCombinations", "maritalStatus", "schooling",
+      "amenities", "cookingFuel", "employmentStatus", "equipment", "householdWaste", "labour", "languageCombinations", "maritalStatus", "schooling",
     ]);
+  });
+
+  it("doesn't read 2014's bath against 2024's bathroom or shower room", () => {
+    const bathroom = HOUSEHOLD_FIELDS_2014.find((f) => f.topic === "amenities" && f.key === "bathroom")!;
+    expect(bathroom.comparableTo).toBeUndefined();
+    expect(bathroom.note).toMatch(/Bain/);
   });
 });

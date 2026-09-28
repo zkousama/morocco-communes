@@ -73,6 +73,7 @@ const EDUCATION = "Niveau d'études";
 const LOCAL = "Langues locales utilisées (non exclusives)";
 const ACTIVITY = "Population selon l'activité";
 const STATUS = "Situation dans la profession des actifs occupés et des chômeurs ayant déjà travaillé";
+const AMENITIES = "Équipements de base du logement";
 
 /** Everyone, not just the adults 2024 counts. */
 const ALL_AGES = "In 2014 HCP published this over the whole population, children included; the 2024 figure counts only people aged 15 and over.";
@@ -209,10 +210,17 @@ export const HOUSEHOLD_FIELDS_2014: Field2014[] = [
     ["20-49", "Entre 20 et 49 ans", "20 to 49 years old", "dwellingAge.20-49"],
     ["50+", "50 ans et plus", "50 years or older", "dwellingAge.50+"],
   ], { sexes: NONE }),
-  ...group("amenities", "Équipements de base du logement", "percent", [
+  ...group("amenities", AMENITIES, "percent", [
     ["kitchen", "Cuisine", "Kitchen", "amenities.kitchen"],
     ["toilet", "W.-C.", "Toilet", "amenities.toilet"],
-    ["bathroom", "Bain", "Bathroom or shower room", "amenities.bathroom"],
+  ], { sexes: NONE }),
+  field("amenities", "bathroom", "Bathroom or shower room", AMENITIES, "percent", {
+    category: "Bain",
+    sexes: NONE,
+    note:
+      "2014 asked about a bath, Bain; 2024 asks about a Pièce d'eau, a room with water. The share fell in 58% of communes between the censuses, against 14% for the other amenities, so the two are left apart.",
+  }),
+  ...group("amenities", AMENITIES, "percent", [
     ["electricity", "Électricité", "Electricity", "amenities.electricity"],
     ["runningWater", "Eau courante", "Running water", "amenities.runningWater"],
   ], { sexes: NONE }),

@@ -52,7 +52,7 @@ The file names are the 2024 ones, and a record keeps the code and name the unit 
 
 ## Reading them against 2024
 
-73 fields carry `comparableTo`: the two censuses ask them the same way, and subtracting
+72 fields carry `comparableTo`: the two censuses ask them the same way, and subtracting
 one from the other says what changed. `/api/communes?sort=change.illiteracy.rate10Plus`
 ranks communes by that difference.
 
@@ -75,6 +75,9 @@ The rest changed between the censuses, and each says how in its `note`:
   truck. The 2024 census counts waste dumped in the open on its own.
 - `labour.inactive` is everyone outside the labour force at any age. The 2024 count starts
   at 15, like the labour force itself.
+- `amenities.bathroom` asked about a bath, Bain. The 2024 census asks about a Pièce d'eau,
+  a room with water, and the share fell in 58% of communes between the two, against 14%
+  for the other amenities.
 - `equipment` covers a television, a radio, phones, internet, a computer, a satellite dish
   and a fridge, asked in 2014 and not in 2024.
 
