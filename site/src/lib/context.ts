@@ -1,16 +1,19 @@
 /**
- * Two lines for each commune page, worked out once at build time from the 2024 census:
- * the starkest difference between the commune and one it borders, and the commune most
- * like it in another région.
+ * Three lines for each commune page, worked out once at build time from the censuses: the
+ * starkest difference between the commune and one it borders, the figure that moved most
+ * since 2014 against Morocco, and the commune most like it in another région.
  */
+import { COMPARABLE_2014 } from "../../../api/src/lib/indicators.ts";
 import { mismatches } from "../../../api/src/lib/mismatch.ts";
-import { figure, indicatorsOf, type Census, type IndicatorRecord } from "./indicators.ts";
+import { HOUSEHOLD_FIELDS_ALL, PEOPLE_FIELDS_ALL } from "../../../pipeline/src/sources/censusFields.ts";
+import { figure, indicatorsOf, national, type Census, type IndicatorRecord } from "./indicators.ts";
 import { communeOf, communes, neighbours } from "./places.ts";
 
-/** A commune as both lines read it: its code, its people in 2024, and its census figures. */
+/** A commune as the lines read it: its code, its people at each census, and its census figures. */
 export interface Unit {
   code: string;
   population: number;
+  population2014: number | null;
   record: Census & Pick<IndicatorRecord, "2014">;
 }
 
@@ -69,12 +72,16 @@ export const GAP = 30;
 export const SMALLEST_NEXT_DOOR = 1000;
 export const SMALLEST_TWIN = 5000;
 
+/** The figures the two censuses disagree on for this commune. */
+const flaggedIn = (unit: Unit) =>
+  new Set(mismatches(unit.record.people.total?.all, unit.record["2014"]?.people.total?.all).map((m) => m.path));
+
 /**
  * A unit's figures, in the order of `measures`. One the two censuses disagree on for this
  * commune reads as missing, since it can't be set against anyone else's either.
  */
 function readings(unit: Unit, measures: Measure[]): (number | null)[] {
-  const flagged = new Set(mismatches(unit.record.people.total?.all, unit.record["2014"]?.people.total?.all).map((m) => m.path));
+  const flagged = flaggedIn(unit);
   return measures.map((m) => (flagged.has(m.path) ? null : m.read(unit.record)));
 }
 
@@ -101,6 +108,57 @@ export function largestGap(here: Unit, around: Unit[]): Gap | null {
       // HCP publishes shares to one decimal; rounding the gap keeps 38.7 − 8.7 at 30.
       const gap = Math.round(Math.abs(a - b) * 10) / 10;
       if (gap >= GAP && (best === null || gap > best.gap)) best = { code: there.code, path: NEXT_DOOR[i]!.path, here: a, there: b, gap };
+    }
+  }
+  return best;
+}
+
+const pathOf = (f: { topic: string; key: string }) => `${f.topic}.${f.key}`;
+const PEOPLE_PATHS = new Set(PEOPLE_FIELDS_ALL.filter((f) => f.sexes.includes("all")).map(pathOf));
+const SHARES = new Set([...PEOPLE_FIELDS_ALL, ...HOUSEHOLD_FIELDS_ALL].filter((f) => f.unit === "percent").map(pathOf));
+
+/**
+ * Every share the 2014 census asked the way 2024 did, with its path in each census. Not the
+ * local languages, which the two censuses recorded differently in places, and no sex shares,
+ * since several southern communes count special populations.
+ */
+export const SINCE_2014 = [...COMPARABLE_2014]
+  .filter(([path]) => SHARES.has(path) && !/^(localLanguages|sex)\./.test(path))
+  .map(([path, path2014]) => ({ path, path2014, homes: !PEOPLE_PATHS.has(path) }));
+
+/** How many points past Morocco's own change a commune's has to go before the line shows it. */
+export const MOVED = 10;
+export const SMALLEST_MOVED = 1000;
+
+export interface Move {
+  path: string;
+  then: number;
+  now: number;
+  moroccoThen: number;
+  moroccoNow: number;
+  /** The commune's change in points less Morocco's, so negative where it fell behind. */
+  beyond: number;
+}
+
+const readIn = (census: Census | null | undefined, path: string, homes: boolean) =>
+  figure(homes ? census?.households.total : census?.people.total?.all, path);
+
+/** The figure whose change since 2014 is furthest from Morocco's, either way, or null if none is MOVED past it. */
+export function largestMove(here: Unit, morocco: Unit["record"]): Move | null {
+  if (here.population < SMALLEST_MOVED || (here.population2014 ?? 0) < SMALLEST_MOVED) return null;
+  const flagged = flaggedIn(here);
+  let best: Move | null = null;
+  for (const { path, path2014, homes } of SINCE_2014) {
+    if (flagged.has(path)) continue;
+    const now = readIn(here.record, path, homes);
+    const then = readIn(here.record["2014"], path2014, homes);
+    const moroccoNow = readIn(morocco, path, homes);
+    const moroccoThen = readIn(morocco["2014"], path2014, homes);
+    if (now == null || then == null || moroccoNow == null || moroccoThen == null) continue;
+    // HCP publishes shares to one decimal; rounding keeps 59.9 − 40 − 10 at 9.9.
+    const beyond = Math.round((now - then - (moroccoNow - moroccoThen)) * 10) / 10;
+    if (Math.abs(beyond) >= MOVED && (best === null || Math.abs(beyond) > Math.abs(best.beyond))) {
+      best = { path, then, now, moroccoThen, moroccoNow, beyond };
     }
   }
   return best;
@@ -161,7 +219,9 @@ export function nearestTwins(units: Unit[]): Map<string, Twin> {
 const unitOf = (code: string): Unit[] => {
   const commune = communeOf.get(code);
   const record = indicatorsOf.get(code);
-  return commune && record ? [{ code, population: commune.population["2024"].total, record }] : [];
+  return commune && record
+    ? [{ code, population: commune.population["2024"].total, population2014: commune.population["2014"]?.total ?? null, record }]
+    : [];
 };
 
 const gaps = new Map(
@@ -169,9 +229,12 @@ const gaps = new Map(
     unitOf(c.code).map((here) => [c.code, largestGap(here, (neighbours.get(c.code) ?? []).flatMap((n) => unitOf(n.code)))] as const),
   ),
 );
+const moves = new Map(communes.flatMap((c) => unitOf(c.code).map((here) => [c.code, largestMove(here, national)] as const)));
 const twins = nearestTwins(communes.flatMap((c) => unitOf(c.code)));
 
 /** The widest gap between a commune and a neighbour, or null if nothing's wide enough. */
 export const nextDoor = (code: string): Gap | null => gaps.get(code) ?? null;
+/** The figure that moved furthest from Morocco's change since 2014, or null if none moved far enough. */
+export const movedMost = (code: string): Move | null => moves.get(code) ?? null;
 /** The commune most like this one in another région, or null for one under 5,000 people or missing a figure. */
 export const twinOf = (code: string): Twin | null => twins.get(code) ?? null;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Topics } from "../../api/src/lib/indicators.ts";
-import { largestGap, nearestTwins, nextDoor, twinOf, type Unit } from "../src/lib/context.ts";
+import { largestGap, largestMove, movedMost, nearestTwins, nextDoor, twinOf, type Unit } from "../src/lib/context.ts";
 import { communes } from "../src/lib/places.ts";
 
 const codeOf = (name: string) => communes.find((c) => c.name.fr === name)!.code;
@@ -9,6 +9,7 @@ const codeOf = (name: string) => communes.find((c) => c.name.fr === name)!.code;
 const unit = (code: string, population: number, people: Topics, homes: Topics = {}, bySex: Topics = {}): Unit => ({
   code,
   population,
+  population2014: population,
   record: {
     people: { total: { all: people, male: bySex, female: bySex }, urban: null, rural: null },
     households: { total: homes, urban: null, rural: null },
@@ -64,6 +65,102 @@ describe("next door", () => {
 
   it("finds Ouaouizeght's gap with a neighbour of 56 points or more", () => {
     expect(nextDoor(codeOf("Ouaouizeght"))!.gap).toBeGreaterThanOrEqual(56);
+  });
+});
+
+describe("what moved most since 2014", () => {
+  const census = (people: Topics, homes: Topics) => ({
+    people: { total: { all: people, male: {}, female: {} }, urban: null, rural: null },
+    households: { total: homes, urban: null, rural: null },
+  });
+  /** A made-up place at both censuses: its people figures then and now, and its household figures then and now. */
+  const place = (people: [Topics, Topics], homes: [Topics, Topics] = [{}, {}], population = 5000, population2014: number | null = 5000): Unit => ({
+    code: "a",
+    population,
+    population2014,
+    record: { ...census(people[1], homes[1]), "2014": census(people[0], homes[0]) },
+  });
+  const water = (v: number) => ({ amenities: { runningWater: v } });
+  // Across Morocco, running water rose 10 points.
+  const morocco = place([{}, {}], [water(70), water(80)]).record;
+
+  it("counts a move 10 points past Morocco's and not one of 9.9", () => {
+    expect(largestMove(place([{}, {}], [water(40), water(59.9)]), morocco)).toBeNull();
+    expect(largestMove(place([{}, {}], [water(40), water(60)]), morocco)).toEqual({
+      path: "amenities.runningWater",
+      then: 40,
+      now: 60,
+      moroccoThen: 70,
+      moroccoNow: 80,
+      beyond: 10,
+    });
+  });
+
+  it("counts a commune falling behind Morocco as much as one pulling ahead", () => {
+    expect(largestMove(place([{}, {}], [water(60), water(60)]), morocco)).toMatchObject({ beyond: -10 });
+  });
+
+  it("shows nothing for a commune under 1,000 people at either census", () => {
+    const moved: [Topics, Topics] = [water(10), water(90)];
+    expect(largestMove(place([{}, {}], moved, 999, 5000), morocco)).toBeNull();
+    expect(largestMove(place([{}, {}], moved, 5000, 999), morocco)).toBeNull();
+    expect(largestMove(place([{}, {}], moved, 5000, null), morocco)).toBeNull();
+    expect(largestMove(place([{}, {}], moved, 1000, 1000), morocco)).not.toBeNull();
+  });
+
+  it("never picks a local language or a sex share", () => {
+    const flat = { localLanguages: { darija: 50, tachelhit: 50 }, sex: { male: 50 } };
+    const nation = place([flat, flat], [water(70), water(80)]).record;
+    const here = place(
+      [{ localLanguages: { darija: 10, tachelhit: 50 }, sex: { male: 20 } }, { localLanguages: { darija: 90, tachelhit: 50 }, sex: { male: 80 } }],
+      [water(40), water(62)],
+    );
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater", beyond: 12 });
+  });
+
+  it("never picks a figure the two censuses disagree on", () => {
+    const nation = place([{ localLanguages: { darija: 50 } }, { localLanguages: { darija: 50 } }], [water(70), water(80)]).record;
+    const here = place(
+      [{ population: { legal: 5000 }, localLanguages: { darija: 10 } }, { population: { legal: 5000 }, localLanguages: { darija: 90 } }],
+      [water(40), water(62)],
+    );
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater" });
+  });
+
+  it("leaves out figures that aren't shares", () => {
+    const nation = place([{}, {}], [{ households: { averageSize: 4 } }, { households: { averageSize: 4 } }]).record;
+    expect(largestMove(place([{}, {}], [{ households: { averageSize: 4 } }, { households: { averageSize: 20 } }]), nation)).toBeNull();
+  });
+
+  it("skips a figure missing at either census or for Morocco", () => {
+    const nation = place([{}, {}], [{ amenities: { runningWater: 70, electricity: 70, kitchen: null } }, { amenities: { runningWater: 80, electricity: 80, kitchen: 80 } }]).record;
+    const here = place([{}, {}], [
+      { amenities: { runningWater: 10, electricity: null, kitchen: 10 } },
+      { amenities: { runningWater: null, electricity: 90, kitchen: 90 } },
+    ]);
+    expect(largestMove(here, nation)).toBeNull();
+  });
+
+  it("picks the largest move either way across every figure", () => {
+    const nation = place(
+      [{ illiteracy: { rate10Plus: 30 } }, { illiteracy: { rate10Plus: 20 } }],
+      [{ amenities: { runningWater: 70, electricity: 90 } }, { amenities: { runningWater: 80, electricity: 95 } }],
+    ).record;
+    const here = place(
+      [{ illiteracy: { rate10Plus: 50 } }, { illiteracy: { rate10Plus: 60 } }],
+      [{ amenities: { runningWater: 30, electricity: 80 } }, { amenities: { runningWater: 70, electricity: 45 } }],
+    );
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.electricity", then: 80, now: 45, beyond: -40 });
+  });
+
+  it("finds Laaouama's running water, from 0.7% to 95.2%", () => {
+    expect(movedMost(codeOf("Laaouama"))).toMatchObject({ path: "amenities.runningWater", then: 0.7, now: 95.2, moroccoThen: 73, moroccoNow: 82.9 });
+  });
+
+  it("gives no line to a real commune under 1,000 people at either census", () => {
+    const small = communes.filter((c) => c.population["2024"].total < 1000 || (c.population["2014"]?.total ?? 0) < 1000);
+    expect(small.length).toBeGreaterThan(0);
+    for (const c of small) expect(movedMost(c.code)).toBeNull();
   });
 });
 
