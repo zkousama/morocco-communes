@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Topics } from "../../api/src/lib/indicators.ts";
-import { largestGap, largestMove, movedMost, nearestTwins, nextDoor, twinOf, type Unit } from "../src/lib/context.ts";
+import { largestGap, largestMove, moveLine, movedMost, nearestTwins, nextDoor, SINCE_2014, twinOf, type Move, type Unit } from "../src/lib/context.ts";
 import { communes } from "../src/lib/places.ts";
+import { places } from "../src/i18n/places.ts";
 
 const codeOf = (name: string) => communes.find((c) => c.name.fr === name)!.code;
 
@@ -161,6 +162,28 @@ describe("what moved most since 2014", () => {
     const small = communes.filter((c) => c.population["2024"].total < 1000 || (c.population["2014"]?.total ?? 0) < 1000);
     expect(small.length).toBeGreaterThan(0);
     for (const c of small) expect(movedMost(c.code)).toBeNull();
+  });
+
+  it("writes Laaouama's line in English and French", () => {
+    const move = movedMost(codeOf("Laaouama"))!;
+    expect(moveLine("en", move)).toBe("Since 2014, households with running water went from 0.7% to 95.2%. Across Morocco, the rise was 10 points.");
+    expect(moveLine("fr", move)).toBe(
+      "Depuis 2014, les ménages ayant l’eau courante sont passés de 0,7\u202f% à 95,2\u202f%. Au Maroc, la hausse a été de 10 points.",
+    );
+  });
+
+  it("gives Morocco's change in whole points, one as a word, and says when it barely moved", () => {
+    const move = (moroccoThen: number, moroccoNow: number): Move => ({ path: "labour.unemploymentRate", then: 10, now: 30, moroccoThen, moroccoNow, beyond: 0 });
+    expect(moveLine("en", move(16.2, 21.3))).toBe("Since 2014, unemployment went from 10.0% to 30.0%. Across Morocco, the rise was 5 points.");
+    expect(moveLine("en", move(21.3, 20.3))).toMatch(/the fall was one point\.$/);
+    expect(moveLine("fr", move(21.3, 20.3))).toMatch(/la baisse a été d’un point\.$/);
+    expect(moveLine("en", move(17.9, 17.6))).toMatch(/Across Morocco, it barely changed\.$/);
+    expect(moveLine("fr", move(17.9, 17.6))).toMatch(/Au Maroc, ce chiffre a à peine bougé\.$/);
+  });
+
+  it("has a phrase for every figure it can pick, in both languages", () => {
+    const paths = SINCE_2014.map((m) => m.path).sort();
+    for (const locale of ["en", "fr"] as const) expect(Object.keys(places[locale].moved).sort(), locale).toEqual(paths);
   });
 });
 

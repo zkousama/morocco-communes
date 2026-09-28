@@ -9,7 +9,7 @@ import Economy from "./Economy.astro";
 import Housing from "./Housing.astro";
 import Insights from "./Insights.astro";
 import { indicatorsOf } from "../../lib/indicators";
-import { nextDoor, twinOf } from "../../lib/context";
+import { moveLine, movedMost, nextDoor, twinOf } from "../../lib/context";
 import { contentsOf } from "../../lib/contents";
 import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
@@ -117,6 +117,8 @@ const gapPage = gap && pageOf(gap.code);
 const [gapBefore, gapAfter] = gap
   ? fill((p.nextDoor as Record<string, string>)[gap.path]!, { there: share(gap.there), here: share(gap.here) }).split("{place}")
   : [];
+const move = movedMost(c.code);
+const moved = move && moveLine(locale, move);
 const twin = twinOf(c.code);
 const twinPage = twin && pageOf(twin.code);
 const twinNames = p.twinNames as Record<string, string>;
@@ -204,9 +206,10 @@ getCommune("${c.slug}");`;
     </div>
   </dl>
 
-  {(gapPage || twinPage) && (
+  {(gapPage || moved || twinPage) && (
     <div class="context">
       {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
+      {moved && <p>{moved}</p>}
       {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
     </div>
   )}
