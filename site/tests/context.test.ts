@@ -43,6 +43,15 @@ describe("next door", () => {
     expect(largestGap(here, [there])).toBeNull();
   });
 
+  it("skips an amenity the two censuses disagree on", () => {
+    const here = unit("a", 5000, { population: { legal: 5000 } }, { amenities: { runningWater: 3 } });
+    here.record["2014"] = {
+      people: { total: { all: { population: { legal: 5000 } }, male: {}, female: {} }, urban: null, rural: null },
+      households: { total: { amenities: { runningWater: 97 } }, urban: null, rural: null },
+    };
+    expect(largestGap(here, [unit("b", 5000, {}, { amenities: { runningWater: 90 } })])).toBeNull();
+  });
+
   it("skips a figure either commune has no value for", () => {
     const here = unit("a", 5000, { illiteracy: { rate10Plus: null } });
     expect(largestGap(here, [unit("b", 5000, { illiteracy: { rate10Plus: 80 } })])).toBeNull();
@@ -137,6 +146,15 @@ describe("what moved most since 2014", () => {
       [water(40), water(62)],
     );
     expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater" });
+  });
+
+  it("never picks an amenity the two censuses disagree on", () => {
+    const nation = place([{}, {}], [{ amenities: { runningWater: 70, electricity: 90 } }, { amenities: { runningWater: 80, electricity: 95 } }]).record;
+    const here = place(
+      [{ population: { legal: 5000 } }, { population: { legal: 5000 } }],
+      [{ amenities: { runningWater: 97, electricity: 40 } }, { amenities: { runningWater: 3, electricity: 62 } }],
+    );
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.electricity" });
   });
 
   it("leaves out figures that aren't shares", () => {

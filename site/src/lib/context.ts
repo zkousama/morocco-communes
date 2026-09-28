@@ -76,8 +76,7 @@ export const SMALLEST_NEXT_DOOR = 1000;
 export const SMALLEST_TWIN = 5000;
 
 /** The figures the two censuses disagree on for this commune. */
-const flaggedIn = (unit: Unit) =>
-  new Set(mismatches(unit.record.people.total?.all, unit.record["2014"]?.people.total?.all).map((m) => m.path));
+const flaggedIn = (unit: Unit) => new Set(mismatches(unit.record, unit.record["2014"]).map((m) => m.path));
 
 /**
  * A unit's figures, in the order of `measures`. One the two censuses disagree on for this
