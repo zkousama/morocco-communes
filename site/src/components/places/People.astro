@@ -12,6 +12,7 @@ import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
 import { figure, national, type Census, type IndicatorRecord, type Topics } from "../../lib/indicators";
 import { mismatches } from "../../../../api/src/lib/mismatch.ts";
+import { foldTopics } from "../../lib/fold";
 
 interface Props {
   locale: Locale;
@@ -163,18 +164,20 @@ const mismatch =
       });
 
 /**
- * A census's topics, in the order HCP asks them, with the empty ones dropped. 2024 has 3
- * and 2014 has 6, so the layout places them by count rather than by name.
+ * A census's topics, in the order HCP asks them, with the empty ones dropped, split into
+ * the local languages and the rest, which a phone folds away.
  */
 const topicsOf = (v: ReturnType<typeof view>) =>
-  [
-    { heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used, flag: mismatch },
-    { heading: p.languagesRead, body: v.readBody, rows: v.read, flag: null },
-    { heading: p.commute, body: p.commuteBody, rows: v.commute, flag: null },
-    { heading: p.workplace, body: p.workplaceBody, rows: v.workplace, flag: null },
-    { heading: p.profession, body: p.professionBody, rows: v.profession, flag: null },
-    { heading: p.diploma, body: p.diplomaBody, rows: v.diploma, flag: null },
-  ].filter((block) => block.rows.length > 0);
+  foldTopics(
+    [
+      { topic: "localLanguages", heading: p.languagesUsed, body: p.languagesUsedBody, rows: v.used },
+      { topic: "read", heading: p.languagesRead, body: v.readBody, rows: v.read },
+      { topic: "commute", heading: p.commute, body: p.commuteBody, rows: v.commute },
+      { topic: "workplace", heading: p.workplace, body: p.workplaceBody, rows: v.workplace },
+      { topic: "profession", heading: p.profession, body: p.professionBody, rows: v.profession },
+      { topic: "diploma", heading: p.diploma, body: p.diplomaBody, rows: v.diploma },
+    ].filter((block) => block.rows.length > 0),
+  );
 
 // One scale for the pyramid, so a band's bar means the same width in either census.
 const widest = Math.max(
@@ -185,6 +188,7 @@ const hasAges = widest > 0;
 const width = (v: number | null) => `${((v ?? 0) / widest) * 100}%`;
 const other = (year: string) => (year === "2024" ? "2014" : "2024");
 const empty = views.length === 0;
+const folds = views.some((v) => topicsOf(v).folded.length > 0);
 ---
 
 <section class="people" id="people" data-census="2024">
@@ -227,6 +231,7 @@ const empty = views.length === 0;
             </dl>
           )}
 
+          {(hasAges || topicsOf(v).shown.length > 0) && (
           <div class="top">
             {hasAges && (
               <div class="block">
@@ -266,7 +271,7 @@ const empty = views.length === 0;
                 </table>
               </div>
             )}
-            {topicsOf(v).slice(0, hasAges ? 1 : 2).map((block) => (
+            {topicsOf(v).shown.map((block) => (
               <div class="block">
                 <h3>{block.heading}</h3>
                 <p class="note">{block.body}</p>
@@ -279,43 +284,62 @@ const empty = views.length === 0;
                     </li>
                   ))}
                 </ul>
-                {block.flag && (
+                {mismatch && (
                   <p class="mismatch">
-                    {block.flag} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
+                    {mismatch} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
                   </p>
                 )}
               </div>
             ))}
           </div>
-          {topicsOf(v).length > (hasAges ? 1 : 2) && (
-            <div class="spread">
-              {topicsOf(v).slice(hasAges ? 1 : 2).map((block) => (
-                <div class="block">
-                <h3>{block.heading}</h3>
-                <p class="note">{block.body}</p>
-                <ul class="bars">
-                  {block.rows.map((b) => (
-                    <li>
-                      <span class="label">{b.label}</span>
-                      <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
-                      <span class="value">{pct(b.value)}</span>
-                    </li>
-                  ))}
-                </ul>
-                {block.flag && (
-                  <p class="mismatch">
-                    {block.flag} <a href={path(locale, "docs/indicators/#mismatches")}>{p.mismatchMore}</a>
-                  </p>
-                )}
+          )}
+          {topicsOf(v).folded.length > 0 && (
+            <details class="more" open>
+              <summary>{p.moreCensus}</summary>
+              <div class="spread">
+                {topicsOf(v).folded.map((block) => (
+                  <div class="block">
+                    <h3>{block.heading}</h3>
+                    <p class="note">{block.body}</p>
+                    <ul class="bars">
+                      {block.rows.map((b) => (
+                        <li>
+                          <span class="label">{b.label}</span>
+                          <span class="track"><span class="bar" style={`--w: ${b.value}%`} /></span>
+                          <span class="value">{pct(b.value)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-              ))}
-            </div>
+            </details>
           )}
         </div>
       ))}
     </>
   )}
 </section>
+
+{folds && (
+  <script is:inline>
+    // Run as the page is read rather than after it loads, so a phone never draws the fold
+    // open and then shuts it. Each census has its own; opening one opens the other, so the
+    // 2014 / 2024 switch keeps what the reader chose.
+    (function () {
+      var folds = document.querySelectorAll(".people details.more");
+      if (window.matchMedia("(max-width: 48rem)").matches) {
+        for (var i = 0; i < folds.length; i++) folds[i].open = false;
+      }
+      for (var j = 0; j < folds.length; j++) {
+        folds[j].addEventListener("toggle", function (event) {
+          var open = event.target.open;
+          for (var k = 0; k < folds.length; k++) if (folds[k].open !== open) folds[k].open = open;
+        });
+      }
+    })();
+  </script>
+)}
 
 {both && (
   <script>
@@ -356,12 +380,10 @@ const empty = views.length === 0;
     margin: 0 0 0.2rem;
   }
 
-  /* The blocks fill both columns and the browser levels them, so the section ends on a
-     straight edge however many topics a census has: 4 in 2024, 7 in 2014. A 2-column grid
-     would leave whichever column is shorter as a hole down the page. */
-  /* The pyramid with the first topic beside it, then the rest filling both columns. The
-     browser levels a column flow, so the section ends on a straight edge however many
-     topics a census has: 3 in 2024, 6 in 2014. */
+  /* The pyramid with the local languages beside it, then the rest in the fold, filling both
+     columns. The browser levels a column flow, so the section ends on a straight edge
+     however many topics are folded: 2 in 2024, 5 in 2014. A 2-column grid would leave
+     whichever column is shorter as a hole down the page. */
   .top {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -373,6 +395,21 @@ const empty = views.length === 0;
   .spread {
     columns: 2;
     column-gap: clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .more summary {
+    margin-bottom: 1.25rem;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    cursor: pointer;
+  }
+
+  .more summary:hover {
+    color: var(--ink);
+  }
+
+  .more:not([open]) summary {
+    margin-bottom: 0;
   }
 
   .block {
