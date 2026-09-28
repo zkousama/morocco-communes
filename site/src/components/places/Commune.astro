@@ -9,12 +9,13 @@ import Economy from "./Economy.astro";
 import Housing from "./Housing.astro";
 import Insights from "./Insights.astro";
 import { indicatorsOf } from "../../lib/indicators";
+import { nextDoor, twinOf } from "../../lib/context";
 import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
 import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
-import { density, percent } from "../../lib/format";
+import { density, numbers, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
 import {
@@ -28,6 +29,7 @@ import {
   inset,
   nationalRank,
   neighbours,
+  pageOf,
   provinceOf,
   regionOf,
   sharedNames,
@@ -97,6 +99,24 @@ const arrondissementClass = (code: string) => {
   const i = byDensity.findIndex((a) => a.code === code);
   return i < 0 ? "n" : String(1 + Math.floor((i * 5) / byDensity.length));
 };
+
+// Shares to one decimal, as People shows them, and household size the same way.
+const share = (v: number) => percent(locale, v, { fixed: true });
+const one = numbers(locale, 1, true);
+const gap = nextDoor(c.code);
+const gapPage = gap && pageOf(gap.code);
+const [gapBefore, gapAfter] = gap
+  ? fill((p.nextDoor as Record<string, string>)[gap.path]!, { there: share(gap.there), here: share(gap.here) }).split("{place}")
+  : [];
+const twin = twinOf(c.code);
+const twinPage = twin && pageOf(twin.code);
+const twinNames = p.twinNames as Record<string, string>;
+const twinValue = (path: string, v: number) => (path === "households.averageSize" ? one.format(v) : share(v));
+const twinFigures = (twin?.closest ?? [])
+  .map((f) => fill(p.twinFigure, { label: twinNames[f.path] ?? f.path, here: twinValue(f.path, f.here), there: twinValue(f.path, f.there) }))
+  .join(p.twinJoin);
+// The figures start a sentence of their own, and the labels are written to sit mid-sentence.
+const [twinBefore, twinAfter] = fill(p.twin, { figures: twinFigures.charAt(0).toLocaleUpperCase(locale) + twinFigures.slice(1) }).split("{twin}");
 
 const description =
   `${c.name.fr} (${c.name.ar}): ${n.format(people.total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}` +
@@ -221,6 +241,13 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
+  {(gapPage || twinPage) && (
+    <div class="context">
+      {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
+      {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
+    </div>
+  )}
+
   {census && <People locale={locale} record={census} name={c.name.fr} />}
 
   {housing && <Housing locale={locale} record={housing} name={c.name.fr} />}
@@ -332,6 +359,17 @@ getCommune("${c.slug}");`;
     margin: 0.5rem 0 0;
     font-size: var(--t-sm);
     font-weight: 500;
+  }
+
+  /* A lead-in to the census figures below, spaced like a section but without a heading, so
+     two sentences don't take the room of one. */
+  .context {
+    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .context p {
+    margin: 0 0 0.5rem;
+    max-width: var(--measure);
   }
 
   .ar {
