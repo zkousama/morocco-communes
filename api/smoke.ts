@@ -114,6 +114,7 @@ for (const [path, expected] of [
   ["/api/communes/tanger/economy", "/api/communes/01.511.01.0/economy.json"],
   ["/api/communes/tiznit/housing", "/api/communes/09.581.01.07/housing.json"],
   ["/api/communes/tiznit/neighbours", "/api/communes/09.581.01.07/neighbours.json"],
+  ["/api/communes/aglif/insights", "/api/communes/07.211.07.03/insights.json"],
   ["/api/regions/01/economy", "/api/regions/01/economy.json"],
   ["/api/regions", "/api/regions.json"],
 ] as const) {
