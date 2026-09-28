@@ -1,7 +1,7 @@
 /**
  * Three lines for each commune page, worked out once at build time from the censuses: the
- * starkest difference between the commune and one it borders, the figure that moved most
- * since 2014 against Morocco, and the commune most like it in another région.
+ * starkest difference between the commune and one it borders, the figure it moved most on
+ * since 2014, and the commune most like it in another région.
  */
 import { COMPARABLE_2014 } from "../../../api/src/lib/indicators.ts";
 import { mismatches } from "../../../api/src/lib/mismatch.ts";
@@ -129,7 +129,7 @@ export const SINCE_2014 = [...COMPARABLE_2014]
   .filter(([path]) => SHARES.has(path) && !/^(localLanguages|sex)\./.test(path))
   .map(([path, path2014]) => ({ path, path2014, homes: !PEOPLE_PATHS.has(path) }));
 
-/** How many points past Morocco's own change a commune's has to go before the line shows it. */
+/** How many points a commune's figure has to move, either way, before the line shows it. */
 export const MOVED = 10;
 export const SMALLEST_MOVED = 1000;
 
@@ -139,14 +139,18 @@ export interface Move {
   now: number;
   moroccoThen: number;
   moroccoNow: number;
-  /** The commune's change in points less Morocco's, so negative where it fell behind. */
-  beyond: number;
+  /** The commune's change in points, negative for a fall. */
+  change: number;
 }
 
 const readIn = (census: Census | null | undefined, path: string, homes: boolean) =>
   figure(homes ? census?.households.total : census?.people.total?.all, path);
 
-/** The figure whose change since 2014 is furthest from Morocco's, either way, or null if none is MOVED past it. */
+/**
+ * The figure the commune itself moved furthest on since 2014, either way, or null if none
+ * moved MOVED points. Morocco's figures ride along for the line to set beside it, so a
+ * figure Morocco has none for is skipped.
+ */
 export function largestMove(here: Unit, morocco: Unit["record"]): Move | null {
   if (here.population < SMALLEST_MOVED || (here.population2014 ?? 0) < SMALLEST_MOVED) return null;
   const flagged = flaggedIn(here);
@@ -158,10 +162,10 @@ export function largestMove(here: Unit, morocco: Unit["record"]): Move | null {
     const moroccoNow = readIn(morocco, path, homes);
     const moroccoThen = readIn(morocco["2014"], path2014, homes);
     if (now == null || then == null || moroccoNow == null || moroccoThen == null) continue;
-    // HCP publishes shares to one decimal; rounding keeps 59.9 − 40 − 10 at 9.9.
-    const beyond = Math.round((now - then - (moroccoNow - moroccoThen)) * 10) / 10;
-    if (Math.abs(beyond) >= MOVED && (best === null || Math.abs(beyond) > Math.abs(best.beyond))) {
-      best = { path, then, now, moroccoThen, moroccoNow, beyond };
+    // HCP publishes shares to one decimal; rounding keeps 49.9 − 40 at 9.9.
+    const change = Math.round((now - then) * 10) / 10;
+    if (Math.abs(change) >= MOVED && (best === null || Math.abs(change) > Math.abs(best.change))) {
+      best = { path, then, now, moroccoThen, moroccoNow, change };
     }
   }
   return best;
@@ -249,7 +253,7 @@ const twins = nearestTwins(communes.flatMap((c) => unitOf(c.code)));
 
 /** The widest gap between a commune and a neighbour, or null if nothing's wide enough. */
 export const nextDoor = (code: string): Gap | null => gaps.get(code) ?? null;
-/** The figure that moved furthest from Morocco's change since 2014, or null if none moved far enough. */
+/** The figure the commune moved furthest on since 2014, or null if none moved far enough. */
 export const movedMost = (code: string): Move | null => moves.get(code) ?? null;
 /** The commune most like this one in another région, or null for one under 5,000 people or missing a figure. */
 export const twinOf = (code: string): Twin | null => twins.get(code) ?? null;

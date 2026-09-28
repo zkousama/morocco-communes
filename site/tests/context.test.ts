@@ -85,20 +85,31 @@ describe("what moved most since 2014", () => {
   // Across Morocco, running water rose 10 points.
   const morocco = place([{}, {}], [water(70), water(80)]).record;
 
-  it("counts a move 10 points past Morocco's and not one of 9.9", () => {
-    expect(largestMove(place([{}, {}], [water(40), water(59.9)]), morocco)).toBeNull();
-    expect(largestMove(place([{}, {}], [water(40), water(60)]), morocco)).toEqual({
+  it("counts a move of 10 points and not one of 9.9", () => {
+    expect(largestMove(place([{}, {}], [water(40), water(49.9)]), morocco)).toBeNull();
+    expect(largestMove(place([{}, {}], [water(40), water(50)]), morocco)).toEqual({
       path: "amenities.runningWater",
       then: 40,
-      now: 60,
+      now: 50,
       moroccoThen: 70,
       moroccoNow: 80,
-      beyond: 10,
+      change: 10,
     });
   });
 
-  it("counts a commune falling behind Morocco as much as one pulling ahead", () => {
-    expect(largestMove(place([{}, {}], [water(60), water(60)]), morocco)).toMatchObject({ beyond: -10 });
+  it("counts a fall as much as a rise", () => {
+    expect(largestMove(place([{}, {}], [water(60), water(50)]), morocco)).toMatchObject({ change: -10 });
+  });
+
+  it("never picks a figure that barely moved, however far Morocco's did", () => {
+    const nation = place([{}, {}], [water(40), water(80)]).record;
+    expect(largestMove(place([{}, {}], [water(97.9), water(98.1)]), nation)).toBeNull();
+  });
+
+  it("picks the commune's own largest move, not its widest gap with Morocco", () => {
+    const nation = place([{}, {}], [{ amenities: { runningWater: 70, electricity: 90 } }, { amenities: { runningWater: 85, electricity: 85 } }]).record;
+    const here = place([{}, {}], [{ amenities: { runningWater: 50, electricity: 80 } }, { amenities: { runningWater: 65, electricity: 91 } }]);
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater", change: 15 });
   });
 
   it("shows nothing for a commune under 1,000 people at either census", () => {
@@ -116,7 +127,7 @@ describe("what moved most since 2014", () => {
       [{ localLanguages: { darija: 10, tachelhit: 50 }, sex: { male: 20 } }, { localLanguages: { darija: 90, tachelhit: 50 }, sex: { male: 80 } }],
       [water(40), water(62)],
     );
-    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater", beyond: 12 });
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater", change: 22 });
   });
 
   it("never picks a figure the two censuses disagree on", () => {
@@ -149,9 +160,9 @@ describe("what moved most since 2014", () => {
     ).record;
     const here = place(
       [{ illiteracy: { rate10Plus: 50 } }, { illiteracy: { rate10Plus: 60 } }],
-      [{ amenities: { runningWater: 30, electricity: 80 } }, { amenities: { runningWater: 70, electricity: 45 } }],
+      [{ amenities: { runningWater: 30, electricity: 80 } }, { amenities: { runningWater: 70, electricity: 35 } }],
     );
-    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.electricity", then: 80, now: 45, beyond: -40 });
+    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.electricity", then: 80, now: 35, change: -45 });
   });
 
   it("finds Laaouama's running water, from 0.7% to 95.2%", () => {
@@ -173,7 +184,7 @@ describe("what moved most since 2014", () => {
   });
 
   it("gives Morocco's change in whole points, one as a word, and says when it barely moved", () => {
-    const move = (moroccoThen: number, moroccoNow: number): Move => ({ path: "labour.unemploymentRate", then: 10, now: 30, moroccoThen, moroccoNow, beyond: 0 });
+    const move = (moroccoThen: number, moroccoNow: number): Move => ({ path: "labour.unemploymentRate", then: 10, now: 30, moroccoThen, moroccoNow, change: 20 });
     expect(moveLine("en", move(16.2, 21.3))).toBe("Since 2014, unemployment went from 10.0% to 30.0%. Across Morocco, the rise was 5 points.");
     expect(moveLine("en", move(21.3, 20.3))).toMatch(/the fall was one point\.$/);
     expect(moveLine("fr", move(21.3, 20.3))).toMatch(/la baisse a été d’un point\.$/);
