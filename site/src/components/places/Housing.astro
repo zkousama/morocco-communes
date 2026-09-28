@@ -60,7 +60,7 @@ const kinds = bars("type", ["villa", "apartment", "traditional", "modern", "slum
 const ages = bars("age", ["under20", "20-49", "50+"], ageNames);
 ---
 
-<section class="dwellings">
+<section class="dwellings" id="dwellings">
   <h2>{p.dwellingsTitle}</h2>
   <p>
     {fill(p.dwellingsBody, { name })} <a href={path(locale, "docs/indicators/#dwellings")}>{p.dwellingsMore}</a>{" · "}

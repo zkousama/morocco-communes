@@ -14,4 +14,9 @@ describe("a commune page's layout", () => {
     expect(at('<div class="context">')).toBeGreaterThan(at("</dl>"));
     expect(at('<div class="context">')).toBeLessThan(at("<h2>{p.where}</h2>"));
   });
+
+  it("puts the section links after those lines, above where it is", () => {
+    expect(at('<nav class="contents" aria-label={p.onThisPage}>')).toBeGreaterThan(at('<div class="context">'));
+    expect(at('<nav class="contents" aria-label={p.onThisPage}>')).toBeLessThan(at("<h2>{p.where}</h2>"));
+  });
 });

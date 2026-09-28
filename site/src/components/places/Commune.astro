@@ -10,6 +10,7 @@ import Housing from "./Housing.astro";
 import Insights from "./Insights.astro";
 import { indicatorsOf } from "../../lib/indicators";
 import { nextDoor, twinOf } from "../../lib/context";
+import { contentsOf } from "../../lib/contents";
 import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
 import { insightsOf } from "../../lib/insights";
@@ -99,6 +100,14 @@ const arrondissementClass = (code: string) => {
   const i = byDensity.findIndex((a) => a.code === code);
   return i < 0 ? "n" : String(1 + Math.floor((i * 5) / byDensity.length));
 };
+const contents = contentsOf(locale, {
+  change: Boolean(change),
+  people: Boolean(census),
+  dwellings: Boolean(housing),
+  work: Boolean(economy),
+  urbanCentres: c.urbanCentres.length > 0,
+  arrondissements: arrondissements.length > 0,
+});
 
 // Shares to one decimal, as People shows them, and household size the same way.
 const share = (v: number) => percent(locale, v, { fixed: true });
@@ -202,7 +211,13 @@ getCommune("${c.slug}");`;
     </div>
   )}
 
-  <section class="pair">
+  <nav class="contents" aria-label={p.onThisPage}>
+    <ul>
+      {contents.map((s) => <li><a href={`#${s.id}`}>{s.label}</a></li>)}
+    </ul>
+  </nav>
+
+  <section class="pair" id="where">
     <div>
       <h2>{p.where}</h2>
       <p>{fill(p.whereBody, { ptype })}</p>
@@ -235,7 +250,7 @@ getCommune("${c.slug}");`;
   </section>
 
   {change && (
-    <section>
+    <section id="change">
       <h2>{p.howItChanged}</h2>
       <p>{fill(p.chartBody, { name: c.name.fr })}</p>
       <ChangeChart
@@ -257,7 +272,7 @@ getCommune("${c.slug}");`;
   {insights && <Insights locale={locale} record={insights} />}
 
   {c.urbanCentres.length > 0 && (
-    <section>
+    <section id="urban-centres">
       <h2>{p.urbanCentres}</h2>
       <p>{p.urbanCentresBody}</p>
       <div class="scroll" tabindex="0">
@@ -273,7 +288,7 @@ getCommune("${c.slug}");`;
   )}
 
   {arrondissements.length > 0 && (
-    <section>
+    <section id="arrondissements">
       <h2>{p.arrondissements}</h2>
       <p>{p.arrondissementsBody}</p>
       <div class="pair">
@@ -312,7 +327,7 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
-  <section>
+  <section id="data">
     <h2>{p.inTheData}</h2>
     <dl class="data">
       <div><dt>{p.code}</dt><dd><code>{c.code}</code></dd></div>
@@ -370,6 +385,33 @@ getCommune("${c.slug}");`;
   .context p {
     margin: 0 0 0.5rem;
     max-width: var(--measure);
+  }
+
+  /* Quiet like the breadcrumb, and wrapping the same way, so a phone gets 2 or 3 short
+     lines rather than a page wider than the screen. */
+  .contents ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    font-size: var(--t-sm);
+  }
+
+  .contents li + li::before {
+    content: "·";
+    margin-inline-end: 0.5rem;
+    color: var(--quiet);
+  }
+
+  .contents a {
+    color: var(--quiet);
+    text-decoration: none;
+  }
+
+  .contents a:hover {
+    color: var(--ink);
   }
 
   .ar {

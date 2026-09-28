@@ -187,7 +187,7 @@ const other = (year: string) => (year === "2024" ? "2014" : "2024");
 const empty = views.length === 0;
 ---
 
-<section class="people" data-census="2024">
+<section class="people" id="people" data-census="2024">
   <h2>{p.people}</h2>
   {empty ? (
     <p>{fill(p.peopleLocal, { name })}</p>
