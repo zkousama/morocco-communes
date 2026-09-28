@@ -1,0 +1,170 @@
+import { describe, expect, it } from "vitest";
+import { mismatches } from "../../api/src/lib/mismatch.ts";
+import { readLevel } from "../../pipeline/src/lib/levels.ts";
+import { contextOf, neighboursOn, since2014 } from "../src/context.ts";
+import { loadData, type Data, type Unit } from "../src/data.ts";
+import type { Finding } from "../src/detect.ts";
+import { dropped, keep } from "../src/filter.ts";
+
+type Spec = Partial<Omit<Unit, "figures">> & { code: string; y2024?: Record<string, number | null>; y2014?: Record<string, number | null> };
+
+/** A few communes, with only the figures a test reads, and Morocco beside them. */
+function fixture(specs: Spec[], country: { y2024?: Record<string, number | null>; y2014?: Record<string, number | null> } = {}): Data {
+  const unit = ({ y2024, y2014, ...spec }: Spec): Unit => ({
+    level: "commune",
+    name: { fr: spec.code, ar: null },
+    parent: "01.511",
+    population: { y2014: 10000, y2024: 10000 },
+    basis: "exact_code",
+    neighbours: [],
+    mismatched: new Set(),
+    ...spec,
+    figures: { y2024: y2024 ?? {}, y2014: y2014 ?? {} },
+  });
+  const units = specs.map(unit);
+  return {
+    version: "t",
+    units: new Map(units.map((u) => [u.code, u])),
+    byLevel: new Map([["commune", units]]),
+    country: unit({ code: "MA", level: "region", parent: null, ...country }),
+  };
+}
+
+const finding = (over: Partial<Finding> = {}): Finding => ({
+  id: "f1",
+  code: "a",
+  level: "commune",
+  measure: "labour.unemploymentRate",
+  kind: "extreme",
+  value: 40,
+  reference: 15,
+  score: 4,
+  direction: "high",
+  ...over,
+});
+
+describe("which standout figures are kept", () => {
+  const data = fixture([
+    { code: "a", mismatched: new Set(["amenities.runningWater"]) },
+    { code: "p", level: "province", parent: "01" },
+  ]);
+
+  it("keeps a commune's figure", () => {
+    expect(dropped(finding(), data)).toBeNull();
+  });
+
+  it("drops a possible error in the data", () => {
+    expect(dropped(finding({ kind: "artefact" }), data)).toBe("artefact");
+  });
+
+  it("drops a figure the two censuses disagree on for that commune, and only that figure", () => {
+    expect(dropped(finding({ measure: "amenities.runningWater" }), data)).toBe("flagged");
+    expect(dropped(finding({ measure: "amenities.electricity" }), data)).toBeNull();
+  });
+
+  it("drops the shares of men and women", () => {
+    expect(dropped(finding({ measure: "sex.male" }), data)).toBe("sex share");
+    expect(dropped(finding({ measure: "sex.female" }), data)).toBe("sex share");
+  });
+
+  it("drops anything that isn't a commune", () => {
+    expect(dropped(finding({ code: "p", level: "province", kind: "change" }), data)).toBe("not a commune");
+  });
+
+  it("keeps the rest in the order detect ranked them", () => {
+    const kept = keep([finding({ id: "1" }), finding({ id: "2", kind: "artefact" }), finding({ id: "3", measure: "sex.male" }), finding({ id: "4" })], data);
+    expect(kept.map((f) => f.id)).toEqual(["1", "4"]);
+  });
+});
+
+describe("the flags the filter reads", () => {
+  it("are the ones mismatch.ts gives each commune", () => {
+    const now = readLevel<Parameters<typeof mismatches>[0] & { code: string }>("data/v1/indicators", "communes");
+    const then = new Map(readLevel<Parameters<typeof mismatches>[1] & { code: string }>("data/v1/indicators/2014", "communes").map((r) => [r.code, r]));
+    const record = now.find((r) => mismatches(r, then.get(r.code)).length > 0)!;
+    const expected = mismatches(record, then.get(record.code)).map((m) => m.path);
+    expect([...loadData().units.get(record.code)!.mismatched].sort()).toEqual(expected.sort());
+  });
+});
+
+describe("its bordering communes on the same figure", () => {
+  const measure = "labour.unemploymentRate";
+  const around = (values: (number | null)[], extra: Partial<Spec> = {}): Data =>
+    fixture([
+      { code: "a", neighbours: values.map((_, i) => `n${i}`), y2024: { [measure]: 40 } },
+      ...values.map((v, i) => ({ code: `n${i}`, y2024: { [measure]: v }, ...extra })),
+    ]);
+
+  it("gives their median and the one furthest from it", () => {
+    const n = neighboursOn(finding(), around([10, 12, 30, 14]));
+    expect(n).toEqual({ bordering: 4, compared: 4, median: 13, furthest: { code: "n0", name: { fr: "n0", ar: null }, value: 10 } });
+  });
+
+  it("counts only the ones with the figure", () => {
+    const n = neighboursOn(finding(), around([10, null, 20]));
+    expect(n).toMatchObject({ bordering: 3, compared: 2, median: 15 });
+  });
+
+  it("leaves out a neighbour whose figure the two censuses disagree on", () => {
+    const data = around([10, 20]);
+    data.units.get("n0")!.mismatched.add(measure);
+    expect(neighboursOn(finding(), data)).toMatchObject({ compared: 1, median: 20, furthest: { code: "n1" } });
+  });
+
+  it("leaves out a neighbour too small for its shares to hold still", () => {
+    const data = around([10, 20]);
+    data.units.get("n0")!.population.y2024 = 500;
+    expect(neighboursOn(finding(), data)).toMatchObject({ compared: 1, furthest: { code: "n1" } });
+  });
+
+  it("gives nothing for a commune with no neighbour to compare", () => {
+    expect(neighboursOn(finding(), around([]))).toBeNull();
+    expect(neighboursOn(finding(), around([null, null]))).toBeNull();
+  });
+
+  it("compares a change with their change, leaving out the ones matched through the crosswalk", () => {
+    const data = fixture([
+      { code: "a", neighbours: ["n0", "n1", "n2"], y2024: { [measure]: 40 }, y2014: { [measure]: 10 } },
+      { code: "n0", y2024: { [measure]: 12 }, y2014: { [measure]: 10 } },
+      { code: "n1", y2024: { [measure]: 8.7 }, y2014: { [measure]: 38.7 } },
+      { code: "n2", y2024: { [measure]: 50 }, y2014: { [measure]: 10 }, basis: "crosswalk" },
+    ]);
+    const n = neighboursOn(finding({ kind: "change", value: 30 }), data);
+    expect(n).toEqual({ bordering: 3, compared: 2, median: -14, furthest: { code: "n1", name: { fr: "n1", ar: null }, value: -30 } });
+  });
+});
+
+describe("the same figure in 2014, and Morocco's", () => {
+  const measure = "labour.unemploymentRate";
+  const data = (over: Partial<Spec> = {}) =>
+    fixture([{ code: "a", y2024: { [measure]: 40 }, y2014: { [measure]: 30 }, ...over }], { y2024: { [measure]: 13 }, y2014: { [measure]: 16 } });
+
+  it("gives both censuses, the commune's and Morocco's", () => {
+    expect(since2014(finding(), data())).toEqual({ then: 30, now: 40, morocco: { then: 16, now: 13 } });
+  });
+
+  it("gives nothing for a figure the 2014 census didn't ask the same way", () => {
+    expect(since2014(finding({ measure: "housing.occupancy.vacant" }), data({ y2024: { "housing.occupancy.vacant": 20 }, y2014: { "housing.occupancy.vacant": 10 } }))).toBeNull();
+  });
+
+  it("gives nothing for a figure the two censuses disagree on", () => {
+    expect(since2014(finding(), data({ mismatched: new Set([measure]) }))).toBeNull();
+  });
+
+  it("gives nothing where the 2014 figure covers other ground", () => {
+    expect(since2014(finding(), data({ basis: "crosswalk" }))).toBeNull();
+  });
+
+  it("gives nothing when either census left the figure out", () => {
+    expect(since2014(finding(), data({ y2014: { [measure]: null } }))).toBeNull();
+  });
+});
+
+describe("the context of one figure", () => {
+  it("names the commune's other standout figures from the same run", () => {
+    const data = fixture([{ code: "a" }, { code: "b" }]);
+    const kept = [finding({ id: "1" }), finding({ id: "2", measure: "education.higher", kind: "gap" }), finding({ id: "3", code: "b" })];
+    expect(contextOf(kept[0]!, kept, data).others).toEqual([{ id: "2", kind: "gap", measure: "education.higher" }]);
+    expect(contextOf(kept[2]!, kept, data).others).toEqual([]);
+  });
+});

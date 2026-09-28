@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { readLevel } from "../../pipeline/src/lib/levels.ts";
 import { ECONOMY_RATIOS, type EconomyRatio, type EconomyRecord } from "../../api/src/lib/economy.ts";
 import { COMPARABLE_2014, type Census, type Topics } from "../../api/src/lib/indicators.ts";
+import { mismatches } from "../../api/src/lib/mismatch.ts";
 import { FIELDS, type Field, type Level } from "./fields.ts";
 
 export interface Unit {
@@ -18,6 +19,7 @@ export interface Unit {
   population: { y2014: number | null; y2024: number };
   basis: "exact_code" | "crosswalk" | "arrondissement_sum" | null; // how its 2014 population was matched; null when unknown
   neighbours: string[]; // adjacency for communes; siblings under the same parent otherwise
+  mismatched: Set<string>; // the figures mismatch.ts says the two censuses disagree on here
   figures: { y2024: Record<string, number | null>; y2014: Record<string, number | null> };
 }
 
@@ -174,6 +176,8 @@ export function loadData(dir = "data/v1"): Data {
         ? (attr.population["2014"]?.total ?? null)
         : censusValue(census2014ByCode.get(attr.code) ?? null, "population.legal");
       const basis = isCommune ? (attr.population.change?.basis ?? null) : null;
+      const census = censusByCode.get(attr.code) ?? null;
+      const census2014 = census2014ByCode.get(attr.code) ?? null;
       return {
         code: attr.code,
         level,
@@ -182,9 +186,10 @@ export function loadData(dir = "data/v1"): Data {
         population: { y2014: population2014, y2024: population2024 },
         basis,
         neighbours: isCommune ? (adjacencyByCode.get(attr.code) ?? []) : [],
+        mismatched: new Set(mismatches(census, census2014).map((m) => m.path)),
         figures: buildFigures(
-          censusByCode.get(attr.code) ?? null,
-          census2014ByCode.get(attr.code) ?? null,
+          census,
+          census2014,
           housingByCode.get(attr.code) ?? null,
           economyByCode.get(attr.code) ?? null,
           population2024,
@@ -222,6 +227,7 @@ export function loadData(dir = "data/v1"): Data {
     population: { y2014: censusValue(census2014, "population.legal"), y2024: countryPopulation },
     basis: null,
     neighbours: [],
+    mismatched: new Set(),
     figures: buildFigures(census, census2014, housing, economy, countryPopulation),
   };
 
