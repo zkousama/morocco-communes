@@ -149,13 +149,15 @@ const readIn = (census: Census | null | undefined, path: string, homes: boolean)
  * The figure the commune itself moved furthest on since 2014, either way, or null if none
  * moved MOVED points. Morocco's figures ride along for the line to set beside it, so a
  * figure Morocco has none for is skipped.
+ *
+ * A commune with any flagged figure gets no line: whatever set that figure apart between the
+ * censuses may have moved its others too.
  */
 export function largestMove(here: Unit, morocco: Unit["record"]): Move | null {
   if (here.population < SMALLEST_MOVED || (here.population2014 ?? 0) < SMALLEST_MOVED) return null;
-  const flagged = flaggedIn(here);
+  if (flaggedIn(here).size > 0) return null;
   let best: Move | null = null;
   for (const { path, path2014, homes } of SINCE_2014) {
-    if (flagged.has(path)) continue;
     const now = readIn(here.record, path, homes);
     const then = readIn(here.record["2014"], path2014, homes);
     const moroccoNow = readIn(morocco, path, homes);

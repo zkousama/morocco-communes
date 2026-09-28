@@ -139,22 +139,27 @@ describe("what moved most since 2014", () => {
     expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater", change: 22 });
   });
 
-  it("never picks a figure the two censuses disagree on", () => {
+  it("shows nothing for a commune with a flagged language, even on another figure", () => {
     const nation = place([{ localLanguages: { darija: 50 } }, { localLanguages: { darija: 50 } }], [water(70), water(80)]).record;
     const here = place(
       [{ population: { legal: 5000 }, localLanguages: { darija: 10 } }, { population: { legal: 5000 }, localLanguages: { darija: 90 } }],
       [water(40), water(62)],
     );
-    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.runningWater" });
+    expect(largestMove(here, nation)).toBeNull();
   });
 
-  it("never picks an amenity the two censuses disagree on", () => {
+  it("shows nothing for a commune with a flagged amenity, even on another figure", () => {
     const nation = place([{}, {}], [{ amenities: { runningWater: 70, electricity: 90 } }, { amenities: { runningWater: 80, electricity: 95 } }]).record;
     const here = place(
       [{ population: { legal: 5000 } }, { population: { legal: 5000 } }],
       [{ amenities: { runningWater: 97, electricity: 40 } }, { amenities: { runningWater: 3, electricity: 62 } }],
     );
-    expect(largestMove(here, nation)).toMatchObject({ path: "amenities.electricity" });
+    expect(largestMove(here, nation)).toBeNull();
+  });
+
+  it("shows nothing for Lounasda or Gueltat Zemmour", () => {
+    expect(movedMost(codeOf("Lounasda"))).toBeNull();
+    expect(movedMost(codeOf("Gueltat Zemmour"))).toBeNull();
   });
 
   it("leaves out figures that aren't shares", () => {
