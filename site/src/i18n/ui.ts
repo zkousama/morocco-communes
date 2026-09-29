@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "insights/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/privacy/", "most-looked-up/"] as const;
+export const PAGES = ["", "communes/", "insights/", "where/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/privacy/", "most-looked-up/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -50,6 +50,7 @@ export const ui = {
     navFigures: "Census",
     navGlossary: "Glossary",
     navInsights: "Insights",
+    navWhere: "Where",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Components",
@@ -215,6 +216,20 @@ export const ui = {
     insightsShowMore: "Show more",
     insightsFigures: "The figures themselves",
     insightsTopics: "Topics",
+    whereTitle: "Where they are",
+    whereLede: "Which communes have a tram, train commuters, a weekly souk or foreign residents.",
+    whereFigures: {
+      tram: { title: "Tram", rule: "Communes of at least 1,000 people where at least 1% of workers commute by tram." },
+      train: { title: "Train", rule: "Communes of at least 1,000 people where at least 1% of workers commute by train." },
+      bus: { title: "Bus", rule: "Communes of at least 1,000 people where at least 1% of workers commute by bus." },
+      employerTransport: {
+        title: "Employer transport",
+        rule: "Communes of at least 1,000 people where at least 1% of workers commute in transport laid on by their employer.",
+      },
+      taxi: { title: "Taxi", rule: "Communes of at least 1,000 people where at least 1% of workers commute by taxi." },
+      souk: { title: "Weekly souk", rule: "Communes with at least one weekly souk." },
+      foreign: { title: "Foreign residents", rule: "Communes of at least 1,000 people where at least 0.5% of residents are foreign." },
+    },
     insightTopics: {
       sex: "Sex",
       age: "Age",
@@ -274,6 +289,7 @@ export const ui = {
     navFigures: "Recensement",
     navGlossary: "Glossaire",
     navInsights: "Constats",
+    navWhere: "Où",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Composants",
@@ -439,6 +455,20 @@ export const ui = {
     insightsShowMore: "Voir la suite",
     insightsFigures: "Les chiffres eux-mêmes",
     insightsTopics: "Sujets",
+    whereTitle: "Où on les trouve",
+    whereLede: "Quelles communes ont un tram, des actifs qui prennent le train, un souk hebdomadaire ou des habitants étrangers.",
+    whereFigures: {
+      tram: { title: "Tram", rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail en tram." },
+      train: { title: "Train", rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail en train." },
+      bus: { title: "Bus", rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail en bus." },
+      employerTransport: {
+        title: "Transport de l’employeur",
+        rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail par un transport de l’employeur.",
+      },
+      taxi: { title: "Taxi", rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail en taxi." },
+      souk: { title: "Souk hebdomadaire", rule: "Communes qui ont au moins un souk hebdomadaire." },
+      foreign: { title: "Habitants étrangers", rule: "Communes d’au moins 1 000 habitants où au moins 0,5 % des habitants sont étrangers." },
+    },
     insightTopics: {
       sex: "Sexe",
       age: "Âge",
