@@ -102,6 +102,13 @@ for (const record of indicators) {
 }
 const services = serviceCounts(serviceRows);
 const files = await readBoundaries("data/v1/geometry");
+// The railway and tram lines and the stations drawn under the "commuting" view, from
+// OpenStreetMap (ODbL, credited on the map) and kept in site/scripts/data/rail.json.
+const network = JSON.parse(await readFile("site/scripts/data/rail.json", "utf8")) as {
+  rail: Point[][];
+  tram: Point[][];
+  stations: Point[];
+};
 
 // One projection for the whole country, from every boundary drawn.
 const decoded = files.map(({ topology }) => {
@@ -190,9 +197,21 @@ const hatch =
   '<line class="hatch" x1="0" y1="0" x2="0" y2="4"/></pattern>' +
   '<pattern id="service-both" width="8" height="8" patternUnits="userSpaceOnUse">' +
   '<rect class="tram" width="4" height="8"/><rect class="train" x="4" width="4" height="8"/></pattern></defs>';
+// Projected to a tenth of a unit, so a line stays smooth when the map is zoomed in.
+const fine = fit(boxOf(decoded.flatMap((d) => d.arcs)), WIDTH, 1);
+const linesOf = (ways: Point[][]) =>
+  ways.map((way) => pathOf(simplify(way, TOLERANCE * fine.unit / 2).map(fine.project), false)).filter(Boolean).join("");
+// A station is a zero-length stroke with round caps, so it keeps its size on screen at any zoom.
+const stationPath = network.stations.map((station) => {
+  const [x, y] = fine.project(station);
+  return `M${x} ${y}h0`;
+}).join("");
 const markup =
   `${hatch}<g class="communes">${shapes.join("")}</g>${gaps.join("")}` +
-  `<path class="regions" d="${regionPaths.join("")}"/>`;
+  `<path class="regions" d="${regionPaths.join("")}"/>` +
+  `<g class="network"><path class="rail-line" d="${linesOf(network.rail)}"/>` +
+  `<path class="tram-line" d="${linesOf(network.tram)}"/>` +
+  `<path class="station-ring" d="${stationPath}"/><path class="station" d="${stationPath}"/></g>`;
 
 // What the tooltip shows, fetched once on first hover. After illiteracy come running
 // water, people aged 65 and over, women's illiteracy, unemployment, then tram and train.

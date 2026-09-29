@@ -95,6 +95,9 @@ const views = [
       { cls: "kb", text: copy.mapBoth },
       { cls: "k0", text: copy.mapServiceOff },
       { cls: "kn", text: copy.mapNoValue },
+      { cls: "kl", text: copy.mapRail },
+      { cls: "km", text: copy.mapTramLine },
+      { cls: "ks", text: copy.mapStation },
     ],
   },
   {
@@ -809,6 +812,21 @@ const communesRoute = path(locale, "communes/");
   .swatch.kb { background: linear-gradient(90deg, var(--chart-up) 50%, var(--chart-down) 50%); }
   .atlas[data-view="service"] :global([data-k="0"]),
   .swatch.k0 { fill: var(--map-none); background: var(--map-none); }
+  .swatch.kl { background: linear-gradient(var(--ink), var(--ink)) center / 100% 2px no-repeat; }
+  .swatch.km { background: linear-gradient(var(--ink), var(--ink)) center / 100% 4px no-repeat; }
+  .swatch.ks { background: radial-gradient(circle, var(--paper) 30%, var(--ink) 38% 70%, transparent 76%); }
+
+  /* The railway and the stations show under the commuting view only, drawn over the shading. */
+  .map :global(.network) { display: none; pointer-events: none; }
+  .atlas[data-view="service"] .map :global(.network) { display: inline; }
+  .map :global(.network path) { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
+  .map :global(.rail-line) { stroke-width: 1.4px; }
+  .map :global(.tram-line) { stroke-width: 2.6px; }
+  /* Stations sit 10 km apart along a line, so at the whole-country view they'd hide it: they show once the map is zoomed. */
+  .map :global(.station-ring),
+  .map :global(.station) { display: none; }
+  .frame.zoomed :global(.station-ring) { display: inline; stroke-width: 6px; }
+  .frame.zoomed :global(.station) { display: inline; stroke: var(--paper); stroke-width: 3.2px; }
   .map :global(.tram) { fill: var(--chart-up); }
   .map :global(.train) { fill: var(--chart-down); }
 

@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { markup } from "../src/generated/map.ts";
 import { RARITY_PEOPLE, RARITY_SHARE } from "../src/lib/context.ts";
 import {
   ELDERLY_BREAKS,
@@ -65,5 +67,27 @@ describe("the breaks", () => {
     expect(ELDERLY_BREAKS).toEqual([5, 8, 10, 12, 15]);
     expect(WOMEN_BREAKS).toEqual([30, 40, 50, 60, 70]);
     expect(UNEMPLOYMENT_BREAKS).toEqual([10, 20, 30, 40, 50]);
+  });
+});
+
+describe("the railway drawn under the commuting view", () => {
+  const network = JSON.parse(readFileSync(new URL("../scripts/data/rail.json", import.meta.url), "utf8")) as {
+    rail: unknown[];
+    tram: unknown[];
+    stations: unknown[];
+  };
+
+  it("holds the lines and stations, from OpenStreetMap", () => {
+    expect(network.rail.length).toBeGreaterThan(1000);
+    expect(network.tram.length).toBeGreaterThan(100);
+    expect(network.stations.length).toBeGreaterThan(100);
+    expect(JSON.stringify(network).length).toBeLessThan(200_000);
+  });
+
+  it("is in the map's markup, with one stroke per station", () => {
+    expect(markup).toContain('class="rail-line"');
+    expect(markup).toContain('class="tram-line"');
+    const ring = /class="station-ring" d="([^"]*)"/.exec(markup)?.[1] ?? "";
+    expect(ring.split("h0").length - 1).toBe(network.stations.length);
   });
 });
