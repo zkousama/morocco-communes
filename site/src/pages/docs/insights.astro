@@ -7,11 +7,12 @@
  * this page under /fr/ says the same in French.
  */
 import Docs from "../../layouts/Docs.astro";
-import { REPO_URL } from "../../i18n/ui";
+import { REPO_URL, t } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
 import { method } from "../../lib/insights";
 
 const locale = "en";
+const copy = t(locale);
 
 const toc = [
   { id: "stands-out", label: "What stands out" },
@@ -37,6 +38,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   lede="A commune page can show the figures where it stands furthest from others, with the communes it borders and 2014 beside each one. This is how they’re picked and where every number comes from. No language model writes any of it."
   toc={toc}
 >
+  <p class="note"><a href="/insights/">{copy.insightsFigures}</a></p>
   <section id="stands-out">
     <h2>What stands out</h2>
     <p>

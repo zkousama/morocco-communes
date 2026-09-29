@@ -1,0 +1,56 @@
+---
+/**
+ * One row of the insights page: the commune, the figure that stands out, and the
+ * communes it borders, in the same words as on its own page. A figure with no
+ * neighbour that could be compared has no second line.
+ */
+import { path, type Locale } from "../i18n/ui";
+import { nearLine, type StandoutRow } from "../lib/insights";
+import { pageOf } from "../lib/places";
+
+interface Props {
+  locale: Locale;
+  row: StandoutRow;
+}
+const { locale, row } = Astro.props;
+const near = nearLine(locale, row.finding);
+const nearPage = near && pageOf(near.code);
+---
+
+<div class="finding">
+  <p class="who"><a href={path(locale, row.route)}>{row.name}</a></p>
+  <p class="line">{row.line[locale]}</p>
+  {near && (
+    <p class="context">
+      {near.before}{nearPage ? <a href={path(locale, nearPage.route)}>{near.name}</a> : near.name}{near.after}
+    </p>
+  )}
+</div>
+
+<style>
+  .finding {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    max-width: var(--measure);
+  }
+
+  .who {
+    margin: 0;
+  }
+
+  .line,
+  .context {
+    overflow-wrap: break-word;
+  }
+
+  .line {
+    margin: 0.35rem 0 0;
+  }
+
+  .context {
+    margin: 0.35rem 0 0;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+</style>

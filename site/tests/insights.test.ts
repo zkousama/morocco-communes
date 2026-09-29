@@ -2,8 +2,11 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Published } from "../../insights/src/run.ts";
-import { method, nearLine, readInsights, since2014Line } from "../src/lib/insights.ts";
+import type { CommuneFile, Published } from "../../insights/src/run.ts";
+import { PAGES, t } from "../src/i18n/ui.ts";
+import { explore } from "../src/lib/nav.ts";
+import { insightsOf, method, nearLine, readInsights, since2014Line, standouts } from "../src/lib/insights.ts";
+import { communeOf, pageOf } from "../src/lib/places.ts";
 
 describe("insights on the site", () => {
   it("reads nothing, without failing, when none are published", () => {
@@ -125,11 +128,81 @@ describe("the methods page's numbers", () => {
     expect(method.neighbourFloor).toBe(method.changeGapFloor);
   });
 
+  it("links the methods page at the figures, and lists that page for the sitemap", () => {
+    expect(pages.en).toContain('href="/insights/"');
+    expect(pages.fr).toContain('href="/fr/insights/"');
+    expect(PAGES).toContain("insights/");
+    expect(explore(t("en")).find((section) => section.label === "Insights")?.route).toBe("insights/");
+    expect(explore(t("fr")).find((section) => section.label === "Constats")?.route).toBe("insights/");
+  });
+
   it("leaves no other number typed into either page", () => {
     for (const locale of ["en", "fr"] as const) {
       // The census years, and the year of the pilot.
       const text = prose(pages[locale]).replace(/\b(2014|2024|2026)\b/g, " ");
       expect(text.match(/.{0,30}\d.{0,30}/g), locale).toBeNull();
+    }
+  });
+});
+
+const commune = (code: string, findings: Partial<Published>[], name = code): CommuneFile => ({
+  code,
+  level: "commune",
+  name: { fr: name, ar: null },
+  datasetVersion: "1.9.0",
+  findings: findings.map((over, i) => figure({ id: `${code}-${i}`, ...over })),
+});
+
+const page = (code: string) => ({ route: `communes/${code}/` });
+
+describe("the insights page's list", () => {
+  it("keeps one finding per commune, the higher score, in score order", () => {
+    const files = [
+      commune("a", [
+        { score: 5, line: { en: "lower", fr: "bas" } },
+        { score: 9, line: { en: "higher", fr: "haut" } },
+      ]),
+      commune("b", [{ score: 7, line: { en: "middle", fr: "milieu" } }]),
+    ];
+    const rows = standouts(files, page).flatMap((group) => group.rows);
+    expect(rows.map((row) => [row.code, row.score, row.line.en, row.name, row.route])).toEqual([
+      ["a", 9, "higher", "a", "communes/a/"],
+      ["b", 7, "middle", "b", "communes/b/"],
+    ]);
+  });
+
+  it("keeps the 60 highest", () => {
+    const files = Array.from({ length: 61 }, (_, i) => commune(`c${String(i).padStart(2, "0")}`, [{ score: i + 1 }]));
+    const scores = standouts(files, page).flatMap((group) => group.rows.map((row) => row.score));
+    expect(scores).toEqual(Array.from({ length: 60 }, (_, i) => 61 - i));
+  });
+
+  it("groups by the topic before the dot, the highest group first", () => {
+    const files = [
+      commune("a", [{ score: 3, measure: "housing.type.other" }]),
+      commune("b", [{ score: 9, measure: "labour.unemploymentRate" }]),
+      commune("c", [{ score: 4, measure: "labour.activityRate" }]),
+    ];
+    const groups = standouts(files, page);
+    expect(groups.map((group) => group.topic)).toEqual(["labour", "housing"]);
+    expect(groups[0]!.rows.map((row) => row.code)).toEqual(["b", "c"]);
+    expect(groups[1]!.rows.map((row) => row.code)).toEqual(["a"]);
+  });
+
+  it("drops a commune that has no page", () => {
+    const files = [commune("kept", [{ score: 2 }], "Kept"), commune("gone", [{ score: 9 }], "Gone")];
+    const rows = standouts(files, (code) => (code === "gone" ? null : page(code))).flatMap((group) => group.rows);
+    expect(rows.map((row) => [row.code, row.name])).toEqual([["kept", "Kept"]]);
+  });
+
+  it("keeps every row's commune in the published data", () => {
+    const rows = standouts(insightsOf.values(), pageOf).flatMap((group) => group.rows);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(new Set(rows.map((row) => row.code)).size).toBe(rows.length);
+    for (const row of rows) {
+      expect(communeOf.has(row.code), row.code).toBe(true);
+      expect(insightsOf.get(row.code)?.name.fr).toBe(row.name);
+      expect(pageOf(row.code)?.route).toBe(row.route);
     }
   });
 });

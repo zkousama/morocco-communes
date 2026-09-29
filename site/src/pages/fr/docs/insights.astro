@@ -4,11 +4,12 @@
  * le commentaire qui dit d’où chaque phrase vient.
  */
 import Docs from "../../../layouts/Docs.astro";
-import { REPO_URL } from "../../../i18n/ui";
+import { REPO_URL, t } from "../../../i18n/ui";
 import { numbers, percent } from "../../../lib/format";
 import { method } from "../../../lib/insights";
 
 const locale = "fr";
+const copy = t(locale);
 
 const toc = [
   { id: "stands-out", label: "Ce qui se détache" },
@@ -34,6 +35,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   lede="La page d’une commune peut montrer les chiffres où elle s’écarte le plus des autres, avec ses communes voisines et 2014 à côté de chacun. Voici comment ils sont choisis et d’où vient chaque nombre. Aucun modèle de langage n’en écrit un mot."
   toc={toc}
 >
+  <p class="note"><a href="/fr/insights/">{copy.insightsFigures}</a></p>
   <section id="stands-out">
     <h2>Ce qui se détache</h2>
     <p>

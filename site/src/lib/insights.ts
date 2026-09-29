@@ -45,6 +45,63 @@ export function readInsights(dir: string): Map<string, CommuneFile> {
 
 export const insightsOf = readInsights("data/v1/insights");
 
+export interface StandoutRow {
+  code: string;
+  name: string;
+  route: string;
+  topic: string;
+  score: number;
+  line: Published["line"];
+  finding: Published;
+}
+
+export interface StandoutGroup {
+  topic: string;
+  rows: StandoutRow[];
+}
+
+/**
+ * The insights page's list. One finding per commune, its highest, then the 60 highest of
+ * those, so one place can't fill the page. A commune with no page is left out: the list
+ * would otherwise link nowhere. Groups follow the topic before the dot in the measure,
+ * and the group with the highest finding comes first.
+ */
+export function standouts(
+  files: Iterable<CommuneFile>,
+  pageFor: (code: string) => { route: string } | null,
+  limit = 60,
+): StandoutGroup[] {
+  const chosen: StandoutRow[] = [];
+  for (const file of files) {
+    const page = pageFor(file.code);
+    if (!page || file.findings.length === 0) continue;
+    let best = file.findings[0]!;
+    for (const finding of file.findings) if (finding.score > best.score) best = finding;
+    chosen.push({
+      code: file.code,
+      name: file.name.fr,
+      route: page.route,
+      topic: best.measure.split(".")[0] || best.measure,
+      score: best.score,
+      line: best.line,
+      finding: best,
+    });
+  }
+  chosen.sort((a, b) => b.score - a.score || a.code.localeCompare(b.code));
+  const groups: StandoutGroup[] = [];
+  const byTopic = new Map<string, StandoutGroup>();
+  for (const row of chosen.slice(0, limit)) {
+    let group = byTopic.get(row.topic);
+    if (!group) {
+      group = { topic: row.topic, rows: [] };
+      byTopic.set(row.topic, group);
+      groups.push(group);
+    }
+    group.rows.push(row);
+  }
+  return groups;
+}
+
 /** The pipeline's own settings, for the methods page to state rather than retype: shares as fractions, the rest as counts. */
 export const method = {
   extremeFloor: EXTREME_POPULATION_FLOOR,

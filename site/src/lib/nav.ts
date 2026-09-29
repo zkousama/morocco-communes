@@ -15,7 +15,7 @@ export const explore = (copy: Copy): Section[] => [
   { route: "communes/", label: copy.navCommunes },
   { route: "docs/indicators/", label: copy.navFigures },
   { route: "docs/glossary/", label: copy.navGlossary },
-  { route: "docs/insights/", label: copy.navInsights },
+  { route: "insights/", label: copy.navInsights },
   { route: "most-looked-up/", label: copy.attention },
 ];
 
