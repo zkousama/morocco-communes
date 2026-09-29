@@ -1,12 +1,12 @@
 ---
 /**
- * Communes whose figures don't go together the way they do elsewhere. The 30 furthest
- * each get the sentence, and the pair as a scatter under a fold.
+ * Communes whose figures don't go together the way they do elsewhere. Each row names
+ * the odd part, and the first row opens the scatter.
  */
 import Base from "../layouts/Base.astro";
 import { t, type Locale } from "../i18n/ui";
 import { path } from "../i18n/ui";
-import { cloudOf, oddLine, oddPage, scatter } from "../lib/odd";
+import { cloudOf, oddAxis, oddHeading, oddLine, oddPage, scatter } from "../lib/odd";
 import { pageOf } from "../lib/places";
 
 interface Props {
@@ -19,7 +19,22 @@ const rows = oddPage.flatMap((row) => {
   if (!page) return [];
   const cloud = cloudOf(row.a, row.b);
   const highlight = cloud.points.findIndex((point) => point.code === row.code);
-  return [{ row, page, svg: scatter(cloud.points, highlight, copy.oddScatter) }];
+  const sentence = oddLine(locale, row, page.name.fr);
+  const at = sentence.indexOf(page.name.fr);
+  return [{
+    row,
+    page,
+    heading: oddHeading(locale, row),
+    before: at < 0 ? "" : sentence.slice(0, at),
+    after: at < 0 ? sentence : sentence.slice(at + page.name.fr.length),
+    svg: scatter(cloud.points, highlight, {
+      label: copy.oddScatter,
+      xLabel: oddAxis(locale, row.a),
+      yLabel: oddAxis(locale, row.b),
+      slope: cloud.slope,
+      intercept: cloud.intercept,
+    }),
+  }];
 });
 ---
 
@@ -28,11 +43,11 @@ const rows = oddPage.flatMap((row) => {
     <h1>{copy.oddTitle}</h1>
     <p class="lede">{copy.oddLede}</p>
     <ol>
-      {rows.map(({ row, page, svg }) => (
+      {rows.map(({ page, heading, before, after, svg }, i) => (
         <li>
-          <p><a href={path(locale, page.route)}>{page.name.fr}</a></p>
-          <p>{oddLine(locale, row)}</p>
-          <details>
+          <h2>{heading}</h2>
+          <p>{before}<a href={path(locale, page.route)}>{page.name.fr}</a>{after}</p>
+          <details open={i === 0}>
             <summary>{copy.oddScatter}</summary>
             <div class="plot" set:html={svg} />
           </details>
@@ -59,7 +74,7 @@ const rows = oddPage.flatMap((row) => {
   .lede {
     color: var(--quiet);
     font-size: var(--t-md);
-    max-width: 42ch;
+    max-width: 62ch;
   }
 
   ol {
@@ -71,6 +86,14 @@ const rows = oddPage.flatMap((row) => {
   li {
     padding: 1rem 0;
     border-top: 1px solid var(--rule);
+  }
+
+  li h2 {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: var(--t-base);
+    line-height: 1.3;
+    margin: 0 0 0.35rem;
   }
 
   li p {
@@ -112,6 +135,18 @@ const rows = oddPage.flatMap((row) => {
   }
 
   li :global(.here) {
-    fill: var(--chart-down);
+    fill: var(--brass);
+  }
+
+  li :global(.line) {
+    stroke: var(--quiet);
+    stroke-width: 1;
+    opacity: 0.4;
+  }
+
+  li :global(.axis) {
+    fill: var(--quiet);
+    font-family: var(--sans);
+    font-size: 9px;
   }
 </style>

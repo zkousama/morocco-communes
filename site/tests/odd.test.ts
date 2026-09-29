@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { PAGES, t } from "../src/i18n/ui.ts";
 import { explore } from "../src/lib/nav.ts";
+import { places } from "../src/i18n/places.ts";
 import {
   ODD_FIGURES,
   ODD_FLOOR,
   ODD_MIN_R,
+  ODD_PER_FIGURE,
+  ODD_PER_PAIR,
   ODD_SHOWN,
   ODD_Z,
   cloudOf,
   correlation,
+  familyOf,
+  lineAt,
+  oddHeading,
   oddLine,
   oddOf,
   oddPage,
@@ -18,6 +24,9 @@ import {
   pairings,
   residualZ,
   scatter,
+  varied,
+  type OddFigure,
+  type OddRow,
   type OddUnit,
 } from "../src/lib/odd.ts";
 
@@ -54,6 +63,14 @@ describe("correlation and residuals", () => {
   it("gives nothing when a column doesn't vary", () => {
     expect(correlation([1, 1, 1], [1, 2, 3])).toBeNull();
     expect(residualZ([1, 1, 1], [1, 2, 3])).toBeNull();
+    expect(lineAt([1, 1, 1], [1, 2, 3], 1)).toBeNull();
+  });
+
+  it("reads the expected value off the fitted line", () => {
+    const xs = [1, 2, 3, 4, 5];
+    const ys = [2, 4, 6, 8, 10];
+    expect(lineAt(xs, ys, 3)).toBeCloseTo(6);
+    expect(Math.round(lineAt(xs, ys, 3.2)!)).toBe(6);
   });
 });
 
@@ -84,6 +101,22 @@ describe("which pairs and communes are odd", () => {
     expect(rows[0]!.z).toBeGreaterThan(ODD_Z);
   });
 
+  it("drops a pair whose two figures are in one family", () => {
+    const same = line.map((x, i) =>
+      values(`c${i}`, 5000, {
+        "illiteracy.rate10Plus": x,
+        "education.higher": x,
+        "wastewater.publicSewer": bent[i]!,
+      }),
+    );
+    const pairs = pairings(same).map((p) => `${p.a}|${p.b}`);
+    expect(familyOf("illiteracy.rate10Plus")).toBe(familyOf("education.higher"));
+    expect(pairs).not.toContain("illiteracy.rate10Plus|education.higher");
+    expect(pairs).toContain("illiteracy.rate10Plus|wastewater.publicSewer");
+    expect(familyOf("labour.unemploymentRate")).toBe("people");
+    expect(familyOf("amenities.runningWater")).toBe("infrastructure");
+  });
+
   it("leaves out a flagged commune and one under 5,000 people", () => {
     expect(ODD_FLOOR).toBe(5000);
     const extra = [
@@ -99,83 +132,158 @@ describe("which pairs and communes are odd", () => {
 
 describe("the sentence", () => {
   const row = {
-    code: "a",
-    a: "education.higher" as const,
-    b: "labour.unemploymentRate" as const,
-    r: -0.8,
-    z: 3,
-    x: 21.3,
-    y: 51.6,
+    a: "illiteracy.rate10Plus" as const,
+    b: "education.higher" as const,
+    x: 3.3,
+    y: 47.9,
+    expected: 27,
+    xMean: 30,
   };
 
-  it("names both figures and what is usual, and only says that when the pair is strong", () => {
-    expect(oddLine("en", row)).toBe(
-      "Higher education is 21.3% and unemployment is 51.6%. In most communes, more graduates goes with less unemployment.",
+  it("names the commune and the value the line expects", () => {
+    expect(oddLine("en", row, "Harhoura")).toBe(
+      "Harhoura has 3.3% illiteracy and 47.9% higher education. Communes with that little illiteracy usually have about 27% higher education.",
     );
-    expect(oddLine("fr", row)).toBe(
-      "L’enseignement supérieur est de 21,3\u202f% et le chômage est de 51,6\u202f%. Dans la plupart des communes, plus de diplômés va avec moins de chômage.",
+    expect(oddLine("fr", row, "Harhoura")).toBe(
+      "Harhoura a 3,3\u202f% d’analphabétisme et 47,9\u202f% d’enseignement supérieur. Les communes qui ont si peu d’analphabétisme ont d’habitude environ 27\u202f% d’enseignement supérieur.",
     );
-    expect(oddLine("en", { ...row, r: 0.4 })).toBe("Higher education is 21.3% and unemployment is 51.6%.");
-    expect(oddLine("en", { ...row, r: 0.8 })).toBe(
-      "Higher education is 21.3% and unemployment is 51.6%. In most communes, more graduates goes with more unemployment.",
-    );
+    expect(oddLine("en", { ...row, x: 40, xMean: 30 }, "Harhoura")).toContain("that much illiteracy");
   });
 
   it("writes household size as a count, not a share", () => {
     expect(
-      oddLine("en", { a: "households.averageSize", b: "education.higher", r: 0.6, x: 6.2, y: 4 }),
-    ).toMatch(/^Household size is 6\.2 and higher education is 4\.0%/);
+      oddLine(
+        "en",
+        { a: "households.averageSize", b: "education.higher", x: 6.2, y: 4, expected: 4, xMean: 5 },
+        "A commune",
+      ),
+    ).toBe(
+      "A commune has 6.2 people per household and 4.0% higher education. Communes with that large a household usually have about 4% higher education.",
+    );
+  });
+});
+
+describe("variety", () => {
+  const row = (code: string, a: OddFigure, b: OddFigure, z: number): OddRow => ({
+    code,
+    a,
+    b,
+    r: 0.6,
+    z,
+    x: 1,
+    y: 1,
+    expected: 1,
+    xMean: 2,
+  });
+
+  it("keeps at most 3 rows a pair and 5 a figure, and never repeats a commune", () => {
+    expect(ODD_PER_PAIR).toBe(3);
+    expect(ODD_PER_FIGURE).toBe(5);
+    const rows: OddRow[] = [];
+    for (let i = 0; i < 8; i++) rows.push(row(`p${i}`, "education.higher", "wastewater.publicSewer", 10 - i));
+    for (let i = 0; i < 8; i++) rows.push(row(`q${i}`, "education.higher", "dwellingType.apartment", 4));
+    for (let i = 0; i < 8; i++) rows.push(row(`s${i}`, "illiteracy.rate10Plus", "amenities.runningWater", 3));
+    const page = varied(rows);
+    const pair = (r: OddRow) => `${r.a}|${r.b}`;
+    for (const key of new Set(page.map(pair))) {
+      expect(page.filter((r) => pair(r) === key).length).toBeLessThanOrEqual(ODD_PER_PAIR);
+    }
+    const figures = page.flatMap((r) => [r.a, r.b]);
+    for (const fig of new Set(figures)) expect(figures.filter((f) => f === fig).length).toBeLessThanOrEqual(ODD_PER_FIGURE);
+    expect(new Set(page.map((r) => r.code)).size).toBe(page.length);
+    expect(figures.filter((f) => f === "education.higher")).toHaveLength(ODD_PER_FIGURE);
   });
 });
 
 describe("the scatter", () => {
-  it("draws every commune, and marks the one this row is about", () => {
+  it("draws every commune, the fitted line, and the two axes", () => {
     const svg = scatter(
       [
         { x: 0, y: 0 },
         { x: 10, y: 10 },
       ],
       1,
+      { xLabel: "Illiteracy", yLabel: "Public sewer", slope: 1, intercept: 0 },
     );
     expect(svg.match(/<circle /g)).toHaveLength(2);
     expect(svg).toContain('class="here"');
+    expect(svg).toContain('class="line"');
+    expect(svg).toContain("Illiteracy");
+    expect(svg).toContain("Public sewer");
     expect(svg.startsWith("<svg")).toBe(true);
   });
 });
 
 describe("what the census gives", () => {
-  it("publishes the pairs whose correlation reaches 0.5, and the 30 furthest communes", () => {
+  const pairKey = (row: { a: string; b: string }) => `${row.a}|${row.b}`;
+
+  it("publishes only pairs across families, within the page caps", () => {
     expect(ODD_SHOWN).toBe(30);
+    expect(ODD_MIN_R).toBe(0.5);
+    expect(oddPairs.length).toBeGreaterThanOrEqual(3);
     expect(oddPairs.every((p) => Math.abs(p.r) >= ODD_MIN_R)).toBe(true);
-    expect(oddPage).toHaveLength(ODD_SHOWN);
-    expect(oddPage.map((r) => Math.abs(r.z))).toEqual([...oddPage.map((r) => Math.abs(r.z))].sort((a, b) => b - a));
-    for (const row of oddPage) expect(Math.abs(row.z)).toBeGreaterThan(ODD_Z);
+    expect(oddPairs.every((p) => familyOf(p.a) !== familyOf(p.b))).toBe(true);
+    expect(oddPage.length).toBeLessThanOrEqual(ODD_SHOWN);
+    expect(new Set(oddPage.map((r) => r.code)).size).toBe(oddPage.length);
+    expect(new Set(oddRows.map((r) => r.code)).size).toBe(oddRows.length);
+    for (const key of new Set(oddPage.map(pairKey))) {
+      expect(oddPage.filter((r) => pairKey(r) === key).length).toBeLessThanOrEqual(ODD_PER_PAIR);
+    }
+    const figures = oddPage.flatMap((r) => [r.a, r.b]);
+    for (const fig of new Set(figures)) expect(figures.filter((f) => f === fig).length).toBeLessThanOrEqual(ODD_PER_FIGURE);
+    for (const row of oddPage) {
+      expect(Math.abs(row.z)).toBeGreaterThan(ODD_Z);
+      const cloud = cloudOf(row.a, row.b);
+      const xs = cloud.points.map((p) => p.x);
+      const ys = cloud.points.map((p) => p.y);
+      expect(row.expected).toBe(Math.round(lineAt(xs, ys, row.x)!));
+      expect(oddHeading("en", row).length).toBeGreaterThan(0);
+      expect(oddHeading("fr", row).length).toBeGreaterThan(0);
+    }
+    const order = oddRows.map((r) => r.code);
+    let seen = -1;
+    for (const row of oddPage) {
+      const at = order.indexOf(row.code);
+      expect(at).toBeGreaterThan(seen);
+      seen = at;
+    }
+  });
+
+  it("keeps a heading for each way a published pair can sit", () => {
+    const en = places.en.oddHead as Record<string, string>;
+    const fr = places.fr.oddHead as Record<string, string>;
+    for (const pair of oddPairs) {
+      for (const xSide of ["xlow", "xhigh"]) {
+        for (const ySide of ["ylow", "yhigh"]) {
+          const key = `${pair.a}|${pair.b}|${xSide}|${ySide}`;
+          expect(en[key], key).toBeTruthy();
+          expect(fr[key], key).toBeTruthy();
+        }
+      }
+    }
   });
 
   it("includes Assa when its figures put it there, and not Touizgui or Fam El Hisn", () => {
     const assa = oddOf("10.071.01.01");
-    expect(assa).toMatchObject({ a: "illiteracy.rate10Plus", b: "education.higher", x: 23.8, y: 21.3 });
-    expect(assa!.r).toBeCloseTo(-0.774, 3);
-    expect(assa!.z).toBeCloseTo(4.834, 2);
+    expect(assa).toMatchObject({ a: "education.higher", b: "dwellingType.apartment", x: 21.3, y: 0.2, expected: 21 });
+    expect(assa!.r).toBeCloseTo(0.585, 3);
+    expect(assa!.z).toBeCloseTo(-3.244, 3);
+    const cloud = cloudOf(assa!.a, assa!.b);
+    const xs = cloud.points.map((p) => p.x);
+    const ys = cloud.points.map((p) => p.y);
+    expect(assa!.expected).toBe(Math.round(lineAt(xs, ys, assa!.x)!));
+    expect(scatter(cloud.points, cloud.points.findIndex((point) => point.code === assa!.code)).match(/<circle /g)).toHaveLength(1146);
     expect(oddOf("10.071.03.05")).toBeNull();
     expect(oddOf("09.551.01.03")).toBeNull();
-    expect(oddRows).toHaveLength(118);
+    expect(oddRows).toHaveLength(70);
+    expect(oddPage).toHaveLength(10);
     expect(oddPairs.map((p) => `${p.a} ${p.b} ${p.r.toFixed(2)}`)).toEqual([
-      "illiteracy.rate10Plus education.higher -0.77",
       "illiteracy.rate10Plus wastewater.publicSewer -0.73",
       "illiteracy.rate10Plus dwellingType.apartment -0.55",
-      "languagesReadAndWritten.french education.higher 0.57",
       "languagesReadAndWritten.french wastewater.publicSewer 0.53",
       "education.higher wastewater.publicSewer 0.71",
       "education.higher dwellingType.apartment 0.59",
-      "labour.activityRate age.65+ -0.52",
-      "wastewater.publicSewer dwellingType.apartment 0.53",
-      "households.averageSize age.0-14 0.72",
-      "age.0-14 age.65+ -0.57",
     ]);
-    const cloud = cloudOf(assa!.a, assa!.b);
-    const svg = scatter(cloud.points, cloud.points.findIndex((point) => point.code === assa!.code));
-    expect(svg.match(/<circle /g)).toHaveLength(1146);
   });
 });
 

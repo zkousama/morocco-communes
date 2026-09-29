@@ -128,7 +128,7 @@ const twinNames = p.twinNames as Record<string, string>;
 const twinValue = (path: string, v: number) => (path === "households.averageSize" ? one.format(v) : share(v));
 const rare = onlyHere(c.code).map((item) => onlyHereLine(locale, item));
 const odd = oddOf(c.code);
-const oddText = odd && oddLine(locale, odd);
+const oddText = odd && oddLine(locale, odd, c.name.fr);
 const wheel = twin && wheelOf(c.code);
 const twinFigures = (twin?.closest ?? [])
   .map((f) => fill(p.twinFigure, { label: twinNames[f.path] ?? f.path, here: twinValue(f.path, f.here), there: twinValue(f.path, f.there) }))
