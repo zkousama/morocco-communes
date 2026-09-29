@@ -1,5 +1,5 @@
 ---
-import { changeBreaks, densityBreaks, illiteracyBreaks, markup, shapes, viewBox } from "../generated/map";
+import { changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
 import { path, t, type Locale } from "../i18n/ui";
 import { percent } from "../lib/format";
 
@@ -13,6 +13,13 @@ const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 // One legend per view. Each swatch names its class the way the map's data attributes do.
 const range = (breaks: number[], i: number, format: (v: number) => string) =>
   i === 0 ? `< ${format(breaks[0]!)}` : i === breaks.length ? `${format(breaks[i - 1]!)}+` : `${format(breaks[i - 1]!)}–${format(breaks[i]!)}`;
+const bands = (breaks: number[], prefix: string) => [
+  ...[0, 1, 2, 3, 4, 5].map((i) => ({
+    cls: `${prefix}${i}`,
+    text: range(breaks, i, (v) => percent(locale, v, { digits: 0 })),
+  })),
+  { cls: `${prefix}n`, text: copy.mapNoValue },
+];
 const views = [
   {
     id: "density",
@@ -55,6 +62,40 @@ const views = [
     ],
   },
   {
+    id: "water",
+    label: copy.mapWater,
+    unit: copy.legendWater,
+    swatches: bands(waterBreaks, "s"),
+  },
+  {
+    id: "elderly",
+    label: copy.mapElderly,
+    unit: copy.legendElderly,
+    swatches: bands(elderlyBreaks, "s"),
+  },
+  {
+    id: "women",
+    label: copy.mapWomen,
+    unit: copy.legendWomen,
+    swatches: bands(womenBreaks, "s"),
+  },
+  {
+    id: "unemployment",
+    label: copy.mapUnemployment,
+    unit: copy.legendUnemployment,
+    swatches: bands(unemploymentBreaks, "s"),
+  },
+  {
+    id: "service",
+    label: copy.mapService,
+    unit: copy.legendService.replace("{tram}", n.format(tramCommunes)).replace("{train}", n.format(trainCommunes)),
+    swatches: [
+      { cls: "k1", text: copy.mapServiceOn },
+      { cls: "k0", text: copy.mapServiceOff },
+      { cls: "kn", text: copy.mapNoValue },
+    ],
+  },
+  {
     id: "type",
     label: copy.mapType,
     unit: "",
@@ -69,7 +110,9 @@ const communesRoute = path(locale, "communes/");
 
 <figure class="atlas" data-view="density" data-base={communesRoute} data-lang={locale}
   data-people={copy.tipPeople} data-density={copy.tipDensity} data-change={copy.tipChange}
-  data-illiteracy={copy.tipIlliteracy}
+  data-illiteracy={copy.tipIlliteracy} data-water={copy.tipWater} data-elderly={copy.tipElderly}
+  data-women={copy.tipWomen} data-unemployment={copy.tipUnemployment}
+  data-tram={copy.tipTram} data-train={copy.tipTrain}
   data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}
   data-gap={copy.gapAny} data-gap-03={copy.gap03} data-gap-04={copy.gap04}>
   <div class="frame">
@@ -142,6 +185,12 @@ const communesRoute = path(locale, "communes/");
     density: number | null,
     change: number | null,
     illiteracy: number | null,
+    water: number | null,
+    elderly: number | null,
+    women: number | null,
+    unemployment: number | null,
+    tram: number | null,
+    train: number | null,
   ];
 
   const atlas = document.querySelector<HTMLElement>(".atlas");
@@ -205,21 +254,40 @@ const communesRoute = path(locale, "communes/");
     };
 
     const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    let lastShow: { shape: SVGPathElement; x: number; y: number; pinned: boolean } | null = null;
     const show = (shape: SVGPathElement, x: number, y: number, pinned: boolean) => {
+      lastShow = { shape, x, y, pinned };
       focus.setAttribute("d", shape.getAttribute("d") ?? "");
       const row = rows?.[shape.dataset.c ?? ""];
       if (!row) return;
-      const [slug, name, type, people, density, change, illiteracy] = row;
+      const [slug, name, type, people, density, change, illiteracy, water, elderly, women, unemployment, tram, train] = row;
       const signed =
         change === null
           ? ""
           : `${change > 0 ? "+" : change < 0 ? "−" : ""}${tenths.format(Math.abs(change))}${d.lang === "fr" ? "\u202f%" : "%"}`;
+      const pct = d.lang === "fr" ? "\u202f%" : "%";
+      const share = (value: number | null, label: string | undefined) =>
+        value === null || !label ? "" : `<span>${tenths.format(value)}${pct} ${label}</span>`;
+      const view = atlas.dataset.view;
+      const extra =
+        view === "water"
+          ? share(water, d.water)
+          : view === "elderly"
+            ? share(elderly, d.elderly)
+            : view === "women"
+              ? share(women, d.women)
+              : view === "unemployment"
+                ? share(unemployment, d.unemployment)
+                : view === "service"
+                  ? [tram !== null && tram >= 1 ? share(tram, d.tram) : "", train !== null && train >= 1 ? share(train, d.train) : ""].join("")
+                  : "";
       tip.innerHTML =
         `<strong>${escape(name)}</strong><span>${type === "urban" ? d.urban : d.rural}</span>` +
         `<span>${number.format(people)} ${d.people}</span>` +
         (density === null ? "" : `<span>${(density >= 100 ? rounded : number).format(density)} ${d.density}</span>`) +
         (signed ? `<span>${signed} ${d.change}</span>` : "") +
-        (illiteracy === null ? "" : `<span>${tenths.format(illiteracy)}${d.lang === "fr" ? "\u202f%" : "%"} ${d.illiteracy}</span>`) +
+        (illiteracy === null ? "" : `<span>${tenths.format(illiteracy)}${pct} ${d.illiteracy}</span>`) +
+        extra +
         (pinned ? `<a href="${d.base}${slug}/">${d.open}</a>` : "");
       tip.dataset.slug = slug;
       open(x, y);
@@ -233,6 +301,7 @@ const communesRoute = path(locale, "communes/");
       open(x, y);
     };
     const hide = () => {
+      lastShow = null;
       tip.hidden = true;
       focus.setAttribute("d", "");
       anchor = null;
@@ -521,6 +590,7 @@ const communesRoute = path(locale, "communes/");
         atlas.dataset.view = view;
         for (const b of atlas.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b === button));
         for (const legend of atlas.querySelectorAll<HTMLElement>(".legend")) legend.hidden = legend.dataset.for !== view;
+        if (lastShow && !tip.hidden) show(lastShow.shape, lastShow.x, lastShow.y, lastShow.pinned);
       });
     }
   }
@@ -663,6 +733,52 @@ const communesRoute = path(locale, "communes/");
   .swatch.r5 { fill: var(--seq-5); background: var(--seq-5); }
   .atlas[data-view="illiteracy"] :global([data-i="n"]),
   .swatch.rn { fill: var(--map-none); background: var(--map-none); }
+
+  /* The added views share one ramp. A missing figure is hatched, the same mark as land with no boundary. */
+  .atlas[data-view="water"] :global([data-w="0"]),
+  .atlas[data-view="elderly"] :global([data-e="0"]),
+  .atlas[data-view="women"] :global([data-f="0"]),
+  .atlas[data-view="unemployment"] :global([data-u="0"]),
+  .swatch.s0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="water"] :global([data-w="1"]),
+  .atlas[data-view="elderly"] :global([data-e="1"]),
+  .atlas[data-view="women"] :global([data-f="1"]),
+  .atlas[data-view="unemployment"] :global([data-u="1"]),
+  .swatch.s1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="water"] :global([data-w="2"]),
+  .atlas[data-view="elderly"] :global([data-e="2"]),
+  .atlas[data-view="women"] :global([data-f="2"]),
+  .atlas[data-view="unemployment"] :global([data-u="2"]),
+  .swatch.s2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="water"] :global([data-w="3"]),
+  .atlas[data-view="elderly"] :global([data-e="3"]),
+  .atlas[data-view="women"] :global([data-f="3"]),
+  .atlas[data-view="unemployment"] :global([data-u="3"]),
+  .swatch.s3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="water"] :global([data-w="4"]),
+  .atlas[data-view="elderly"] :global([data-e="4"]),
+  .atlas[data-view="women"] :global([data-f="4"]),
+  .atlas[data-view="unemployment"] :global([data-u="4"]),
+  .swatch.s4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="water"] :global([data-w="5"]),
+  .atlas[data-view="elderly"] :global([data-e="5"]),
+  .atlas[data-view="women"] :global([data-f="5"]),
+  .atlas[data-view="unemployment"] :global([data-u="5"]),
+  .swatch.s5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="water"] :global([data-w="n"]),
+  .atlas[data-view="elderly"] :global([data-e="n"]),
+  .atlas[data-view="women"] :global([data-f="n"]),
+  .atlas[data-view="unemployment"] :global([data-u="n"]),
+  .atlas[data-view="service"] :global([data-k="n"]) { fill: url(#gap-hatch); }
+  .swatch.sn,
+  .swatch.kn {
+    background: repeating-linear-gradient(45deg, var(--quiet) 0 1.2px, transparent 1.2px 4px);
+  }
+
+  .atlas[data-view="service"] :global([data-k="1"]),
+  .swatch.k1 { fill: var(--chart-down); background: var(--chart-down); }
+  .atlas[data-view="service"] :global([data-k="0"]),
+  .swatch.k0 { fill: var(--map-none); background: var(--map-none); }
 
   .atlas[data-view="change"] :global([data-g="0"]),
   .swatch.g0 { fill: var(--div-0); background: var(--div-0); }

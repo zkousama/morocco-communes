@@ -14,6 +14,17 @@ import { readBoundaries, unionOf } from "../../api/src/emit/boundaries.ts";
 import { sphericalArea } from "../../pipeline/src/geo/rings.ts";
 import { coverageHoles, type TopologyLike } from "../../pipeline/src/geo/holes.ts";
 import { boxOf, fit, pathOf, simplify, type Point } from "../src/lib/geo.ts";
+import {
+  ELDERLY_BREAKS,
+  UNEMPLOYMENT_BREAKS,
+  WATER_BREAKS,
+  WOMEN_BREAKS,
+  serviceCounts,
+  serviceOf,
+  shadeOf,
+} from "../src/lib/mapViews.ts";
+import type { Census } from "../../api/src/lib/indicators.ts";
+import { mismatches } from "../../api/src/lib/mismatch.ts";
 import { readLevel } from "../../pipeline/src/lib/levels.ts";
 
 const WIDTH = 1000;
@@ -29,11 +40,7 @@ export const DENSITY_BREAKS = [10, 50, 150, 500, 2000];
 export const CHANGE_BREAKS = [-10, -2, 2, 10, 25];
 export const ILLITERACY_BREAKS = [10, 20, 30, 40, 50];
 
-const classOf = (value: number | null, breaks: number[]) => {
-  if (value === null) return "n";
-  const i = breaks.findIndex((b) => value < b);
-  return String(i < 0 ? breaks.length : i);
-};
+const classOf = (value: number | null, breaks: number[]) => shadeOf(value, breaks, false);
 
 interface Commune {
   code: string;
@@ -47,15 +54,53 @@ interface Commune {
 
 const communes = JSON.parse(await readFile("data/v1/attributes/communes.json", "utf8")) as Commune[];
 const byDigits = new Map(communes.map((c) => [c.codeDigits, c]));
+const byCode = new Map(communes.map((c) => [c.code, c]));
 
 interface Figures {
   code: string;
-  people: { total: { all: Record<string, Record<string, number | null>> } | null };
+  people: { total: { all: Record<string, Record<string, number | null>> | null; female: Record<string, Record<string, number | null>> | null } | null };
+  households: { total: Record<string, Record<string, number | null>> | null };
 }
 const indicators = readLevel<Figures>("data/v1/indicators", "communes");
-const illiteracyOf = new Map(
-  indicators.map((r) => [r.code, r.people.total?.all.illiteracy?.rate10Plus ?? null]),
-);
+const prior = new Map(readLevel<Figures>("data/v1/indicators/2014", "communes").map((r) => [r.code, r]));
+const num = (value: number | null | undefined) => (value === null || value === undefined ? null : value);
+const age65 = (all: Record<string, Record<string, number | null>> | null): number | null => {
+  if (!all) return null;
+  let total = 0;
+  for (const band of ["65-69", "70-74", "75+"]) {
+    const v = all.age?.[band];
+    if (v === null || v === undefined) return null;
+    total += v;
+  }
+  return Math.round(total * 10) / 10;
+};
+const illiteracyOf = new Map<string, number | null>();
+const waterOf = new Map<string, number | null>();
+const elderlyOf = new Map<string, number | null>();
+const womenOf = new Map<string, number | null>();
+const unemploymentOf = new Map<string, number | null>();
+const tramOf = new Map<string, number | null>();
+const trainOf = new Map<string, number | null>();
+const serviceRows: { tram: number | null; train: number | null; population: number }[] = [];
+for (const record of indicators) {
+  const all = record.people.total?.all ?? null;
+  const homes = record.households.total;
+  // mismatches only reads people.total and households.total. These files don't carry the other blocks.
+  const flagged = new Set(
+    mismatches(record as unknown as Census, prior.get(record.code) as unknown as Census | undefined).map((m) => m.path),
+  );
+  illiteracyOf.set(record.code, num(all?.illiteracy?.rate10Plus));
+  waterOf.set(record.code, flagged.has("amenities.runningWater") ? null : num(homes?.amenities?.runningWater));
+  elderlyOf.set(record.code, age65(all));
+  womenOf.set(record.code, num(record.people.total?.female?.illiteracy?.rate10Plus));
+  unemploymentOf.set(record.code, num(all?.labour?.unemploymentRate));
+  const tram = num(all?.commute?.tram);
+  const train = num(all?.commute?.train);
+  tramOf.set(record.code, tram);
+  trainOf.set(record.code, train);
+  serviceRows.push({ tram, train, population: byCode.get(record.code)?.population["2024"].total ?? 0 });
+}
+const services = serviceCounts(serviceRows);
 const files = await readBoundaries("data/v1/geometry");
 
 // One projection for the whole country, from every boundary drawn.
@@ -119,10 +164,16 @@ for (const { topology, arcs } of decoded) {
       .map((r) => pathOf(r, true))
       .join("");
     if (d === "") continue;
+    const code = commune.code;
     shapes.push(
-      `<path d="${d}" data-c="${commune.code}" data-d="${classOf(commune.density, DENSITY_BREAKS)}" ` +
+      `<path d="${d}" data-c="${code}" data-d="${classOf(commune.density, DENSITY_BREAKS)}" ` +
         `data-g="${classOf(commune.population.change?.pct ?? null, CHANGE_BREAKS)}" ` +
-        `data-i="${classOf(illiteracyOf.get(commune.code) ?? null, ILLITERACY_BREAKS)}" data-t="${commune.type[0]}"/>`,
+        `data-i="${classOf(illiteracyOf.get(code) ?? null, ILLITERACY_BREAKS)}" data-t="${commune.type[0]}" ` +
+        `data-w="${shadeOf(waterOf.get(code) ?? null, WATER_BREAKS, false)}" ` +
+        `data-e="${shadeOf(elderlyOf.get(code) ?? null, ELDERLY_BREAKS, false)}" ` +
+        `data-f="${shadeOf(womenOf.get(code) ?? null, WOMEN_BREAKS, false)}" ` +
+        `data-u="${shadeOf(unemploymentOf.get(code) ?? null, UNEMPLOYMENT_BREAKS, false)}" ` +
+        `data-k="${serviceOf(tramOf.get(code) ?? null, trainOf.get(code) ?? null, commune.population["2024"].total)}"/>`,
     );
   }
 
@@ -141,8 +192,8 @@ const markup =
   `${hatch}<g class="communes">${shapes.join("")}</g>${gaps.join("")}` +
   `<path class="regions" d="${regionPaths.join("")}"/>`;
 
-// What the tooltip shows, fetched once on first hover: slug, name, type, population,
-// density, change and illiteracy, by code.
+// What the tooltip shows, fetched once on first hover. After illiteracy come running
+// water, people aged 65 and over, women's illiteracy, unemployment, then tram and train.
 const tooltip = Object.fromEntries(
   communes.map((c) => [
     c.code,
@@ -154,6 +205,12 @@ const tooltip = Object.fromEntries(
       c.density,
       c.population.change?.pct ?? null,
       illiteracyOf.get(c.code) ?? null,
+      waterOf.get(c.code) ?? null,
+      elderlyOf.get(c.code) ?? null,
+      womenOf.get(c.code) ?? null,
+      unemploymentOf.get(c.code) ?? null,
+      tramOf.get(c.code) ?? null,
+      trainOf.get(c.code) ?? null,
     ],
   ]),
 );
@@ -167,6 +224,12 @@ export const viewBox = "0 0 ${WIDTH} ${height}";
 export const densityBreaks = ${JSON.stringify(DENSITY_BREAKS)};
 export const changeBreaks = ${JSON.stringify(CHANGE_BREAKS)};
 export const illiteracyBreaks = ${JSON.stringify(ILLITERACY_BREAKS)};
+export const waterBreaks = ${JSON.stringify(WATER_BREAKS)};
+export const elderlyBreaks = ${JSON.stringify(ELDERLY_BREAKS)};
+export const womenBreaks = ${JSON.stringify(WOMEN_BREAKS)};
+export const unemploymentBreaks = ${JSON.stringify(UNEMPLOYMENT_BREAKS)};
+export const tramCommunes = ${services.tram};
+export const trainCommunes = ${services.train};
 export const shapes = ${shapes.length};
 export const markup = ${JSON.stringify(markup)};
 `,
