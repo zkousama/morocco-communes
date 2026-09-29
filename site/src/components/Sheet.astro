@@ -1,15 +1,16 @@
 ---
 /**
  * The phone menu and the search, in one dialog. On a phone the menu button opens it over
- * the whole screen: the search field on top, the site's sections under it in 2 groups,
- * and the language and theme at the foot. On a wider window the bar keeps its sections,
- * and its search button opens the same dialog as a panel with the search alone.
+ * the whole screen: the search field on top, the site's sections under it in the same
+ * groups as the header, and the language and theme at the foot. On a wider window the
+ * bar keeps its sections, and its search button opens the same dialog as a panel with
+ * the search alone.
  *
  * Without a script neither button shows, and the bar lays everything out as it always has.
  */
 import Search from "./Search.astro";
 import { LOCALE_NAMES, LOCALES, path, t, type Locale } from "../i18n/ui";
-import { build, currentOf, explore, themes } from "../lib/nav";
+import { currentOf, menu, themes } from "../lib/nav";
 
 interface Props {
   locale: Locale;
@@ -18,10 +19,7 @@ interface Props {
 }
 const { locale, route, current } = Astro.props;
 const copy = t(locale);
-const groups = [
-  { id: "menu-explore", label: copy.menuExplore, sections: explore(copy) },
-  { id: "menu-build", label: copy.menuBuild, sections: build(copy) },
-];
+const groups = menu(copy);
 ---
 
 <button type="button" class="find-open" aria-haspopup="dialog" aria-controls="sheet" aria-expanded="false">

@@ -1,7 +1,7 @@
 ---
 import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
 import Sheet from "../components/Sheet.astro";
-import { currentOf, sections as barSections, themes as themeList } from "../lib/nav";
+import { currentOf, menu as menuGroups, themes as themeList } from "../lib/nav";
 
 interface Props {
   locale: Locale;
@@ -17,7 +17,7 @@ const { locale, route = "", title, description, current = true } = Astro.props;
 // Cloudflare Web Analytics, when a token is given at build time. It sets no cookies.
 const analytics = process.env.CF_ANALYTICS_TOKEN;
 const copy = t(locale);
-const sections = barSections(copy);
+const groups = menuGroups(copy);
 const site = Astro.site;
 const absolute = (p: string) => (site ? new URL(p, site).href : null);
 // A page that is no route of its own, the one for an address with nothing at it, has no
@@ -88,11 +88,24 @@ const themes = themeList(copy);
       <a class="wordmark" href={path(locale)}>{copy.title}</a>
       <div class="menu">
       <nav class="sections" aria-label={copy.navLabel}>
-        {sections.map((s) => (
-          <a href={path(locale, s.route)} aria-current={currentOf(s.route, route, current)}>
-            {s.label}
-          </a>
-        ))}
+        {groups.map((group) => {
+          const here = group.sections.some((s) => currentOf(s.route, route, current));
+          return (
+            <details class="drop">
+              <summary aria-expanded="false" aria-current={here ? "true" : undefined}>
+                {group.label}
+                <svg class="caret" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M2 3.5 5 6.5 8 3.5" /></svg>
+              </summary>
+              <div class="panel">
+                {group.sections.map((s) => (
+                  <a href={path(locale, s.route)} aria-current={currentOf(s.route, route, current)}>
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            </details>
+          );
+        })}
       </nav>
       <div class="settings">
         <nav class="tongues" aria-label={copy.language}>
@@ -223,6 +236,75 @@ const themes = themeList(copy);
           });
         });
         paint();
+      })();
+    </script>
+
+    <script is:inline>
+      // Each group is a native disclosure, so the links stay reachable with no script.
+      // With one, it also opens on hover for a pointer, and from the keyboard.
+      (function () {
+        var drops = Array.prototype.slice.call(document.querySelectorAll(".drop"));
+        if (!drops.length) return;
+        var fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+        var summaryOf = function (d) {
+          return d.querySelector("summary");
+        };
+        var linksOf = function (d) {
+          return Array.prototype.slice.call(d.querySelectorAll("a"));
+        };
+        var set = function (d, open) {
+          if (d.open === open) {
+            var s = summaryOf(d);
+            if (s) s.setAttribute("aria-expanded", open ? "true" : "false");
+            return;
+          }
+          d.open = open;
+        };
+        drops.forEach(function (d) {
+          var summary = summaryOf(d);
+          d.addEventListener("toggle", function () {
+            if (summary) summary.setAttribute("aria-expanded", d.open ? "true" : "false");
+            if (!d.open) return;
+            drops.forEach(function (other) {
+              if (other !== d) other.open = false;
+            });
+          });
+          d.addEventListener("keydown", function (event) {
+            var links = linksOf(d);
+            var i = links.indexOf(document.activeElement);
+            if (event.key === "Escape") {
+              set(d, false);
+              if (summary) summary.focus();
+              event.preventDefault();
+            } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              if (!d.open) set(d, true);
+              var next =
+                event.key === "ArrowDown"
+                  ? links[i + 1] || links[0]
+                  : i <= 0
+                    ? links[links.length - 1]
+                    : links[i - 1];
+              if (next) next.focus();
+            }
+          });
+          d.addEventListener("focusout", function (event) {
+            if (!d.contains(event.relatedTarget)) set(d, false);
+          });
+          if (fine.matches) {
+            d.addEventListener("mouseenter", function () {
+              set(d, true);
+            });
+            d.addEventListener("mouseleave", function () {
+              set(d, false);
+            });
+          }
+        });
+        document.addEventListener("click", function (event) {
+          drops.forEach(function (d) {
+            if (!d.contains(event.target)) set(d, false);
+          });
+        });
       })();
     </script>
 
@@ -566,6 +648,60 @@ const themes = themeList(copy);
         color: var(--ink);
       }
 
+      /* A group is a disclosure: closed, the bar stays one line; open, the links sit on the page. */
+      .drop {
+        position: relative;
+      }
+
+      .drop summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.28rem;
+        color: var(--quiet);
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .drop summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .drop summary::marker {
+        content: "";
+      }
+
+      .drop summary:hover,
+      .drop[open] > summary,
+      .drop summary[aria-current] {
+        color: var(--ink);
+      }
+
+      .caret {
+        width: 0.55rem;
+        height: 0.55rem;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .drop .panel {
+        position: absolute;
+        z-index: 30;
+        top: 100%;
+        inset-inline-start: 0;
+        display: grid;
+        min-width: 12rem;
+        padding: 0.35rem 0;
+        background: var(--paper);
+        border: 1px solid var(--rule);
+      }
+
+      .drop .panel a {
+        padding: 0.35rem 0.85rem;
+      }
+
       /* Off the top until a keyboard reaches it. */
       .skip {
         position: absolute;
@@ -638,7 +774,8 @@ const themes = themeList(copy);
         outline: 0;
       }
 
-      .sections a[aria-current] {
+      .sections a[aria-current],
+      .drop summary[aria-current] {
         text-decoration: underline;
         text-decoration-color: var(--brass);
         text-decoration-thickness: 2px;
@@ -685,6 +822,19 @@ const themes = themeList(copy);
 
         .js .menu {
           display: none;
+        }
+      }
+
+      /* From 1024px the groups, the search and the switches stay on one line. */
+      @media (min-width: 1024px) {
+        .masthead {
+          flex-wrap: nowrap;
+          align-items: center;
+        }
+
+        .sections {
+          flex-wrap: nowrap;
+          align-items: center;
         }
       }
 
