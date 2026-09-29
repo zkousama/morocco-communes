@@ -20,6 +20,7 @@ import {
   MAX_PEOPLE_PER_ROOM,
   Z_THRESHOLD,
 } from "../../../insights/src/detect.ts";
+import { SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../../../insights/src/filter.ts";
 import { field } from "../../../insights/src/fields.ts";
 import type { CommuneFile, Published } from "../../../insights/src/run.ts";
 import { figure as withUnit } from "../../../insights/src/text.ts";
@@ -137,6 +138,8 @@ export const method = {
   swing: SWING,
   fall: FALL,
   neighbourFloor: CHANGE_GAP_POPULATION_FLOOR,
+  smallBase: SMALL_BASE,
+  sampleHouseholds: SAMPLE_HOUSEHOLDS,
 };
 
 const isShare = (path: string) => field(path)?.unit === "percent";

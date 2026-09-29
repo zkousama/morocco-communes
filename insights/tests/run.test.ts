@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
-import { dropped } from "../src/filter.ts";
+import { dropped, SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../src/filter.ts";
 import { pipeline, summary, write, type CommuneFile } from "../src/run.ts";
 import { termsPattern } from "../src/safety.ts";
 
@@ -42,6 +42,25 @@ describe("the pipeline", () => {
       expect(f.measure.startsWith("sex.")).toBe(false);
       expect(unit.mismatched.size).toBe(0);
     }
+  });
+
+  it("publishes no economy or housing figure on a base under 100", () => {
+    expect(run.counts.dropped["small base"]).toBeGreaterThan(0);
+    for (const f of published) {
+      const base = data.units.get(f.code)!.base;
+      if (f.measure.startsWith("economy.")) expect(base.businesses ?? 0).toBeGreaterThanOrEqual(SMALL_BASE);
+      if (f.measure.startsWith("housing.")) expect(base.dwellings ?? 0).toBeGreaterThanOrEqual(SMALL_BASE);
+    }
+  });
+
+  it("marks a census figure in a commune of 2,000 households or more as a sample estimate", () => {
+    for (const f of published) {
+      const households = data.units.get(f.code)!.base.households;
+      const census = !f.measure.startsWith("economy.") && !f.measure.startsWith("housing.");
+      expect(f.sampled).toBe(census && households !== null && households >= SAMPLE_HOUSEHOLDS);
+    }
+    expect(published.some((f) => f.sampled)).toBe(true);
+    expect(published.some((f) => !f.sampled)).toBe(true);
   });
 
   it("never names a flagged commune as a neighbour", () => {

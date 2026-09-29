@@ -34,6 +34,11 @@ const share = (v: number) => percent(locale, v, { fixed: true });
     return (
       <div class="finding">
         <p class="line">{f.line[locale]}</p>
+        {f.sampled && (
+          <p class="note">
+            <a href={`${path(locale, "docs/indicators/")}#reading`}>{p.insightsSample}</a>
+          </p>
+        )}
         {f.breakdown && (
           <p class="note">
             {fill(p.insightsMadeOf, { parts: f.breakdown.map((b) => `${b.label[locale]} ${share(b.value)}`).join(" · ") })}

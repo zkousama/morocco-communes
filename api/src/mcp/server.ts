@@ -59,6 +59,7 @@ const INSTRUCTIONS =
   "get_housing gives the 2024 urban housing stock: how many dwellings a town has, how many stand empty, what kind they are and what they are made of. " +
   "get_insights gives up to 3 of a commune's 2024 census figures that stand out, each with its context worked out from the census: " +
   "the communes it borders on the same figure, and the same figure in 2014 beside Morocco's, where the two censuses can be compared. " +
+  "A census figure in a commune of 2,000 households or more is marked sampled. " +
   "No language model writes or judges any of it.";
 
 /** Where each level's files live. */
@@ -832,6 +833,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "and the same figure in 2014 beside Morocco's, where the two censuses can be compared. " +
         "A commune with any figure the two censuses disagree on is left out, on its own page and as a neighbour. " +
         "Figures they measure differently, shares by sex and likely errors in the data are left out too. " +
+        "An economy or housing figure on fewer than 100 businesses or urban dwellings is left out, since a handful of them can swing a share. " +
+        "A census figure in a commune of 2,000 households or more is marked sampled, since the long questionnaire went to a sample of households there. " +
         "No language model writes or judges any of it. Only communes have these, and most have none.",
       inputSchema: {
         unit: z.string().min(1).describe("A commune, by code or slug."),
@@ -858,6 +861,9 @@ export function createMcpServer(deps: McpDeps): McpServer {
             value: z.number().describe("The 2024 figure, or for a change the points it moved since 2014."),
             reference: z.number().describe("What it stands out from: the communes' mean, its province's figure, or 0 for a change."),
             direction: z.enum(["high", "low"]),
+            sampled: z
+              .boolean()
+              .describe("True when the figure is a census figure in a commune of 2,000 households or more, where the long questionnaire went to a sample. False for an economy or housing figure, and for a smaller commune."),
             line: z.object({ en: z.string(), fr: z.string() }),
             breakdown: z.unknown().nullable().describe("The parts the figure is made of, where the dataset has them."),
             context: z.object({
@@ -914,6 +920,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           direction: "high" | "low";
           line: { en: string; fr: string };
           breakdown: unknown;
+          sampled?: boolean;
           context: { others: unknown[]; neighbours: unknown; since2014: unknown };
         }[];
       };
@@ -926,6 +933,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           value: f.value,
           reference: f.reference,
           direction: f.direction,
+          sampled: f.sampled === true,
           line: f.line,
           breakdown: f.breakdown,
           context: f.context,

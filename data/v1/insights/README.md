@@ -16,6 +16,8 @@ figure. Some figures that stand out are left out:
 - a commune with any figure the two censuses disagree on, the same ones `api/src/lib/mismatch.ts`
   flags, since whatever set that figure apart may have moved its others too;
 - the shares of men and women, since several southern communes count special populations;
+- an economy figure for a commune with fewer than 100 businesses, or a housing figure for
+  one with fewer than 100 urban dwellings, since a handful of them can swing a share;
 - anything whose line uses a term the safety policy holds back.
 
 Beside each figure that's left is its context, as numbers: the commune's other figures here,
@@ -44,6 +46,10 @@ The same dataset always gives the same files, so a re-run with nothing changed l
     province's figure for a gap, and 0 for a change;
   - `score`, how far it stands out, in standard deviations;
   - `direction`, `high` or `low`;
+  - `sampled`, true when the figure is a census figure in a commune of 2,000 households or
+    more, where the long questionnaire went to a sample of households. Economy and housing
+    figures are full counts, so `sampled` is false for them. Under 2,000 households the
+    questionnaire went to every household, and `sampled` is false;
   - `line`, the sentence stating the figure, in English and French;
   - `breakdown`, the parts the figure is made of where the dataset has them, or `null`;
   - `context`, set out below.

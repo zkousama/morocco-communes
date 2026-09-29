@@ -4,6 +4,7 @@
  * communes it borders, in the same words as on its own page. A figure with no
  * neighbour that could be compared has no second line.
  */
+import { places } from "../i18n/places";
 import { path, type Locale } from "../i18n/ui";
 import { nearLine, type StandoutRow } from "../lib/insights";
 import { pageOf } from "../lib/places";
@@ -15,11 +16,15 @@ interface Props {
 const { locale, row } = Astro.props;
 const near = nearLine(locale, row.finding);
 const nearPage = near && pageOf(near.code);
+const sample = places[locale].insightsSample;
 ---
 
 <div class="finding">
   <p class="who"><a href={path(locale, row.route)}>{row.name}</a></p>
   <p class="line">{row.line[locale]}</p>
+  {row.finding.sampled && (
+    <p class="sample"><a href={`${path(locale, "docs/indicators/")}#reading`}>{sample}</a></p>
+  )}
   {near && (
     <p class="context">
       {near.before}{nearPage ? <a href={path(locale, nearPage.route)}>{near.name}</a> : near.name}{near.after}
@@ -40,8 +45,15 @@ const nearPage = near && pageOf(near.code);
   }
 
   .line,
-  .context {
+  .context,
+  .sample {
     overflow-wrap: break-word;
+  }
+
+  .sample {
+    margin: 0.35rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--quiet);
   }
 
   .line {

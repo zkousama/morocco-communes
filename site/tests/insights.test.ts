@@ -33,6 +33,7 @@ const figure = (over: Partial<Published> = {}, context: Partial<Published["conte
   direction: "high",
   line: { en: "", fr: "" },
   breakdown: null,
+  sampled: false,
   ...over,
   context: { others: [], neighbours: null, since2014: null, ...context },
 });
@@ -121,7 +122,7 @@ describe("the methods page's numbers", () => {
   };
 
   it("takes each threshold from the code that applies it", () => {
-    for (const key of ["swing", "fall", "neighbourFloor", "extremeFloor", "changeGapFloor", "kept", "perPlace"] as const) {
+    for (const key of ["swing", "fall", "neighbourFloor", "extremeFloor", "changeGapFloor", "kept", "perPlace", "smallBase", "sampleHouseholds"] as const) {
       expect(pages.en, key).toContain(`method.${key}`);
       expect(pages.fr, key).toContain(`method.${key}`);
     }

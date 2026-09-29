@@ -333,7 +333,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "listInsights",
           summary: "Every commune with a published figure that stands out",
           description:
-            "A commune's 2024 census figures that stand out, up to 3, each with its context worked out from the census: the communes it borders on the same figure, and the same figure in 2014 beside Morocco's, where the two censuses can be compared. No language model writes or judges any of it; see the methods page for how a figure is picked. " +
+            "A commune's 2024 census figures that stand out, up to 3, each with its context worked out from the census: the communes it borders on the same figure, and the same figure in 2014 beside Morocco's, where the two censuses can be compared. A census figure in a commune of 2,000 households or more is marked sampled, since the long questionnaire went to a sample of households there. No language model writes or judges any of it; see the methods page for how a figure is picked. " +
             "Each row is a commune's code, its level and how many figures it has; read `/api/communes/{code}/insights.json` for the figures themselves. " +
             "Most communes aren't listed: none of their figures stood out, or those that did were left out.",
           responses: { "200": ok("Every commune with a published figure that stands out.", { type: "array", items: { type: "object" } }) },

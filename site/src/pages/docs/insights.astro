@@ -79,6 +79,10 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       The shares of men and women are left out too, since several southern communes count special populations.
       Where a list of private terms is set up, a figure whose line uses one is held back.
     </p>
+    <p>
+      An economy or housing figure is left out when the commune has fewer than {count(method.smallBase)} businesses,
+      or fewer than {count(method.smallBase)} urban dwellings. A handful of them can swing a share.
+    </p>
   </section>
 
   <section id="context">
@@ -98,6 +102,11 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       <strong>2014 and Morocco.</strong> Where the 2014 census asked the figure the same way, the page gives the
       commune’s 2014 figure and how Morocco’s moved, in whole points for a share. It doesn’t for a commune
       matched through the crosswalk.
+    </p>
+    <p>
+      <strong>An estimate from a sample.</strong> In a commune of {count(method.sampleHouseholds)} households or more,
+      the long questionnaire went to a sample of households. A census figure there carries a note that it’s an estimate,
+      linking to <a href="/docs/indicators/#reading">how the census was read</a>.
     </p>
   </section>
 

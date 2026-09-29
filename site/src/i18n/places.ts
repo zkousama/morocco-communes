@@ -332,6 +332,7 @@ export const places = {
     insightsThen: "In 2014 it was {then}.",
     insightsMoroccoFrom: "Across Morocco, it went from {then} to {now}.",
     insightsMore: "How these are picked",
+    insightsSample: "Estimate from a sample",
   },
   fr: {
     browseTitle: "Communes",
@@ -664,6 +665,7 @@ export const places = {
     insightsThen: "En 2014, ce chiffre était de {then}.",
     insightsMoroccoFrom: "Au Maroc, ce chiffre est passé de {then} à {now}.",
     insightsMore: "Comment ces chiffres sont choisis",
+    insightsSample: "Estimation d’après un échantillon",
   },
 } satisfies Record<Locale, unknown>;
 

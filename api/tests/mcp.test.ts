@@ -46,7 +46,7 @@ emitInsights(tree as never, {
   units: [{
     code: "04.421.01.0", level: "commune", name: { fr: "Rabat", ar: "الرباط" }, datasetVersion: "1.9.0",
     findings: [{ id: "abc123def456", kind: "extreme", measure: "fertility.totalFertilityRate",
-      value: 1.19, reference: 2.2, score: 3.4, direction: "low",
+      value: 1.19, reference: 2.2, score: 3.4, direction: "low", sampled: true,
       line: { en: "Fertility is 1.19 children per woman", fr: "La fécondité est de 1,19 enfant par femme" },
       breakdown: null,
       context: {
@@ -560,7 +560,7 @@ describe("get_insights", () => {
   it("says what kind of figure each one is, which measure, its value and which way it stands out", async () => {
     const r = await call("get_insights", { unit: "rabat" });
     expect(found(r).findings[0]).toMatchObject({
-      kind: "extreme", measure: "fertility.totalFertilityRate", value: 1.19, reference: 2.2, direction: "low",
+      kind: "extreme", measure: "fertility.totalFertilityRate", value: 1.19, reference: 2.2, direction: "low", sampled: true,
     });
   });
 

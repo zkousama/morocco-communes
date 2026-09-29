@@ -4,7 +4,7 @@ import { readLevel } from "../../pipeline/src/lib/levels.ts";
 import { contextOf, neighboursOn, since2014 } from "../src/context.ts";
 import { loadData, type Data, type Unit } from "../src/data.ts";
 import type { Finding } from "../src/detect.ts";
-import { dropped, keep } from "../src/filter.ts";
+import { dropped, isSampled, keep, SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../src/filter.ts";
 
 type Spec = Partial<Omit<Unit, "figures">> & { code: string; y2024?: Record<string, number | null>; y2014?: Record<string, number | null> };
 
@@ -18,6 +18,7 @@ function fixture(specs: Spec[], country: { y2024?: Record<string, number | null>
     basis: "exact_code",
     neighbours: [],
     mismatched: new Set(),
+    base: { businesses: null, dwellings: null, households: null },
     ...spec,
     figures: { y2024: y2024 ?? {}, y2014: y2014 ?? {} },
   });
@@ -70,6 +71,37 @@ describe("which standout figures are kept", () => {
 
   it("drops anything that isn't a commune", () => {
     expect(dropped(finding({ code: "p", level: "province", kind: "change" }), data)).toBe("not a commune");
+  });
+
+  const base = (businesses: number | null, dwellings: number | null, households: number | null = null) =>
+    fixture([{ code: "a", base: { businesses, dwellings, households } }]);
+
+  it("drops an economy figure when the commune has fewer than 100 businesses", () => {
+    expect(SMALL_BASE).toBe(100);
+    expect(dropped(finding({ measure: "economy.share.sector.commerce" }), base(99, 500))).toBe("small base");
+    expect(dropped(finding({ measure: "economy.per1000.jobs" }), base(null, 500))).toBe("small base");
+    expect(dropped(finding({ measure: "economy.share.sector.commerce" }), base(100, 0))).toBeNull();
+  });
+
+  it("drops a housing figure when the commune has fewer than 100 urban dwellings", () => {
+    expect(dropped(finding({ measure: "housing.occupancy.unoccupied" }), base(500, 99))).toBe("small base");
+    expect(dropped(finding({ measure: "housing.occupancy.unoccupied" }), base(500, null))).toBe("small base");
+    expect(dropped(finding({ measure: "housing.occupancy.unoccupied" }), base(0, 100))).toBeNull();
+  });
+
+  it("keeps a census figure however small the businesses and dwellings", () => {
+    expect(dropped(finding({ measure: "labour.unemploymentRate" }), base(1, 1))).toBeNull();
+  });
+
+  it("marks a census figure in a commune of 2,000 households or more as a sample estimate", () => {
+    expect(SAMPLE_HOUSEHOLDS).toBe(2000);
+    const census = finding();
+    expect(isSampled(census, base(null, null, 2000))).toBe(true);
+    expect(isSampled(census, base(null, null, 1999))).toBe(false);
+    expect(isSampled(census, base(null, null, null))).toBe(false);
+    const large = base(500, 500, 5000);
+    expect(isSampled(finding({ measure: "economy.share.sector.commerce" }), large)).toBe(false);
+    expect(isSampled(finding({ measure: "housing.occupancy.unoccupied" }), large)).toBe(false);
   });
 
   it("keeps the rest in the order detect ranked them", () => {

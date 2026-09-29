@@ -20,6 +20,12 @@ export interface Unit {
   basis: "exact_code" | "crosswalk" | "arrondissement_sum" | null; // how its 2014 population was matched; null when unknown
   neighbours: string[]; // adjacency for communes; siblings under the same parent otherwise
   mismatched: Set<string>; // the figures mismatch.ts says the two censuses disagree on here
+  /**
+   * Businesses, urban dwellings and households. The filters need the count, not the share:
+   * a handful of businesses can swing an economy figure, and a large commune's census
+   * figures come from a sample of households. Null where the census didn't count them.
+   */
+  base: { businesses: number | null; dwellings: number | null; households: number | null };
   figures: { y2024: Record<string, number | null>; y2014: Record<string, number | null> };
 }
 
@@ -55,7 +61,7 @@ interface AttributeRecord {
   code: string;
   name: { fr: string; ar: string | null };
   population: {
-    "2024": { total: number };
+    "2024": { total: number; households?: number | null };
     "2014"?: { total: number | null } | null;
     change?: { basis: "exact_code" | "crosswalk" | "arrondissement_sum" } | null;
   };
@@ -65,6 +71,15 @@ interface AttributeRecord {
 }
 
 const finite = (value: unknown): number | null => (typeof value === "number" && Number.isFinite(value) ? value : null);
+
+/** The counts the filters read. A missing count stays null, which the small-base filter treats as too small. */
+function baseOf(economy: EconomyRecord | null, housing: HousingRecord | null, households: number | null | undefined): Unit["base"] {
+  return {
+    businesses: finite(economy?.topics.establishments?.business),
+    dwellings: finite(housing?.topics.dwellings?.total),
+    households: finite(households),
+  };
+}
 
 /** A `topic.key` value off a census record, the way the API itself reads one. */
 function censusValue(record: Census | null, path: string): number | null {
@@ -178,6 +193,8 @@ export function loadData(dir = "data/v1"): Data {
       const basis = isCommune ? (attr.population.change?.basis ?? null) : null;
       const census = censusByCode.get(attr.code) ?? null;
       const census2014 = census2014ByCode.get(attr.code) ?? null;
+      const housing = housingByCode.get(attr.code) ?? null;
+      const economy = economyByCode.get(attr.code) ?? null;
       return {
         code: attr.code,
         level,
@@ -187,13 +204,8 @@ export function loadData(dir = "data/v1"): Data {
         basis,
         neighbours: isCommune ? (adjacencyByCode.get(attr.code) ?? []) : [],
         mismatched: new Set(mismatches(census, census2014).map((m) => m.path)),
-        figures: buildFigures(
-          census,
-          census2014,
-          housingByCode.get(attr.code) ?? null,
-          economyByCode.get(attr.code) ?? null,
-          population2024,
-        ),
+        base: baseOf(economy, housing, attr.population["2024"].households),
+        figures: buildFigures(census, census2014, housing, economy, population2024),
       };
     });
 
@@ -228,6 +240,7 @@ export function loadData(dir = "data/v1"): Data {
     basis: null,
     neighbours: [],
     mismatched: new Set(),
+    base: baseOf(economy, housing, null),
     figures: buildFigures(census, census2014, housing, economy, countryPopulation),
   };
 

@@ -10,7 +10,7 @@ import { pathToFileURL } from "node:url";
 import { contextOf, type Context } from "./context.ts";
 import { loadData, type Data } from "./data.ts";
 import { detect, type Finding, type Kind } from "./detect.ts";
-import { dropped, type Dropped } from "./filter.ts";
+import { dropped, isSampled, type Dropped } from "./filter.ts";
 import { readLocal } from "./model.ts";
 import { localWarning, refusal, termsPattern } from "./safety.ts";
 import { breakdown, findingLine } from "./text.ts";
@@ -24,6 +24,8 @@ export interface Published {
   reference: number; // what detect set it against: the communes' mean, its province's figure, or 0 for a change
   score: number;
   direction: "high" | "low";
+  /** True when the figure comes from the long questionnaire's sample, in a commune of 2,000 households or more. */
+  sampled: boolean;
   line: { en: string; fr: string };
   breakdown: ReturnType<typeof breakdown>;
   context: Context;
@@ -60,7 +62,7 @@ export function pipeline(data: Data, terms: RegExp | null): { files: Map<string,
   const findings = detect(data);
   const counts: Counts = {
     detected: findings.length,
-    dropped: { artefact: 0, "not a commune": 0, "sex share": 0, flagged: 0, safety: 0 },
+    dropped: { artefact: 0, "not a commune": 0, "sex share": 0, flagged: 0, "small base": 0, safety: 0 },
     published: 0,
     communes: 0,
   };
@@ -95,6 +97,7 @@ export function pipeline(data: Data, terms: RegExp | null): { files: Map<string,
       reference: finding.reference,
       score: finding.score,
       direction: finding.direction,
+      sampled: isSampled(finding, data),
       line,
       breakdown: parts,
       context: contextOf(finding, all, data),
