@@ -292,6 +292,14 @@ const themes = themeList(copy);
             if (!d.contains(event.relatedTarget)) set(d, false);
           });
           if (fine.matches) {
+            // Hover has already opened it, so a click must not shut it again: it leaves
+            // open until the pointer moves away, Esc is pressed or something else is clicked.
+            if (summary) {
+              summary.addEventListener("click", function (event) {
+                event.preventDefault();
+                set(d, true);
+              });
+            }
             d.addEventListener("mouseenter", function () {
               set(d, true);
             });
