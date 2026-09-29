@@ -23,6 +23,7 @@ const toc = [
 const n = numbers(locale);
 const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
+const pct = (value: number) => percent(locale, value, { digits: 0 });
 
 const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
 ---
@@ -112,6 +113,14 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       <strong>Une estimation d’après un échantillon.</strong> Dans une commune de {count(method.sampleHouseholds)}{" "}
       ménages ou plus, le questionnaire long n’a été posé qu’à un échantillon de ménages. Un chiffre du recensement
       y porte une note qui le dit, avec un lien vers <a href="/fr/docs/indicators/#reading">la façon de lire le recensement</a>.
+    </p>
+    <p>
+      <strong>Les communes du même genre.</strong> Un chiffre du recensement est aussi comparé aux communes du
+      même type, urbaines ou rurales, et de la même taille : moins de {count(method.peerSmall)} habitants,{" "}
+      {count(method.peerSmall)} à {count(method.peerMid)}, ou plus de {count(method.peerMid)}. S’il est dans les{" "}
+      {pct(method.peerTop)}, {pct(method.peerHigh)} ou {pct(method.peerWide)} supérieurs d’un groupe d’au moins{" "}
+      {count(method.peerGroup)} communes, une phrase le dit. Les chiffres de l’économie et du logement ne le sont
+      pas.
     </p>
   </section>
 

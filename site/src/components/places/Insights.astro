@@ -10,7 +10,7 @@
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { percent } from "../../lib/format";
-import { nearLine, since2014Line } from "../../lib/insights";
+import { nearLine, peerLine, since2014Line } from "../../lib/insights";
 import { pageOf } from "../../lib/places";
 import type { CommuneFile } from "../../../../insights/src/run.ts";
 
@@ -31,6 +31,7 @@ const share = (v: number) => percent(locale, v, { fixed: true });
     const near = nearLine(locale, f);
     const nearPage = near && pageOf(near.code);
     const since = since2014Line(locale, f);
+    const peers = peerLine(locale, record.code, f);
     return (
       <div class="finding">
         <p class="line">{f.line[locale]}</p>
@@ -50,6 +51,7 @@ const share = (v: number) => percent(locale, v, { fixed: true });
           </p>
         )}
         {since && <p class="context">{since}</p>}
+        {peers && <p class="context">{peers}</p>}
       </div>
     );
   })}

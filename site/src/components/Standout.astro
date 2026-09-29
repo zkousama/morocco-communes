@@ -6,7 +6,7 @@
  */
 import { places } from "../i18n/places";
 import { path, type Locale } from "../i18n/ui";
-import { nearLine, type StandoutRow } from "../lib/insights";
+import { nearLine, peerLine, type StandoutRow } from "../lib/insights";
 import { pageOf } from "../lib/places";
 
 interface Props {
@@ -17,6 +17,7 @@ const { locale, row } = Astro.props;
 const near = nearLine(locale, row.finding);
 const nearPage = near && pageOf(near.code);
 const sample = places[locale].insightsSample;
+const peers = peerLine(locale, row.code, row.finding);
 ---
 
 <div class="finding">
@@ -30,6 +31,7 @@ const sample = places[locale].insightsSample;
       {near.before}{nearPage ? <a href={path(locale, nearPage.route)}>{near.name}</a> : near.name}{near.after}
     </p>
   )}
+  {peers && <p class="context">{peers}</p>}
 </div>
 
 <style>

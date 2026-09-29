@@ -27,7 +27,9 @@ import { figure as withUnit } from "../../../insights/src/text.ts";
 import { fill, places } from "../i18n/places";
 import type { Locale } from "../i18n/ui";
 import { moroccoLine } from "./context";
-import { numbers } from "./format";
+import { numbers, percent } from "./format";
+import { figure as censusFigure, indicatorsOf } from "./indicators";
+import { communeOf, communes } from "./places";
 
 const isMissing = (error: unknown): boolean => (error as NodeJS.ErrnoException)?.code === "ENOENT";
 
@@ -122,6 +124,12 @@ export function standouts(
   return groups.sort((a, b) => topicRank(a.topic) - topicRank(b.topic));
 }
 
+/** Fewer communes than this and a rank among peers isn't worth a line. */
+export const PEER_MIN = 20;
+export const PEER_SMALL = 5000;
+export const PEER_MID = 20000;
+export const PEER_TAILS = [1, 5, 10] as const;
+
 /** The pipeline's own settings, for the methods page to state rather than retype: shares as fractions, the rest as counts. */
 export const method = {
   extremeFloor: EXTREME_POPULATION_FLOOR,
@@ -140,6 +148,12 @@ export const method = {
   neighbourFloor: CHANGE_GAP_POPULATION_FLOOR,
   smallBase: SMALL_BASE,
   sampleHouseholds: SAMPLE_HOUSEHOLDS,
+  peerGroup: PEER_MIN,
+  peerSmall: PEER_SMALL,
+  peerMid: PEER_MID,
+  peerTop: PEER_TAILS[0],
+  peerHigh: PEER_TAILS[1],
+  peerWide: PEER_TAILS[2],
 };
 
 const isShare = (path: string) => field(path)?.unit === "percent";
@@ -192,4 +206,68 @@ export function since2014Line(locale: Locale, f: Published): string | null {
     ? moroccoLine(locale, since.morocco.then, since.morocco.now)
     : fill(p.insightsMoroccoFrom, { then: numbers(locale, digits, true).format(since.morocco.then), now: withUnit(f.measure, since.morocco.now, locale) });
   return f.kind === "change" ? morocco : `${fill(p.insightsThen, { then: withUnit(f.measure, since.then, locale) })} ${morocco}`;
+}
+
+const censusValue = (code: string, measure: string): number | null => {
+  if (field(measure)?.source !== "census") return null;
+  const record = indicatorsOf.get(code);
+  if (!record) return null;
+  return censusFigure(record.people.total?.all, measure) ?? censusFigure(record.households.total, measure);
+};
+
+const sizeBand = (population: number) => (population < PEER_SMALL ? "under" : population <= PEER_MID ? "mid" : "over");
+
+/**
+ * The tightest upper tail that still covers this value among its peers. Ties share the
+ * best rank. Null when the group is under 20 or the value isn't in the top 10%.
+ */
+export function peerTailOf(value: number, values: number[]): (typeof PEER_TAILS)[number] | null {
+  const n = values.length;
+  if (n < PEER_MIN) return null;
+  const share = (values.filter((v) => v > value).length + 1) / n;
+  for (const tail of PEER_TAILS) if (share <= tail / 100) return tail;
+  return null;
+}
+
+export interface PeerSpec {
+  type: "urban" | "rural";
+  population: number;
+  measure: string;
+  value: number;
+  peers: number[];
+}
+
+/** The sentence for a census figure that's high among communes of the same type and size. */
+export function peerLineOf(locale: Locale, spec: PeerSpec): string | null {
+  if (field(spec.measure)?.source !== "census") return null;
+  const tail = peerTailOf(spec.value, spec.peers);
+  if (tail === null) return null;
+  const p = places[locale];
+  const n = numbers(locale);
+  const kind = spec.type === "urban" ? p.insightsPeerUrban : p.insightsPeerRural;
+  const pct = percent(locale, tail, { digits: 0 });
+  const band = sizeBand(spec.population);
+  if (band === "under") return fill(p.insightsPeerUnder, { kind, n: n.format(PEER_SMALL), p: pct });
+  if (band === "mid") return fill(p.insightsPeerMid, { kind, from: n.format(PEER_SMALL), to: n.format(PEER_MID), p: pct });
+  return fill(p.insightsPeerOver, { kind, n: n.format(PEER_MID), p: pct });
+}
+
+/**
+ * How a standout census figure ranks among communes of the same type and size band.
+ * Null for an economy or housing figure, a group under 20, or one outside the top 10%.
+ */
+export function peerLine(locale: Locale, code: string, f: Published): string | null {
+  const here = communeOf.get(code);
+  const value = censusValue(code, f.measure);
+  if (!here || value === null) return null;
+  const { type } = here;
+  const population = here.population["2024"].total;
+  const band = sizeBand(population);
+  const peers: number[] = [];
+  for (const commune of communes) {
+    if (commune.type !== type || sizeBand(commune.population["2024"].total) !== band) continue;
+    const v = censusValue(commune.code, f.measure);
+    if (v !== null) peers.push(v);
+  }
+  return peerLineOf(locale, { type, population, measure: f.measure, value, peers });
 }

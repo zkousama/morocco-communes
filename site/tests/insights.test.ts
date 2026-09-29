@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { CommuneFile, Published } from "../../insights/src/run.ts";
 import { PAGES, t } from "../src/i18n/ui.ts";
 import { explore } from "../src/lib/nav.ts";
-import { insightsOf, method, nearLine, readInsights, since2014Line, standouts } from "../src/lib/insights.ts";
+import { insightsOf, method, nearLine, peerLine, peerLineOf, peerTailOf, readInsights, since2014Line, standouts } from "../src/lib/insights.ts";
 import { communeOf, pageOf } from "../src/lib/places.ts";
 
 describe("insights on the site", () => {
@@ -106,6 +106,55 @@ describe("the line on 2014", () => {
   });
 });
 
+describe("the line among communes of its own kind", () => {
+  const ruralMid = { type: "rural" as const, population: 8000, measure: "labour.unemploymentRate" };
+
+  it("gives nothing when the group has fewer than 20 communes, or the figure isn't in the top 10%", () => {
+    expect(peerTailOf(40, [40, ...Array.from({ length: 18 }, () => 10)])).toBeNull();
+    expect(peerTailOf(5, [40, 30, ...Array.from({ length: 18 }, () => 10)])).toBeNull();
+    expect(peerLineOf("en", { ...ruralMid, value: 40, peers: [40, ...Array.from({ length: 18 }, () => 10)] })).toBeNull();
+  });
+
+  it("says the tightest tail that still covers it, ties sharing the best rank", () => {
+    const hundred = (head: number[]) => [...head, ...Array.from({ length: 100 - head.length }, () => 1)];
+    expect(peerTailOf(40, hundred([40]))).toBe(1);
+    expect(peerTailOf(40, hundred([40, 40]))).toBe(1);
+    expect(peerTailOf(20, hundred([40, 20]))).toBe(5);
+    expect(peerTailOf(8, hundred([40, ...Array.from({ length: 8 }, () => 10), 8]))).toBe(10);
+  });
+
+  it("names the type and size, in both languages", () => {
+    const peers = [40, ...Array.from({ length: 99 }, () => 10)];
+    expect(peerLineOf("en", { ...ruralMid, value: 40, peers })).toBe(
+      "Among rural communes of 5,000 to 20,000 people, it's in the top 1%.",
+    );
+    expect(peerLineOf("fr", { ...ruralMid, value: 40, peers })).toBe(
+      "Parmi les communes rurales de 5\u202f000 à 20\u202f000 habitants, elle est dans les 1\u202f% supérieurs.",
+    );
+    expect(peerLineOf("en", { type: "urban", population: 4000, measure: "labour.unemploymentRate", value: 40, peers })).toBe(
+      "Among urban communes of under 5,000 people, it's in the top 1%.",
+    );
+    expect(peerLineOf("en", { type: "urban", population: 50000, measure: "labour.unemploymentRate", value: 40, peers })).toBe(
+      "Among urban communes of over 20,000 people, it's in the top 1%.",
+    );
+  });
+
+  it("gives nothing for an economy or housing figure", () => {
+    const peers = [40, ...Array.from({ length: 99 }, () => 10)];
+    expect(peerLineOf("en", { ...ruralMid, measure: "economy.share.sector.commerce", value: 40, peers })).toBeNull();
+    expect(peerLineOf("en", { ...ruralMid, measure: "housing.occupancy.unoccupied", value: 40, peers })).toBeNull();
+  });
+
+  it("places a published Rabat tram figure in the top 10% of large urban communes", () => {
+    const rabat = communeOf.get("04.421.01.0")!;
+    const tram = insightsOf.get(rabat.code)?.findings.find((f) => f.measure === "commute.tram");
+    expect(rabat.type).toBe("urban");
+    expect(rabat.population["2024"].total).toBeGreaterThan(20000);
+    expect(tram).toBeDefined();
+    expect(peerLine("en", rabat.code, tram!)).toMatch(/^Among urban communes of over 20,000 people, it's in the top \d+%/);
+  });
+});
+
 /**
  * The numbers the methods page states, against the code that decides them: every one comes
  * from `method`, so once they and the years are taken out, no digit may be left in either page.
@@ -122,7 +171,7 @@ describe("the methods page's numbers", () => {
   };
 
   it("takes each threshold from the code that applies it", () => {
-    for (const key of ["swing", "fall", "neighbourFloor", "extremeFloor", "changeGapFloor", "kept", "perPlace", "smallBase", "sampleHouseholds"] as const) {
+    for (const key of ["swing", "fall", "neighbourFloor", "extremeFloor", "changeGapFloor", "kept", "perPlace", "smallBase", "sampleHouseholds", "peerGroup", "peerSmall", "peerMid", "peerTop", "peerHigh", "peerWide"] as const) {
       expect(pages.en, key).toContain(`method.${key}`);
       expect(pages.fr, key).toContain(`method.${key}`);
     }

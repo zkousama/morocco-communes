@@ -342,6 +342,11 @@ export const places = {
       "commute.employerTransport": "in transport laid on by their employer",
     },
     onlyForeign: "One of {n} communes where at least 0.5% of residents are foreign.",
+    insightsPeerUnder: "Among {kind} communes of under {n} people, it's in the top {p}.",
+    insightsPeerMid: "Among {kind} communes of {from} to {to} people, it's in the top {p}.",
+    insightsPeerOver: "Among {kind} communes of over {n} people, it's in the top {p}.",
+    insightsPeerUrban: "urban",
+    insightsPeerRural: "rural",
   },
   fr: {
     browseTitle: "Communes",
@@ -684,6 +689,11 @@ export const places = {
       "commute.employerTransport": "par un transport de l’employeur",
     },
     onlyForeign: "L’une des {n} communes où au moins 0,5 % des habitants sont étrangers.",
+    insightsPeerUnder: "Parmi les communes {kind} de moins de {n} habitants, elle est dans les {p} supérieurs.",
+    insightsPeerMid: "Parmi les communes {kind} de {from} à {to} habitants, elle est dans les {p} supérieurs.",
+    insightsPeerOver: "Parmi les communes {kind} de plus de {n} habitants, elle est dans les {p} supérieurs.",
+    insightsPeerUrban: "urbaines",
+    insightsPeerRural: "rurales",
   },
 } satisfies Record<Locale, unknown>;
 

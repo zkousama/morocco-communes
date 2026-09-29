@@ -26,6 +26,7 @@ const toc = [
 const n = numbers(locale);
 const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
+const pct = (value: number) => percent(locale, value, { digits: 0 });
 
 const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
 ---
@@ -107,6 +108,13 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       <strong>An estimate from a sample.</strong> In a commune of {count(method.sampleHouseholds)} households or more,
       the long questionnaire went to a sample of households. A census figure there carries a note that it’s an estimate,
       linking to <a href="/docs/indicators/#reading">how the census was read</a>.
+    </p>
+    <p>
+      <strong>Communes of the same kind.</strong> A census figure is also set against communes of the same type,
+      urban or rural, and the same size: under {count(method.peerSmall)} people, {count(method.peerSmall)} to{" "}
+      {count(method.peerMid)}, or over {count(method.peerMid)}. If it’s in the top {pct(method.peerTop)},{" "}
+      {pct(method.peerHigh)} or {pct(method.peerWide)} of a group of at least {count(method.peerGroup)} communes,
+      a line says so. Economy and housing figures aren’t compared this way.
     </p>
   </section>
 
