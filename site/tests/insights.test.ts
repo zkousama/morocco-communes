@@ -145,13 +145,13 @@ describe("the line among communes of its own kind", () => {
     expect(peerLineOf("en", { ...ruralMid, measure: "housing.occupancy.unoccupied", value: 40, peers })).toBeNull();
   });
 
-  it("places a published Rabat tram figure in the top 10% of large urban communes", () => {
-    const rabat = communeOf.get("04.421.01.0")!;
-    const tram = insightsOf.get(rabat.code)?.findings.find((f) => f.measure === "commute.tram");
-    expect(rabat.type).toBe("urban");
-    expect(rabat.population["2024"].total).toBeGreaterThan(20000);
-    expect(tram).toBeDefined();
-    expect(peerLine("en", rabat.code, tram!)).toMatch(/^Among urban communes of over 20,000 people, it's in the top \d+%/);
+  it("places a published El Mansouria slum figure in the top 10% of large urban communes", () => {
+    const mansouria = communeOf.get("06.111.01.05")!;
+    const slum = insightsOf.get(mansouria.code)?.findings.find((f) => f.measure === "dwellingType.basicOrSlum");
+    expect(mansouria.type).toBe("urban");
+    expect(mansouria.population["2024"].total).toBeGreaterThan(20000);
+    expect(slum).toBeDefined();
+    expect(peerLine("en", mansouria.code, slum!)).toMatch(/^Among urban communes of over 20,000 people, it's in the top \d+%/);
   });
 });
 

@@ -16,6 +16,8 @@ figure. Some figures that stand out are left out:
 - a commune with any figure the two censuses disagree on, the same ones `api/src/lib/mismatch.ts`
   flags, since whatever set that figure apart may have moved its others too;
 - the shares of men and women, since several southern communes count special populations;
+- getting to work by tram, train, bus, taxi or an employer's transport, since those
+  services only some places have;
 - an economy figure for a commune with fewer than 100 businesses, or a housing figure for
   one with fewer than 100 urban dwellings, since a handful of them can swing a share;
 - anything whose line uses a term the safety policy holds back.

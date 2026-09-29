@@ -4,7 +4,7 @@ import { readLevel } from "../../pipeline/src/lib/levels.ts";
 import { contextOf, neighboursOn, since2014 } from "../src/context.ts";
 import { loadData, type Data, type Unit } from "../src/data.ts";
 import type { Finding } from "../src/detect.ts";
-import { dropped, isSampled, keep, SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../src/filter.ts";
+import { dropped, isSampled, keep, LOCAL_COMMUTE, SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../src/filter.ts";
 
 type Spec = Partial<Omit<Unit, "figures">> & { code: string; y2024?: Record<string, number | null>; y2014?: Record<string, number | null> };
 
@@ -64,9 +64,19 @@ describe("which standout figures are kept", () => {
     expect(dropped(finding({ code: "flagged", measure: "amenities.electricity" }), data)).toBe("flagged");
   });
 
-  it("drops the shares of men and women", () => {
-    expect(dropped(finding({ measure: "sex.male" }), data)).toBe("sex share");
-    expect(dropped(finding({ measure: "sex.female" }), data)).toBe("sex share");
+  it("drops commuting by a service that only some places have, and keeps the other modes", () => {
+    expect([...LOCAL_COMMUTE].sort()).toEqual([
+      "commute.bus",
+      "commute.employerTransport",
+      "commute.taxi",
+      "commute.train",
+      "commute.tram",
+    ]);
+    for (const measure of LOCAL_COMMUTE) expect(dropped(finding({ measure }), data)).toBe("local service");
+    expect(dropped(finding({ measure: "commute.walking" }), data)).toBeNull();
+    expect(dropped(finding({ measure: "commute.privateCar" }), data)).toBeNull();
+    expect(dropped(finding({ measure: "commute.bikeOrMotorcycle" }), data)).toBeNull();
+    expect(dropped(finding({ measure: "commute.animal" }), data)).toBeNull();
   });
 
   it("drops anything that isn't a commune", () => {

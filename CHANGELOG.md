@@ -7,9 +7,11 @@ change a shape something already reads.
 ## 1.9.1
 
 - Standout figures leave out an economy finding for a commune with fewer than 100
-  businesses, and a housing finding for one with fewer than 100 urban dwellings. A census
-  figure in a commune of 2,000 households or more is marked `sampled`, since the long
-  questionnaire went to a sample of households there. 213 figures across 146 communes.
+  businesses, and a housing finding for one with fewer than 100 urban dwellings. Getting
+  to work by tram, train, bus, taxi or an employer's transport is left out too, since
+  those services only some places have. A census figure in a commune of 2,000 households
+  or more is marked `sampled`, since the long questionnaire went to a sample of
+  households there. 181 figures across 119 communes.
 
 ## 1.9.0
 

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadData } from "../src/data.ts";
 import { detect } from "../src/detect.ts";
-import { dropped, SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../src/filter.ts";
+import { dropped, LOCAL_COMMUTE, SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../src/filter.ts";
 import { pipeline, summary, write, type CommuneFile } from "../src/run.ts";
 import { termsPattern } from "../src/safety.ts";
 
@@ -34,12 +34,14 @@ describe("the pipeline", () => {
     expect(run.counts.published + Object.values(run.counts.dropped).reduce((a, b) => a + b, 0)).toBe(findings.length);
   });
 
-  it("publishes only communes, no artefact, no sex share and no flagged commune", () => {
+  it("publishes only communes, no artefact, no sex share, no local-service commute and no flagged commune", () => {
+    expect(run.counts.dropped["local service"]).toBeGreaterThan(0);
     for (const f of published) {
       const unit = data.units.get(f.code)!;
       expect(unit.level).toBe("commune");
       expect(f.kind).not.toBe("artefact");
       expect(f.measure.startsWith("sex.")).toBe(false);
+      expect(LOCAL_COMMUTE.has(f.measure)).toBe(false);
       expect(unit.mismatched.size).toBe(0);
     }
   });

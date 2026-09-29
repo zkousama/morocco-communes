@@ -3,20 +3,30 @@
  * out, and so is a commune with any figure the two censuses disagree on, since whatever set
  * that figure apart may have moved its others too. The shares of men and women are left out
  * too: several southern communes count special populations, and the site doesn't draw
- * attention to them. An economy or housing figure on a handful of businesses or dwellings
- * is left out too, since a few units can swing a share. Only communes are published, since
- * a commune page is where they show.
+ * attention to them. Getting to work by tram, train, bus, taxi or an employer's transport
+ * is left out too: those services only some places have. An economy or housing figure on a
+ * handful of businesses or dwellings is left out too, since a few units can swing a share.
+ * Only communes are published, since a commune page is where they show.
  */
 import type { Data } from "./data.ts";
 import type { Finding } from "./detect.ts";
 
-export type Dropped = "artefact" | "not a commune" | "flagged" | "sex share" | "small base";
+export type Dropped = "artefact" | "not a commune" | "flagged" | "sex share" | "small base" | "local service";
 
 /** Fewer businesses or urban dwellings than this, and an economy or housing share can swing on a handful of units. */
 export const SMALL_BASE = 100;
 
 /** At this many households or more, the long questionnaire went to a sample, so a census figure is an estimate. */
 export const SAMPLE_HOUSEHOLDS = 2000;
+
+/** Getting to work by a service that only some communes have. The other commute modes stay. */
+export const LOCAL_COMMUTE = new Set([
+  "commute.train",
+  "commute.tram",
+  "commute.bus",
+  "commute.taxi",
+  "commute.employerTransport",
+]);
 
 const censusFigure = (measure: string) => !measure.startsWith("economy.") && !measure.startsWith("housing.");
 
@@ -25,6 +35,7 @@ export function dropped(finding: Finding, data: Data): Dropped | null {
   if (finding.kind === "artefact") return "artefact";
   if (finding.level !== "commune") return "not a commune";
   if (finding.measure.startsWith("sex.")) return "sex share";
+  if (LOCAL_COMMUTE.has(finding.measure)) return "local service";
   if ((data.units.get(finding.code)?.mismatched.size ?? 0) > 0) return "flagged";
   const base = data.units.get(finding.code)?.base;
   if (finding.measure.startsWith("economy.") && (base?.businesses ?? 0) < SMALL_BASE) return "small base";
