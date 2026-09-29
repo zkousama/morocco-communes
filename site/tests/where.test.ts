@@ -28,12 +28,14 @@ describe("which communes meet each bar", () => {
     expect(rows("train").map((row) => row.code)).toEqual(["b"]);
   });
 
-  it("uses half a percent for foreign residents, and still counts a small commune's souks", () => {
+  it("uses half a percent for foreign residents", () => {
     expect(rows("foreign").map((row) => row.code)).toEqual(["b"]);
-    expect(rows("souk").map((row) => [row.code, row.value])).toEqual([
-      ["a", 2],
-      ["c", 1],
-    ]);
+  });
+
+  it("keeps a weekly souk list of 100 communes and drops one of 101", () => {
+    const many = Array.from({ length: 101 }, (_, i) => unit(`s${i}`, 2000, {}, 1));
+    expect(whereSections(many, page).find((section) => section.id === "souk")).toBeUndefined();
+    expect(whereSections(many.slice(0, 100), page).find((section) => section.id === "souk")?.rows).toHaveLength(100);
   });
 
   it("leaves out a commune with no page", () => {
@@ -44,14 +46,10 @@ describe("which communes meet each bar", () => {
 describe("the published lists", () => {
   const sections = whereLists();
 
-  it("lists tram, train, bus, employer transport, taxi, weekly souks and foreign residents", () => {
+  it("lists only the figures that 100 communes or fewer meet", () => {
     expect(sections.map((section) => [section.id, section.rows.length])).toEqual([
       ["tram", 6],
       ["train", 39],
-      ["bus", 1058],
-      ["employerTransport", 1294],
-      ["taxi", 1225],
-      ["souk", 893],
       ["foreign", 50],
     ]);
   });

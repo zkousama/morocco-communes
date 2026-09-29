@@ -1,9 +1,8 @@
 /**
- * Which communes have a tram, train commuters, a weekly souk or foreign residents.
- * The commute and foreign bars are the same ones the commune page's rarity lines use.
- * A weekly souk is a count of places, so a small commune still counts.
+ * Which communes have a tram, train commuters or foreign residents — figures that
+ * 100 communes or fewer meet. A weekly souk list is included on the same rule.
  */
-import { RARITY_FIGURES, RARITY_FOREIGN, RARITY_PEOPLE, RARITY_SHARE, type RarityFigure } from "./context.ts";
+import { RARITY_FIGURES, RARITY_FOREIGN, RARITY_MAX, RARITY_PEOPLE, RARITY_SHARE, type RarityFigure } from "./context.ts";
 import { count, economyOf } from "./economy.ts";
 import { figure, indicatorsOf } from "./indicators.ts";
 import { communes, pageOf } from "./places.ts";
@@ -34,9 +33,6 @@ export interface WhereSection {
 const SECTIONS: { id: string; measure: RarityFigure | "souk" }[] = [
   { id: "tram", measure: "commute.tram" },
   { id: "train", measure: "commute.train" },
-  { id: "bus", measure: "commute.bus" },
-  { id: "employerTransport", measure: "commute.employerTransport" },
-  { id: "taxi", measure: "commute.taxi" },
   { id: "souk", measure: "souk" },
   { id: "foreign", measure: "foreign" },
 ];
@@ -59,12 +55,12 @@ export function whereSections(units: WhereUnit[], pageFor: (code: string) => { n
       rows.push({ code: unit.code, name: page.name, route: page.route, value });
     }
     rows.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name) || a.code.localeCompare(b.code));
-    if (rows.length > 0) sections.push({ id: section.id, rows });
+    if (rows.length > 0 && rows.length <= RARITY_MAX) sections.push({ id: section.id, rows });
   }
   return sections;
 }
 
-/** The seven lists, from the censuses and the establishment count. */
+/** The lists that 100 communes or fewer meet, from the censuses and the establishment count. */
 export function whereLists(): WhereSection[] {
   const units = communes.map((commune): WhereUnit => {
     const people = indicatorsOf.get(commune.code)?.people.total?.all;
