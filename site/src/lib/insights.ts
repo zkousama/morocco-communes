@@ -61,15 +61,34 @@ export interface StandoutGroup {
 }
 
 /**
- * The insights page's list. One finding per commune, its highest, then the 60 highest of
+ * Topics a reader is most likely to care about, in that order. The two language topics
+ * sit together. Anything else follows, still with the highest finding first.
+ */
+const LEADING_TOPICS = [
+  "age",
+  "localLanguages",
+  "languagesReadAndWritten",
+  "employmentStatus",
+  "commute",
+  "economy",
+  "amenities",
+  "housing",
+];
+
+const topicRank = (topic: string) => {
+  const rank = LEADING_TOPICS.indexOf(topic);
+  return rank === -1 ? LEADING_TOPICS.length : rank;
+};
+
+/**
+ * The insights page's list. One finding per commune, its highest, then the 40 highest of
  * those, so one place can't fill the page. A commune with no page is left out: the list
- * would otherwise link nowhere. Groups follow the topic before the dot in the measure,
- * and the group with the highest finding comes first.
+ * would otherwise link nowhere. Groups follow the topic before the dot in the measure.
  */
 export function standouts(
   files: Iterable<CommuneFile>,
   pageFor: (code: string) => { route: string } | null,
-  limit = 60,
+  limit = 40,
 ): StandoutGroup[] {
   const chosen: StandoutRow[] = [];
   for (const file of files) {
@@ -99,7 +118,7 @@ export function standouts(
     }
     group.rows.push(row);
   }
-  return groups;
+  return groups.sort((a, b) => topicRank(a.topic) - topicRank(b.topic));
 }
 
 /** The pipeline's own settings, for the methods page to state rather than retype: shares as fractions, the rest as counts. */

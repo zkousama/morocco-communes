@@ -171,22 +171,40 @@ describe("the insights page's list", () => {
     ]);
   });
 
-  it("keeps the 60 highest", () => {
-    const files = Array.from({ length: 61 }, (_, i) => commune(`c${String(i).padStart(2, "0")}`, [{ score: i + 1 }]));
+  it("keeps the 40 highest", () => {
+    const files = Array.from({ length: 41 }, (_, i) => commune(`c${String(i).padStart(2, "0")}`, [{ score: i + 1 }]));
     const scores = standouts(files, page).flatMap((group) => group.rows.map((row) => row.score));
-    expect(scores).toEqual(Array.from({ length: 60 }, (_, i) => 61 - i));
+    expect(scores).toEqual(Array.from({ length: 40 }, (_, i) => 41 - i));
   });
 
-  it("groups by the topic before the dot, the highest group first", () => {
+  it("groups by the topic before the dot, and leads with the named topics", () => {
     const files = [
       commune("a", [{ score: 3, measure: "housing.type.other" }]),
       commune("b", [{ score: 9, measure: "labour.unemploymentRate" }]),
       commune("c", [{ score: 4, measure: "labour.activityRate" }]),
+      commune("fuel", [{ score: 30, measure: "cookingFuel.electricity" }]),
+      commune("age", [{ score: 2, measure: "age.70-74" }]),
+      commune("spoken", [{ score: 1, measure: "localLanguages.hassania" }]),
+      commune("read", [{ score: 5, measure: "languagesReadAndWritten.arabic" }]),
+      commune("job", [{ score: 6, measure: "employmentStatus.employee" }]),
+      commune("tram", [{ score: 8, measure: "commute.tram" }]),
+      commune("shop", [{ score: 7, measure: "economy.per1000.jobs" }]),
+      commune("power", [{ score: 2, measure: "amenities.electricity" }]),
     ];
     const groups = standouts(files, page);
-    expect(groups.map((group) => group.topic)).toEqual(["labour", "housing"]);
-    expect(groups[0]!.rows.map((row) => row.code)).toEqual(["b", "c"]);
-    expect(groups[1]!.rows.map((row) => row.code)).toEqual(["a"]);
+    expect(groups.find((group) => group.topic === "labour")?.rows.map((row) => row.code)).toEqual(["b", "c"]);
+    expect(groups.map((group) => group.topic)).toEqual([
+      "age",
+      "localLanguages",
+      "languagesReadAndWritten",
+      "employmentStatus",
+      "commute",
+      "economy",
+      "amenities",
+      "housing",
+      "cookingFuel",
+      "labour",
+    ]);
   });
 
   it("drops a commune that has no page", () => {
@@ -197,7 +215,7 @@ describe("the insights page's list", () => {
 
   it("keeps every row's commune in the published data", () => {
     const rows = standouts(insightsOf.values(), pageOf).flatMap((group) => group.rows);
-    expect(rows.length).toBeGreaterThan(0);
+    expect(rows).toHaveLength(40);
     expect(new Set(rows.map((row) => row.code)).size).toBe(rows.length);
     for (const row of rows) {
       expect(communeOf.has(row.code), row.code).toBe(true);
