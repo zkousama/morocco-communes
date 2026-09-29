@@ -1,0 +1,117 @@
+---
+/**
+ * Communes whose figures don't go together the way they do elsewhere. The 30 furthest
+ * each get the sentence, and the pair as a scatter under a fold.
+ */
+import Base from "../layouts/Base.astro";
+import { t, type Locale } from "../i18n/ui";
+import { path } from "../i18n/ui";
+import { cloudOf, oddLine, oddPage, scatter } from "../lib/odd";
+import { pageOf } from "../lib/places";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const rows = oddPage.flatMap((row) => {
+  const page = pageOf(row.code);
+  if (!page) return [];
+  const cloud = cloudOf(row.a, row.b);
+  const highlight = cloud.points.findIndex((point) => point.code === row.code);
+  return [{ row, page, svg: scatter(cloud.points, highlight, copy.oddScatter) }];
+});
+---
+
+<Base locale={locale} route="odd/" title={copy.oddTitle} description={copy.oddLede}>
+  <article class="odd">
+    <h1>{copy.oddTitle}</h1>
+    <p class="lede">{copy.oddLede}</p>
+    <ol>
+      {rows.map(({ row, page, svg }) => (
+        <li>
+          <p><a href={path(locale, page.route)}>{page.name.fr}</a></p>
+          <p>{oddLine(locale, row)}</p>
+          <details>
+            <summary>{copy.oddScatter}</summary>
+            <div class="plot" set:html={svg} />
+          </details>
+        </li>
+      ))}
+    </ol>
+  </article>
+</Base>
+
+<style>
+  .odd {
+    padding-block: clamp(2rem, 6vw, 4rem);
+    max-width: 46rem;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(var(--t-lg), 5vw, var(--t-xl));
+    line-height: 1.1;
+    margin: 0 0 0.75rem;
+  }
+
+  .lede {
+    color: var(--quiet);
+    font-size: var(--t-md);
+    max-width: 42ch;
+  }
+
+  ol {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+  }
+
+  li {
+    padding: 1rem 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  li p {
+    margin: 0;
+  }
+
+  li p + p {
+    margin-top: 0.35rem;
+  }
+
+  li a {
+    font-weight: 500;
+  }
+
+  details {
+    margin-top: 0.5rem;
+  }
+
+  summary {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    cursor: pointer;
+  }
+
+  summary:hover {
+    color: var(--ink);
+  }
+
+  li :global(svg) {
+    display: block;
+    width: min(100%, 20rem);
+    height: auto;
+    margin-top: 0.75rem;
+  }
+
+  li :global(.dot) {
+    fill: var(--quiet);
+    opacity: 0.45;
+  }
+
+  li :global(.here) {
+    fill: var(--chart-down);
+  }
+</style>
