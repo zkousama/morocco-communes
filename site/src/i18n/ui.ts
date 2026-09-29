@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "insights/", "odd/", "where/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/privacy/", "most-looked-up/"] as const;
+export const PAGES = ["", "communes/", "insights/", "where/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/privacy/", "most-looked-up/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -51,7 +51,6 @@ export const ui = {
     navFigures: "Census",
     navGlossary: "Glossary",
     navInsights: "Insights",
-    navOdd: "Odd combinations",
     navWhere: "Where",
     navApi: "API",
     navMcp: "MCP",
@@ -241,9 +240,6 @@ export const ui = {
     insightsShowMore: "Show more",
     insightsFigures: "The figures themselves",
     insightsTopics: "Topics",
-    oddTitle: "Odd combinations",
-    oddLede: "Communes whose figures don’t go together the way they do elsewhere. Each pair takes its two figures from different families: education, infrastructure, and people and work. Two figures from one family measure the same thing.",
-    oddScatter: "The pair, across communes",
     whereTitle: "Where they are",
     whereLede: "Which communes have workers who commute by tram or train, and which have foreign residents. It counts where people live, not where the lines run.",
     whereFigures: {
@@ -312,7 +308,6 @@ export const ui = {
     navFigures: "Recensement",
     navGlossary: "Glossaire",
     navInsights: "Constats",
-    navOdd: "Combinaisons inattendues",
     navWhere: "Où",
     navApi: "API",
     navMcp: "MCP",
@@ -502,9 +497,6 @@ export const ui = {
     insightsShowMore: "Voir la suite",
     insightsFigures: "Les chiffres eux-mêmes",
     insightsTopics: "Sujets",
-    oddTitle: "Combinaisons inattendues",
-    oddLede: "Des communes dont les chiffres ne vont pas ensemble comme ailleurs. Chaque paire prend ses deux chiffres dans des familles différentes : l’éducation, l’infrastructure, et la population et le travail. Deux chiffres d’une même famille mesurent la même chose.",
-    oddScatter: "La paire, dans les communes",
     whereTitle: "Où on les trouve",
     whereLede: "Quelles communes comptent des actifs qui vont au travail en tram ou en train, et des habitants étrangers. Ce sont les lieux de résidence, pas le tracé des lignes.",
     whereFigures: {

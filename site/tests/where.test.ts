@@ -69,6 +69,6 @@ describe("the published lists", () => {
     const fr = explore(t("fr")).map((section) => section.route);
     expect(en).toContain("where/");
     expect(fr).toContain("where/");
-    expect(en.indexOf("where/")).toBe(en.indexOf("insights/") + 2);
+    expect(en.indexOf("where/")).toBe(en.indexOf("insights/") + 1);
   });
 });

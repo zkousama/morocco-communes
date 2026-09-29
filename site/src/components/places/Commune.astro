@@ -11,7 +11,6 @@ import Insights from "./Insights.astro";
 import Wheel from "./Wheel.astro";
 import { indicatorsOf } from "../../lib/indicators";
 import { moveLine, movedMost, nextDoor, onlyHere, onlyHereLine, twinOf } from "../../lib/context";
-import { oddLine, oddOf } from "../../lib/odd";
 import { wheelOf } from "../../lib/wheel";
 import { contentsOf } from "../../lib/contents";
 import { economyOf } from "../../lib/economy";
@@ -127,8 +126,6 @@ const twinPage = twin && pageOf(twin.code);
 const twinNames = p.twinNames as Record<string, string>;
 const twinValue = (path: string, v: number) => (path === "households.averageSize" ? one.format(v) : share(v));
 const rare = onlyHere(c.code).map((item) => onlyHereLine(locale, item));
-const odd = oddOf(c.code);
-const oddText = odd && oddLine(locale, odd, c.name.fr);
 const wheel = twin && wheelOf(c.code);
 const twinFigures = (twin?.closest ?? [])
   .map((f) => fill(p.twinFigure, { label: twinNames[f.path] ?? f.path, here: twinValue(f.path, f.here), there: twinValue(f.path, f.there) }))
@@ -213,13 +210,12 @@ getCommune("${c.slug}");`;
     </div>
   </dl>
 
-  {(gapPage || moved || twinPage || oddText || rare.length > 0) && (
+  {(gapPage || moved || twinPage || rare.length > 0) && (
     <div class="context">
       {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
       {moved && <p>{moved}</p>}
       {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
       {twinPage && wheel && <Wheel locale={locale} hereName={c.name.fr} twinName={twinPage.name.fr} wheel={wheel} />}
-      {oddText && <p>{oddText}</p>}
       {rare.map((line) => <p>{line}</p>)}
     </div>
   )}

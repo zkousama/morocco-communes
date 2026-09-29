@@ -8,7 +8,7 @@ const routes = (locale: "en" | "fr") => menu(t(locale)).map((group) => [group.la
 describe("the header and the phone menu", () => {
   it("share one list of groups", () => {
     const links = [
-      ["communes/", "insights/", "odd/", "where/", "most-looked-up/"],
+      ["communes/", "insights/", "where/", "most-looked-up/"],
       ["docs/indicators/", "docs/glossary/"],
       ["docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/"],
     ];

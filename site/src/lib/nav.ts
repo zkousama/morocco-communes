@@ -20,7 +20,6 @@ export interface MenuGroup {
 export const explore = (copy: Copy): Section[] => [
   { route: "communes/", label: copy.navCommunes },
   { route: "insights/", label: copy.navInsights },
-  { route: "odd/", label: copy.navOdd },
   { route: "where/", label: copy.navWhere },
   { route: "most-looked-up/", label: copy.attention },
 ];
