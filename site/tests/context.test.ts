@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Topics } from "../../api/src/lib/indicators.ts";
-import { largestGap, largestMove, moveLine, movedMost, nearestTwins, nextDoor, SINCE_2014, twinOf, type Move, type Unit } from "../src/lib/context.ts";
+import { largestGap, largestMove, moveLine, movedMost, nearestTwins, nextDoor, onlyHere, onlyHereLine, onlyHereOf, SINCE_2014, twinOf, type Move, type Rarity, type Unit } from "../src/lib/context.ts";
 import { mismatches } from "../../api/src/lib/mismatch.ts";
 import { indicatorsOf } from "../src/lib/indicators.ts";
 import { communes } from "../src/lib/places.ts";
@@ -318,5 +318,54 @@ describe("the published pages", () => {
       if (gap) expect(hasFlag(c.code) || hasFlag(gap.code), `${c.name.fr} next door`).toBe(false);
       if (twin) expect(hasFlag(c.code) || hasFlag(twin.code), `${c.name.fr} twin`).toBe(false);
     }
+  });
+});
+
+const rarity = (code: string, population: number, shares: Rarity["shares"]): Rarity => ({ code, population, shares });
+
+describe("only here", () => {
+  it("gives no line when the commune is under the bar", () => {
+    const tram = rarity("b", 2000, { "commute.tram": 20 });
+    expect(onlyHereOf("a", [rarity("a", 999, { "commute.tram": 20 }), tram])).toEqual([]);
+    expect(onlyHereOf("b", [rarity("b", 2000, { "commute.tram": 0.9 })])).toEqual([]);
+    expect(onlyHereOf("b", [rarity("b", 2000, { foreign: 0.49 })])).toEqual([]);
+  });
+
+  it("gives no line when more than 100 communes meet the bar", () => {
+    const units = Array.from({ length: 101 }, (_, i) => rarity(`c${i}`, 2000, { "commute.train": 2 }));
+    expect(onlyHereOf("c0", units)).toEqual([]);
+    const hundred = units.slice(0, 100);
+    expect(onlyHereOf("c0", hundred)).toEqual([{ measure: "commute.train", n: 100 }]);
+  });
+
+  it("doesn't count a commune under 1,000 people toward how many meet the bar", () => {
+    expect(onlyHereOf("a", [rarity("a", 2000, { "commute.tram": 5 }), rarity("b", 500, { "commute.tram": 50 })])).toEqual([
+      { measure: "commute.tram", n: 1 },
+    ]);
+  });
+
+  it("orders by how few communes meet the bar, and keeps two", () => {
+    const units = [
+      rarity("a", 2000, { "commute.bus": 5, "commute.tram": 5, "commute.train": 5, foreign: 5 }),
+      rarity("b", 2000, { "commute.tram": 5, "commute.train": 5, foreign: 5 }),
+      rarity("c", 2000, { "commute.train": 5, foreign: 5 }),
+      rarity("d", 2000, { foreign: 5 }),
+    ];
+    expect(onlyHereOf("a", units).map((line) => line.measure)).toEqual(["commute.bus", "commute.tram"]);
+    expect(onlyHereLine("en", onlyHereOf("a", units)[0]!)).toBe("One of 1 communes where at least 1% of workers commute by bus.");
+  });
+
+  it("uses half a percent for foreign residents", () => {
+    const line = onlyHereOf("a", [rarity("a", 1000, { foreign: 0.5 })])[0]!;
+    expect(line).toEqual({ measure: "foreign", n: 1 });
+    expect(onlyHereLine("en", line)).toBe("One of 1 communes where at least 0.5% of residents are foreign.");
+    expect(onlyHereLine("fr", line)).toBe("L’une des 1 communes où au moins 0,5 % des habitants sont étrangers.");
+  });
+
+  it("says Rabat is one of 6 communes where at least 1% of workers commute by tram", () => {
+    const lines = onlyHere(codeOf("Rabat"));
+    expect(lines[0]).toEqual({ measure: "commute.tram", n: 6 });
+    expect(onlyHereLine("en", lines[0]!)).toBe("One of 6 communes where at least 1% of workers commute by tram.");
+    expect(onlyHereLine("fr", lines[0]!)).toBe("L’une des 6 communes où au moins 1 % des actifs occupés vont au travail en tram.");
   });
 });

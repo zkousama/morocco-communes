@@ -1,7 +1,8 @@
 /**
- * Three lines for each commune page, worked out once at build time from the censuses: the
+ * Lines for each commune page, worked out once at build time from the censuses: the
  * starkest difference between the commune and one it borders, the figure it moved most on
- * since 2014, and the commune most like it in another région.
+ * since 2014, the commune most like it in another région, and the figures that exist in
+ * few communes.
  */
 import { COMPARABLE_2014 } from "../../../api/src/lib/indicators.ts";
 import { mismatches } from "../../../api/src/lib/mismatch.ts";
@@ -257,3 +258,82 @@ export const nextDoor = (code: string): Gap | null => gaps.get(code) ?? null;
 export const movedMost = (code: string): Move | null => moves.get(code) ?? null;
 /** The commune most like this one in another région, or null for one under 5,000 people or missing a figure. */
 export const twinOf = (code: string): Twin | null => twins.get(code) ?? null;
+
+/** Fewer people than this and a share of a rare way of getting to work isn't worth a line. */
+export const RARITY_PEOPLE = 1000;
+/** A commute share at least this high, in percent, counts as a place where that way of getting to work exists. */
+export const RARITY_SHARE = 1;
+/** Foreign residents are rarer, so the bar is lower. */
+export const RARITY_FOREIGN = 0.5;
+/** More communes than this and the figure isn't rare enough for a line. */
+export const RARITY_MAX = 100;
+export const RARITY_LINES = 2;
+
+export const RARITY_FIGURES = ["commute.tram", "commute.train", "commute.bus", "commute.taxi", "commute.employerTransport", "foreign"] as const;
+export type RarityFigure = (typeof RARITY_FIGURES)[number];
+
+/** A commune as the rarity lines read it: its people, and the shares that exist in few places. */
+export interface Rarity {
+  code: string;
+  population: number;
+  shares: Partial<Record<RarityFigure, number | null>>;
+}
+
+export interface OnlyHere {
+  measure: RarityFigure;
+  n: number;
+}
+
+const rarityBar = (measure: RarityFigure) => (measure === "foreign" ? RARITY_FOREIGN : RARITY_SHARE);
+
+/**
+ * The figures that exist in few communes: at most two, the rarest first. A commune under
+ * 1,000 people, or under the share, gets none, and so does a figure that 100 communes already meet.
+ */
+export function onlyHereOf(code: string, units: Rarity[]): OnlyHere[] {
+  const here = units.find((unit) => unit.code === code);
+  if (!here || here.population < RARITY_PEOPLE) return [];
+  const lines: OnlyHere[] = [];
+  for (const measure of RARITY_FIGURES) {
+    const bar = rarityBar(measure);
+    const mine = here.shares[measure];
+    if (mine === null || mine === undefined || mine < bar) continue;
+    const n = units.filter((unit) => unit.population >= RARITY_PEOPLE && (unit.shares[measure] ?? -1) >= bar).length;
+    if (n > RARITY_MAX) continue;
+    lines.push({ measure, n });
+  }
+  return lines.sort((a, b) => a.n - b.n || RARITY_FIGURES.indexOf(a.measure) - RARITY_FIGURES.indexOf(b.measure)).slice(0, RARITY_LINES);
+}
+
+/** The sentence for one of those lines. The figure's name sits in the template. */
+export function onlyHereLine(locale: Locale, item: OnlyHere): string {
+  const p = places[locale];
+  if (item.measure === "foreign") return fill(p.onlyForeign, { n: item.n });
+  return fill(p.onlyCommute, { n: item.n, how: (p.onlyHow as Record<string, string>)[item.measure]! });
+}
+
+function rarities(): Rarity[] {
+  return communes.map((commune) => {
+    const people = indicatorsOf.get(commune.code)?.people.total?.all;
+    const total = commune.population["2024"].total;
+    const foreign = commune.population["2024"].foreign;
+    return {
+      code: commune.code,
+      population: total,
+      shares: {
+        "commute.tram": figure(people, "commute.tram"),
+        "commute.train": figure(people, "commute.train"),
+        "commute.bus": figure(people, "commute.bus"),
+        "commute.taxi": figure(people, "commute.taxi"),
+        "commute.employerTransport": figure(people, "commute.employerTransport"),
+        foreign: foreign === null || !total ? null : (foreign / total) * 100,
+      },
+    };
+  });
+}
+
+const rarityUnits = rarities();
+const rareLines = new Map(rarityUnits.map((unit) => [unit.code, onlyHereOf(unit.code, rarityUnits)]));
+
+/** The rare figures for one commune, rarest first. Empty when none of them are rare here. */
+export const onlyHere = (code: string): OnlyHere[] => rareLines.get(code) ?? [];

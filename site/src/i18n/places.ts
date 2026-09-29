@@ -333,6 +333,15 @@ export const places = {
     insightsMoroccoFrom: "Across Morocco, it went from {then} to {now}.",
     insightsMore: "How these are picked",
     insightsSample: "Estimate from a sample",
+    onlyCommute: "One of {n} communes where at least 1% of workers commute {how}.",
+    onlyHow: {
+      "commute.tram": "by tram",
+      "commute.train": "by train",
+      "commute.bus": "by bus",
+      "commute.taxi": "by taxi",
+      "commute.employerTransport": "in transport laid on by their employer",
+    },
+    onlyForeign: "One of {n} communes where at least 0.5% of residents are foreign.",
   },
   fr: {
     browseTitle: "Communes",
@@ -666,6 +675,15 @@ export const places = {
     insightsMoroccoFrom: "Au Maroc, ce chiffre est passé de {then} à {now}.",
     insightsMore: "Comment ces chiffres sont choisis",
     insightsSample: "Estimation d’après un échantillon",
+    onlyCommute: "L’une des {n} communes où au moins 1 % des actifs occupés vont au travail {how}.",
+    onlyHow: {
+      "commute.tram": "en tram",
+      "commute.train": "en train",
+      "commute.bus": "en bus",
+      "commute.taxi": "en taxi",
+      "commute.employerTransport": "par un transport de l’employeur",
+    },
+    onlyForeign: "L’une des {n} communes où au moins 0,5 % des habitants sont étrangers.",
   },
 } satisfies Record<Locale, unknown>;
 
