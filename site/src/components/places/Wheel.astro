@@ -1,0 +1,128 @@
+---
+import { places } from "../../i18n/places";
+import type { Locale } from "../../i18n/ui";
+import { numbers, percent } from "../../lib/format";
+import { WHEEL_SPOKES, wheelSvg, type WheelProfile } from "../../lib/wheel";
+
+interface Props {
+  locale: Locale;
+  hereName: string;
+  twinName: string;
+  wheel: WheelProfile;
+}
+const { locale, hereName, twinName, wheel } = Astro.props;
+const copy = places[locale];
+const svg = wheelSvg(copy.wheelLabels, wheel.ranks.here, wheel.ranks.twin, copy.wheelNote);
+const one = numbers(locale, 1, true);
+const shown = (id: (typeof WHEEL_SPOKES)[number], value: number) =>
+  id === "households.averageSize" ? one.format(value) : percent(locale, value, { fixed: true });
+---
+
+<figure class="wheel">
+  <div class="plot" set:html={svg} />
+  <figcaption>
+    <ul>
+      <li class="here">{hereName}</li>
+      <li class="twin">{twinName}</li>
+      <li class="mid">{copy.wheelMorocco}</li>
+    </ul>
+    <p>{copy.wheelNote}</p>
+  </figcaption>
+  <details>
+    <summary>{copy.wheelFigures}</summary>
+    <table>
+      <thead>
+        <tr>
+          <th>{copy.wheelColumn}</th>
+          <th>{hereName}</th>
+          <th>{twinName}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {WHEEL_SPOKES.map((id, i) => (
+          <tr>
+            <th>{copy.wheelLabels[i]!.join(" ")}</th>
+            <td>{shown(id, wheel.values.here[i]!)}</td>
+            <td>{shown(id, wheel.values.twin[i]!)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </details>
+</figure>
+
+<style>
+  .wheel {
+    max-width: 20rem;
+    margin: 0.75rem 0 0.25rem;
+  }
+
+  .plot :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .plot :global(text) {
+    fill: var(--ink);
+    font-family: inherit;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    list-style: none;
+    margin: 0.35rem 0;
+    padding: 0;
+    font-size: var(--t-sm);
+  }
+
+  li::before {
+    content: "";
+    display: inline-block;
+    width: 1.1rem;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+    border-top: 2px solid;
+  }
+
+  .here::before {
+    border-top-color: var(--chart-up);
+  }
+
+  .twin::before {
+    border-top-color: var(--chart-down);
+    border-top-style: dashed;
+  }
+
+  .mid::before {
+    border-top-color: var(--quiet);
+    border-top-style: dashed;
+  }
+
+  p {
+    margin: 0;
+    color: var(--quiet);
+    font-size: var(--t-sm);
+  }
+
+  table {
+    width: 100%;
+    margin-top: 0.5rem;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+  }
+
+  th,
+  td {
+    padding: 0.2rem 0.5rem 0.2rem 0;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  td {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
