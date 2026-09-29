@@ -187,7 +187,9 @@ for (const { topology, arcs } of decoded) {
 
 const hatch =
   '<defs><pattern id="gap-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
-  '<line class="hatch" x1="0" y1="0" x2="0" y2="4"/></pattern></defs>';
+  '<line class="hatch" x1="0" y1="0" x2="0" y2="4"/></pattern>' +
+  '<pattern id="service-both" width="8" height="8" patternUnits="userSpaceOnUse">' +
+  '<rect class="tram" width="4" height="8"/><rect class="train" x="4" width="4" height="8"/></pattern></defs>';
 const markup =
   `${hatch}<g class="communes">${shapes.join("")}</g>${gaps.join("")}` +
   `<path class="regions" d="${regionPaths.join("")}"/>`;

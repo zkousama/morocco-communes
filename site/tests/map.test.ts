@@ -36,9 +36,12 @@ describe("where the tram and the train run", () => {
     expect(SERVICE_PEOPLE).toBe(1000);
   });
 
-  it("colours a commune that meets the bar on either, and greys the rest", () => {
-    expect(serviceOf(1, 0, 1000)).toBe("1");
-    expect(serviceOf(0, 1, 5000)).toBe("1");
+  it("gives tram and train their own colours, and a third when a commune has both", () => {
+    expect(serviceOf(1, 0, 1000)).toBe("t");
+    expect(serviceOf(0, 1, 5000)).toBe("r");
+    expect(serviceOf(2, 3, 5000)).toBe("b");
+    expect(serviceOf(2, null, 5000)).toBe("t");
+    expect(serviceOf(null, 2, 5000)).toBe("r");
     expect(serviceOf(0.9, 0.9, 5000)).toBe("0");
     expect(serviceOf(4, 0, 999)).toBe("0");
     expect(serviceOf(null, null, 5000)).toBe("n");

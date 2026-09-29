@@ -29,11 +29,19 @@ export function shadeOf(value: number | null, breaks: number[], flagged: boolean
   return classOf(flagged ? null : value, breaks);
 }
 
-/** "1" when tram or train meets the bar, "0" when neither does, "n" when both figures are missing. */
-export function serviceOf(tram: number | null, train: number | null, population: number): "1" | "0" | "n" {
+/**
+ * "t" tram only, "r" train only, "b" both, "0" neither, "n" when both figures are missing.
+ * A commune with both keeps both colours, so the two are not folded into one class.
+ */
+export function serviceOf(tram: number | null, train: number | null, population: number): "t" | "r" | "b" | "0" | "n" {
   if (tram === null && train === null) return "n";
   const on = (value: number | null) => value !== null && value >= SERVICE_SHARE && population >= SERVICE_PEOPLE;
-  return on(tram) || on(train) ? "1" : "0";
+  const tramOn = on(tram);
+  const trainOn = on(train);
+  if (tramOn && trainOn) return "b";
+  if (tramOn) return "t";
+  if (trainOn) return "r";
+  return "0";
 }
 
 /** How many communes meet the bar on each, a commune with both counted twice. */

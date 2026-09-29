@@ -65,32 +65,34 @@ const views = [
     id: "water",
     label: copy.mapWater,
     unit: copy.legendWater,
-    swatches: bands(waterBreaks, "s"),
+    swatches: bands(waterBreaks, "w"),
   },
   {
     id: "elderly",
     label: copy.mapElderly,
     unit: copy.legendElderly,
-    swatches: bands(elderlyBreaks, "s"),
+    swatches: bands(elderlyBreaks, "e"),
   },
   {
     id: "women",
     label: copy.mapWomen,
     unit: copy.legendWomen,
-    swatches: bands(womenBreaks, "s"),
+    swatches: bands(womenBreaks, "f"),
   },
   {
     id: "unemployment",
     label: copy.mapUnemployment,
     unit: copy.legendUnemployment,
-    swatches: bands(unemploymentBreaks, "s"),
+    swatches: bands(unemploymentBreaks, "u"),
   },
   {
     id: "service",
     label: copy.mapService,
     unit: copy.legendService.replace("{tram}", n.format(tramCommunes)).replace("{train}", n.format(trainCommunes)),
     swatches: [
-      { cls: "k1", text: copy.mapServiceOn },
+      { cls: "kt", text: copy.mapTram },
+      { cls: "kr", text: copy.mapTrain },
+      { cls: "kb", text: copy.mapBoth },
       { cls: "k0", text: copy.mapServiceOff },
       { cls: "kn", text: copy.mapNoValue },
     ],
@@ -309,7 +311,8 @@ const communesRoute = path(locale, "communes/");
 
     // Drawing -----------------------------------------------------------------------------
 
-    const hatch = svg.querySelector("pattern");
+    const hatch = svg.querySelector("#gap-hatch");
+    const both = svg.querySelector("#service-both");
     const zoomIn = controls?.querySelector<HTMLButtonElement>('[data-zoom="in"]');
     const zoomOut = controls?.querySelector<HTMLButtonElement>('[data-zoom="out"]');
     const reset = controls?.querySelector<HTMLButtonElement>('[data-zoom="reset"]');
@@ -323,11 +326,13 @@ const communesRoute = path(locale, "communes/");
       pending = 0;
       const frameBox = bounds();
       svg.setAttribute("viewBox", viewBoxOf(view, box));
-      // The hatching is drawn in map units, so it's shrunk by the zoom to keep its spacing
-      // on screen. The lines are measured on screen already; see the styles.
+      // Hatching and the tram/train split are drawn in map units, so the zoom shrinks
+      // them to keep their spacing on screen. The lines are measured on screen already.
       if (view.k !== drawnK) {
         drawnK = view.k;
-        hatch?.setAttribute("patternTransform", `rotate(45) scale(${1 / view.k})`);
+        const scale = 1 / view.k;
+        hatch?.setAttribute("patternTransform", `rotate(45) scale(${scale})`);
+        both?.setAttribute("patternTransform", `scale(${scale})`);
       }
       const zoomed = view.k > MIN_ZOOM;
       frame.classList.toggle("zoomed", zoomed);
@@ -734,51 +739,78 @@ const communesRoute = path(locale, "communes/");
   .atlas[data-view="illiteracy"] :global([data-i="n"]),
   .swatch.rn { fill: var(--map-none); background: var(--map-none); }
 
-  /* The added views share one ramp. A missing figure is hatched, the same mark as land with no boundary. */
+  /* Each view has its own hue. Women stay on the green ramp: it is the same measure as illiteracy. A missing figure is hatched. */
   .atlas[data-view="water"] :global([data-w="0"]),
-  .atlas[data-view="elderly"] :global([data-e="0"]),
-  .atlas[data-view="women"] :global([data-f="0"]),
-  .atlas[data-view="unemployment"] :global([data-u="0"]),
-  .swatch.s0 { fill: var(--seq-0); background: var(--seq-0); }
+  .swatch.w0 { fill: var(--water-0); background: var(--water-0); }
   .atlas[data-view="water"] :global([data-w="1"]),
-  .atlas[data-view="elderly"] :global([data-e="1"]),
-  .atlas[data-view="women"] :global([data-f="1"]),
-  .atlas[data-view="unemployment"] :global([data-u="1"]),
-  .swatch.s1 { fill: var(--seq-1); background: var(--seq-1); }
+  .swatch.w1 { fill: var(--water-1); background: var(--water-1); }
   .atlas[data-view="water"] :global([data-w="2"]),
-  .atlas[data-view="elderly"] :global([data-e="2"]),
-  .atlas[data-view="women"] :global([data-f="2"]),
-  .atlas[data-view="unemployment"] :global([data-u="2"]),
-  .swatch.s2 { fill: var(--seq-2); background: var(--seq-2); }
+  .swatch.w2 { fill: var(--water-2); background: var(--water-2); }
   .atlas[data-view="water"] :global([data-w="3"]),
-  .atlas[data-view="elderly"] :global([data-e="3"]),
-  .atlas[data-view="women"] :global([data-f="3"]),
-  .atlas[data-view="unemployment"] :global([data-u="3"]),
-  .swatch.s3 { fill: var(--seq-3); background: var(--seq-3); }
+  .swatch.w3 { fill: var(--water-3); background: var(--water-3); }
   .atlas[data-view="water"] :global([data-w="4"]),
-  .atlas[data-view="elderly"] :global([data-e="4"]),
-  .atlas[data-view="women"] :global([data-f="4"]),
-  .atlas[data-view="unemployment"] :global([data-u="4"]),
-  .swatch.s4 { fill: var(--seq-4); background: var(--seq-4); }
+  .swatch.w4 { fill: var(--water-4); background: var(--water-4); }
   .atlas[data-view="water"] :global([data-w="5"]),
+  .swatch.w5 { fill: var(--water-5); background: var(--water-5); }
+  .atlas[data-view="elderly"] :global([data-e="0"]),
+  .swatch.e0 { fill: var(--elder-0); background: var(--elder-0); }
+  .atlas[data-view="elderly"] :global([data-e="1"]),
+  .swatch.e1 { fill: var(--elder-1); background: var(--elder-1); }
+  .atlas[data-view="elderly"] :global([data-e="2"]),
+  .swatch.e2 { fill: var(--elder-2); background: var(--elder-2); }
+  .atlas[data-view="elderly"] :global([data-e="3"]),
+  .swatch.e3 { fill: var(--elder-3); background: var(--elder-3); }
+  .atlas[data-view="elderly"] :global([data-e="4"]),
+  .swatch.e4 { fill: var(--elder-4); background: var(--elder-4); }
   .atlas[data-view="elderly"] :global([data-e="5"]),
+  .swatch.e5 { fill: var(--elder-5); background: var(--elder-5); }
+  .atlas[data-view="women"] :global([data-f="0"]),
+  .swatch.f0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="women"] :global([data-f="1"]),
+  .swatch.f1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="women"] :global([data-f="2"]),
+  .swatch.f2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="women"] :global([data-f="3"]),
+  .swatch.f3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="women"] :global([data-f="4"]),
+  .swatch.f4 { fill: var(--seq-4); background: var(--seq-4); }
   .atlas[data-view="women"] :global([data-f="5"]),
+  .swatch.f5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="unemployment"] :global([data-u="0"]),
+  .swatch.u0 { fill: var(--unemp-0); background: var(--unemp-0); }
+  .atlas[data-view="unemployment"] :global([data-u="1"]),
+  .swatch.u1 { fill: var(--unemp-1); background: var(--unemp-1); }
+  .atlas[data-view="unemployment"] :global([data-u="2"]),
+  .swatch.u2 { fill: var(--unemp-2); background: var(--unemp-2); }
+  .atlas[data-view="unemployment"] :global([data-u="3"]),
+  .swatch.u3 { fill: var(--unemp-3); background: var(--unemp-3); }
+  .atlas[data-view="unemployment"] :global([data-u="4"]),
+  .swatch.u4 { fill: var(--unemp-4); background: var(--unemp-4); }
   .atlas[data-view="unemployment"] :global([data-u="5"]),
-  .swatch.s5 { fill: var(--seq-5); background: var(--seq-5); }
+  .swatch.u5 { fill: var(--unemp-5); background: var(--unemp-5); }
   .atlas[data-view="water"] :global([data-w="n"]),
   .atlas[data-view="elderly"] :global([data-e="n"]),
   .atlas[data-view="women"] :global([data-f="n"]),
   .atlas[data-view="unemployment"] :global([data-u="n"]),
   .atlas[data-view="service"] :global([data-k="n"]) { fill: url(#gap-hatch); }
-  .swatch.sn,
+  .swatch.wn,
+  .swatch.en,
+  .swatch.fn,
+  .swatch.un,
   .swatch.kn {
     background: repeating-linear-gradient(45deg, var(--quiet) 0 1.2px, transparent 1.2px 4px);
   }
 
-  .atlas[data-view="service"] :global([data-k="1"]),
-  .swatch.k1 { fill: var(--chart-down); background: var(--chart-down); }
+  .atlas[data-view="service"] :global([data-k="t"]),
+  .swatch.kt { fill: var(--chart-up); background: var(--chart-up); }
+  .atlas[data-view="service"] :global([data-k="r"]),
+  .swatch.kr { fill: var(--chart-down); background: var(--chart-down); }
+  .atlas[data-view="service"] :global([data-k="b"]) { fill: url(#service-both); }
+  .swatch.kb { background: linear-gradient(90deg, var(--chart-up) 50%, var(--chart-down) 50%); }
   .atlas[data-view="service"] :global([data-k="0"]),
   .swatch.k0 { fill: var(--map-none); background: var(--map-none); }
+  .map :global(.tram) { fill: var(--chart-up); }
+  .map :global(.train) { fill: var(--chart-down); }
 
   .atlas[data-view="change"] :global([data-g="0"]),
   .swatch.g0 { fill: var(--div-0); background: var(--div-0); }
