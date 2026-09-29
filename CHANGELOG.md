@@ -4,6 +4,13 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.9.1
+
+- Standout figures leave out an economy finding for a commune with fewer than 100
+  businesses, and a housing finding for one with fewer than 100 urban dwellings. A census
+  figure in a commune of 2,000 households or more is marked `sampled`, since the long
+  questionnaire went to a sample of households there. 213 figures across 146 communes.
+
 ## 1.9.0
 
 - `amenities.bathroom` is no longer compared across the two censuses: 2014 asked about a
@@ -11,14 +18,11 @@ change a shape something already reads.
   `comparableTo` now, and a note says why, so 72 fields line up with 2024 rather than 73.
   The API's `change.amenities.bathroom` and `2014.amenities.bathroom` sorts are gone with
   it.
-- Standout 2024 census figures, in `insights/`: 213 figures across 146 communes, up to 3
+- Standout 2024 census figures, in `insights/`: 238 figures across 164 communes, up to 3
   per commune. Each record is the figure, a fixed sentence in English and French, the
   communes it borders on the same figure (their median and the one furthest from it), and
-  the same figure in 2014 beside Morocco's, where the two censuses can be compared. An
-  economy figure for a commune with fewer than 100 businesses, or a housing figure for one
-  with fewer than 100 urban dwellings, is left out. A census figure in a commune of 2,000
-  households or more is marked `sampled`, since the long questionnaire went to a sample of
-  households there. No language model writes or judges any of it.
+  the same figure in 2014 beside Morocco's, where the two censuses can be compared. No
+  language model writes or judges any of it.
 - `/api/communes/{code}/insights.json` serves a commune's, `/api/insights.json` the index
   of them, and `get_insights` is the tenth MCP tool. Both now return those records, in
   place of the model-written reasons an earlier design published.
