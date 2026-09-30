@@ -607,6 +607,39 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     }
   }
 
+  /* Wide: the words are centred on the map itself. The map's figure hands its parts to the
+     grid, so the buttons and the legend below the map sit in the next row and no longer pull
+     the words down as more views are added. */
+  @media (min-width: 62.0625rem) {
+    .hero {
+      row-gap: 0;
+    }
+
+    .hero :global(.atlas) {
+      display: contents;
+    }
+
+    .hero-words {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
+    }
+
+    .hero :global(.atlas > .frame) {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .hero :global(.atlas > figcaption) {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .tally {
+      margin-top: clamp(1.5rem, 4vw, 3.25rem);
+    }
+  }
+
   @media (max-width: 62rem) {
     .hero {
       grid-template-columns: minmax(0, 1fr);
