@@ -3,7 +3,8 @@ import { places } from "../src/i18n/places.ts";
 import { communes } from "../src/lib/places.ts";
 import {
   WHEEL_PLOT,
-  WHEEL_SIZE,
+  WHEEL_HEIGHT,
+  WHEEL_WIDTH,
   WHEEL_SPOKES,
   labelBoxes,
   percentileRank,
@@ -64,10 +65,12 @@ describe("the wheel", () => {
       for (const box of boxes) {
         expect(box.left).toBeGreaterThanOrEqual(0);
         expect(box.top).toBeGreaterThanOrEqual(0);
-        expect(box.right).toBeLessThanOrEqual(WHEEL_SIZE);
-        expect(box.bottom).toBeLessThanOrEqual(WHEEL_SIZE);
-        const dx = 160 < box.left ? box.left - 160 : 160 > box.right ? 160 - box.right : 0;
-        const dy = 160 < box.top ? box.top - 160 : 160 > box.bottom ? 160 - box.bottom : 0;
+        expect(box.right).toBeLessThanOrEqual(WHEEL_WIDTH);
+        expect(box.bottom).toBeLessThanOrEqual(WHEEL_HEIGHT);
+        const cx = WHEEL_WIDTH / 2;
+        const cy = WHEEL_HEIGHT / 2;
+        const dx = cx < box.left ? box.left - cx : cx > box.right ? cx - box.right : 0;
+        const dy = cy < box.top ? box.top - cy : cy > box.bottom ? cy - box.bottom : 0;
         expect(Math.hypot(dx, dy)).toBeGreaterThanOrEqual(WHEEL_PLOT);
       }
     }

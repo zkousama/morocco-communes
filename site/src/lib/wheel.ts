@@ -10,9 +10,10 @@ import { communes } from "./places.ts";
 
 /** Fewer people than this and a share moves too much to rank. The same floor as a twin. */
 export const WHEEL_FLOOR = 5000;
-export const WHEEL_SIZE = 320;
+export const WHEEL_WIDTH = 400;
+export const WHEEL_HEIGHT = 300;
 /** Rank 100 sits this far from the centre, in the chart's own units, leaving the rest for labels. */
-export const WHEEL_PLOT = 62;
+export const WHEEL_PLOT = 100;
 
 export const WHEEL_SPOKES = [
   "literacy",
@@ -56,11 +57,11 @@ export function percentileRank(value: number, values: number[]): number {
   return ((below + (equal - 1) / 2) / (n - 1)) * 100;
 }
 
-const CX = WHEEL_SIZE / 2;
-const CY = WHEEL_SIZE / 2;
-// Instrument Sans at 11px, taken wide so a label that clears this box still fits on the page.
-const CHAR = 6.4;
-const LINE = 13;
+const CX = WHEEL_WIDTH / 2;
+const CY = WHEEL_HEIGHT / 2;
+// Instrument Sans at 12px, taken wide so a label that clears this box still fits on the page.
+const CHAR = 7;
+const LINE = 14;
 
 const spokeAngle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / WHEEL_SPOKES.length;
 
@@ -121,9 +122,9 @@ export function wheelSvg(labels: string[][], here: number[], twin: number[], cap
     const lines = box.lines
       .map((line, k) => `<tspan x="${round(box.x)}" dy="${k === 0 ? 0 : LINE}">${escapeXml(line)}</tspan>`)
       .join("");
-    return `<text x="${round(box.x)}" y="${round(box.y)}" text-anchor="${box.anchor}" dominant-baseline="central" font-size="11">${lines}</text>`;
+    return `<text x="${round(box.x)}" y="${round(box.y)}" text-anchor="${box.anchor}" dominant-baseline="central" font-size="12">${lines}</text>`;
   });
-  return `<svg viewBox="0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}" role="img" aria-label="${escapeXml(caption)}">${spokes.join("")}${rings.join("")}${texts.join("")}</svg>`;
+  return `<svg viewBox="0 0 ${WHEEL_WIDTH} ${WHEEL_HEIGHT}" role="img" aria-label="${escapeXml(caption)}">${spokes.join("")}${rings.join("")}${texts.join("")}</svg>`;
 }
 
 const ages = (topics: Parameters<typeof figure>[0], bands: string[]): number | null => {
