@@ -11,7 +11,8 @@ change a shape something already reads.
   to work by tram, train, bus, taxi or an employer's transport is left out too, since
   those services only some places have. A census figure in a commune of 2,000 households
   or more is marked `sampled`, since the long questionnaire went to a sample of
-  households there. 181 figures across 119 communes.
+  households there. A commune with fewer than 300 households, or more than 8 people to a household,
+  is left out too, since its people mostly aren't in households. 163 figures across 111 communes.
 
 ## 1.9.0
 

@@ -8,10 +8,11 @@
  * handful of businesses or dwellings is left out too, since a few units can swing a share.
  * Only communes are published, since a commune page is where they show.
  */
+import { ordinary } from "../../api/src/lib/ordinary.ts";
 import type { Data } from "./data.ts";
 import type { Finding } from "./detect.ts";
 
-export type Dropped = "artefact" | "not a commune" | "flagged" | "sex share" | "small base" | "local service";
+export type Dropped = "artefact" | "not a commune" | "flagged" | "sex share" | "small base" | "local service" | "special population";
 
 /** Fewer businesses or urban dwellings than this, and an economy or housing share can swing on a handful of units. */
 export const SMALL_BASE = 100;
@@ -36,6 +37,9 @@ export function dropped(finding: Finding, data: Data): Dropped | null {
   if (finding.level !== "commune") return "not a commune";
   if (finding.measure.startsWith("sex.")) return "sex share";
   if (LOCAL_COMMUTE.has(finding.measure)) return "local service";
+  // A commune whose people mostly aren't in households: its shares of households are a few families.
+  const unit = data.units.get(finding.code);
+  if (unit?.base.households != null && !ordinary(unit.population.y2024, unit.base.households)) return "special population";
   if ((data.units.get(finding.code)?.mismatched.size ?? 0) > 0) return "flagged";
   const base = data.units.get(finding.code)?.base;
   if (finding.measure.startsWith("economy.") && (base?.businesses ?? 0) < SMALL_BASE) return "small base";

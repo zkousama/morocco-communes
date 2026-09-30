@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Topics } from "../../api/src/lib/indicators.ts";
-import { largestGap, largestMove, moveLine, movedMost, nearestTwins, nextDoor, onlyHere, onlyHereLine, onlyHereOf, SINCE_2014, twinOf, type Move, type Rarity, type Unit } from "../src/lib/context.ts";
+import { largestGap, largestMove, moveLine, movedMost, nearestTwins, nextDoor, onlyHere, onlyHereLine, onlyHereOf, SINCE_2014, TWIN, TWIN_APART, TWIN_APART_SIZE, twinOf, type Move, type Rarity, type Unit } from "../src/lib/context.ts";
 import { mismatches } from "../../api/src/lib/mismatch.ts";
 import { indicatorsOf } from "../src/lib/indicators.ts";
 import { communes } from "../src/lib/places.ts";
@@ -246,9 +246,23 @@ describe("what moved most since 2014", () => {
 });
 
 describe("twins", () => {
-  it("matches the answers checked on 2026-09-28", () => {
-    for (const [from, to] of [["Agadir", "Kénitra"], ["Fès", "Tétouan"], ["Ouarzazate", "Missour"], ["Tafraout", "Nador"]]) {
+  it("matches the answers checked on 2026-09-28 that no near tie can move", () => {
+    // Fès and Tétouan were a close call that moved when the special populations left the pool.
+    for (const [from, to] of [["Agadir", "Kénitra"], ["Ouarzazate", "Missour"], ["Tafraout", "Nador"]]) {
       expect(twinOf(codeOf(from!))?.code, from).toBe(codeOf(to!));
+    }
+  });
+
+  it("gives no twin, and is nobody's twin, in a commune whose people mostly aren't in households", () => {
+    for (const slug of ["tifariti", "oum-dreyga", "tichla", "gueltat-zemmour"]) {
+      const commune = communes.find((c) => c.slug === slug)!;
+      expect(twinOf(commune.code), slug).toBeNull();
+      expect(nextDoor(commune.code), slug).toBeNull();
+      expect(movedMost(commune.code), slug).toBeNull();
+    }
+    const asTwin = new Set(communes.flatMap((c) => twinOf(c.code)?.code ?? []));
+    for (const slug of ["tifariti", "oum-dreyga", "tichla", "gueltat-zemmour"]) {
+      expect(asTwin.has(communes.find((c) => c.slug === slug)!.code), slug).toBe(false);
     }
   });
 
@@ -367,5 +381,22 @@ describe("only here", () => {
     expect(lines[0]).toEqual({ measure: "commute.tram", n: 6 });
     expect(onlyHereLine("en", lines[0]!)).toBe("One of 6 communes where at least 1% of workers commute by tram.");
     expect(onlyHereLine("fr", lines[0]!)).toBe("L’une des 6 communes où au moins 1 % des actifs occupés vont au travail en tram.");
+  });
+});
+
+describe("a twin that is one in fact", () => {
+  it("is never far apart from its commune on any figure", () => {
+    for (const c of communes) {
+      const twin = twinOf(c.code);
+      if (!twin) continue;
+      const here = indicatorsOf.get(c.code)!;
+      const there = indicatorsOf.get(twin.code)!;
+      for (const m of TWIN) {
+        const a = m.read(here);
+        const b = m.read(there);
+        const limit = m.path === "households.averageSize" ? TWIN_APART_SIZE : TWIN_APART;
+        expect(Math.abs(a! - b!), `${c.slug} and ${twin.code} on ${m.path}`).toBeLessThanOrEqual(limit);
+      }
+    }
   });
 });

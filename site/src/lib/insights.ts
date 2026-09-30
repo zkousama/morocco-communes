@@ -21,6 +21,7 @@ import {
   Z_THRESHOLD,
 } from "../../../insights/src/detect.ts";
 import { SAMPLE_HOUSEHOLDS, SMALL_BASE } from "../../../insights/src/filter.ts";
+import { MAX_PER_HOUSEHOLD, MIN_HOUSEHOLDS } from "../../../api/src/lib/ordinary.ts";
 import { field } from "../../../insights/src/fields.ts";
 import type { CommuneFile, Published } from "../../../insights/src/run.ts";
 import { figure as withUnit } from "../../../insights/src/text.ts";
@@ -147,6 +148,8 @@ export const method = {
   fall: FALL,
   neighbourFloor: CHANGE_GAP_POPULATION_FLOOR,
   smallBase: SMALL_BASE,
+  minHouseholds: MIN_HOUSEHOLDS,
+  maxPerHousehold: MAX_PER_HOUSEHOLD,
   sampleHouseholds: SAMPLE_HOUSEHOLDS,
   peerGroup: PEER_MIN,
   peerSmall: PEER_SMALL,

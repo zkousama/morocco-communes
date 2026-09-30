@@ -4,6 +4,7 @@
  * since 2014, the commune most like it in another région, and the figures that exist in
  * few communes.
  */
+import { ordinary } from "../../../api/src/lib/ordinary.ts";
 import { COMPARABLE_2014 } from "../../../api/src/lib/indicators.ts";
 import { mismatches } from "../../../api/src/lib/mismatch.ts";
 import { HOUSEHOLD_FIELDS_ALL, PEOPLE_FIELDS_ALL } from "../../../pipeline/src/sources/censusFields.ts";
@@ -18,6 +19,8 @@ export interface Unit {
   code: string;
   population: number;
   population2014: number | null;
+  /** The households the census counted. Left out when a caller has no count to give. */
+  households?: number | null;
   record: Census & Pick<IndicatorRecord, "2014">;
 }
 
@@ -81,7 +84,10 @@ export const SMALLEST_TWIN = 5000;
  * left out of all three lines, on either side: whatever set that figure apart between the
  * censuses may have moved its others too.
  */
-const flagged = (unit: Unit) => mismatches(unit.record, unit.record["2014"]).length > 0;
+const flagged = (unit: Unit) =>
+  mismatches(unit.record, unit.record["2014"]).length > 0 ||
+  // Or a commune whose people mostly aren't in households, where a share of households is a few families.
+  (unit.households !== undefined && !ordinary(unit.population, unit.households));
 
 /** A unit's figures, in the order of `measures`. */
 const readings = (unit: Unit, measures: Measure[]) => measures.map((m) => m.read(unit.record));
@@ -192,6 +198,12 @@ export interface Twin {
 
 const regionOfCode = (code: string) => code.slice(0, 2);
 
+/** A twin can't differ from its commune by more than this on a share, in points, or on household size, in people. */
+export const TWIN_APART = 30;
+export const TWIN_APART_SIZE = 1.5;
+const farApart = (path: string, here: number, there: number) =>
+  Math.abs(here - there) > (path === "households.averageSize" ? TWIN_APART_SIZE : TWIN_APART);
+
 /**
  * Each commune's nearest match in another région, over every figure in TWIN. Each figure is
  * put on one scale first, subtracting the mean and dividing by the standard deviation, so
@@ -217,6 +229,8 @@ export function nearestTwins(units: Unit[]): Map<string, Twin> {
     let least = Infinity;
     eligible.forEach((b, j) => {
       if (regionOfCode(a.code) === regionOfCode(b.code)) return;
+      // A match that's far off on any one figure is no twin, however close it is on the rest.
+      if (TWIN.some((m, k) => farApart(m.path, a.values[k]!, b.values[k]!))) return;
       // The squared distance, since the root doesn't change which one is nearest.
       let d = 0;
       for (let k = 0; k < TWIN.length; k++) d += (scaled[i]![k]! - scaled[j]![k]!) ** 2;
@@ -240,7 +254,15 @@ const unitOf = (code: string): Unit[] => {
   const commune = communeOf.get(code);
   const record = indicatorsOf.get(code);
   return commune && record
-    ? [{ code, population: commune.population["2024"].total, population2014: commune.population["2014"]?.total ?? null, record }]
+    ? [
+        {
+          code,
+          population: commune.population["2024"].total,
+          population2014: commune.population["2014"]?.total ?? null,
+          households: commune.population["2024"].households ?? null,
+          record,
+        },
+      ]
     : [];
 };
 
@@ -277,6 +299,8 @@ export interface Rarity {
   code: string;
   population: number;
   shares: Partial<Record<RarityFigure, number | null>>;
+  /** The households the census counted. Left out when a caller has no count to give. */
+  households?: number | null;
 }
 
 export interface OnlyHere {
@@ -293,6 +317,7 @@ const rarityBar = (measure: RarityFigure) => (measure === "foreign" ? RARITY_FOR
 export function onlyHereOf(code: string, units: Rarity[]): OnlyHere[] {
   const here = units.find((unit) => unit.code === code);
   if (!here || here.population < RARITY_PEOPLE) return [];
+  if (here.households !== undefined && !ordinary(here.population, here.households)) return [];
   const lines: OnlyHere[] = [];
   for (const measure of RARITY_FIGURES) {
     const bar = rarityBar(measure);
@@ -320,6 +345,7 @@ function rarities(): Rarity[] {
     return {
       code: commune.code,
       population: total,
+      households: commune.population["2024"].households ?? null,
       shares: {
         "commute.tram": figure(people, "commute.tram"),
         "commute.train": figure(people, "commute.train"),

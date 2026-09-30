@@ -211,3 +211,21 @@ describe("the context of one figure", () => {
     expect(contextOf(kept[2]!, kept, data).others).toEqual([]);
   });
 });
+
+describe("a commune whose people mostly aren't in households", () => {
+  const unit = (people: number, households: number | null) =>
+    fixture([{ code: "a", base: { businesses: 500, dwellings: 500, households }, population: { y2014: null, y2024: people } }]);
+
+  it("has its figures left out, since a share of households there is a few families", () => {
+    expect(dropped(finding({ measure: "amenities.electricity" }), unit(5728, 38))).toBe("special population");
+    expect(dropped(finding({ measure: "amenities.electricity" }), unit(2400, 299))).toBe("special population");
+  });
+
+  it("keeps a commune with 300 households and no more than 8 people to each", () => {
+    expect(dropped(finding({ measure: "amenities.electricity" }), unit(2400, 300))).toBeNull();
+  });
+
+  it("does not judge a commune whose households the census didn't count", () => {
+    expect(dropped(finding({ measure: "amenities.electricity" }), unit(5728, null))).toBeNull();
+  });
+});

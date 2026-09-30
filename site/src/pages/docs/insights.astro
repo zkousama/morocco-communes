@@ -86,6 +86,12 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
       An economy or housing figure is left out when the commune has fewer than {count(method.smallBase)} businesses,
       or fewer than {count(method.smallBase)} urban dwellings. A handful of them can swing a share.
     </p>
+    <p>
+      A commune with fewer than {count(method.minHouseholds)} households, or more than {count(method.maxPerHousehold)}
+      people to a household on average, is left out of the standout figures and of every comparison between communes: next door, the closest match, the profile wheel and the lines on what moved and what’s rare. Its own figures stay on its page. A few
+      communes in the south count thousands of people in a few dozen households, the rest being people the census
+      doesn’t count in households, so a share of households there is a handful of families.
+    </p>
   </section>
 
   <section id="context">

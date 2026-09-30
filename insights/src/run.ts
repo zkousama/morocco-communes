@@ -62,7 +62,7 @@ export function pipeline(data: Data, terms: RegExp | null): { files: Map<string,
   const findings = detect(data);
   const counts: Counts = {
     detected: findings.length,
-    dropped: { artefact: 0, "not a commune": 0, "sex share": 0, flagged: 0, "small base": 0, "local service": 0, safety: 0 },
+    dropped: { artefact: 0, "not a commune": 0, "sex share": 0, flagged: 0, "small base": 0, "local service": 0, "special population": 0, safety: 0 },
     published: 0,
     communes: 0,
   };
