@@ -47,13 +47,13 @@ const ages = (path: string, bands: string[]): Measure => ({
 
 // Every one a share from 0 to 100, so a gap between two is in points. No sex or age
 // shares: several southern communes count special populations, and the site doesn't
-// draw attention to them.
+// draw attention to them. No unemployment either: 51 communes report over 50%, with a few
+// hundred people in the labour force, which is too fragile to set beside a neighbour.
 export const NEXT_DOOR: Measure[] = [
   people("illiteracy.rate10Plus"),
   people("languagesReadAndWritten.french"),
   people("education.higher"),
   people("schooling.rate6to11"),
-  people("labour.unemploymentRate"),
   homes("amenities.runningWater"),
   homes("amenities.electricity"),
   homes("wastewater.publicSewer"),
