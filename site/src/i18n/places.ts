@@ -33,6 +33,7 @@ export const places = {
     change: "Since 2014",
     changeFrom: "from {n} in 2014",
     noChange: "no 2014 figure",
+    changeNoRate: "Too few people in 2014 to give a rate.",
     households: "Households",
     area: "Area",
     density: "Density",
@@ -225,7 +226,7 @@ export const places = {
     wheelLabels: [
       ["Literacy"],
       ["Higher", "education"],
-      ["Employment"],
+      ["In work"],
       ["Running", "water"],
       ["Apartments"],
       ["Household", "size"],
@@ -477,6 +478,7 @@ export const places = {
     change: "Depuis 2014",
     changeFrom: "contre {n} en 2014",
     noChange: "pas de chiffre pour 2014",
+    changeNoRate: "Trop peu d’habitants en 2014 pour donner un taux.",
     households: "Ménages",
     area: "Superficie",
     density: "Densité",
@@ -670,7 +672,7 @@ export const places = {
     wheelLabels: [
       ["Alphabétisation"],
       ["Études", "supérieures"],
-      ["Emploi"],
+      ["En emploi"],
       ["Eau", "courante"],
       ["Appartements"],
       ["Taille", "des ménages"],

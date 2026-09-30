@@ -3,6 +3,7 @@ import Place from "../../layouts/Place.astro";
 import Code from "../Code.astro";
 import PlaceMap from "./PlaceMap.astro";
 import Inset from "./Inset.astro";
+import { ratedChange } from "../../lib/rate";
 import ChangeChart from "./ChangeChart.astro";
 import People from "./People.astro";
 import Economy from "./Economy.astro";
@@ -54,6 +55,8 @@ const n1 = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumF
 const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 const people = c.population["2024"];
 const change = c.population.change;
+// A rate from a handful of people is no rate: 55 people in 2014 and 5,728 now is +10,314.6%.
+const rate = ratedChange(change, c.population["2014"]?.total);
 const ptype = p.unitTypesLower[province.type];
 
 const lede =
@@ -103,7 +106,7 @@ const arrondissementClass = (code: string) => {
   return i < 0 ? "n" : String(1 + Math.floor((i * 5) / byDensity.length));
 };
 const contents = contentsOf(locale, {
-  change: Boolean(change),
+  change: Boolean(rate),
   people: Boolean(census),
   dwellings: Boolean(housing),
   work: Boolean(economy),
@@ -135,7 +138,7 @@ const [twinBefore, twinAfter] = fill(p.twin, { figures: twinFigures.charAt(0).to
 
 const description =
   `${c.name.fr} (${c.name.ar}): ${n.format(people.total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}` +
-  (change ? `, ${signed(change.pct)} ${locale === "fr" ? "depuis 2014" : "since 2014"}` : "") +
+  (rate ? `, ${signed(rate.pct)} ${locale === "fr" ? "depuis 2014" : "since 2014"}` : "") +
   `. ${locale === "fr" ? "Code HCP" : "HCP code"} ${c.code}.`;
 
 const snippet = `import { getCommune } from "morocco-communes";
@@ -174,9 +177,10 @@ getCommune("${c.slug}");`;
     </div>
     <div>
       <dt>{p.change}</dt>
-      <dd class:list={[change && (change.pct >= 0 ? "up" : "down")]}>
-        {change ? signed(change.pct) : "—"}
+      <dd class:list={[rate && (rate.pct >= 0 ? "up" : "down")]}>
+        {rate ? signed(rate.pct) : "—"}
         <small>{change ? fill(p.changeFrom, { n: n.format(c.population["2014"]!.total!) }) : p.noChange}</small>
+        {change && !rate && <small>{p.changeNoRate}</small>}
       </dd>
     </div>
     <div>
@@ -258,16 +262,16 @@ getCommune("${c.slug}");`;
     </div>
   </section>
 
-  {change && (
+  {rate && (
     <section id="change">
       <h2>{p.howItChanged}</h2>
       <p>{fill(p.chartBody, { name: c.name.fr })}</p>
       <ChangeChart
         locale={locale}
-        value={change.pct}
+        value={rate.pct}
         name={c.name.fr}
         nationalLabel={p.chartNational}
-        srText={`${c.name.fr} ${signed(change.pct)}`}
+        srText={`${c.name.fr} ${signed(rate.pct)}`}
       />
     </section>
   )}
