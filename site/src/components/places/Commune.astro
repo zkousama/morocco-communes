@@ -178,9 +178,12 @@ getCommune("${c.slug}");`;
     <div>
       <dt>{p.change}</dt>
       <dd class:list={[rate && (rate.pct >= 0 ? "up" : "down")]}>
-        {rate ? signed(rate.pct) : "—"}
-        <small>{change ? fill(p.changeFrom, { n: n.format(c.population["2014"]!.total!) }) : p.noChange}</small>
-        {change && !rate && <small>{p.changeNoRate}</small>}
+        {rate ? signed(rate.pct) : change ? `${n.format(c.population["2014"]!.total!)} → ${n.format(people.total)}` : "—"}
+        {rate || !change ? (
+          <small>{change ? fill(p.changeFrom, { n: n.format(c.population["2014"]!.total!) }) : p.noChange}</small>
+        ) : (
+          <small>{p.changeNoRate}</small>
+        )}
       </dd>
     </div>
     <div>

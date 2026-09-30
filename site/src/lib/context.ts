@@ -129,8 +129,30 @@ const SHARES = new Set([...PEOPLE_FIELDS_ALL, ...HOUSEHOLD_FIELDS_ALL].filter((f
  * local languages, which the two censuses recorded differently in places, and no sex shares,
  * since several southern communes count special populations.
  */
+/**
+ * The figures worth a headline: schooling and work, and what a home has. Not the kind of
+ * wastewater, the age bands, how people get to work or the kind of dwelling, which move for
+ * reasons that aren't news (a septic tank falling is a sewer arriving). Not waste either:
+ * a truck and a bin take turns between the censuses, so one falling says little.
+ */
+export const MATTERS = new Set([
+  "illiteracy.rate10Plus",
+  "education.none",
+  "education.higher",
+  "labour.activityRate",
+  "labour.unemploymentRate",
+  "amenities.kitchen",
+  "amenities.toilet",
+  "amenities.electricity",
+  "amenities.runningWater",
+  "wastewater.publicSewer",
+  "dwellingType.apartment",
+  "dwellingType.basicOrSlum",
+  "occupancy.owner",
+]);
+
 export const SINCE_2014 = [...COMPARABLE_2014]
-  .filter(([path]) => SHARES.has(path) && !/^(localLanguages|sex)\./.test(path))
+  .filter(([path]) => SHARES.has(path) && MATTERS.has(path))
   .map(([path, path2014]) => ({ path, path2014, homes: !PEOPLE_PATHS.has(path) }));
 
 /** How many points a commune's figure has to move, either way, before the line shows it. */
@@ -200,6 +222,8 @@ const regionOfCode = (code: string) => code.slice(0, 2);
 
 /** A twin can't differ from its commune by more than this on a share, in points, or on household size, in people. */
 export const TWIN_APART = 30;
+/** Standard deviations: a figure the two share is within this of each other. */
+export const SHARED_APART = 0.4;
 export const TWIN_APART_SIZE = 1.5;
 const farApart = (path: string, here: number, there: number) =>
   Math.abs(here - there) > (path === "households.averageSize" ? TWIN_APART_SIZE : TWIN_APART);
@@ -241,10 +265,18 @@ export function nearestTwins(units: Unit[]): Map<string, Twin> {
     });
     if (nearest < 0) return;
     const b = eligible[nearest]!;
-    const closest = TWIN.map((m, k) => ({ path: m.path, here: a.values[k]!, there: b.values[k]!, apart: Math.abs(scaled[i]![k]! - scaled[nearest]![k]!) }))
-      .sort((x, y) => x.apart - y.apart)
-      .slice(0, 3)
-      .map(({ path, here, there }) => ({ path, here, there }));
+    // What they share that most communes don't: close to each other, and each far from the
+    // typical commune. Two rural communes at 0% apartments share nothing worth saying.
+    const figures = TWIN.map((m, k) => ({
+      path: m.path,
+      here: a.values[k]!,
+      there: b.values[k]!,
+      apart: Math.abs(scaled[i]![k]! - scaled[nearest]![k]!),
+      unusual: (Math.abs(scaled[i]![k]!) + Math.abs(scaled[nearest]![k]!)) / 2,
+    }));
+    const shared = figures.filter((f) => f.apart <= SHARED_APART).sort((x, y) => y.unusual - x.unusual);
+    const filler = figures.filter((f) => f.apart > SHARED_APART).sort((x, y) => x.apart - y.apart);
+    const closest = [...shared, ...filler].slice(0, 3).map(({ path, here, there }) => ({ path, here, there }));
     twins.set(a.code, { code: b.code, closest });
   });
   return twins;
