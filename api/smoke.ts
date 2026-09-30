@@ -8,6 +8,8 @@
  *   pnpm api:smoke                       (against wrangler dev on :8788)
  *   pnpm api:smoke https://<deployment>
  */
+import { readFileSync } from "node:fs";
+
 const base = (process.argv[2] ?? "http://127.0.0.1:8788").replace(/\/$/, "");
 
 let failures = 0;
@@ -97,6 +99,14 @@ for (const path of [
     `status=${r.status} ct=${r.contentType} cors=${r.cors}`);
 }
 
+// Whichever commune the pipeline publishes an insights file for first, since which ones do changes with the data.
+const withInsights = (() => {
+  const [first] = JSON.parse(readFileSync("data/v1/insights/index.json", "utf8")) as { code: string }[];
+  const communes = JSON.parse(readFileSync("data/v1/attributes/communes.json", "utf8")) as { code: string; slug: string }[];
+  const commune = communes.find((c) => c.code === first!.code)!;
+  return { code: commune.code, slug: commune.slug };
+})();
+
 console.log("\nalias tier, where the Worker rewrites to a pre-rendered file");
 for (const [path, expected] of [
   ["/api/communes?province=01.511&page=1", "/api/provinces/01.511/communes/page/1.json"],
@@ -114,7 +124,7 @@ for (const [path, expected] of [
   ["/api/communes/tanger/economy", "/api/communes/01.511.01.0/economy.json"],
   ["/api/communes/tiznit/housing", "/api/communes/09.581.01.07/housing.json"],
   ["/api/communes/tiznit/neighbours", "/api/communes/09.581.01.07/neighbours.json"],
-  ["/api/communes/aglif/insights", "/api/communes/07.211.07.03/insights.json"],
+  [`/api/communes/${withInsights.slug}/insights`, `/api/communes/${withInsights.code}/insights.json`],
   ["/api/regions/01/economy", "/api/regions/01/economy.json"],
   ["/api/regions", "/api/regions.json"],
 ] as const) {
