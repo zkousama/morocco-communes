@@ -117,7 +117,7 @@ export const SPEC_FR: Record<string, string> = {
   "listNeighbourhoods.description":
     "Les quartiers qu’OpenStreetMap et Poste Maroc nomment dans une commune, arrondissements d’une ville compris, chacun avec l’arrondissement où son point le place quand il en a un, " +
     "la source de son nom et les codes postaux que Poste Maroc donne sous ce nom ; et les codes postaux de la commune. Le recensement ne publie rien par quartier : aucune ligne n’a de chiffres. " +
-    "Les 2 sources sont sous licence ODbL. Une commune sans l’un ni l’autre n’a pas de fichier.",
+    "Les noms sont tels que les sources les donnent, et la liste de Poste Maroc date de 2018. Les 2 sources sont sous licence ODbL. Une commune sans l’un ni l’autre n’a pas de fichier.",
   "listNeighbourhoods.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
   "listNeighbourhoods.200": "Les quartiers et les codes postaux de la commune.",
   "listNeighbourhoods.400": "Ce n’est pas un identifiant.",

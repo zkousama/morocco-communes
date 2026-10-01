@@ -19,7 +19,7 @@ import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, t, type Locale } from "../../i18n/ui";
 import { ordinary } from "../../../../api/src/lib/ordinary.ts";
-import { neighbourhoodsOf, postcodesOf } from "../../lib/neighbourhoods";
+import { hasNeighbourhoods, postcodesOf } from "../../lib/neighbourhoods";
 import { density, numbers, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
@@ -106,11 +106,10 @@ const arrondissementClass = (code: string) => {
   const i = byDensity.findIndex((a) => a.code === code);
   return i < 0 ? "n" : String(1 + Math.floor((i * 5) / byDensity.length));
 };
-// Named neighbourhoods and Poste Maroc's postcodes. A city lists its arrondissements' too.
-const hoods = neighbourhoodsOf(c.code);
+// Poste Maroc's postcodes, and whether the API has a neighbourhoods file for this commune.
+const hoods = hasNeighbourhoods(c.code);
 const codes = postcodesOf(c.code);
-/** Rows shown before the fold, and postcodes before "and N more". */
-const HOODS_SHOWN = 12;
+/** Postcodes shown before "and N more". */
 const CODES_SHOWN = 12;
 
 const contents = contentsOf(locale, {
@@ -120,7 +119,6 @@ const contents = contentsOf(locale, {
   work: Boolean(economy),
   urbanCentres: c.urbanCentres.length > 0,
   arrondissements: arrondissements.length > 0,
-  neighbourhoods: hoods.length > 0,
 });
 
 // Shares to one decimal, as People shows them, and household size the same way.
@@ -288,19 +286,15 @@ getCommune("${c.slug}");`;
       {codes.length > 0 && (
         <>
           <h3>{codes.length === 1 ? p.postcode : p.postcodes}</h3>
-          <p class="postcodes">
+          <div class="postcodes">
             {codes.slice(0, CODES_SHOWN).join(", ")}
             {codes.length > CODES_SHOWN && (
-              <>
-                {" "}
-                {hoods.length > 0 ? (
-                  <a href="#neighbourhoods">{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</a>
-                ) : (
-                  fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })
-                )}
-              </>
+              <details class="postcodes-more">
+                <summary>{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</summary>
+                {`, ${codes.slice(CODES_SHOWN).join(", ")}`}
+              </details>
             )}
-          </p>
+          </div>
         </>
       )}
     </div>
@@ -385,45 +379,6 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
-  {hoods.length > 0 && (
-    <section id="neighbourhoods">
-      <h2>{p.neighbourhoods}</h2>
-      <p>{fill(p.neighbourhoodsBody, { name: c.name.fr })}</p>
-      {hoods.length > HOODS_SHOWN && (
-        <div class="hood-search" hidden>
-          <input type="search" class="hood-find" placeholder={p.neighbourhoodsFind} aria-label={p.neighbourhoodsFind} autocomplete="off" />
-          <span class="hood-count" aria-live="polite" data-found={p.neighbourhoodsFound}></span>
-        </div>
-      )}
-      <div class="scroll" tabindex="0">
-        <table class="hood-table">
-          <thead>
-            <tr>
-              <th>{p.colNeighbourhood}</th>
-              <th class="num">{p.colPostcode}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hoods.map((h, i) => (
-              <tr class:list={[i >= HOODS_SHOWN && "later"]}>
-                <td>
-                  {h.fr} {h.ar && <span lang="ar" dir="rtl" class="ar">{h.ar}</span>}
-                  {h.arrondissement && <span class="in">{h.arrondissement}</span>}
-                </td>
-                <td class="num">{h.postcodes.join(", ") || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {hoods.length > HOODS_SHOWN && (
-        <button type="button" class="hood-more" hidden aria-expanded="false" data-all={fill(p.neighbourhoodsAll, { n: n.format(hoods.length) })} data-fewer={p.neighbourhoodsFewer}>
-          {fill(p.neighbourhoodsAll, { n: n.format(hoods.length) })}
-        </button>
-      )}
-    </section>
-  )}
-
   <section id="data">
     <h2>{p.inTheData}</h2>
     <details class="more" open>
@@ -451,8 +406,8 @@ getCommune("${c.slug}");`;
         {bordering.length > 0 && (
           <div><dt>{p.bordering}</dt><dd><a href={`/api/communes/${c.code}/neighbours.json`}><code>/api/communes/{c.code}/neighbours.json</code></a></dd></div>
         )}
-        {(hoods.length > 0 || codes.length > 0) && (
-          <div><dt>{hoods.length > 0 ? p.neighbourhoods : p.postcodes}</dt><dd><a href={`/api/communes/${c.code}/neighbourhoods.json`}><code>/api/communes/{c.code}/neighbourhoods.json</code></a></dd></div>
+        {hoods && (
+          <div><dt>{p.neighbourhoodsData}</dt><dd><a href={`/api/communes/${c.code}/neighbourhoods.json`}><code>/api/communes/{c.code}/neighbourhoods.json</code></a></dd></div>
         )}
         {c.osm && (
           <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
@@ -463,51 +418,6 @@ getCommune("${c.slug}");`;
     <p class="report"><a href={`${REPO_URL}/issues/new?template=data-error.yml&title=${encodeURIComponent(`${c.name.fr} (${c.code})`)}`}>{p.report}</a></p>
   </section>
 </Place>
-
-<script>
-  // The neighbourhood table: one table, its rows past the first few folded away by a class this
-  // adds, so without JavaScript every row shows. The search filters the same rows, fold or not.
-  const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[’'.-]/g, " ").replace(/\s+/g, " ");
-  for (const table of document.querySelectorAll<HTMLTableElement>(".hood-table")) {
-    const section = table.closest("section");
-    const more = section?.querySelector<HTMLButtonElement>(".hood-more");
-    const search = section?.querySelector<HTMLElement>(".hood-search");
-    const input = search?.querySelector<HTMLInputElement>(".hood-find");
-    const count = search?.querySelector<HTMLElement>(".hood-count");
-    let expanded = false;
-    const paint = () => {
-      table.classList.toggle("folded", !expanded);
-      if (!more) return;
-      more.setAttribute("aria-expanded", String(expanded));
-      more.textContent = (expanded ? more.dataset.fewer : more.dataset.all) ?? "";
-    };
-    if (more) {
-      more.hidden = false;
-      more.addEventListener("click", () => {
-        expanded = !expanded;
-        paint();
-      });
-    }
-    paint();
-    if (!search || !input || !count) continue;
-    const rows = [...table.querySelectorAll<HTMLTableRowElement>("tbody tr")];
-    const keys = rows.map((row) => fold(row.textContent ?? ""));
-    search.hidden = false;
-    input.addEventListener("input", () => {
-      const query = fold(input.value.trim());
-      let found = 0;
-      rows.forEach((row, i) => {
-        const shown = !query || keys[i]!.includes(query);
-        row.hidden = !shown;
-        if (shown && query) found++;
-      });
-      // A query searches every row, folded or not; clearing it puts the fold back as it was.
-      table.classList.toggle("folded", !query && !expanded);
-      if (more) more.hidden = Boolean(query);
-      count.textContent = query ? (count.dataset.found ?? "{n}").replace("{n}", String(found)) : "";
-    });
-  }
-</script>
 
 <style>
   .side {
@@ -530,29 +440,14 @@ getCommune("${c.slug}");`;
     font-variant-numeric: tabular-nums;
   }
 
-  .hood-table {
-    table-layout: fixed;
-    width: 100%;
+  .postcodes-more {
+    display: inline;
   }
 
-  .hood-table td:last-child,
-  .hood-table th:last-child {
-    width: 9rem;
-  }
-
-  /* The arrondissement, where the neighbourhood was placed by its point: a note on the
-     name, since most of a city's come from a list that only gives the city. */
-  .hood-table.folded .later {
-    display: none;
-  }
-
-  .hood-more {
-    margin: 1rem 0 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    font-size: var(--t-sm);
+  .postcodes-more summary {
+    display: inline;
+    margin-left: 0.3em;
+    list-style: none;
     color: var(--quiet);
     cursor: pointer;
     text-decoration: underline;
@@ -560,51 +455,16 @@ getCommune("${c.slug}");`;
     text-underline-offset: 0.2em;
   }
 
-  .hood-more:hover {
-    color: var(--ink);
-  }
-
-  .hood-more[hidden] {
+  .postcodes-more summary::-webkit-details-marker {
     display: none;
   }
 
-  .hood-search {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 0 0 0.75rem;
-  }
-
-  .hood-search[hidden] {
+  .postcodes-more[open] summary {
     display: none;
   }
 
-  .hood-find {
-    flex: 0 1 22rem;
-    min-width: 0;
-    font: inherit;
-    font-size: var(--t-sm);
-    color: var(--ink);
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.7rem;
-  }
-
-  .hood-find:focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 1px;
-  }
-
-  .hood-count {
-    font-size: var(--t-xs);
-    color: var(--quiet);
-  }
-
-  .hood-table .in {
-    margin-left: 0.5rem;
-    color: var(--quiet);
-    font-size: var(--t-xs);
+  .postcodes-more::details-content {
+    display: inline;
   }
 
   /* Read with the headline numbers rather than as a section of its own, so it sits close

@@ -13,7 +13,6 @@ export interface Has {
   work: boolean;
   urbanCentres: boolean;
   arrondissements: boolean;
-  neighbourhoods: boolean;
 }
 
 /** In the page's order. Each id is the one its section carries. */
@@ -27,7 +26,6 @@ export function contentsOf(locale: Locale, has: Has): { id: string; label: strin
     { id: "work", label: p.work, shown: has.work },
     { id: "urban-centres", label: p.urbanCentres, shown: has.urbanCentres },
     { id: "arrondissements", label: p.arrondissements, shown: has.arrondissements },
-    { id: "neighbourhoods", label: p.neighbourhoods, shown: has.neighbourhoods },
     { id: "data", label: p.inTheData, shown: true },
   ]
     .filter((s) => s.shown)

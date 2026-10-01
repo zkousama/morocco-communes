@@ -942,7 +942,7 @@ export const reference = {
         "get": {
           "operationId": "listNeighbourhoods",
           "summary": "A commune's named neighbourhoods and its postcodes",
-          "description": "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, each with the arrondissement it was placed in by its point where it has one, where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. The census publishes nothing by neighbourhood, so no row has figures. Both sources are under the ODbL. A commune with neither has no file.",
+          "description": "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, each with the arrondissement it was placed in by its point where it has one, where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. The census publishes nothing by neighbourhood, so no row has figures. Names are as the sources give them, and Poste Maroc's list dates from 2018. Both sources are under the ODbL. A commune with neither has no file.",
           "parameters": [
             {
               "name": "code",
@@ -2773,7 +2773,7 @@ export const reference = {
       "op": {
         "operationId": "listNeighbourhoods",
         "summary": "A commune's named neighbourhoods and its postcodes",
-        "description": "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, each with the arrondissement it was placed in by its point where it has one, where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. The census publishes nothing by neighbourhood, so no row has figures. Both sources are under the ODbL. A commune with neither has no file.",
+        "description": "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, each with the arrondissement it was placed in by its point where it has one, where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. The census publishes nothing by neighbourhood, so no row has figures. Names are as the sources give them, and Poste Maroc's list dates from 2018. Both sources are under the ODbL. A commune with neither has no file.",
         "parameters": [
           {
             "name": "code",

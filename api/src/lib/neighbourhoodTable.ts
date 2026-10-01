@@ -1,8 +1,8 @@
 /**
  * The neighbourhoods as a table: each with its commune, its arrondissement where it was
  * placed in one by its point, where its name comes from, and the postcodes Poste Maroc
- * lists under the same name in the same commune. The commune pages, the API's files and
- * the MCP tool all read this, so they can't tell 2 stories.
+ * lists under the same name in the same commune. The API's files and the MCP tool both
+ * read this, so they can't tell 2 stories.
  */
 import type { Neighbourhood, NeighbourhoodSource } from "./neighbourhoods.ts";
 import { normalise } from "./normalise.ts";
