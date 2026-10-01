@@ -19,6 +19,7 @@ import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, t, type Locale } from "../../i18n/ui";
 import { ordinary } from "../../../../api/src/lib/ordinary.ts";
+import { neighbourhoodsOf, postcodesOf } from "../../lib/neighbourhoods";
 import { density, numbers, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
@@ -105,6 +106,13 @@ const arrondissementClass = (code: string) => {
   const i = byDensity.findIndex((a) => a.code === code);
   return i < 0 ? "n" : String(1 + Math.floor((i * 5) / byDensity.length));
 };
+// Named neighbourhoods and Poste Maroc's postcodes. A city lists its arrondissements' too.
+const hoods = neighbourhoodsOf(c.code);
+const codes = postcodesOf(c.code);
+/** Rows shown before the fold, and postcodes before "and N more". */
+const HOODS_SHOWN = 12;
+const CODES_SHOWN = 12;
+
 const contents = contentsOf(locale, {
   change: Boolean(rate),
   people: Boolean(census),
@@ -112,6 +120,7 @@ const contents = contentsOf(locale, {
   work: Boolean(economy),
   urbanCentres: c.urbanCentres.length > 0,
   arrondissements: arrondissements.length > 0,
+  neighbourhoods: hoods.length > 0,
 });
 
 // Shares to one decimal, as People shows them, and household size the same way.
@@ -276,6 +285,24 @@ getCommune("${c.slug}");`;
           </ul>
         </>
       )}
+      {codes.length > 0 && (
+        <>
+          <h3>{codes.length === 1 ? p.postcode : p.postcodes}</h3>
+          <p class="postcodes">
+            {codes.slice(0, CODES_SHOWN).join(", ")}
+            {codes.length > CODES_SHOWN && (
+              <>
+                {" "}
+                {hoods.length > 0 ? (
+                  <a href="#neighbourhoods">{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</a>
+                ) : (
+                  fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })
+                )}
+              </>
+            )}
+          </p>
+        </>
+      )}
     </div>
   </section>
 
@@ -358,6 +385,61 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
+  {hoods.length > 0 && (
+    <section id="neighbourhoods">
+      <h2>{p.neighbourhoods}</h2>
+      <p>{fill(p.neighbourhoodsBody, { name: c.name.fr })}</p>
+      {[hoods.slice(0, HOODS_SHOWN), hoods.slice(HOODS_SHOWN)].map((rows, part) =>
+        rows.length === 0 ? null : (
+          <Fragment>
+            {part === 1 ? (
+              <details class="more hoods">
+                <summary>{fill(p.neighbourhoodsAll, { n: n.format(hoods.length) })}</summary>
+                <div class="scroll" tabindex="0">
+                  <table class="hood-table">
+                    <tbody>
+                      {rows.map((h) => (
+                        <tr>
+                          <td>
+                            {h.fr} {h.ar && <span lang="ar" dir="rtl" class="ar">{h.ar}</span>}
+                            {h.arrondissement && <span class="in">{h.arrondissement}</span>}
+                          </td>
+                          <td class="num">{h.postcodes.join(", ") || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            ) : (
+              <div class="scroll" tabindex="0">
+                <table class="hood-table">
+                  <thead>
+                    <tr>
+                      <th>{p.colNeighbourhood}</th>
+                      <th class="num">{p.colPostcode}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((h) => (
+                      <tr>
+                        <td>
+                          {h.fr} {h.ar && <span lang="ar" dir="rtl" class="ar">{h.ar}</span>}
+                          {h.arrondissement && <span class="in">{h.arrondissement}</span>}
+                        </td>
+                        <td class="num">{h.postcodes.join(", ") || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Fragment>
+        ),
+      )}
+    </section>
+  )}
+
   <section id="data">
     <h2>{p.inTheData}</h2>
     <details class="more" open>
@@ -385,6 +467,9 @@ getCommune("${c.slug}");`;
         {bordering.length > 0 && (
           <div><dt>{p.bordering}</dt><dd><a href={`/api/communes/${c.code}/neighbours.json`}><code>/api/communes/{c.code}/neighbours.json</code></a></dd></div>
         )}
+        {(hoods.length > 0 || codes.length > 0) && (
+          <div><dt>{hoods.length > 0 ? p.neighbourhoods : p.postcodes}</dt><dd><a href={`/api/communes/${c.code}/neighbourhoods.json`}><code>/api/communes/{c.code}/neighbourhoods.json</code></a></dd></div>
+        )}
         {c.osm && (
           <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>
         )}
@@ -408,6 +493,32 @@ getCommune("${c.slug}");`;
     margin: 0.5rem 0 0;
     font-size: var(--t-sm);
     font-weight: 500;
+  }
+
+  .postcodes {
+    margin: 0;
+    font-size: var(--t-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The rest of a long list sits in its own table under the fold, with the same columns,
+     so the 2 line up. */
+  .hood-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .hood-table td:last-child,
+  .hood-table th:last-child {
+    width: 9rem;
+  }
+
+  /* The arrondissement, where the neighbourhood was placed by its point: a note on the
+     name, since most of a city's come from a list that only gives the city. */
+  .hood-table .in {
+    margin-left: 0.5rem;
+    color: var(--quiet);
+    font-size: var(--t-xs);
   }
 
   /* Read with the headline numbers rather than as a section of its own, so it sits close

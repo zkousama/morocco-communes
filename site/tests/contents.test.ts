@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { contentsOf } from "../src/lib/contents.ts";
 import { places } from "../src/i18n/places.ts";
 
-const everything = { change: true, people: true, dwellings: true, work: true, urbanCentres: true, arrondissements: true };
+const everything = { change: true, people: true, dwellings: true, work: true, urbanCentres: true, arrondissements: true, neighbourhoods: true };
 
 describe("a commune page's section links", () => {
   it("link every section the page has, in its order, by the section's own heading", () => {
@@ -15,6 +15,7 @@ describe("a commune page's section links", () => {
       { id: "work", label: "Business and jobs" },
       { id: "urban-centres", label: "Urban centres" },
       { id: "arrondissements", label: "Arrondissements" },
+      { id: "neighbourhoods", label: "Neighbourhoods" },
       { id: "data", label: "In the data" },
     ]);
   });
@@ -28,12 +29,13 @@ describe("a commune page's section links", () => {
       places.fr.work,
       places.fr.urbanCentres,
       places.fr.arrondissements,
+      places.fr.neighbourhoods,
       places.fr.inTheData,
     ]);
   });
 
   it("skip a section the page doesn't have", () => {
-    const rural = { change: true, people: true, dwellings: false, work: true, urbanCentres: false, arrondissements: false };
+    const rural = { change: true, people: true, dwellings: false, work: true, urbanCentres: false, arrondissements: false, neighbourhoods: false };
     expect(contentsOf("en", rural).map((s) => s.id)).toEqual(["where", "change", "people", "work", "data"]);
   });
 

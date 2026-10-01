@@ -8,7 +8,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildIndex } from "../../api/src/emit/searchIndex.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree } from "../../api/src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../../api/src/emit/static.ts";
+import { neighbourhoodTable, postcodesByCommune } from "../../api/src/lib/neighbourhoodTable.ts";
+import { readFileSync } from "node:fs";
 import { readIndicators } from "../../api/src/emit/indicators.ts";
 import { readEconomy } from "../../api/src/emit/economy.ts";
 import { readHousing } from "../../api/src/emit/housing.ts";
@@ -51,6 +53,22 @@ const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree, economyRecords);
 emitHousing(tree, await readHousing("data/v1"));
 emitInsights(tree, await readInsights("data/v1"));
+{
+  const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
+  const cityOf = new Map((dataset.arrondissements as { code: string; communeCode: string }[]).map((a) => [a.code, a.communeCode]));
+  const codes = read("api/data/postcodes.json").postcodes;
+  emitNeighbourhoods(tree, neighbourhoodTable(read("api/data/neighbourhoods.json").places, codes, (c) => cityOf.get(c) ?? c), postcodesByCommune(codes));
+}
+const agadir = (dataset.communes as { code: string; slug: string }[]).find((c) => c.slug === "agadir")!.code;
+/** A commune's neighbourhoods file with its first few neighbourhoods, and its postcodes whole. */
+const someNeighbourhoods = (request: string, body: Envelope<unknown>, keep: number): Example => {
+  const data = body.data as { neighbourhoods: unknown[]; postcodes: string[] };
+  return {
+    request,
+    body: { ...body, data: { ...data, neighbourhoods: data.neighbourhoods.slice(0, keep) } },
+    cut: { shown: keep, total: data.neighbourhoods.length },
+  };
+};
 const indicators = buildIndicatorTable(
   indicatorRecords.filter((r) => r.level === "commune"),
   economyRecords.filter((r) => r.level === "commune"),
@@ -171,6 +189,8 @@ const examples: Record<string, Example> = {
   getNationalEconomy: { request: "/api/economy.json", body: file("/api/economy.json") },
   getHousing: { request: "/api/communes/tiznit/housing", body: file("/api/communes/09.581.01.07/housing.json") },
   listNeighbours: { request: "/api/communes/tiznit/neighbours", body: file("/api/communes/09.581.01.07/neighbours.json") },
+  listNeighbourhoods: someNeighbourhoods("/api/communes/agadir/neighbourhoods", file(`/api/communes/${agadir}/neighbourhoods.json`), 4),
+  listAllNeighbourhoods: cut("/api/neighbourhoods.json", file("/api/neighbourhoods.json"), 3),
   getNationalHousing: { request: "/api/housing.json", body: file("/api/housing.json") },
   listInsights: { request: "/api/insights.json", body: file("/api/insights.json") },
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },

@@ -12,6 +12,8 @@ export interface Hit {
   slug: string;
   /** The neighbourhood a search named, when it found this unit through one. */
   neighbourhood?: { fr: string; ar: string };
+  /** The postcode a search was, when it found this commune by it. */
+  postcode?: { code: string; neighbourhoods: string[] };
 }
 
 /** One row of the list: a link, the name, the quiet line and the Arabic. */
@@ -77,6 +79,11 @@ export const metaOf = (hit: Hit, places: Places, levels: Record<string, string>)
 export const rowOf = (hit: Hit, places: Places, levels: Record<string, string>): Row | null => {
   const href = hrefOf(hit, places);
   if (href === null) return null;
+  if (hit.postcode) {
+    // The postcode is what was typed; the commune, and the start of the neighbourhoods it covers, say where it is.
+    const where = [hit.name.fr, ...hit.postcode.neighbourhoods].join(", ");
+    return { href, name: hit.postcode.code, meta: `${capital(levels.postcode ?? "postcode")} · ${where}`, ar: hit.name.ar };
+  }
   const hood = hit.neighbourhood;
   if (!hood) return { href, name: hit.name.fr, meta: metaOf(hit, places, levels), ar: hit.name.ar };
   // The neighbourhood is the name the reader typed, and the unit holding it goes on the quiet line.

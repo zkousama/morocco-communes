@@ -203,7 +203,8 @@ const copy = t(locale);
       shown = null;
       let hits: Hit[];
       try {
-        if (/^[\d.\s]+$/.test(q)) {
+        // Five digits are a postcode, which the search finds; any other run of digits is a code.
+        if (/^[\d.\s]+$/.test(q) && !/^\d{5}$/.test(q)) {
           // A code typed with spaces, 01 511 01 0, becomes the dotted form byCode expects.
           hits = await byCode(q.replace(/[.\s]+/g, "."));
         } else {

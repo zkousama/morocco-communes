@@ -5,7 +5,7 @@ export const mcp = {
     {
       "name": "search",
       "title": "Search Moroccan administrative units",
-      "description": "Find régions, provinces and préfectures, cercles, communes and arrondissements of Morocco by name. Takes French or Arabic, a slug, or another name a place is known by: Fez finds Fès, Mogador finds Essaouira. A neighbourhood's name finds the arrondissement or commune it's in, with matched neighbourhood and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The census has no figures for a neighbourhood itself. Returns codes; pass a commune's code to get_commune for its population and parents.",
+      "description": "Find régions, provinces and préfectures, cercles, communes and arrondissements of Morocco by name. Takes French or Arabic, a slug, or another name a place is known by: Fez finds Fès, Mogador finds Essaouira. A neighbourhood's name finds the arrondissement or commune it's in, with matched neighbourhood and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The census has no figures for a neighbourhood itself. A 5-digit postcode finds the commune it's in, with matched postcode: 20520 finds Casablanca. Returns codes; pass a commune's code to get_commune for its population and parents.",
       "params": [
         {
           "name": "query",
@@ -481,6 +481,32 @@ export const mcp = {
               "region",
               "cercle"
             ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "get_neighbourhoods",
+      "title": "A commune's neighbourhoods and postcodes",
+      "description": "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, with the arrondissement each was placed in where it has a point, where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. The census publishes nothing by neighbourhood: the figures are the commune's, or the arrondissement's. To find which commune a neighbourhood is in, call search with its name instead.",
+      "params": [
+        {
+          "name": "unit",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A commune, by code or slug."
+          }
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "description": "How many neighbourhoods, in alphabetical order. 200 when left out; Casablanca has over 1,400.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2000
           }
         }
       ]

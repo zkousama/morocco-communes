@@ -3,6 +3,7 @@
  * real sizes. A file named here that is missing fails the build, which is how a link to
  * data/v1/crosswalk/crosswalk.json, a path that never existed, stays gone.
  */
+import { neighbourhoodTable } from "../../api/src/lib/neighbourhoodTable.ts";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { buildGeometry, outlineCollections } from "../../api/src/emit/geometry.ts";
 
@@ -29,6 +30,15 @@ const regions = JSON.parse(await readFile("data/v1/attributes/regions.json", "ut
 
 // Ordered so the narrow groups pair up on the two-column grid and the full-width
 // boundaries row does not leave a hole beside the one before it.
+// The neighbourhood table as the API build writes it, near enough to give its size.
+const neighbourhoodBytes = await (async () => {
+  const read = async (path: string) => JSON.parse(await readFile(path, "utf8"));
+  const cityOf = new Map(((await read("data/v1/attributes/arrondissements.json")) as { code: string; communeCode: string }[]).map((a) => [a.code, a.communeCode]));
+  const codes = (await read("api/data/postcodes.json")).postcodes;
+  const rows = neighbourhoodTable((await read("api/data/neighbourhoods.json")).places, codes, (c) => cityOf.get(c) ?? c);
+  return Buffer.byteLength(JSON.stringify({ data: rows }));
+})();
+
 const GROUPS: Group[] = [
   {
     key: "dlCommunes",
@@ -164,6 +174,12 @@ const GROUPS: Group[] = [
         bytes: Buffer.byteLength(JSON.stringify(outlines.arrondissements)),
       },
     ],
+  },
+  {
+    // Written by the API build, so its size is worked out here from the same table.
+    key: "dlNeighbourhoods",
+    licence: "odbl",
+    files: [{ label: "JSON", path: "api/neighbourhoods.json", bytes: neighbourhoodBytes }],
   },
   { key: "dlSources", licence: "hcp", files: [{ label: "JSON", path: "data/v1/sources.json" }] },
 ];

@@ -395,6 +395,17 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlNeighbourhoods",
+    "licence": "odbl",
+    "files": [
+      {
+        "label": "JSON",
+        "href": "/api/neighbourhoods.json",
+        "bytes": 1279895
+      }
+    ]
+  },
+  {
     "key": "dlSources",
     "licence": "hcp",
     "files": [

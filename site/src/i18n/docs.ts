@@ -9,7 +9,7 @@ import type { Locale } from "./ui";
 export const SPEC_FR: Record<string, string> = {
   "searchUnits.summary": "Trouver une unité administrative par son nom",
   "searchUnits.description":
-    "Cherche dans les noms français, les noms arabes, les slugs et les codes, avec ou sans points, avec ou sans leurs zéros de tête. Les accents, les variantes des lettres arabes et les voyelles sont ramenés à une forme, et un lieu se trouve aussi par ses autres noms, comme Fez pour Fès. Le nom d’un quartier trouve l’arrondissement ou la commune qui le contient, avec `matched: neighbourhood` et les noms du quartier : Sidi Maârouf trouve Aïn-Chock, à Casablanca. Les quartiers viennent d’OpenStreetMap et de Poste Maroc, tous deux sous licence ODbL. La liste de Poste Maroc donne une ville et aucun point : ses quartiers se trouvent dans la commune de la ville, et non dans un arrondissement.",
+    "Cherche dans les noms français, les noms arabes, les slugs et les codes, avec ou sans points, avec ou sans leurs zéros de tête. Les accents, les variantes des lettres arabes et les voyelles sont ramenés à une forme, et un lieu se trouve aussi par ses autres noms, comme Fez pour Fès. Le nom d’un quartier trouve l’arrondissement ou la commune qui le contient, avec `matched: neighbourhood` et les noms du quartier : Sidi Maârouf trouve Aïn-Chock, à Casablanca. Les quartiers viennent d’OpenStreetMap et de Poste Maroc, tous deux sous licence ODbL. La liste de Poste Maroc donne une ville et aucun point : ses quartiers se trouvent dans la commune de la ville, et non dans un arrondissement. Un code postal à 5 chiffres trouve sa commune, avec `matched: postcode` : 20520 trouve Casablanca.",
   "searchUnits.param.q": `Texte à chercher, jusqu’à ${QUERY.maxLength} caractères.`,
   "searchUnits.param.levels": "Niveaux à inclure, séparés par des virgules. Tous quand il est absent.",
   "searchUnits.param.limit": `Nombre de résultats, jusqu’à ${LIMIT.max}.`,
@@ -113,6 +113,18 @@ export const SPEC_FR: Record<string, string> = {
   "listNeighbours.200": "Les communes qu’elle borde.",
   "listNeighbours.400": "Ce n’est pas un identifiant.",
   "listNeighbours.404": "Aucune commune ne porte cet identifiant.",
+  "listNeighbourhoods.summary": "Les quartiers nommés d’une commune et ses codes postaux",
+  "listNeighbourhoods.description":
+    "Les quartiers qu’OpenStreetMap et Poste Maroc nomment dans une commune, arrondissements d’une ville compris, chacun avec l’arrondissement où son point le place quand il en a un, " +
+    "la source de son nom et les codes postaux que Poste Maroc donne sous ce nom ; et les codes postaux de la commune. Le recensement ne publie rien par quartier : aucune ligne n’a de chiffres. " +
+    "Les 2 sources sont sous licence ODbL. Une commune sans l’un ni l’autre n’a pas de fichier.",
+  "listNeighbourhoods.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
+  "listNeighbourhoods.200": "Les quartiers et les codes postaux de la commune.",
+  "listNeighbourhoods.400": "Ce n’est pas un identifiant.",
+  "listNeighbourhoods.404": "Aucune commune ne porte cet identifiant, ou elle n’a ni quartier nommé ni code postal.",
+  "listAllNeighbourhoods.summary": "Tous les quartiers nommés, avec leur commune",
+  "listAllNeighbourhoods.description": "Le tableau entier en un fichier : chaque quartier avec sa commune, son arrondissement quand il est connu, sa source et ses codes postaux. Sous licence ODbL.",
+  "listAllNeighbourhoods.200": "Tous les quartiers nommés.",
   "getNationalHousing.summary": "Le parc logement urbain du Maroc, recensé en 2024",
   "getNationalHousing.description": "Les mêmes chiffres pour toutes les villes du pays réunies.",
   "getNationalHousing.200": "Le parc logement urbain du Maroc.",

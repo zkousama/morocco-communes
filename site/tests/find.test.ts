@@ -194,3 +194,19 @@ describe("a neighbourhood the search found", () => {
     expect(row?.meta).toBe("Quartier · Agadir");
   });
 });
+
+describe("a commune found by its postcode", () => {
+  it("shows the postcode, and the commune with a few of the neighbourhoods it covers", () => {
+    const row = rowOf(
+      { code: "06.141.01.0", level: "commune", name: { fr: "Casablanca", ar: "الدار البيضاء" }, slug: "casablanca", postcode: { code: "20520", neighbourhoods: ["Ain Seck", "Corea"] } },
+      places,
+      levels,
+    );
+    expect(row).toEqual({ href: "/communes/casablanca/", name: "20520", meta: "Postcode · Casablanca, Ain Seck, Corea", ar: "الدار البيضاء" });
+  });
+
+  it("is a code postal in French", () => {
+    const row = rowOf({ code: "09.001.01.01", level: "commune", name: { fr: "Tafraout", ar: "" }, slug: "tafraout", postcode: { code: "85450", neighbourhoods: [] } }, places, ui.fr.findLevels);
+    expect(row?.meta).toBe("Code postal · Tafraout");
+  });
+});
