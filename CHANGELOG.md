@@ -4,6 +4,17 @@ What changed in `data/v1/`, by the version in `sources.json` and in the two pack
 A minor version adds fields or units, a patch corrects a figure, and a major one would
 change a shape something already reads.
 
+## 1.10.0
+
+- The douars of the rural communes, from HCP's 2024 workbook, in `douars/`: 33,189 douars
+  in 5,203 fractions across 1,279 communes. Each has its name in Arabic, its fraction, its
+  kind, its households and people, and, for a douar of 30 households or more, the
+  nationality, sex, age, civil registration and marital status of its people, the kind of
+  dwelling its households live in, and how far its dwellings are from a paved road, an
+  unpaved one, a primary school, a collège, a lycée and a health centre.
+- HCP withholds those figures for the 10,560 douars under 30 households, which get null
+  rather than a guess.
+
 ## 1.9.1
 
 - Standout figures leave out an economy finding for a commune with fewer than 100

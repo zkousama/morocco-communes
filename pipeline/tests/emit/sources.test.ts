@@ -18,6 +18,7 @@ const digests = {
   "hcp-2014-professions": "2".repeat(64),
   "hcp-2014-diplomas": "3".repeat(64),
   "hcp-2024-housing": "4".repeat(64),
+  "hcp-2024-douars": "5".repeat(64),
 };
 const retrieved = new Map([
   ["hcp-2024", "2026-09-17"],
@@ -31,6 +32,7 @@ const retrieved = new Map([
   ["hcp-2014-professions", "2026-09-20"],
   ["hcp-2014-diplomas", "2026-09-20"],
   ["hcp-2024-housing", "2026-09-20"],
+  ["hcp-2024-douars", "2026-10-01"],
 ]);
 const twelve = (t: string) => Array.from({ length: 12 }, () => t);
 

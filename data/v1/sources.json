@@ -1,5 +1,5 @@
 {
-  "datasetVersion": "1.9.1",
+  "datasetVersion": "1.10.0",
   "sources": [
     {
       "id": "hcp-2024",
@@ -77,6 +77,13 @@
       "licence": "Haut-Commissariat au Plan, RGPH 2024, Indicateurs communaux du parc logement urbain. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
       "sha256": "c5ca0d86eef04cac4692cc0fff691e81f77e73726515b12eb17a0d7f3a8ff421",
       "retrievedAt": "2026-09-20"
+    },
+    {
+      "id": "hcp-2024-douars",
+      "url": "https://www.hcp.ma/file/245768/",
+      "licence": "Haut-Commissariat au Plan, RGPH 2024, Population et ménages par douars. Reusable, commercially too, on CC BY 4.0 terms: credit HCP and say what was changed. https://www.hcp.ma/Conditions-generales-d-utilisation-Version-1-0_a2194.html",
+      "sha256": "b04fa4f479aa77a4fbd741c50b734fc80e42be3786ea8a94e2adb085fc5ae1b6",
+      "retrievedAt": "2026-10-01"
     },
     {
       "id": "osm",

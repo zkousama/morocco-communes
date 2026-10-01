@@ -1,0 +1,326 @@
+{
+  "census": "2024",
+  "source": {
+    "id": "hcp-2024-douars",
+    "url": "https://www.hcp.ma/file/245768/"
+  },
+  "types": {
+    "grouped": "Douar groupé",
+    "split": "Douar éclaté",
+    "dispersed": "Douar dispersé"
+  },
+  "fields": [
+    {
+      "path": "nationality.moroccan",
+      "column": "nationality_moroccan",
+      "topic": "nationality",
+      "key": "moroccan",
+      "label": "Moroccan",
+      "heading": "Nationalité · Marocaine",
+      "unit": "percent"
+    },
+    {
+      "path": "nationality.foreign",
+      "column": "nationality_foreign",
+      "topic": "nationality",
+      "key": "foreign",
+      "label": "Foreign",
+      "heading": "Nationalité · Etrangère",
+      "unit": "percent"
+    },
+    {
+      "path": "sex.male",
+      "column": "sex_male",
+      "topic": "sex",
+      "key": "male",
+      "label": "Men",
+      "heading": "Sexe · Masculin",
+      "unit": "percent"
+    },
+    {
+      "path": "sex.female",
+      "column": "sex_female",
+      "topic": "sex",
+      "key": "female",
+      "label": "Women",
+      "heading": "Sexe · Féminin",
+      "unit": "percent"
+    },
+    {
+      "path": "age.under15",
+      "column": "age_under_15",
+      "topic": "age",
+      "key": "under15",
+      "label": "Under 15",
+      "heading": "Groupes d’âge · Moins de 15 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "age.15-59",
+      "column": "age_15_59",
+      "topic": "age",
+      "key": "15-59",
+      "label": "Aged 15 to 59",
+      "heading": "Groupes d’âge · 15-59 ans",
+      "unit": "percent"
+    },
+    {
+      "path": "age.60+",
+      "column": "age_60_plus",
+      "topic": "age",
+      "key": "60+",
+      "label": "Aged 60 and over",
+      "heading": "Groupes d’âge · 60 ans et plus",
+      "unit": "percent"
+    },
+    {
+      "path": "civilRegistration.registered",
+      "column": "civil_registration_registered",
+      "topic": "civilRegistration",
+      "key": "registered",
+      "label": "Entered in a family civil-status booklet",
+      "heading": "Enregistrement au livret d'état civil",
+      "unit": "percent"
+    },
+    {
+      "path": "maritalStatus.population15Plus",
+      "column": "marital_status_population_15_plus",
+      "topic": "maritalStatus",
+      "key": "population15Plus",
+      "label": "Population aged 15 and over",
+      "heading": "Population de 15 ans et plus",
+      "unit": "people"
+    },
+    {
+      "path": "maritalStatus.single",
+      "column": "marital_status_single",
+      "topic": "maritalStatus",
+      "key": "single",
+      "label": "Never married",
+      "heading": "État matrimonial des 15 ans et plus · Célibataire",
+      "unit": "percent"
+    },
+    {
+      "path": "maritalStatus.married",
+      "column": "marital_status_married",
+      "topic": "maritalStatus",
+      "key": "married",
+      "label": "Married",
+      "heading": "État matrimonial des 15 ans et plus · Marié",
+      "unit": "percent"
+    },
+    {
+      "path": "maritalStatus.divorced",
+      "column": "marital_status_divorced",
+      "topic": "maritalStatus",
+      "key": "divorced",
+      "label": "Divorced",
+      "heading": "État matrimonial des 15 ans et plus · Divorcé",
+      "unit": "percent"
+    },
+    {
+      "path": "maritalStatus.widowed",
+      "column": "marital_status_widowed",
+      "topic": "maritalStatus",
+      "key": "widowed",
+      "label": "Widowed",
+      "heading": "État matrimonial des 15 ans et plus · Veuf",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.villa",
+      "column": "dwelling_type_villa",
+      "topic": "dwellingType",
+      "key": "villa",
+      "label": "Villa, or a floor of one",
+      "heading": "Type de logement · Villa ou niveau de villa",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.apartment",
+      "column": "dwelling_type_apartment",
+      "topic": "dwellingType",
+      "key": "apartment",
+      "label": "Apartment",
+      "heading": "Type de logement · Appartement",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.traditionalMoroccanHouse",
+      "column": "dwelling_type_traditional_moroccan_house",
+      "topic": "dwellingType",
+      "key": "traditionalMoroccanHouse",
+      "label": "Traditional Moroccan house",
+      "heading": "Type de logement · Maison marocaine traditionnelle",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.modernMoroccanHouse",
+      "column": "dwelling_type_modern_moroccan_house",
+      "topic": "dwellingType",
+      "key": "modernMoroccanHouse",
+      "label": "Modern Moroccan house",
+      "heading": "Type de logement · Maison marocaine moderne",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.basicOrSlum",
+      "column": "dwelling_type_basic_or_slum",
+      "topic": "dwellingType",
+      "key": "basicOrSlum",
+      "label": "Basic house or slum",
+      "heading": "Type de logement · Maison sommaire ou bidonville",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.ruralSolid",
+      "column": "dwelling_type_rural_solid",
+      "topic": "dwellingType",
+      "key": "ruralSolid",
+      "label": "Rural dwelling, built solid",
+      "heading": "Type de logement · Logement en dur rural",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.ruralEarth",
+      "column": "dwelling_type_rural_earth",
+      "topic": "dwellingType",
+      "key": "ruralEarth",
+      "label": "Rural dwelling of rammed earth",
+      "heading": "Type de logement · Logement en pisé rural",
+      "unit": "percent"
+    },
+    {
+      "path": "dwellingType.other",
+      "column": "dwelling_type_other",
+      "topic": "dwellingType",
+      "key": "other",
+      "label": "Other",
+      "heading": "Type de logement · Autres",
+      "unit": "percent"
+    },
+    {
+      "path": "distanceKm.pavedRoad",
+      "column": "distance_km_paved_road",
+      "topic": "distanceKm",
+      "key": "pavedRoad",
+      "label": "Average distance to a paved road",
+      "heading": "Distance moyenne des logements à la route goudronnée (km)",
+      "unit": "km"
+    },
+    {
+      "path": "distanceKm.drivableTrack",
+      "column": "distance_km_drivable_track",
+      "topic": "distanceKm",
+      "key": "drivableTrack",
+      "label": "Average distance to an unpaved road a car can drive on",
+      "heading": "Distance moyenne des logements à la route carrossable (km)",
+      "unit": "km"
+    },
+    {
+      "path": "distanceKm.primarySchool",
+      "column": "distance_km_primary_school",
+      "topic": "distanceKm",
+      "key": "primarySchool",
+      "label": "Average distance to the nearest primary school",
+      "heading": "Distance moyenne des logements à l’école primaire (km)",
+      "unit": "km"
+    },
+    {
+      "path": "distanceKm.middleSchool",
+      "column": "distance_km_middle_school",
+      "topic": "distanceKm",
+      "key": "middleSchool",
+      "label": "Average distance to the nearest collège",
+      "heading": "Distance moyenne des logements au collège (km)",
+      "unit": "km"
+    },
+    {
+      "path": "distanceKm.highSchool",
+      "column": "distance_km_high_school",
+      "topic": "distanceKm",
+      "key": "highSchool",
+      "label": "Average distance to the nearest lycée",
+      "heading": "Distance moyenne des logements au lycée (km)",
+      "unit": "km"
+    },
+    {
+      "path": "distanceKm.healthCentre",
+      "column": "distance_km_health_centre",
+      "topic": "distanceKm",
+      "key": "healthCentre",
+      "label": "Average distance to the nearest health centre or hospital",
+      "heading": "Distance moyenne des logements au centre de santé/hôpital (km)",
+      "unit": "km"
+    }
+  ],
+  "notes": {
+    "counted": "The settled rural population of each douar at the 2024 census, and its households. Nomads aren't counted by douar, and neither is any urban area.",
+    "withheld": "HCP withholds a douar's shares and distances when it has fewer than 30 households: topics is null, and the CSV's figure columns are empty. Its households and population are always given.",
+    "shares": "Every figure but the population aged 15 and over and the distances is a percentage of the douar's people or households, to one decimal.",
+    "distances": "Distances are the average, over the douar's dwellings, of the distance to the nearest one of each, in km to 2 decimals. A drivable road is an unpaved one, so a douar can be nearer a paved road.",
+    "names": "Douars and fractions are named in Arabic only, as the workbook names them."
+  },
+  "definitions": [
+    {
+      "term": "Recensement général de la population et de l'habitat (RGPH)",
+      "body": "Ensemble des opérations qui consistent à collecter, à exploiter, à analyser et à publier les données démographiques et socio-économiques et les conditions d'habitat, se rapportant à un moment donné, à l'ensemble de la population résidente du pays."
+    },
+    {
+      "term": "Date de référence du recensement",
+      "body": "Le 1er septembre 2024."
+    },
+    {
+      "term": "Douar groupé",
+      "body": "Groupement d'habitations dont au moins les deux tiers sont situés les unes à côté des autres et d'un seul tenant. Les autres habitations peuvent être séparées par une certaine distance, non nécessairement uniforme."
+    },
+    {
+      "term": "Douar éclaté",
+      "body": "Douar d’un ou de plusieurs fragments appelés sous-douars et qui portent des noms différents. Les sous-douars peuvent être rapprochés ou parfois relativement éloignés, leur habitat est généralement groupé."
+    },
+    {
+      "term": "Douar dispersé",
+      "body": "Douar dont plus d'un tiers des habitations sont séparées les unes des autres par une distance dépassant 100 mètres."
+    },
+    {
+      "term": "Population municipale",
+      "body": "Ensemble des personnes ayant leur résidence habituelle dans un logement, des personnes sans-abri et des personnes nomades."
+    },
+    {
+      "term": "Âge",
+      "body": "Âge révolu (ou âge au dernier anniversaire), soit le nombre entier d’années écoulées depuis la naissance."
+    },
+    {
+      "term": "État matrimonial",
+      "body": "Situation conjugale d'une personne compte tenu des lois et des coutumes du mariage. Les individus sont classés selon les catégories suivantes : • Célibataire. • Marié. • Divorcé • Veuf."
+    },
+    {
+      "term": "Célibataire",
+      "body": "État matrimonial d'une personne qui n'a jamais contracté un mariage civil ou coutumier."
+    },
+    {
+      "term": "Marié",
+      "body": "État matrimonial d'une personne unie par les liens du mariage, civil ou coutumier, avec une autre personne, abstraction faite de la tenue de la cérémonie de mariage et de la cohabitation des époux."
+    },
+    {
+      "term": "Divorcé",
+      "body": "État matrimonial d'une personne dont le dernier mariage a été dissous et qui ne s'est pas remariée depuis. S'il s'agissait d'un mariage civil, il est impératif que la dissolution ait été prononcée par un tribunal."
+    },
+    {
+      "term": "Veuf",
+      "body": "État matrimonial d'une personne dont le dernier époux ou la dernière épouse est décédé et qui ne s'est pas remariée depuis."
+    },
+    {
+      "term": "Ménage",
+      "body": "Ensemble d'individus vivant sous le même toit et ayant des dépenses quotidiennes communes, sans qu'ils soient nécessairement unis par des liens de parenté."
+    },
+    {
+      "term": "Logement",
+      "body": "Local occupé par un ménage à titre de résidence principale. Les logements sont catégorisés selon plusieurs types : • Villa ou niveau de villa. • Appartement. • Maison marocaine traditionnelle. • Maison marocaine moderne. • Maison sommaire / Bidonville. • Logement en dur rural. • Logement en pisé rural. • Autre (chambre dans un établissement, Local non destiné à l’origine à l'habitation etc.)."
+    },
+    {
+      "term": "Distance qui sépare le logement et les équipements de base (route goudronnée, route carrossable, école primaire, collège , lycée, centre de santé/hôpital",
+      "body": "Distance réelle que doivent parcourir les membres du ménage pour aller de leur logement au plus proche équipement de base ."
+    }
+  ]
+}

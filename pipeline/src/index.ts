@@ -23,20 +23,24 @@ import { PROFESSION_FIELDS_2014 } from "./sources/professionFields.ts";
 import { DIPLOMA_FIELDS_2014 } from "./sources/diplomaFields.ts";
 import { parseHcpEstablishments } from "./sources/hcpEstablishments.ts";
 import { parseHcpHousing } from "./sources/hcpHousing.ts";
+import { parseDouarDefinitions, parseHcpDouars } from "./sources/hcpDouars.ts";
 import { parseCensusDefinitions, parseHousingDefinitions } from "./sources/hcpDefinitions.ts";
 import { joinCensus2014, joinCensus2024 } from "./sources/censusFields.ts";
 import { buildIndicators } from "./build/indicators.ts";
 import { buildIndicators2014 } from "./build/indicators2014.ts";
 import { buildEconomy } from "./build/economy.ts";
 import { buildHousing } from "./build/housing.ts";
+import { buildDouars } from "./build/douars.ts";
 import { checkIndicators } from "./validate/indicators.ts";
 import { checkIndicators2014 } from "./validate/indicators2014.ts";
 import { checkEconomy } from "./validate/economy.ts";
 import { checkHousing } from "./validate/housing.ts";
+import { checkDouars } from "./validate/douars.ts";
 import { writeIndicators } from "./emit/indicators.ts";
 import { toRecords2014, writeIndicators2014 } from "./emit/indicators2014.ts";
 import { writeEconomy } from "./emit/economy.ts";
 import { writeHousing } from "./emit/housing.ts";
+import { writeDouars } from "./emit/douars.ts";
 import { SOURCES } from "./sources/registry.ts";
 
 const OUT = "data/v1/attributes";
@@ -47,6 +51,7 @@ const INDICATORS_OUT = "data/v1/indicators";
 const INDICATORS_2014_OUT = "data/v1/indicators/2014";
 const ECONOMY_OUT = "data/v1/economy";
 const HOUSING_OUT = "data/v1/housing";
+const DOUARS_OUT = "data/v1/douars";
 
 const sources = await fetchAll(".cache");
 const hierarchy = buildHierarchy(parseHcp2024(sources.get("hcp-2024")!));
@@ -218,6 +223,16 @@ const housingSource = SOURCES.find((s) => s.id === "hcp-2024-housing")!;
 const housingDefinitions = parseHousingDefinitions(sources.get("hcp-2024-housing")!);
 await writeHousing(housing, HOUSING_OUT, { id: housingSource.id, url: housingSource.url }, housingDefinitions);
 console.log(`housing: ${housing.records.length} units have an urban stock, ${housing.withoutStock} have none, ${housing.unplaced.length} rows have no unit to land on`);
+
+// The douars, the villages and hamlets of the rural communes, each in its fraction.
+const douars = buildDouars(parseHcpDouars(sources.get("hcp-2024-douars")!), records.communes);
+const douarProblems = checkDouars(douars.douars, douars.fractions, new Map(records.communes.map((c) => [c.code, c.population["2024"].total])));
+if (douarProblems.length > 0) {
+  throw new Error(`the douars don't hold together:\n  ${douarProblems.slice(0, 40).join("\n  ")}${douarProblems.length > 40 ? `\n  and ${douarProblems.length - 40} more` : ""}`);
+}
+const douarSource = SOURCES.find((s) => s.id === "hcp-2024-douars")!;
+await writeDouars(douars, DOUARS_OUT, { id: douarSource.id, url: douarSource.url }, parseDouarDefinitions(sources.get("hcp-2024-douars")!));
+console.log(`douars: ${douars.douars.length} in ${douars.fractions.length} fractions, ${douars.douars.filter((d) => d.topics === null).length} with their figures withheld`);
 
 // Which communes border which, measured on the boundaries above. The 6 cities divided
 // into arrondissements border as one commune, since that is the unit the boundary is.
