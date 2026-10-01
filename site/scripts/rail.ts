@@ -31,7 +31,7 @@ out body geom;
 node["railway"~"^(station|halt)$"](area.ma);
 out body;`;
 
-const elements = await overpass(QUERY);
+const { elements, asOf } = await overpass(QUERY);
 
 const ways: OsmWay[] = elements
   .filter((e) => e.type === "way" && e.nodes && e.geometry)
@@ -55,9 +55,8 @@ const stations = elements
   .filter((e) => e.type === "node" && e.lat !== undefined && e.lon !== undefined && near(e.lon, e.lat))
   .map((e) => round([e.lon!, e.lat!]));
 
-const fetched = new Date().toISOString().slice(0, 10);
 const network = {
-  source: `OpenStreetMap contributors, ODbL, fetched ${fetched}: railway=rail (main and branch lines; no yards, sidings, spurs or crossovers), railway=tram, railway=station and halt; joined track under ${BARS.rail} km of rail or ${BARS.tram} km of tram left out`,
+  source: `OpenStreetMap contributors, ODbL, map as of ${asOf.slice(0, 10)}: railway=rail (main and branch lines; no yards, sidings, spurs or crossovers), railway=tram, railway=station and halt; joined track under ${BARS.rail} km of rail or ${BARS.tram} km of tram left out`,
   rail: kept.filter((w) => w.kind === "rail").map(lineOf),
   tram: kept.filter((w) => w.kind === "tram").map(lineOf),
   stations,

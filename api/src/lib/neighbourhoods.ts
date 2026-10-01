@@ -3,7 +3,9 @@
  * commune, so Sidi Maârouf has no figures of its own: it's in Aïn-Chock, in Casablanca.
  * OpenStreetMap names Morocco's suburbs, quarters and neighbourhoods, and each
  * is placed in the arrondissement or commune whose boundary holds it, so a search for one
- * finds the unit it's in. The names come from OpenStreetMap as tagged; nothing is invented.
+ * finds the unit it's in. Poste Maroc's list of neighbourhoods by postcode adds the ones
+ * OpenStreetMap doesn't have, each in its city's commune. Every name is one a source
+ * publishes; nothing is invented.
  */
 
 const ARABIC = "\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF\\uFB50-\\uFDFF\\uFE70-\\uFEFF";
@@ -40,5 +42,19 @@ export function inside([x, y]: [number, number], rings: [number, number][][]): b
   return within;
 }
 
-/** A neighbourhood as the search index holds it: French name, Arabic name, and the code of the unit it's in. */
-export type Neighbourhood = [fr: string, ar: string, code: string];
+/** Where a neighbourhood's name comes from: OpenStreetMap, Poste Maroc's list, or added by hand. */
+export type NeighbourhoodSource = "osm" | "poste" | "hand";
+
+/**
+ * A neighbourhood as the list holds it: French name, Arabic name, the code of the unit it's
+ * in, and where it comes from. The index keeps the first 3.
+ */
+export type Neighbourhood = [fr: string, ar: string, code: string, source?: NeighbourhoodSource];
+
+/** Share of the last list's OpenStreetMap names a new fetch may lose before it's refused as partial. */
+export const MAX_LOSS = 0.05;
+
+/** Whether a fetch lost too many of the names the last one had, which a partial answer does. */
+export function tooShrunk(before: number, after: number): boolean {
+  return before > 0 && (before - after) / before > MAX_LOSS;
+}

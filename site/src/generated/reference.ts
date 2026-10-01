@@ -25,7 +25,7 @@ export const reference = {
         "get": {
           "operationId": "searchUnits",
           "summary": "Find any administrative unit by name",
-          "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's, under the ODbL.",
+          "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's and Poste Maroc's, both under the ODbL. Poste Maroc's list gives a city and no point, so its neighbourhoods are found in the city's commune rather than an arrondissement.",
           "parameters": [
             {
               "name": "q",
@@ -1640,7 +1640,7 @@ export const reference = {
       "op": {
         "operationId": "searchUnits",
         "summary": "Find any administrative unit by name",
-        "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's, under the ODbL.",
+        "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's and Poste Maroc's, both under the ODbL. Poste Maroc's list gives a city and no point, so its neighbourhoods are found in the city's commune rather than an arrondissement.",
         "parameters": [
           {
             "name": "q",

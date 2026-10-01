@@ -287,6 +287,24 @@ describe("neighbourhoods", () => {
     expect(top?.neighbourhood).toEqual({ fr: "Sidi Maârouf", ar: "سيدي معروف" });
   });
 
+  it("puts the closest name first when a word matches several", () => {
+    const [top] = search(withHoods, "maarouf");
+    expect(top?.neighbourhood?.fr).toBe("Sidi Maârouf");
+    expect(top?.code).toBe("06.141.01.41");
+  });
+
+  it("puts a neighbourhood placed in an arrondissement before one only placed in a city", () => {
+    // Derb Ghallef is in Casablanca's Maârif, and Poste Maroc lists another in El Jadida.
+    const [top] = search(withHoods, "Derb Ghallef");
+    expect(top?.level).toBe("arrondissement");
+    expect(top?.name.fr).toBe("Maârif");
+  });
+
+  it("finds a neighbourhood only Poste Maroc lists, in its city's commune", () => {
+    const hit = search(withHoods, "Houmate Espagnol")[0];
+    expect(hit).toMatchObject({ code: "01.511.01.0", level: "commune", matched: "neighbourhood", neighbourhood: { fr: "Houmate Espagnol", ar: "" } });
+  });
+
   it("finds it as it's typed, by its start, by a word in it, and in Arabic", () => {
     for (const q of ["sidi maa", "maarouf", "سيدي معروف"]) {
       expect(search(withHoods, q).some((h) => h.code === "06.141.01.41" && h.neighbourhood?.fr === "Sidi Maârouf"), q).toBe(true);

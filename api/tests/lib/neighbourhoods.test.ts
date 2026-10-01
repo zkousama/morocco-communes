@@ -59,3 +59,13 @@ describe("the neighbourhoods added by hand", () => {
     }
   });
 });
+
+describe("a fetch that came back short", () => {
+  it("is refused when more than 5% of the last list's names are gone, and kept otherwise", async () => {
+    const { tooShrunk } = await import("../../src/lib/neighbourhoods.ts");
+    expect(tooShrunk(1797, 1611)).toBe(true);
+    expect(tooShrunk(1797, 1790)).toBe(false);
+    expect(tooShrunk(1797, 1900)).toBe(false);
+    expect(tooShrunk(0, 10)).toBe(false);
+  });
+});

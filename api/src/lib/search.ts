@@ -206,12 +206,19 @@ export function search(
       else if (place.nFr.startsWith(q) || place.nAr.startsWith(q)) {
         const field = place.nFr.startsWith(q) ? place.nFr : place.nAr;
         score = PLACE_PREFIX - Math.min(PLACE_PREFIX - PLACE_WORD - 1, field.length - q.length);
-      } else if (q.includes(" ") ? false : words(place.nFr) || words(place.nAr)) score = PLACE_WORD;
+      } else if (!q.includes(" ") && (words(place.nFr) || words(place.nAr))) {
+        // The shorter name is the closer match, as with a prefix: Sidi Maârouf before Sidi Maarouf 4.
+        const field = words(place.nFr) ? place.nFr : place.nAr;
+        score = PLACE_WORD - Math.min(PLACE_WORD - SPELLING / 3 - 1, field.length - q.length);
+      }
       if (score === 0) continue;
       const entry = index.entries[place.at];
       if (!entry) continue;
       const [code, level, fr, ar, slug] = entry;
       if (levels && !levels.has(level)) continue;
+      // Between 2 neighbourhoods matched as well, the one placed in an arrondissement goes
+      // first: it was placed by its point, where a city's commune is all a postcode gives.
+      if (level === "arrondissement") score += 1;
       hits.push({ code, level, name: { fr, ar }, slug, score, matched: "neighbourhood", neighbourhood: { fr: place.fr, ar: place.ar } });
     }
   }
