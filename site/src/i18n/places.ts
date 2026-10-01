@@ -209,7 +209,7 @@ export const places = {
     colPavedRoad: "Paved road",
     colSchool: "Primary school",
     colHealth: "Health centre",
-    douarKinds: { grouped: "Grouped", split: "Split", dispersed: "Dispersed" },
+    douarKinds: { grouped: "Grouped", split: "In parts", dispersed: "Dispersed" },
     douarsFraction: "{douars} · {people} people",
     douarsAll: "Show all {n} douars",
     douarsFewer: "Show fewer",

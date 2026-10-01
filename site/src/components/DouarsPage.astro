@@ -83,6 +83,7 @@ const farthest = [...byCommune]
           </tbody>
         </table>
       </div>
+      <p class="note">{copy.douarsFarthestNote}</p>
     </section>
 
     <section id="find">
@@ -319,6 +320,12 @@ const farthest = [...byCommune]
 
   .hits :global(.in) {
     font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .note {
+    margin-top: 0.75rem;
+    font-size: var(--t-xs);
     color: var(--quiet);
   }
 
