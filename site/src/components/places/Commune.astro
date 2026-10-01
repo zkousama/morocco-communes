@@ -2,6 +2,7 @@
 import Place from "../../layouts/Place.astro";
 import Code from "../Code.astro";
 import PlaceMap from "./PlaceMap.astro";
+import Arrow from "../Arrow.astro";
 import Inset from "./Inset.astro";
 import { ratedChange } from "../../lib/rate";
 import ChangeChart from "./ChangeChart.astro";
@@ -182,7 +183,15 @@ getCommune("${c.slug}");`;
     <div>
       <dt>{p.change}</dt>
       <dd class:list={[rate && (rate.pct >= 0 ? "up" : "down")]}>
-        {rate ? signed(rate.pct) : change ? `${n.format(c.population["2014"]!.total!)} → ${n.format(people.total)}` : "—"}
+        {rate ? (
+          signed(rate.pct)
+        ) : change ? (
+          <>
+            {n.format(c.population["2014"]!.total!)} <Arrow /> {n.format(people.total)}
+          </>
+        ) : (
+          "—"
+        )}
         {rate || !change ? (
           <small>{change ? fill(p.changeFrom, { n: n.format(c.population["2014"]!.total!) }) : p.noChange}</small>
         ) : (
@@ -226,7 +235,7 @@ getCommune("${c.slug}");`;
       {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
       {moved && <p>{moved}</p>}
       {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
-      {compareHref && <p class="compare"><a href={compareHref}>{compareText} →</a></p>}
+      {compareHref && <p class="compare"><a href={compareHref}>{compareText} <Arrow /></a></p>}
       {rare.map((line) => <p>{line}</p>)}
     </div>
   )}

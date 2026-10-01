@@ -1,4 +1,5 @@
 ---
+import Arrow from "./Arrow.astro";
 import { change, half, shrinking, since, sizes, spread } from "../generated/charts";
 import { REPO_URL, t, type Locale } from "../i18n/ui";
 import { escapeHtml } from "../lib/highlight";
@@ -171,7 +172,7 @@ const spoken = (row: (typeof spread)[number]) =>
           </span>
           <span class="dval">
             <span class="was">{percent(row.before)}</span>
-            <span aria-hidden="true">→</span>
+            <Arrow />
             <span>{percent(row.after)}</span>
           </span>
           <span class="sr-only">{fillIn(copy.srSince, { label: row.label, before: percent(row.before), after: percent(row.after) })}</span>

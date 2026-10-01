@@ -25,6 +25,7 @@ import {
   type Group,
   type State,
 } from "../lib/compare";
+import { ARROW, ARROW_BOX } from "../lib/arrow";
 import { percent } from "../lib/format";
 import { placeTip } from "../lib/tip";
 
@@ -611,6 +612,8 @@ function Side(props: {
 // Scatter --------------------------------------------------------------------------
 
 const MARGIN = { l: 46, r: 16, t: 30, b: 44 };
+/** The arrow beside an axis title: 0.75em of its 12.5px, as everywhere on the site. */
+const TITLE_ARROW = 9.4;
 
 function FigureSelect(props: { label: string; value: string; onChange: (id: string) => void; figures: Record<string, string>; groups: Record<Group, string> }) {
   return (
@@ -763,12 +766,18 @@ function Scatter(props: {
               )}
             </For>
           </g>
-          <text class="cmp-title-y" x={MARGIN.l} y={MARGIN.t - 12}>
-            ↑ {props.figures[fy().id]}
+          <path class="cmp-arrow" d={ARROW.up} transform={`translate(${MARGIN.l} ${MARGIN.t - 12 - TITLE_ARROW}) scale(${TITLE_ARROW / ARROW_BOX})`} />
+          <text class="cmp-title-y" x={MARGIN.l + TITLE_ARROW + 4} y={MARGIN.t - 12}>
+            {props.figures[fy().id]}
           </text>
-          <text class="cmp-title-x" x={width() - MARGIN.r} y={height() - 6} text-anchor="end">
-            {props.figures[fx().id]} →
+          <text class="cmp-title-x" x={width() - MARGIN.r - TITLE_ARROW - 4} y={height() - 6} text-anchor="end">
+            {props.figures[fx().id]}
           </text>
+          <path
+            class="cmp-arrow"
+            d={ARROW.right}
+            transform={`translate(${width() - MARGIN.r - TITLE_ARROW} ${height() - 6 - TITLE_ARROW}) scale(${TITLE_ARROW / ARROW_BOX})`}
+          />
           <Show when={mx() !== null && my() !== null}>
             <g class="cmp-morocco">
               <line x1={px(mx()!)} x2={px(mx()!)} y1={MARGIN.t} y2={height() - MARGIN.b} />

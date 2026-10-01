@@ -1,0 +1,11 @@
+---
+/** The site's arrow, in the text's colour and at its size. See lib/arrow.ts. */
+import { ARROW, type ArrowDirection } from "../lib/arrow";
+
+interface Props {
+  dir?: ArrowDirection;
+}
+const { dir = "right" } = Astro.props;
+---
+
+<svg class="arrow" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path d={ARROW[dir]}></path></svg>

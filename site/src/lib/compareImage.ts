@@ -5,6 +5,7 @@
  */
 import type { Commune, Loaded } from "../components/Compare";
 import type { Locale } from "../i18n/ui";
+import { ARROW, ARROW_BOX, ARROW_STROKE, type ArrowDirection } from "./arrow";
 import { FIGURES, formatValue, GROUPS, positionOf, shapePath, tickLabel, ticksOf, type Group, type View } from "./compare";
 
 interface Options {
@@ -50,6 +51,17 @@ function palette(): Palette {
 
 const SANS = '"Instrument Sans", system-ui, sans-serif';
 const SERIF = '"Instrument Serif", Georgia, serif';
+
+function arrow(ctx: CanvasRenderingContext2D, dir: ArrowDirection, x: number, y: number, size: number, colour: string) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / ARROW_BOX, size / ARROW_BOX);
+  ctx.lineWidth = ARROW_STROKE;
+  ctx.lineJoin = "miter";
+  ctx.strokeStyle = colour;
+  ctx.stroke(new Path2D(ARROW[dir]));
+  ctx.restore();
+}
 
 function mark(ctx: CanvasRenderingContext2D, index: number, x: number, y: number, r: number, colour: string, paper: string) {
   ctx.save();
@@ -214,9 +226,13 @@ function scatter(ctx: CanvasRenderingContext2D, o: Options, p: Palette, top: num
   ctx.textAlign = "left";
   ctx.font = `500 24px ${SANS}`;
   ctx.fillStyle = p.ink;
-  ctx.fillText(`↑ ${o.figures[fy.id]}`, left, plotTop - 22);
+  // The site's arrow at 0.75em of the 24px titles, beside each one.
+  const size = 18;
+  arrow(ctx, "up", left, plotTop - 22 - size, size, p.ink);
+  ctx.fillText(o.figures[fy.id] ?? fy.id, left + size + 8, plotTop - 22);
   ctx.textAlign = "right";
-  ctx.fillText(`${o.figures[fx.id]} →`, right, plotBottom + 72);
+  ctx.fillText(o.figures[fx.id] ?? fx.id, right - size - 8, plotBottom + 72);
+  arrow(ctx, "right", right - size, plotBottom + 72 - size, size, p.ink);
   ctx.textAlign = "left";
 
   const mx = o.data.morocco[xi] ?? null;
