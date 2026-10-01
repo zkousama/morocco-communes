@@ -1,0 +1,659 @@
+---
+/**
+ * The compare page. Its charts are drawn in the browser from /compare/data.json, so the
+ * markup here is the heading, the source and a note for a browser without JavaScript.
+ * The island's own markup is styled from here, under .cmp.
+ */
+import Base from "../layouts/Base.astro";
+import CompareApp, { COMPARE_KEYS } from "./Compare.tsx";
+import { path, t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) as Record<(typeof COMPARE_KEYS)[number], string>;
+---
+
+<Base locale={locale} route="compare/" title={copy.compareTitle} description={copy.compareLede}>
+  <article class="cmp">
+    <h1>{copy.compareTitle}</h1>
+    <p class="lede">{copy.compareLede}</p>
+    <CompareApp
+      client:only="solid-js"
+      locale={locale}
+      copy={appCopy}
+      figures={copy.compareFigures}
+      groups={copy.compareGroups}
+      communeBase={path(locale, "communes/")}
+      title={copy.compareTitle}
+      brand={copy.title}
+    />
+    <noscript><p class="cmp-status">{copy.compareNoScript}</p></noscript>
+    <p class="cmp-source">
+      {copy.compareSource} <a href={path(locale, "docs/indicators/")}>{copy.compareMethod}</a>
+    </p>
+  </article>
+</Base>
+
+<style is:global>
+  .cmp {
+    /* A commune's colour, by its place in the list: the site's 2 chart colours, then the
+       water and age ramps' middle steps. Each also has its own shape. */
+    --cmp-0: var(--chart-up);
+    --cmp-1: var(--chart-down);
+    --cmp-2: var(--water-3);
+    --cmp-3: var(--elder-3);
+    padding-block: clamp(2rem, 6vw, 4rem);
+    max-width: 60rem;
+  }
+
+  .cmp h1 {
+    font-family: var(--display);
+    font-size: clamp(var(--t-lg), 5vw, var(--t-xl));
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.75rem;
+  }
+
+  .cmp .lede {
+    color: var(--quiet);
+    max-width: 46ch;
+    margin: 0 0 2rem;
+  }
+
+  .cmp astro-island {
+    display: block;
+    min-height: 30rem;
+  }
+
+  .cmp-status {
+    color: var(--quiet);
+  }
+
+  .cmp button {
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .cmp button:focus-visible,
+  .cmp select:focus-visible,
+  .cmp a:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .cmp-glyph {
+    flex: none;
+    overflow: visible;
+  }
+
+  .cmp-glyph.k0 path,
+  .cmp-picked.k0 path {
+    fill: var(--cmp-0);
+  }
+
+  .cmp-glyph.k1 path,
+  .cmp-picked.k1 path {
+    fill: var(--cmp-1);
+  }
+
+  .cmp-glyph.k2 path,
+  .cmp-picked.k2 path {
+    fill: var(--cmp-2);
+  }
+
+  .cmp-glyph.k3 path,
+  .cmp-picked.k3 path {
+    fill: var(--cmp-3);
+  }
+
+  /* The bar: who's compared, and how. */
+
+  .cmp-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .cmp-picker {
+    position: relative;
+    flex: 1 1 24rem;
+  }
+
+  .cmp-chips {
+    list-style: none;
+    margin: 0;
+    padding: 0.3rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    border: 1px solid var(--rule);
+    border-radius: 0.65rem;
+  }
+
+  .cmp-chips:focus-within {
+    border-color: var(--quiet);
+  }
+
+  .cmp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.2rem 0.25rem 0.6rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-size: var(--t-sm);
+  }
+
+  .cmp-chip a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .cmp-chip a:hover {
+    text-decoration: underline;
+  }
+
+  .cmp-chip button {
+    border: 0;
+    background: none;
+    color: var(--quiet);
+    font-size: 1.15rem;
+    line-height: 1;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+  }
+
+  .cmp-chip button:hover {
+    color: var(--ink);
+    background: var(--well);
+  }
+
+  .cmp-add {
+    flex: 1 1 9rem;
+  }
+
+  .cmp-add input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--t-sm);
+    padding: 0.4rem 0.5rem;
+    outline: none;
+  }
+
+  .cmp-add input::placeholder {
+    color: var(--quiet);
+  }
+
+  .cmp-options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 30;
+    list-style: none;
+    margin: 0;
+    padding: 0.3rem;
+    max-height: 22rem;
+    overflow: auto;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 0.65rem;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+  }
+
+  .cmp-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.45rem;
+    cursor: pointer;
+  }
+
+  .cmp-option.is-active {
+    background: var(--well);
+  }
+
+  .cmp-option-meta {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .cmp-option.is-off,
+  .cmp-option.is-none {
+    cursor: default;
+  }
+
+  .cmp-option.is-off .cmp-option-name,
+  .cmp-option.is-none {
+    color: var(--quiet);
+  }
+
+  .cmp-views {
+    display: inline-flex;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+  }
+
+  .cmp-views button {
+    border: 0;
+    background: none;
+    color: var(--quiet);
+    font-size: var(--t-sm);
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+  }
+
+  .cmp-views button[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .cmp-note {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    border-left: 2px solid var(--brass);
+    padding-left: 0.75rem;
+    margin: 0 0 1rem;
+  }
+
+  .cmp-empty {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    margin: 0 0 1.75rem;
+  }
+
+  .cmp-empty p {
+    margin: 0 0 0.6rem;
+  }
+
+  .cmp-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .cmp-suggestions span {
+    margin-right: 0.2rem;
+  }
+
+  .cmp-suggest {
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--ink);
+    font-size: var(--t-sm);
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+  }
+
+  .cmp-suggest:hover {
+    border-color: var(--ink);
+  }
+
+  /* Side by side. */
+
+  .cmp-legend {
+    list-style: none;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    font-size: var(--t-sm);
+  }
+
+  .cmp-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .cmp-legend .lg-morocco,
+  .cmp-legend .lg-every {
+    color: var(--quiet);
+  }
+
+  .lg-morocco i {
+    display: inline-block;
+    width: 2px;
+    height: 0.9rem;
+    background: var(--ink);
+    opacity: 0.55;
+  }
+
+  .lg-every i {
+    display: inline-block;
+    width: 1rem;
+    height: 0.65rem;
+    background: linear-gradient(to top, var(--quiet) 45%, transparent 45%) 0 0 / 25% 100%,
+      linear-gradient(to top, var(--quiet) 100%, transparent 100%) 33% 0 / 25% 100%,
+      linear-gradient(to top, var(--quiet) 70%, transparent 70%) 66% 0 / 25% 100%,
+      linear-gradient(to top, var(--quiet) 30%, transparent 30%) 100% 0 / 25% 100%;
+    background-repeat: no-repeat;
+    opacity: 0.35;
+  }
+
+  .cmp-group h2 {
+    font-family: var(--sans);
+    font-size: var(--t-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    margin: 2rem 0 0.25rem;
+  }
+
+  .cmp-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label values"
+      "strip strip"
+      "ends ends";
+    column-gap: 1rem;
+    padding: 0.75rem 0 0.4rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .cmp-label {
+    grid-area: label;
+  }
+
+  .cmp-values {
+    grid-area: values;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 0.2rem 0.9rem;
+    font-size: var(--t-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cmp-values .v {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+  }
+
+  .cmp-values .mo {
+    color: var(--quiet);
+  }
+
+  .cmp-strip {
+    grid-area: strip;
+    position: relative;
+    height: 2.1rem;
+    margin-top: 0.4rem;
+  }
+
+  .cmp-strip::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .cmp-bars {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1.6rem;
+    fill: var(--quiet);
+    opacity: 0.28;
+  }
+
+  .cmp-mo {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--ink);
+    opacity: 0.55;
+  }
+
+  .cmp-mark {
+    position: absolute;
+    top: 50%;
+    line-height: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .cmp-mark path {
+    stroke: var(--paper);
+    stroke-width: 1.5;
+  }
+
+  .cmp-ends {
+    grid-area: ends;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.15rem;
+    font-size: 0.6875rem;
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scatter. */
+
+  .cmp-axes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .cmp-axis {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1 1 13rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .cmp-axis select {
+    height: 2.5rem;
+    font: inherit;
+    font-size: var(--t-sm);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 0.5rem;
+    padding: 0 0.6rem;
+  }
+
+  .cmp-swap {
+    height: 2.5rem;
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--ink);
+    font-size: var(--t-sm);
+    line-height: 1;
+    padding: 0 0.85rem;
+    border-radius: 999px;
+  }
+
+  .cmp-swap:hover {
+    border-color: var(--ink);
+  }
+
+  .cmp-plot {
+    position: relative;
+  }
+
+  .cmp-plot svg {
+    display: block;
+    cursor: crosshair;
+    touch-action: manipulation;
+  }
+
+  .cmp-grid line {
+    stroke: var(--rule);
+  }
+
+  .cmp-grid text,
+  .cmp-morocco text {
+    fill: var(--quiet);
+    font-size: 11px;
+    font-family: var(--sans);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cmp-title-x,
+  .cmp-title-y {
+    fill: var(--ink);
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: var(--sans);
+  }
+
+  .cmp-morocco line {
+    stroke: var(--quiet);
+    stroke-dasharray: 4 4;
+  }
+
+  .cmp-dots circle {
+    fill: var(--quiet);
+    opacity: 0.38;
+  }
+
+  .cmp-hover {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+
+  .cmp-picked path {
+    stroke: var(--paper);
+    stroke-width: 2;
+  }
+
+  .cmp-picked text {
+    fill: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  .cmp-tip {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: max-content;
+    max-width: 15rem;
+    padding: 0.5rem 0.65rem;
+    font-size: var(--t-xs);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.14);
+  }
+
+  .cmp-tip strong {
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+
+  .cmp-tip-note {
+    color: var(--quiet);
+  }
+
+  .cmp-caption {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    margin: 0.5rem 0 0;
+  }
+
+  /* Sharing, and where the figures come from. */
+
+  .cmp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .cmp-actions button {
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--ink);
+    font-size: var(--t-sm);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+  }
+
+  .cmp-actions button:hover {
+    border-color: var(--ink);
+  }
+
+  .cmp-actions button:disabled {
+    color: var(--quiet);
+    cursor: progress;
+  }
+
+  .cmp-source {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    max-width: 62ch;
+    margin: 1.5rem 0 0;
+  }
+
+  .cmp-source a {
+    color: inherit;
+  }
+
+  @media (max-width: 30rem) {
+    .cmp-row {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "label"
+        "values"
+        "strip"
+        "ends";
+    }
+
+    .cmp-values {
+      justify-content: flex-start;
+      margin-top: 0.2rem;
+    }
+
+    .cmp-views {
+      width: 100%;
+    }
+
+    .cmp-views button {
+      flex: 1;
+    }
+  }
+</style>
