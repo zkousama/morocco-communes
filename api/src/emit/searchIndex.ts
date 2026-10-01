@@ -89,12 +89,12 @@ export function buildPostcodes(entries: IndexEntry[], postcodes: [string, string
  * Each neighbourhood with the position of the unit it's in. A unit the index doesn't hold
  * is an error, the way an exonym's is: the file was made against another dataset.
  */
-export function buildPlaces(entries: IndexEntry[], neighbourhoods: Neighbourhood[]): [string, string, number][] {
+export function buildPlaces(entries: IndexEntry[], neighbourhoods: Neighbourhood[]): [string, string, number, string[]?][] {
   const position = new Map(entries.map((e, i) => [e[0], i]));
-  return neighbourhoods.map(([fr, ar, code]) => {
+  return neighbourhoods.map(([fr, ar, code, , also]) => {
     const at = position.get(code);
     if (at === undefined) throw new Error(`neighbourhood ${fr || ar} is placed in ${code}, which the index doesn't hold`);
-    return [fr, ar, at];
+    return also && also.length > 0 ? [fr, ar, at, also] : [fr, ar, at];
   });
 }
 

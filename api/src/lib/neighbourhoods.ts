@@ -47,9 +47,10 @@ export type NeighbourhoodSource = "osm" | "poste" | "hand";
 
 /**
  * A neighbourhood as the list holds it: French name, Arabic name, the code of the unit it's
- * in, and where it comes from. The index keeps the first 3.
+ * in, where it comes from, and any other spellings merged into it, which the search still
+ * finds it by: Ain Daib, Poste Maroc's, for Ain Diab.
  */
-export type Neighbourhood = [fr: string, ar: string, code: string, source?: NeighbourhoodSource];
+export type Neighbourhood = [fr: string, ar: string, code: string, source?: NeighbourhoodSource, also?: string[]];
 
 /** Share of the last list's OpenStreetMap names a new fetch may lose before it's refused as partial. */
 export const MAX_LOSS = 0.05;

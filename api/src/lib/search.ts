@@ -53,7 +53,7 @@ export interface SearchIndex {
    * Neighbourhoods, which HCP doesn't count: French name, Arabic name, and the position of
    * the arrondissement or commune that holds each. Left out of an index built without them.
    */
-  places?: [string, string, number][];
+  places?: [string, string, number, string[]?][];
   /** Each postcode to the communes it's in, by position, with a few of its neighbourhoods. */
   postcodes?: Record<string, [number, string[]][]>;
 }
@@ -102,7 +102,11 @@ const preparedPlaces = new WeakMap<SearchIndex, PreparedPlace[]>();
 const placesOf = (index: SearchIndex): PreparedPlace[] => {
   let prepared = preparedPlaces.get(index);
   if (!prepared) {
-    prepared = (index.places ?? []).map(([fr, ar, at]) => ({ fr, ar, at, nFr: normalise(fr), nAr: normalise(ar) }));
+    // A spelling merged into a row is matched like its name, and the hit names the row.
+    prepared = (index.places ?? []).flatMap(([fr, ar, at, also]) => [
+      { fr, ar, at, nFr: normalise(fr), nAr: normalise(ar) },
+      ...(also ?? []).map((spelling) => ({ fr, ar, at, nFr: normalise(spelling), nAr: "" })),
+    ]);
     preparedPlaces.set(index, prepared);
   }
   return prepared;

@@ -138,12 +138,20 @@ if (unmatched.size > 0) throw new Error(`no urban commune for Poste Maroc's citi
 const taken = new Map<string, Set<string>>();
 // And the same names as written, to catch one spelt another way: Ain Daib for Ain Diab.
 const spelt = new Map<string, string[]>();
+// Each written name's row in the list, by city, so a merged spelling can be kept on it.
+const rowByName = new Map<string, Neighbourhood>();
 const inCity = (code: string) => arrondissements.filter((a) => a.communeCode === code).map((a) => a.code).concat(code);
 for (const commune of cities.values()) {
   const codes = new Set(inCity(commune.code));
   const names = new Set<string>();
   const written: string[] = [];
-  for (const [fr, , code] of kept.values()) if (codes.has(code) && fr) (names.add(coreOf(normalise(fr))), written.push(fr));
+  for (const row of kept.values()) {
+    const [fr, , code] = row;
+    if (!codes.has(code) || !fr) continue;
+    names.add(coreOf(normalise(fr)));
+    written.push(fr);
+    rowByName.set(`${commune.code}|${fr}`, row);
+  }
   for (const u of [...communes, ...arrondissements]) if (codes.has(u.code)) (names.add(coreOf(normalise(u.name.fr))), written.push(u.name.fr));
   taken.set(commune.code, names);
   spelt.set(commune.code, written);
@@ -183,13 +191,19 @@ for (const [city, raw] of rows) {
     continue;
   }
   const written = spelt.get(commune.code)!;
-  if (written.some((other) => sameName(name, other, { samePostcode: sharePostcode(commune.code, name, other) }))) {
+  const other = written.find((o) => sameName(name, o, { samePostcode: sharePostcode(commune.code, name, o) }));
+  if (other !== undefined) {
     respelt++;
+    // Kept on the row it joined, so the search still finds that row by this spelling.
+    const row = rowByName.get(`${commune.code}|${other}`);
+    if (row && !(row[4] ?? []).includes(name)) row[4] = [...(row[4] ?? []), name].sort();
     continue;
   }
   names.add(core);
   written.push(name);
-  kept.set(`${commune.code}|${normalise(name)}|`, [name, "", commune.code, "poste"]);
+  const added: Neighbourhood = [name, "", commune.code, "poste"];
+  kept.set(`${commune.code}|${normalise(name)}|`, added);
+  rowByName.set(`${commune.code}|${name}`, added);
   posted++;
 }
 console.log(`Poste Maroc: ${rows.length} rows in ${cities.size} cities; ${posted} added, ${known} already there or repeated, ${respelt} already there spelt another way, ${notPlaces} not a place`);

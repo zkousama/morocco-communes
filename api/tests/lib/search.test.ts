@@ -293,6 +293,13 @@ describe("neighbourhoods", () => {
     expect(top?.code).toBe("06.141.01.41");
   });
 
+  it("still finds a neighbourhood by a spelling it was merged from", () => {
+    // Poste Maroc writes Ain Daib for Ain Diab, in Anfa; the list keeps one row and both names.
+    const [top] = search(withHoods, "ain daib");
+    expect(top?.name.fr).toBe("Anfa");
+    expect(top?.neighbourhood?.fr).toBe("Ain Diab");
+  });
+
   it("puts a neighbourhood placed in an arrondissement before one only placed in a city", () => {
     // Derb Ghallef is in Casablanca's Maârif, and Poste Maroc lists another in El Jadida.
     const [top] = search(withHoods, "Derb Ghallef");
