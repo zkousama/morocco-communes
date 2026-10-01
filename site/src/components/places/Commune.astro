@@ -389,6 +389,12 @@ getCommune("${c.slug}");`;
     <section id="neighbourhoods">
       <h2>{p.neighbourhoods}</h2>
       <p>{fill(p.neighbourhoodsBody, { name: c.name.fr })}</p>
+      {hoods.length > HOODS_SHOWN && (
+        <div class="hood-search" hidden>
+          <input type="search" class="hood-find" placeholder={p.neighbourhoodsFind} aria-label={p.neighbourhoodsFind} autocomplete="off" />
+          <span class="hood-count" aria-live="polite" data-found={p.neighbourhoodsFound}></span>
+        </div>
+      )}
       {[hoods.slice(0, HOODS_SHOWN), hoods.slice(HOODS_SHOWN)].map((rows, part) =>
         rows.length === 0 ? null : (
           <Fragment>
@@ -480,6 +486,43 @@ getCommune("${c.slug}");`;
   </section>
 </Place>
 
+<script>
+  // The neighbourhood table's search: every row is in the page, so this only hides the ones
+  // that don't match, and opens the fold while there's a query so its rows show too. The box
+  // stays hidden without JavaScript, where it would do nothing.
+  const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[’'.-]/g, " ").replace(/\s+/g, " ");
+  for (const box of document.querySelectorAll<HTMLElement>(".hood-search")) {
+    const section = box.closest("section");
+    const input = box.querySelector<HTMLInputElement>(".hood-find");
+    const count = box.querySelector<HTMLElement>(".hood-count");
+    if (!section || !input || !count) continue;
+    const rows = [...section.querySelectorAll<HTMLTableRowElement>("tbody tr")];
+    const keys = rows.map((row) => fold(row.textContent ?? ""));
+    const more = section.querySelector<HTMLDetailsElement>("details");
+    let openBefore = more?.open ?? false;
+    box.hidden = false;
+    input.addEventListener("input", () => {
+      const query = fold(input.value.trim());
+      if (more && query && !input.dataset.searching) {
+        openBefore = more.open;
+        more.open = true;
+      }
+      input.dataset.searching = query ? "1" : "";
+      let found = 0;
+      rows.forEach((row, i) => {
+        const shown = !query || keys[i]!.includes(query);
+        row.hidden = !shown;
+        if (shown && query) found++;
+      });
+      if (more && !query) more.open = openBefore;
+      // The fold's label means nothing while the 2 tables show one list of matches.
+      const label = more?.querySelector("summary");
+      if (label) label.hidden = Boolean(query);
+      count.textContent = query ? (count.dataset.found ?? "{n}").replace("{n}", String(found)) : "";
+    });
+  }
+</script>
+
 <style>
   .side {
     display: grid;
@@ -515,6 +558,39 @@ getCommune("${c.slug}");`;
 
   /* The arrondissement, where the neighbourhood was placed by its point: a note on the
      name, since most of a city's come from a list that only gives the city. */
+  .hood-search {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .hood-search[hidden] {
+    display: none;
+  }
+
+  .hood-find {
+    flex: 0 1 22rem;
+    min-width: 0;
+    font: inherit;
+    font-size: var(--t-sm);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .hood-find:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+
+  .hood-count {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
   .hood-table .in {
     margin-left: 0.5rem;
     color: var(--quiet);

@@ -57,6 +57,8 @@ export const places = {
     neighbourhoods: "Neighbourhoods",
     neighbourhoodsBody: "The names OpenStreetMap and Poste Maroc give. The census has no figures for a neighbourhood, so this page's figures are {name}'s.",
     neighbourhoodsAll: "All {n} neighbourhoods",
+    neighbourhoodsFind: "Find a neighbourhood or postcode",
+    neighbourhoodsFound: "{n} found",
     colNeighbourhood: "Neighbourhood",
     colPostcode: "Postcode",
     nextDoor: {
@@ -466,6 +468,8 @@ export const places = {
     neighbourhoods: "Quartiers",
     neighbourhoodsBody: "Les noms que donnent OpenStreetMap et Poste Maroc. Le recensement ne donne aucun chiffre par quartier : ceux de cette page sont ceux de {name}.",
     neighbourhoodsAll: "Les {n} quartiers",
+    neighbourhoodsFind: "Chercher un quartier ou un code postal",
+    neighbourhoodsFound: "Trouvés : {n}",
     colNeighbourhood: "Quartier",
     colPostcode: "Code postal",
     nextDoor: {
