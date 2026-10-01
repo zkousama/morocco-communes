@@ -40,6 +40,7 @@ export const TOOL_NAMES: ReadonlySet<string> = new Set([
   "get_economy",
   "get_housing",
   "get_insights",
+  "get_neighbourhoods",
 ]);
 
 /** Read-only, closed-world and repeatable, which lets a client call these without asking. */
@@ -172,6 +173,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
         "Takes French or Arabic, a slug, or another name a place is known by: Fez finds Fès, Mogador finds Essaouira. " +
         "A neighbourhood's name finds the arrondissement or commune it's in, with matched neighbourhood and the neighbourhood's names: " +
         "Sidi Maârouf finds Aïn-Chock, in Casablanca. The census has no figures for a neighbourhood itself. " +
+        "A 5-digit postcode finds the commune it's in, with matched postcode: 20520 finds Casablanca. " +
         "Returns codes; pass a commune's code to get_commune for its population and parents.",
       inputSchema: {
         query: z.string().min(1).max(QUERY.maxLength).describe("The name to look for, in French, Arabic or as a slug, or a unit's code."),
@@ -192,9 +194,10 @@ export function createMcpServer(deps: McpDeps): McpServer {
             name_fr: z.string(),
             name_ar: z.string(),
             slug: z.string(),
-            matched: z.enum(["code", "exact", "alias", "prefix", "spelling", "trigram", "neighbourhood"]),
+            matched: z.enum(["code", "exact", "alias", "prefix", "spelling", "trigram", "neighbourhood", "postcode"]),
             neighbourhood_fr: z.string().optional(),
             neighbourhood_ar: z.string().optional(),
+            postcode: z.string().optional(),
           }),
         ),
       },
@@ -211,6 +214,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           slug: h.slug,
           matched: h.matched,
           ...(h.neighbourhood ? { neighbourhood_fr: h.neighbourhood.fr, neighbourhood_ar: h.neighbourhood.ar } : {}),
+          ...(h.postcode ? { postcode: h.postcode.code } : {}),
         })),
       });
     },
@@ -942,6 +946,63 @@ export function createMcpServer(deps: McpDeps): McpServer {
           line: f.line,
           breakdown: f.breakdown,
           context: f.context,
+        })),
+      });
+    },
+  );
+
+  server.registerTool(
+    "get_neighbourhoods",
+    {
+      title: "A commune's neighbourhoods and postcodes",
+      description:
+        "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, with the arrondissement each was placed in where it has a point, " +
+        "where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. " +
+        "The census publishes nothing by neighbourhood: the figures are the commune's, or the arrondissement's. " +
+        "To find which commune a neighbourhood is in, call search with its name instead.",
+      inputSchema: {
+        unit: z.string().min(1).describe("A commune, by code or slug."),
+        limit: z.number().int().min(1).max(2000).optional().describe("How many neighbourhoods, in alphabetical order. 200 when left out; Casablanca has over 1,400."),
+      },
+      outputSchema: {
+        unit: z.object({ code: z.string(), name_fr: z.string() }),
+        total: z.number().describe("How many neighbourhoods the commune has, whatever the limit."),
+        postcodes: z.array(z.string()),
+        neighbourhoods: z.array(
+          z.object({
+            name_fr: z.string(),
+            name_ar: z.string(),
+            arrondissement: z.string().nullable().describe("The arrondissement's code, where it was placed in one by its point."),
+            source: z.enum(["osm", "poste", "hand"]),
+            postcodes: z.array(z.string()),
+          }),
+        ),
+        message: z.string().optional().describe("Present when the commune has no named neighbourhoods, whether or not it has postcodes."),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ unit, limit }) => {
+      const found = resolve(lookup, unit, "commune");
+      if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
+      if (found.kind === "absent") return fail(`No commune has the identifier ${unit}. Call search to find its code.`);
+      const unitOut = { code: found.code, name_fr: nameOf.get(found.code) ?? found.code };
+      const body = await fetchJson(`/api/communes/${found.code}/neighbourhoods.json`);
+      if (!body) return ok({ unit: unitOut, total: 0, postcodes: [], neighbourhoods: [], message: `No neighbourhoods or postcodes are named for ${unitOut.name_fr}.` });
+      const data = body.data as unknown as {
+        neighbourhoods: { name: { fr: string; ar: string }; arrondissement: string | null; source: "osm" | "poste" | "hand"; postcodes: string[] }[];
+        postcodes: string[];
+      };
+      return ok({
+        unit: unitOut,
+        total: data.neighbourhoods.length,
+        postcodes: data.postcodes,
+        ...(data.neighbourhoods.length === 0 ? { message: `No neighbourhoods are named for ${unitOut.name_fr}; its postcodes are listed.` } : {}),
+        neighbourhoods: data.neighbourhoods.slice(0, limit ?? 200).map((n) => ({
+          name_fr: n.name.fr,
+          name_ar: n.name.ar,
+          arrondissement: n.arrondissement,
+          source: n.source,
+          postcodes: n.postcodes,
         })),
       });
     },

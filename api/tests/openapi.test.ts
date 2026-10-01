@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildOpenApi } from "../src/openapi.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree } from "../src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../src/emit/static.ts";
+import { neighbourhoodTable, postcodesByCommune } from "../src/lib/neighbourhoodTable.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
 import { readEconomy } from "../src/emit/economy.ts";
 import { readHousing } from "../src/emit/housing.ts";
@@ -24,6 +25,14 @@ emitIndicators(tree, await readIndicators("data/v1"));
 emitEconomy(tree, await readEconomy("data/v1"));
 emitHousing(tree, await readHousing("data/v1"));
 emitInsights(tree, await readInsights("data/v1"));
+// The neighbourhood files, from the same table the build writes them from.
+{
+  const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
+  const cityOf = new Map((read("data/v1/attributes/arrondissements.json") as { code: string; communeCode: string }[]).map((a) => [a.code, a.communeCode]));
+  const codes = read("api/data/postcodes.json").postcodes;
+  emitNeighbourhoods(tree as never, neighbourhoodTable(read("api/data/neighbourhoods.json").places, codes, (c) => cityOf.get(c) ?? c), postcodesByCommune(codes));
+}
+
 
 type Param = { name: string; schema: Record<string, unknown> };
 const paramsOf = (path: string) =>

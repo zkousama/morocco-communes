@@ -86,7 +86,7 @@ const NAMING = new Set<Hit["matched"]>(["code", "exact", "alias"]);
  */
 function namesAPlace(text: string): 0 | 1 {
   // A neighbourhood's name is left out: this counts the names the dataset itself holds.
-  const top = search(index, text, { limit: 1, neighbourhoods: false })[0];
+  const top = search(index, text, { limit: 1, neighbourhoods: false, postcodes: false })[0];
   return top && NAMING.has(top.matched) ? 1 : 0;
 }
 
@@ -308,7 +308,7 @@ app.get("/api/communes", async (c) => {
       return fail(url, "invalid-query", `q is at most ${QUERY.maxLength} characters`, instance);
     }
     // A list of communes filtered by name: the commune's name, not a neighbourhood in it.
-    const hits = search(index, text, { levels: ["commune"], limit: 10, neighbourhoods: false });
+    const hits = search(index, text, { levels: ["commune"], limit: 10, neighbourhoods: false, postcodes: false });
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
   }
 
@@ -431,13 +431,14 @@ app.get("/api/:collection/:id", async (c) => {
 /**
  * A unit's figures by any spelling of its identifier: /api/communes/tanger/indicators for
  * the census, /economy for the establishments, /housing for the urban dwellings,
- * /neighbours for the communes it borders and /insights for the figures that stand out.
+ * /neighbours for the communes it borders, /neighbourhoods for its named neighbourhoods and
+ * postcodes, and /insights for the figures that stand out.
  *
  * The names sit in a group of their own. Written bare, the alternation split the whole
  * path pattern at each bar, so indicators matched as a prefix and let indicators.json
  * through, housing matched only at the end, and a slug's .json worked for 2 figures of 3.
  */
-app.get("/api/:collection/:id/:figures{(?:indicators|economy|housing|neighbours|insights)}", async (c) => {
+app.get("/api/:collection/:id/:figures{(?:indicators|economy|housing|neighbours|neighbourhoods|insights)}", async (c) => {
   const url = new URL(c.req.url);
   const { collection, id, figures } = c.req.param();
   const found = resolve(lookup, id, LEVEL_OF[collection]);

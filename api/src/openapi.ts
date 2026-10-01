@@ -57,7 +57,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           operationId: "searchUnits",
           summary: "Find any administrative unit by name",
           description:
-            "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's and Poste Maroc's, both under the ODbL. Poste Maroc's list gives a city and no point, so its neighbourhoods are found in the city's commune rather than an arrondissement.",
+            "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's and Poste Maroc's, both under the ODbL. Poste Maroc's list gives a city and no point, so its neighbourhoods are found in the city's commune rather than an arrondissement. A 5-digit postcode finds the commune it's in, with `matched: postcode`: 20520 finds Casablanca.",
           parameters: [
             { name: "q", in: "query", required: true, description: `Text to find, up to ${QUERY.maxLength} characters.`, schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength }, example: "tanger" },
             {
@@ -320,6 +320,30 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           },
         },
       },
+      "/api/communes/{code}/neighbourhoods": {
+        get: {
+          operationId: "listNeighbourhoods",
+          summary: "A commune's named neighbourhoods and its postcodes",
+          description:
+            "The neighbourhoods OpenStreetMap and Poste Maroc name in a commune, a city's arrondissements included, each with the arrondissement it was placed in by its point where it has one, " +
+            "where its name comes from, and the postcodes Poste Maroc lists under it; and the commune's postcodes. The census publishes nothing by neighbourhood, so no row has figures. " +
+            "Both sources are under the ODbL. A commune with neither has no file.",
+          parameters: [code("A dotted code, padded or unpadded digits, or a slug.", "casablanca")],
+          responses: {
+            "200": ok("The commune's neighbourhoods and postcodes.", ref("Neighbourhoods")),
+            "400": problem("Not an identifier."),
+            "404": problem("No commune has that identifier, or it has no named neighbourhoods or postcodes."),
+          },
+        },
+      },
+      "/api/neighbourhoods.json": {
+        get: {
+          operationId: "listAllNeighbourhoods",
+          summary: "Every named neighbourhood, with its commune",
+          description: "The whole table in one file: each neighbourhood with its commune, its arrondissement where known, its source and its postcodes. Under the ODbL.",
+          responses: { "200": ok("Every named neighbourhood.", { type: "array", items: ref("NeighbourhoodRow") }) },
+        },
+      },
       "/api/housing.json": {
         get: {
           operationId: "getNationalHousing",
@@ -431,12 +455,39 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             name: ref("Name"),
             slug: { type: "string" },
             score: { type: "number" },
-            matched: { type: "string", enum: ["code", "exact", "alias", "prefix", "spelling", "trigram", "neighbourhood"] },
+            matched: { type: "string", enum: ["code", "exact", "alias", "prefix", "spelling", "trigram", "neighbourhood", "postcode"] },
+            postcode: {
+              type: "object",
+              required: ["code", "neighbourhoods"],
+              description: "The postcode the query was, when the commune was found by it, with up to 4 of the neighbourhoods Poste Maroc lists under it.",
+              properties: { code: { type: "string" }, neighbourhoods: { type: "array", items: { type: "string" } } },
+            },
             neighbourhood: {
               ...ref("Name"),
               description:
                 "The neighbourhood the query named, when the unit was found through one: its names in OpenStreetMap, which the unit holds. HCP publishes no figures for a neighbourhood.",
             },
+          },
+        },
+        Neighbourhood: {
+          type: "object",
+          required: ["name", "arrondissement", "source", "postcodes"],
+          properties: {
+            name: ref("Name"),
+            arrondissement: { type: ["string", "null"], description: "The arrondissement's code, where it was placed in one by its point." },
+            source: { type: "string", enum: ["osm", "poste", "hand"], description: "OpenStreetMap, Poste Maroc's list of neighbourhoods by postcode, or added by hand from a public source." },
+            postcodes: { type: "array", items: { type: "string" } },
+          },
+        },
+        NeighbourhoodRow: {
+          allOf: [ref("Neighbourhood"), { type: "object", required: ["commune"], properties: { commune: { type: "string" } } }],
+        },
+        Neighbourhoods: {
+          type: "object",
+          required: ["neighbourhoods", "postcodes"],
+          properties: {
+            neighbourhoods: { type: "array", items: ref("Neighbourhood") },
+            postcodes: { type: "array", items: { type: "string" } },
           },
         },
         NearHit: {

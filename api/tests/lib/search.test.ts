@@ -343,3 +343,44 @@ describe("neighbourhoods", () => {
     expect(() => buildIndex("1.0.0", [{ level: "commune", rows: rd("communes") }], [["Nowhere", "", "99.999.99.99"]])).toThrow(/99\.999\.99\.99/);
   });
 });
+
+describe("postcodes", () => {
+  const codes = JSON.parse(readFileSync("api/data/postcodes.json", "utf8")) as { postcodes: [string, string, string[]][] };
+  const withCodes = buildIndex(
+    "1.0.0",
+    [
+      { level: "commune", rows: rd("communes") },
+      { level: "arrondissement", rows: rd("arrondissements") },
+      { level: "province", rows: rd("provinces") },
+      { level: "region", rows: rd("regions") },
+      { level: "cercle", rows: rd("cercles") },
+    ],
+    [],
+    codes.postcodes,
+  );
+
+  it("finds the commune a postcode is in, with a few of its neighbourhoods", () => {
+    const [top] = search(withCodes, "20520");
+    expect(top).toMatchObject({ code: "06.141.01.0", matched: "postcode" });
+    expect(top?.postcode?.code).toBe("20520");
+    expect(top?.postcode?.neighbourhoods.length).toBeGreaterThan(0);
+    expect(top?.postcode?.neighbourhoods.length).toBeLessThanOrEqual(4);
+  });
+
+  it("finds a town's postcode from the localities list", () => {
+    expect(search(withCodes, "85450")[0]?.name.fr).toBe("Tafraout");
+  });
+
+  it("leaves postcodes out when asked to, and finds nothing for one no list has", () => {
+    expect(search(withCodes, "20520", { postcodes: false })).toEqual([]);
+    expect(search(withCodes, "99999")).toEqual([]);
+  });
+
+  it("still looks up a commune's own code", () => {
+    expect(search(withCodes, "01.511.01.0")[0]?.name.fr).toBe("Tanger");
+  });
+
+  it("refuses a postcode whose commune isn't in the index", () => {
+    expect(() => buildIndex("1.0.0", [{ level: "commune", rows: rd("communes") }], [], [["10000", "99.999.99.99", []]])).toThrow(/99\.999\.99\.99/);
+  });
+});

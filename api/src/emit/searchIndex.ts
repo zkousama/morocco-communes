@@ -20,6 +20,7 @@ export function buildIndex(
   datasetVersion: string,
   levels: { level: Level; rows: Named[] }[],
   neighbourhoods: Neighbourhood[] = [],
+  postcodes: [string, string, string[]][] = [],
 ): SearchIndex {
   const entries: IndexEntry[] = [];
   const postings: Record<string, number[]> = {};
@@ -62,7 +63,26 @@ export function buildIndex(
   const aliases = buildAliases(entries);
   const index: SearchIndex = { datasetVersion, entries, postings: sorted, aliases, skeletons: buildSkeletons(entries, aliases) };
   if (neighbourhoods.length > 0) index.places = buildPlaces(entries, neighbourhoods);
+  if (postcodes.length > 0) index.postcodes = buildPostcodes(entries, postcodes);
   return index;
+}
+
+/** How many of a postcode's neighbourhoods a hit names, to say which part of a city it is. */
+export const POSTCODE_NAMES = 4;
+
+/**
+ * Each postcode to the positions of the communes it's in, with a few of its neighbourhoods.
+ * A commune the index doesn't hold is an error, like a neighbourhood's.
+ */
+export function buildPostcodes(entries: IndexEntry[], postcodes: [string, string, string[]][]): Record<string, [number, string[]][]> {
+  const position = new Map(entries.map((e, i) => [e[0], i]));
+  const out: Record<string, [number, string[]][]> = {};
+  for (const [postcode, code, names] of postcodes) {
+    const at = position.get(code);
+    if (at === undefined) throw new Error(`postcode ${postcode} is placed in ${code}, which the index doesn't hold`);
+    (out[postcode] ??= []).push([at, names.slice(0, POSTCODE_NAMES)]);
+  }
+  return out;
 }
 
 /**

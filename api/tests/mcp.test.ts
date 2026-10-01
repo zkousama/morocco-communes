@@ -4,7 +4,8 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer, TOOL_NAMES } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree } from "../src/emit/static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../src/emit/static.ts";
+import { neighbourhoodTable, postcodesByCommune } from "../src/lib/neighbourhoodTable.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
 import { readEconomy } from "../src/emit/economy.ts";
 import { readHousing } from "../src/emit/housing.ts";
@@ -57,6 +58,13 @@ emitInsights(tree as never, {
   }],
   index: [{ code: "04.421.01.0", level: "commune", findings: 1 }],
 });
+// The neighbourhood files, from the same table the build writes them from.
+{
+  const read = (path: string) => JSON.parse(readFileSync(path, "utf8"));
+  const cityOf = new Map((read("data/v1/attributes/arrondissements.json") as { code: string; communeCode: string }[]).map((a) => [a.code, a.communeCode]));
+  const codes = read("api/data/postcodes.json").postcodes;
+  emitNeighbourhoods(tree as never, neighbourhoodTable(read("api/data/neighbourhoods.json").places, codes, (c) => cityOf.get(c) ?? c), postcodesByCommune(codes));
+}
 const geometry = await buildGeometry("data/v1", dataset as never);
 for (const [key, tile] of geometry.tiles) tree.set(tilePath(key), tile);
 for (const [code, group] of geometry.arrondissementsByCommune) tree.set(`/api/communes/${code}/arrondissements.geojson`, group);
@@ -88,16 +96,36 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 10 read-only tools", async () => {
+  it("offers 11 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_economy", "get_housing", "get_indicators", "get_insights", "get_unit", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_economy", "get_housing", "get_indicators", "get_insights", "get_neighbourhoods", "get_unit", "list_communes", "search",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
       expect(tool.description!.length, tool.name).toBeGreaterThan(40);
       expect(tool.outputSchema, tool.name).toBeDefined();
     }
+  });
+
+  it("gives a city's neighbourhoods with their arrondissements, a few at a time, and its postcodes", async () => {
+    const r = await client.callTool({ name: "get_neighbourhoods", arguments: { unit: "casablanca", limit: 5 } });
+    const out = r.structuredContent as { total: number; postcodes: string[]; neighbourhoods: { name_fr: string }[] };
+    expect(out.total).toBeGreaterThan(1000);
+    expect(out.neighbourhoods).toHaveLength(5);
+    expect(out.postcodes).toContain("20520");
+    const all = (await client.callTool({ name: "get_neighbourhoods", arguments: { unit: "casablanca", limit: 2000 } })).structuredContent as {
+      neighbourhoods: { name_fr: string; arrondissement: string | null; source: string }[];
+    };
+    expect(all.neighbourhoods.find((n) => n.name_fr === "Sidi Maârouf")).toMatchObject({ arrondissement: "06.141.01.41", source: "osm" });
+  });
+
+  it("says when a commune has no neighbourhoods named, and still gives its postcodes", async () => {
+    const r = await client.callTool({ name: "get_neighbourhoods", arguments: { unit: "tafraout" } });
+    const out = r.structuredContent as { message?: string; postcodes: string[]; neighbourhoods: unknown[] };
+    expect(out.neighbourhoods).toEqual([]);
+    expect(out.postcodes).toEqual(["85450"]);
+    expect(out.message).toMatch(/No neighbourhoods/);
   });
 
   it("registers exactly the tools TOOL_NAMES lists, which the demand log keeps by name", async () => {

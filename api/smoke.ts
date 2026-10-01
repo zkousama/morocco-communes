@@ -58,6 +58,8 @@ for (const path of [
   "/api/communes/type/urban/page/1.json",
   "/api/communes/01.511.01.0/arrondissements.json",
   "/api/communes/09.581.01.07/neighbours.json",
+  "/api/communes/06.141.01.0/neighbourhoods.json",
+  "/api/neighbourhoods.json",
   "/api/communes/01.511.01.0/indicators.json",
   "/api/regions/01/indicators.json",
   "/api/provinces/indicators.json",
@@ -124,6 +126,7 @@ for (const [path, expected] of [
   ["/api/communes/tanger/economy", "/api/communes/01.511.01.0/economy.json"],
   ["/api/communes/tiznit/housing", "/api/communes/09.581.01.07/housing.json"],
   ["/api/communes/tiznit/neighbours", "/api/communes/09.581.01.07/neighbours.json"],
+  ["/api/communes/casablanca/neighbourhoods", "/api/communes/06.141.01.0/neighbourhoods.json"],
   [`/api/communes/${withInsights.slug}/insights`, `/api/communes/${withInsights.code}/insights.json`],
   ["/api/regions/01/economy", "/api/regions/01/economy.json"],
   ["/api/regions", "/api/regions.json"],
@@ -140,6 +143,18 @@ console.log("\ncomputed tier, the answers no file holds");
   const first = r.body?.data?.[0];
   check("/api/search finds Tanger by its French name",
     r.status === 200 && r.tier === "computed" && first?.code === "01.511.01.0", JSON.stringify(first));
+}
+{
+  const r = await get("/api/search?q=sidi%20maarouf&limit=1");
+  const first = r.body?.data?.[0];
+  check("/api/search finds the arrondissement a neighbourhood is in",
+    first?.code === "06.141.01.41" && first?.matched === "neighbourhood", JSON.stringify(first));
+}
+{
+  const r = await get("/api/search?q=20520&limit=1");
+  const first = r.body?.data?.[0];
+  check("/api/search finds the commune a postcode is in",
+    first?.code === "06.141.01.0" && first?.matched === "postcode", JSON.stringify(first));
 }
 {
   const r = await get(`/api/search?q=${encodeURIComponent("طَنْجَة")}&limit=1`);
@@ -279,8 +294,8 @@ console.log("\nmcp, in raw JSON-RPC so the probe does not lean on the SDK it is 
     init.status === 200 && typeof init.body.result?.protocolVersion === "string" && "tools" in (init.body.result?.capabilities ?? {}));
   const list = await rpc("tools/list", {});
   const names = ((list.body.result?.tools ?? []) as { name: string }[]).map((t) => t.name).sort();
-  check("/mcp lists the 10 tools",
-    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_housing,get_indicators,get_insights,get_unit,list_communes,search", names.join(","));
+  check("/mcp lists the 11 tools",
+    names.join(",") === "commune_at,communes_near,get_commune,get_economy,get_housing,get_indicators,get_insights,get_neighbourhoods,get_unit,list_communes,search", names.join(","));
   const borders = await rpc("tools/call", { name: "get_commune", arguments: { id: "tiznit" } });
   const neighbours = (borders.body.result?.structuredContent as { neighbours?: { code: string; km: number }[] } | undefined)?.neighbours;
   check("/mcp get_commune names the communes it borders",

@@ -54,6 +54,8 @@ export interface SearchIndex {
    * the arrondissement or commune that holds each. Left out of an index built without them.
    */
   places?: [string, string, number][];
+  /** Each postcode to the communes it's in, by position, with a few of its neighbourhoods. */
+  postcodes?: Record<string, [number, string[]][]>;
 }
 
 export interface Hit {
@@ -62,9 +64,11 @@ export interface Hit {
   name: { fr: string; ar: string };
   slug: string;
   score: number;
-  matched: "code" | "exact" | "alias" | "prefix" | "spelling" | "trigram" | "neighbourhood";
+  matched: "code" | "exact" | "alias" | "prefix" | "spelling" | "trigram" | "neighbourhood" | "postcode";
   /** The neighbourhood the query named, when the unit was found through one. */
   neighbourhood?: { fr: string; ar: string };
+  /** The postcode the query was, when the commune was found by it, with a few of the neighbourhoods it covers. */
+  postcode?: { code: string; neighbourhoods: string[] };
 }
 
 const EXACT = 1000;
@@ -116,7 +120,7 @@ const placesOf = (index: SearchIndex): PreparedPlace[] => {
 export function search(
   index: SearchIndex,
   query: string,
-  options: { levels?: Level[]; limit?: number; neighbourhoods?: boolean } = {},
+  options: { levels?: Level[]; limit?: number; neighbourhoods?: boolean; postcodes?: boolean } = {},
 ): Hit[] {
   const limit = options.limit ?? 10;
   const levels = options.levels ? new Set(options.levels) : null;
@@ -135,6 +139,16 @@ export function search(
       hits.push({ code, level, name: { fr, ar }, slug, score: EXACT, matched: "code" });
     }
     hits.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level] || a.code.localeCompare(b.code));
+    // Five digits are a Moroccan postcode as well as a code's digits: its communes come after any code it is.
+    if (options.postcodes !== false && /^\d{5}$/.test(raw)) {
+      for (const [at, neighbourhoods] of index.postcodes?.[raw] ?? []) {
+        const entry = index.entries[at];
+        if (!entry) continue;
+        const [code, level, fr, ar, slug] = entry;
+        if (levels && !levels.has(level)) continue;
+        hits.push({ code, level, name: { fr, ar }, slug, score: EXACT, matched: "postcode", postcode: { code: raw, neighbourhoods } });
+      }
+    }
     return hits.slice(0, limit);
   }
 

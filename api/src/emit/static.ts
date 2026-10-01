@@ -1,3 +1,4 @@
+import type { TableRow } from "../lib/neighbourhoodTable.ts";
 import { envelope, pageMeta, paginate, PER_PAGE, type Envelope } from "../lib/envelope.ts";
 import { groupBy, type Dataset } from "../lib/dataset.ts";
 import type { IndicatorRecord } from "../lib/indicators.ts";
@@ -291,4 +292,24 @@ export function buildVersion(d: Dataset): Envelope<unknown> {
     },
     { self: api("version.json") },
   );
+}
+
+/**
+ * Each commune's neighbourhoods and postcodes, and the whole table in one file to download.
+ * The names are OpenStreetMap's and Poste Maroc's, both under the ODbL, like the boundaries;
+ * the census publishes nothing by neighbourhood, so a row carries no figures.
+ */
+export function emitNeighbourhoods(tree: Tree, rows: TableRow[], postcodes: Map<string, string[]>): void {
+  const byCommune = new Map<string, TableRow[]>();
+  for (const row of rows) {
+    if (!byCommune.has(row.commune)) byCommune.set(row.commune, []);
+    byCommune.get(row.commune)!.push(row);
+  }
+  for (const commune of new Set([...byCommune.keys(), ...postcodes.keys()])) {
+    const path = api(`communes/${commune}/neighbourhoods.json`);
+    const neighbourhoods = (byCommune.get(commune) ?? []).map(({ commune: _, ...row }) => row);
+    tree.set(path, envelope({ neighbourhoods, postcodes: postcodes.get(commune) ?? [] }, { self: path }, { total: neighbourhoods.length }));
+  }
+  const all = api("neighbourhoods.json");
+  tree.set(all, envelope(rows, { self: all }, { total: rows.length }));
 }

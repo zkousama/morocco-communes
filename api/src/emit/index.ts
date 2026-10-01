@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
+import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
+import { neighbourhoodTable, postcodesByCommune } from "../lib/neighbourhoodTable.ts";
 import { buildIndicatorTable } from "../lib/indicators.ts";
 import { readIndicators } from "./indicators.ts";
 import { readEconomy } from "./economy.ts";
@@ -59,6 +60,12 @@ const economy = await readEconomy(DATA);
 emitEconomy(tree, economy);
 emitHousing(tree, await readHousing(DATA));
 emitInsights(tree, await readInsights(DATA));
+{
+  const places = (JSON.parse(await readFile("api/data/neighbourhoods.json", "utf8")) as { places: Neighbourhood[] }).places;
+  const codes = (JSON.parse(await readFile("api/data/postcodes.json", "utf8")) as { postcodes: [string, string, string[]][] }).postcodes;
+  const cityOf = new Map((dataset.arrondissements as { code: string; communeCode: string }[]).map((a) => [a.code, a.communeCode]));
+  emitNeighbourhoods(tree, neighbourhoodTable(places, codes, (code) => cityOf.get(code) ?? code), postcodesByCommune(codes));
+}
 // Committed like the search index: the figures a list of communes can be sorted by, which
 // the Worker holds in memory.
 await writeFile(
@@ -72,6 +79,8 @@ await writeFile(
 const version = (dataset.sources as { datasetVersion: string }).datasetVersion;
 // Neighbourhoods from OpenStreetMap, each placed in its unit by api:neighbourhoods.
 const neighbourhoods = JSON.parse(await readFile("api/data/neighbourhoods.json", "utf8")) as { places: Neighbourhood[] };
+// Postcodes from Poste Maroc's 2 lists, each in its commune, by api:postcodes.
+const postcodes = JSON.parse(await readFile("api/data/postcodes.json", "utf8")) as { postcodes: [string, string, string[]][] };
 const index = buildIndex(
   version,
   [
@@ -82,6 +91,7 @@ const index = buildIndex(
     { level: "cercle", rows: dataset.cercles as never[] },
   ],
   neighbourhoods.places,
+  postcodes.postcodes,
 );
 await writeFile(INDEX_OUT, `${JSON.stringify(index)}\n`);
 const geometry = await buildGeometry(DATA, dataset as never);
