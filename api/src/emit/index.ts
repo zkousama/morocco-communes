@@ -8,6 +8,7 @@ import { readEconomy } from "./economy.ts";
 import { readHousing } from "./housing.ts";
 import { readInsights } from "./insights.ts";
 import { buildIndex } from "./searchIndex.ts";
+import type { Neighbourhood } from "../lib/neighbourhoods.ts";
 import { buildOpenApi } from "../openapi.ts";
 import { buildGeometry, outlineCollections } from "./geometry.ts";
 import { tilePath } from "../lib/locate.ts";
@@ -69,13 +70,19 @@ await writeFile(
 // a build step. The Worker imports it at module scope, where parsing it costs a few ms
 // against a 1 s startup budget rather than the 10 ms each request gets.
 const version = (dataset.sources as { datasetVersion: string }).datasetVersion;
-const index = buildIndex(version, [
-  { level: "commune", rows: dataset.communes as never[] },
-  { level: "arrondissement", rows: dataset.arrondissements as never[] },
-  { level: "province", rows: dataset.provinces as never[] },
-  { level: "region", rows: dataset.regions as never[] },
-  { level: "cercle", rows: dataset.cercles as never[] },
-]);
+// Neighbourhoods from OpenStreetMap, each placed in its unit by api:neighbourhoods.
+const neighbourhoods = JSON.parse(await readFile("api/data/neighbourhoods.json", "utf8")) as { places: Neighbourhood[] };
+const index = buildIndex(
+  version,
+  [
+    { level: "commune", rows: dataset.communes as never[] },
+    { level: "arrondissement", rows: dataset.arrondissements as never[] },
+    { level: "province", rows: dataset.provinces as never[] },
+    { level: "region", rows: dataset.regions as never[] },
+    { level: "cercle", rows: dataset.cercles as never[] },
+  ],
+  neighbourhoods.places,
+);
 await writeFile(INDEX_OUT, `${JSON.stringify(index)}\n`);
 const geometry = await buildGeometry(DATA, dataset as never);
 // Committed for the same reason, and small: it only says which tiles exist.

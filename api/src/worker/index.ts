@@ -85,7 +85,8 @@ const NAMING = new Set<Hit["matched"]>(["code", "exact", "alias"]);
  * they don't count. Worked out here, since a count the client sends can say anything.
  */
 function namesAPlace(text: string): 0 | 1 {
-  const top = search(index, text, { limit: 1 })[0];
+  // A neighbourhood's name is left out: this counts the names the dataset itself holds.
+  const top = search(index, text, { limit: 1, neighbourhoods: false })[0];
   return top && NAMING.has(top.matched) ? 1 : 0;
 }
 
@@ -306,7 +307,8 @@ app.get("/api/communes", async (c) => {
     if (text.length > QUERY.maxLength) {
       return fail(url, "invalid-query", `q is at most ${QUERY.maxLength} characters`, instance);
     }
-    const hits = search(index, text, { levels: ["commune"], limit: 10 });
+    // A list of communes filtered by name: the commune's name, not a neighbourhood in it.
+    const hits = search(index, text, { levels: ["commune"], limit: 10, neighbourhoods: false });
     return json(envelope(hits, { self: instance }, { total: hits.length }), "computed");
   }
 

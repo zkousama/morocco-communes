@@ -264,3 +264,57 @@ describe("codes", () => {
     expect(search(index, "1511010", { levels: ["province"] })).toEqual([]);
   });
 });
+
+describe("neighbourhoods", () => {
+  const hoods = JSON.parse(readFileSync("api/data/neighbourhoods.json", "utf8")) as { places: [string, string, string][] };
+  const withHoods = buildIndex(
+    "1.0.0",
+    [
+      { level: "commune", rows: rd("communes") },
+      { level: "arrondissement", rows: rd("arrondissements") },
+      { level: "province", rows: rd("provinces") },
+      { level: "region", rows: rd("regions") },
+      { level: "cercle", rows: rd("cercles") },
+    ],
+    hoods.places,
+  );
+
+  it("finds the arrondissement a neighbourhood is in, and says which neighbourhood", () => {
+    const [top] = search(withHoods, "Sidi Maarouf");
+    expect(top?.code).toBe("06.141.01.41");
+    expect(top?.name.fr).toBe("Aïn-Chock");
+    expect(top?.matched).toBe("neighbourhood");
+    expect(top?.neighbourhood).toEqual({ fr: "Sidi Maârouf", ar: "سيدي معروف" });
+  });
+
+  it("finds it as it's typed, by its start, by a word in it, and in Arabic", () => {
+    for (const q of ["sidi maa", "maarouf", "سيدي معروف"]) {
+      expect(search(withHoods, q).some((h) => h.code === "06.141.01.41" && h.neighbourhood?.fr === "Sidi Maârouf"), q).toBe(true);
+    }
+  });
+
+  it("ranks a unit's own name above a neighbourhood with the same name", () => {
+    // Agdal is a neighbourhood in Rabat, Marrakech and Aït Melloul, and Fès has an arrondissement called Agdal.
+    const [top] = search(withHoods, "Agdal");
+    expect(top?.matched).toBe("exact");
+    expect(top?.neighbourhood).toBeUndefined();
+  });
+
+  it("gives a unit once, by its best match", () => {
+    const codes = search(withHoods, "hay", { limit: 20 }).map((h) => h.code);
+    expect(new Set(codes).size).toBe(codes.length);
+  });
+
+  it("leaves neighbourhoods out when asked to, and for a query under 3 letters", () => {
+    expect(search(withHoods, "Sidi Maarouf", { neighbourhoods: false }).some((h) => h.matched === "neighbourhood")).toBe(false);
+    expect(search(withHoods, "ib").some((h) => h.matched === "neighbourhood")).toBe(false);
+  });
+
+  it("answers the same without neighbourhoods as an index built with none", () => {
+    expect(search(withHoods, "tanger", { neighbourhoods: false })).toEqual(search(index, "tanger"));
+  });
+
+  it("refuses a neighbourhood whose unit isn't in the index", () => {
+    expect(() => buildIndex("1.0.0", [{ level: "commune", rows: rd("communes") }], [["Nowhere", "", "99.999.99.99"]])).toThrow(/99\.999\.99\.99/);
+  });
+});

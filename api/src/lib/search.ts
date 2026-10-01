@@ -49,6 +49,11 @@ export interface SearchIndex {
   aliases: Record<string, number>;
   /** A French name's skeleton, or an exonym's, to the entry positions that have it. */
   skeletons: Record<string, number[]>;
+  /**
+   * Neighbourhoods, which HCP doesn't count: French name, Arabic name, and the position of
+   * the arrondissement or commune that holds each. Left out of an index built without them.
+   */
+  places?: [string, string, number][];
 }
 
 export interface Hit {
@@ -57,7 +62,9 @@ export interface Hit {
   name: { fr: string; ar: string };
   slug: string;
   score: number;
-  matched: "code" | "exact" | "alias" | "prefix" | "spelling" | "trigram";
+  matched: "code" | "exact" | "alias" | "prefix" | "spelling" | "trigram" | "neighbourhood";
+  /** The neighbourhood the query named, when the unit was found through one. */
+  neighbourhood?: { fr: string; ar: string };
 }
 
 const EXACT = 1000;
@@ -68,6 +75,34 @@ const PREFIX = 500;
  * the one closest to what was typed comes first.
  */
 const SPELLING = 300;
+/**
+ * A neighbourhood's name, a step below a unit's own at each kind of match, so Agdal the
+ * arrondissement comes before Agdal the neighbourhood. A word inside a neighbourhood's name
+ * sits below a spelling variant and above any trigram overlap.
+ */
+const PLACE_EXACT = 950;
+const PLACE_PREFIX = 450;
+const PLACE_WORD = 250;
+/** Letters a query needs before neighbourhoods are searched: under 3 matches hundreds. */
+const PLACE_MIN = 3;
+
+interface PreparedPlace {
+  fr: string;
+  ar: string;
+  at: number;
+  nFr: string;
+  nAr: string;
+}
+const preparedPlaces = new WeakMap<SearchIndex, PreparedPlace[]>();
+/** The neighbourhoods' normalised names, worked out on the first search that needs them. */
+const placesOf = (index: SearchIndex): PreparedPlace[] => {
+  let prepared = preparedPlaces.get(index);
+  if (!prepared) {
+    prepared = (index.places ?? []).map(([fr, ar, at]) => ({ fr, ar, at, nFr: normalise(fr), nAr: normalise(ar) }));
+    preparedPlaces.set(index, prepared);
+  }
+  return prepared;
+};
 
 /**
  * Scores only the entries that share a trigram with the query, or its consonant skeleton.
@@ -81,7 +116,7 @@ const SPELLING = 300;
 export function search(
   index: SearchIndex,
   query: string,
-  options: { levels?: Level[]; limit?: number } = {},
+  options: { levels?: Level[]; limit?: number; neighbourhoods?: boolean } = {},
 ): Hit[] {
   const limit = options.limit ?? 10;
   const levels = options.levels ? new Set(options.levels) : null;
@@ -163,13 +198,34 @@ export function search(
     hits.push({ code, level, name: { fr, ar }, slug, score: Number(score.toFixed(4)), matched });
   }
 
+  if (options.neighbourhoods !== false && q.length >= PLACE_MIN) {
+    const words = (s: string) => s.split(" ").some((w) => w.startsWith(q));
+    for (const place of placesOf(index)) {
+      let score = 0;
+      if (place.nFr === q || place.nAr === q) score = PLACE_EXACT;
+      else if (place.nFr.startsWith(q) || place.nAr.startsWith(q)) {
+        const field = place.nFr.startsWith(q) ? place.nFr : place.nAr;
+        score = PLACE_PREFIX - Math.min(PLACE_PREFIX - PLACE_WORD - 1, field.length - q.length);
+      } else if (q.includes(" ") ? false : words(place.nFr) || words(place.nAr)) score = PLACE_WORD;
+      if (score === 0) continue;
+      const entry = index.entries[place.at];
+      if (!entry) continue;
+      const [code, level, fr, ar, slug] = entry;
+      if (levels && !levels.has(level)) continue;
+      hits.push({ code, level, name: { fr, ar }, slug, score, matched: "neighbourhood", neighbourhood: { fr: place.fr, ar: place.ar } });
+    }
+  }
+
   hits.sort(
     (a, b) =>
       b.score - a.score ||
       LEVEL_RANK[a.level] - LEVEL_RANK[b.level] ||
-      a.code.localeCompare(b.code),
+      a.code.localeCompare(b.code) ||
+      (a.neighbourhood?.fr ?? "").localeCompare(b.neighbourhood?.fr ?? ""),
   );
-  return hits.slice(0, limit);
+  // A unit once, by its best match: its own name, or the neighbourhood nearest the query.
+  const seen = new Set<string>();
+  return hits.filter((h) => !seen.has(h.code) && seen.add(h.code)).slice(0, limit);
 }
 
 const R = 6371;

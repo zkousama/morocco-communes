@@ -11,10 +11,9 @@
  */
 import { writeFile } from "node:fs/promises";
 import { simplify, type Point } from "../src/lib/geo.ts";
+import { overpass } from "../../api/scripts/overpass.ts";
 import { networkOf, type OsmWay } from "./railNetwork.ts";
 
-/** Overpass's main server, then a mirror: either can be too busy to answer. */
-const ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
 /** Kilometres of joined track a group needs to be drawn: a line, not a quarry's track. */
 const BARS = { rail: 5, tram: 2 };
 /** A station further than this from any line drawn is left out with it. */
@@ -32,39 +31,7 @@ out body geom;
 node["railway"~"^(station|halt)$"](area.ma);
 out body;`;
 
-interface Element {
-  type: "way" | "node";
-  id: number;
-  tags?: Record<string, string>;
-  nodes?: number[];
-  geometry?: { lat: number; lon: number }[];
-  lat?: number;
-  lon?: number;
-}
-
-async function ask(): Promise<Element[]> {
-  const failures: string[] = [];
-  for (let attempt = 0; attempt < 3; attempt++) {
-    for (const endpoint of ENDPOINTS) {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "content-type": "application/x-www-form-urlencoded",
-          accept: "application/json",
-          // Overpass turns away a request that doesn't say who's asking.
-          "user-agent": "morocco-communes (github.com/zkousama/morocco-communes)",
-        },
-        body: new URLSearchParams({ data: QUERY }),
-      }).catch((error: Error) => ({ ok: false, status: error.message }) as const);
-      if (response.ok) return ((await (response as Response).json()) as { elements: Element[] }).elements;
-      failures.push(`${new URL(endpoint).host} ${response.status}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 15_000));
-  }
-  throw new Error(`Overpass didn't answer: ${failures.join(", ")}`);
-}
-
-const elements = await ask();
+const elements = await overpass(QUERY);
 
 const ways: OsmWay[] = elements
   .filter((e) => e.type === "way" && e.nodes && e.geometry)

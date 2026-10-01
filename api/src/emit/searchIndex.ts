@@ -1,5 +1,6 @@
 import { normalise, skeleton, trigrams } from "../lib/normalise.ts";
 import { EXONYMS, type Exonym } from "../lib/exonyms.ts";
+import type { Neighbourhood } from "../lib/neighbourhoods.ts";
 import type { IndexEntry, Level, SearchIndex } from "../lib/search.ts";
 
 interface Named {
@@ -18,6 +19,7 @@ interface Named {
 export function buildIndex(
   datasetVersion: string,
   levels: { level: Level; rows: Named[] }[],
+  neighbourhoods: Neighbourhood[] = [],
 ): SearchIndex {
   const entries: IndexEntry[] = [];
   const postings: Record<string, number[]> = {};
@@ -58,7 +60,22 @@ export function buildIndex(
   for (const g of Object.keys(postings).sort()) sorted[g] = postings[g]!;
 
   const aliases = buildAliases(entries);
-  return { datasetVersion, entries, postings: sorted, aliases, skeletons: buildSkeletons(entries, aliases) };
+  const index: SearchIndex = { datasetVersion, entries, postings: sorted, aliases, skeletons: buildSkeletons(entries, aliases) };
+  if (neighbourhoods.length > 0) index.places = buildPlaces(entries, neighbourhoods);
+  return index;
+}
+
+/**
+ * Each neighbourhood with the position of the unit it's in. A unit the index doesn't hold
+ * is an error, the way an exonym's is: the file was made against another dataset.
+ */
+export function buildPlaces(entries: IndexEntry[], neighbourhoods: Neighbourhood[]): [string, string, number][] {
+  const position = new Map(entries.map((e, i) => [e[0], i]));
+  return neighbourhoods.map(([fr, ar, code]) => {
+    const at = position.get(code);
+    if (at === undefined) throw new Error(`neighbourhood ${fr || ar} is placed in ${code}, which the index doesn't hold`);
+    return [fr, ar, at];
+  });
 }
 
 /**

@@ -170,6 +170,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
       description:
         "Find régions, provinces and préfectures, cercles, communes and arrondissements of Morocco by name. " +
         "Takes French or Arabic, a slug, or another name a place is known by: Fez finds Fès, Mogador finds Essaouira. " +
+        "A neighbourhood's name finds the arrondissement or commune it's in, with matched neighbourhood and the neighbourhood's names: " +
+        "Sidi Maârouf finds Aïn-Chock, in Casablanca. The census has no figures for a neighbourhood itself. " +
         "Returns codes; pass a commune's code to get_commune for its population and parents.",
       inputSchema: {
         query: z.string().min(1).max(QUERY.maxLength).describe("The name to look for, in French, Arabic or as a slug, or a unit's code."),
@@ -190,7 +192,9 @@ export function createMcpServer(deps: McpDeps): McpServer {
             name_fr: z.string(),
             name_ar: z.string(),
             slug: z.string(),
-            matched: z.enum(["code", "exact", "alias", "prefix", "spelling", "trigram"]),
+            matched: z.enum(["code", "exact", "alias", "prefix", "spelling", "trigram", "neighbourhood"]),
+            neighbourhood_fr: z.string().optional(),
+            neighbourhood_ar: z.string().optional(),
           }),
         ),
       },
@@ -206,6 +210,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           name_ar: h.name.ar,
           slug: h.slug,
           matched: h.matched,
+          ...(h.neighbourhood ? { neighbourhood_fr: h.neighbourhood.fr, neighbourhood_ar: h.neighbourhood.ar } : {}),
         })),
       });
     },
