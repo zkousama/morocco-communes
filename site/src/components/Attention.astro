@@ -29,7 +29,9 @@ const rows = attention
   .filter((row) => row !== null);
 ---
 
-<Base locale={locale} route="most-looked-up/" title={copy.attention} description={copy.attentionBody}>
+{/* Off the menus and out of the sitemap: its address still works, and search engines are asked
+    not to list it. Its ranking still gives the search box its suggestions. */}
+<Base locale={locale} route="most-looked-up/" title={copy.attention} description={copy.attentionBody} current={false}>
   <article class="page" data-base={path(locale)} data-locale={locale}>
     <h1>{copy.attention}</h1>
     <p class="lede">{copy.attentionBody}</p>
