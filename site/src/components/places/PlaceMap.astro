@@ -1,7 +1,15 @@
 ---
-import type { Drawing } from "../../lib/places";
+/**
+ * A province's communes, shaded by density. Pointing at one shows the home map's card, its
+ * name and the lines the home map starts with, straight away, and it goes once the pointer
+ * leaves the shape. The card's text is written onto each shape here, so the script only shows it.
+ */
+import type { Locale } from "../../i18n/ui";
+import { arrondissements, communeOf, type Drawing } from "../../lib/places";
+import { shapeLines } from "../../lib/shapeTip";
 
 interface Props {
+  locale: Locale;
   drawing: Drawing & { provinces?: { code: string; d: string }[] };
   label: string;
   /** Each shape's density class, 0 to 5, for the shading the home map uses. */
@@ -15,11 +23,12 @@ interface Props {
   /** What to call land no commune's boundary covers. */
   gapLabel?: string;
 }
-const { drawing, label, classOf, linkOf, highlight, borders, gapLabel = "" } = Astro.props;
+const { locale, drawing, label, classOf, linkOf, highlight, borders, gapLabel = "" } = Astro.props;
 const focus = highlight ? drawing.shapes.find((s) => s.code === highlight) : undefined;
 const touching = borders ? drawing.shapes.filter((s) => borders.has(s.code)) : [];
 ---
 
+<div class="place-map-frame">
 <svg class="place-map" viewBox={drawing.viewBox} role="group" aria-label={label}>
   {drawing.gaps.length > 0 && (
     <defs>
@@ -30,18 +39,115 @@ const touching = borders ? drawing.shapes.filter((s) => borders.has(s.code)) : [
   )}
   {drawing.shapes.map((shape) => {
     const link = linkOf(shape.code);
+    const place = communeOf.get(shape.code) ?? arrondissements.find((a) => a.code === shape.code);
     const path = <path d={shape.d} data-d={classOf(shape.code)} />;
-    if (!link) return path;
-    return link.href ? <a href={link.href}><title>{link.name}</title>{path}</a> : <g><title>{link.name}</title>{path}</g>;
+    // The page's own commune has no link, and still gets its card.
+    const name = link?.name ?? place?.name.fr;
+    if (!name) return path;
+    const lines = place ? shapeLines(locale, place).join("\n") : "";
+    return link?.href ? (
+      <a href={link.href} aria-label={name} data-name={name} data-lines={lines}>{path}</a>
+    ) : (
+      <g role="img" aria-label={name} data-name={name} data-lines={lines}>{path}</g>
+    );
   })}
-  {drawing.gaps.map((d) => <path class="gap" d={d}><title>{gapLabel}</title></path>)}
+  {drawing.gaps.map((d) => <path class="gap" d={d} role="img" aria-label={gapLabel} data-name={gapLabel} />)}
   {drawing.provinces && <path class="provinces" d={drawing.provinces.map((p) => p.d).join("")} />}
   <path class="edge" d={drawing.outline} />
   {touching.length > 0 && <path class="touching" d={touching.map((s) => s.d).join("")} />}
   {focus && <path class="focus" d={focus.d} />}
 </svg>
+<div class="place-tip" hidden></div>
+</div>
+
+<script>
+  import { placeTip } from "../../lib/tip";
+
+  // A pointer shows the card at once and hides it as it leaves the shape; the keyboard
+  // shows it on the link in focus. A tap follows the link, as before.
+  for (const frame of document.querySelectorAll<HTMLElement>(".place-map-frame")) {
+    const tip = frame.querySelector<HTMLElement>(".place-tip");
+    if (!tip) continue;
+    let current: Element | null = null;
+    const show = (shape: Element) => {
+      if (shape === current) return;
+      current = shape;
+      const name = document.createElement("strong");
+      name.textContent = shape.getAttribute("data-name") ?? "";
+      const lines = (shape.getAttribute("data-lines") ?? "")
+        .split("\n")
+        .filter(Boolean)
+        .map((text) => Object.assign(document.createElement("span"), { textContent: text }));
+      tip.replaceChildren(name, ...lines);
+      tip.hidden = false;
+    };
+    const place = (x: number, y: number) => {
+      const box = frame.getBoundingClientRect();
+      const at = placeTip({ x: x - box.left, y: y - box.top }, { width: tip.offsetWidth, height: tip.offsetHeight }, box, null);
+      tip.style.transform = `translate(${Math.round(at.x)}px, ${Math.round(at.y)}px)`;
+    };
+    const hide = () => {
+      current = null;
+      tip.hidden = true;
+    };
+    frame.addEventListener("pointermove", (event) => {
+      if (event.pointerType !== "mouse") return;
+      const shape = (event.target as Element).closest("[data-name]");
+      if (!shape) return hide();
+      show(shape);
+      place(event.clientX, event.clientY);
+    });
+    frame.addEventListener("pointerleave", hide);
+    frame.addEventListener("focusin", (event) => {
+      const shape = (event.target as Element).closest("[data-name]");
+      if (!shape) return;
+      show(shape);
+      const box = shape.getBoundingClientRect();
+      place(box.left + box.width / 2, box.top + box.height / 2);
+    });
+    frame.addEventListener("focusout", hide);
+  }
+</script>
 
 <style>
+  .place-map-frame {
+    position: relative;
+  }
+
+  /* The home map's card. */
+  .place-tip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: grid;
+    gap: 0.1rem;
+    min-width: 11rem;
+    max-width: min(16rem, 100%);
+    padding: 0.55rem 0.75rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.12);
+    font-size: var(--t-xs);
+    line-height: 1.45;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .place-tip[hidden] {
+    display: none;
+  }
+
+  .place-tip :global(strong) {
+    font-size: var(--t-sm);
+    font-weight: 500;
+  }
+
+  .place-tip :global(span) {
+    color: var(--quiet);
+  }
+
   .place-map {
     display: block;
     width: 100%;

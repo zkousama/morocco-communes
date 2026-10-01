@@ -243,6 +243,7 @@ getCommune("${c.slug}");`;
       <p>{fill(p.whereBody, { ptype })}</p>
       {drawing && (
         <PlaceMap
+          locale={locale}
           drawing={drawing}
           gapLabel={p.gapLabel}
           label={fill(p.mapLabel, { name: province.name.fr })}
@@ -314,6 +315,7 @@ getCommune("${c.slug}");`;
       <div class="pair">
         {cityDrawing && (
           <PlaceMap
+            locale={locale}
             drawing={cityDrawing}
             label={fill(p.mapLabel, { name: c.name.fr })}
             classOf={arrondissementClass}
