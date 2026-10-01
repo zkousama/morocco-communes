@@ -290,15 +290,12 @@ getCommune("${c.slug}");`;
       {codes.length > 0 && (
         <>
           <h3>{codes.length === 1 ? p.postcode : p.postcodes}</h3>
-          <div class="postcodes">
-            {codes.slice(0, CODES_SHOWN).join(", ")}
+          <p class="postcodes">
+            {codes.slice(0, CODES_SHOWN).join(", ")}{codes.length > CODES_SHOWN && <span class="postcodes-rest">{`, ${codes.slice(CODES_SHOWN).join(", ")}`}</span>}
             {codes.length > CODES_SHOWN && (
-              <details class="postcodes-more">
-                <summary>{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</summary>
-                {`, ${codes.slice(CODES_SHOWN).join(", ")}`}
-              </details>
+              <button type="button" class="postcodes-more" hidden>{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</button>
             )}
-          </div>
+          </p>
         </>
       )}
     </div>
@@ -450,13 +447,11 @@ getCommune("${c.slug}");`;
   }
 
   .postcodes-more {
-    display: inline;
-  }
-
-  .postcodes-more summary {
-    display: inline;
-    margin-left: 0.3em;
-    list-style: none;
+    margin-inline-start: 0.3em;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
     color: var(--quiet);
     cursor: pointer;
     text-decoration: underline;
@@ -464,16 +459,13 @@ getCommune("${c.slug}");`;
     text-underline-offset: 0.2em;
   }
 
-  .postcodes-more summary::-webkit-details-marker {
-    display: none;
+  .postcodes-more:hover {
+    color: var(--ink);
   }
 
-  .postcodes-more[open] summary {
+  .postcodes-more[hidden],
+  .postcodes-rest[hidden] {
     display: none;
-  }
-
-  .postcodes-more::details-content {
-    display: inline;
   }
 
   /* Read with the headline numbers rather than as a section of its own, so it sits close
@@ -518,3 +510,18 @@ getCommune("${c.slug}");`;
     margin-inline-start: 0.5rem;
   }
 </style>
+
+<script>
+  // A city's postcodes past the first few, folded behind a button once this runs; without
+  // it, every postcode shows.
+  for (const more of document.querySelectorAll<HTMLButtonElement>(".postcodes-more")) {
+    const rest = more.parentElement?.querySelector<HTMLElement>(".postcodes-rest");
+    if (!rest) continue;
+    rest.hidden = true;
+    more.hidden = false;
+    more.addEventListener("click", () => {
+      rest.hidden = false;
+      more.remove();
+    });
+  }
+</script>
