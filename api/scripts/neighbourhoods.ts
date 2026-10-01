@@ -21,7 +21,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { readArrondissements, readBoundaries, type Boundary } from "../src/emit/boundaries.ts";
-import { inside, MAX_LOSS, namesOf, tooShrunk, type Neighbourhood } from "../src/lib/neighbourhoods.ts";
+import { inside, isStreet, MAX_LOSS, namesOf, tooShrunk, type Neighbourhood } from "../src/lib/neighbourhoods.ts";
 import { ADDED } from "../src/lib/neighbourhoodsAdded.ts";
 import { cityKey, cleanName, coreOf, sameName } from "../src/lib/postNeighbourhoods.ts";
 import { readSheetRows } from "../../pipeline/src/lib/xlsx.ts";
@@ -88,16 +88,28 @@ if (!keepOsm) {
   }
 }
 const kept = new Map<string, Neighbourhood>();
-if (keepOsm) {
-  for (const p of previous!.places) if (p[3] !== "poste") kept.set(`${p[2]}|${normalise(p[0])}|${normalise(p[1])}`, p);
-}
 let unnamed = 0;
+let streets = 0;
 let outside = 0;
 let sameAsUnit = 0;
+if (keepOsm) {
+  for (const p of previous!.places) {
+    if (p[3] === "poste") continue;
+    if (isStreet(p[0])) {
+      streets++;
+      continue;
+    }
+    kept.set(`${p[2]}|${normalise(p[0])}|${normalise(p[1])}`, p);
+  }
+}
 for (const e of elements) {
   const names = namesOf(e.tags ?? {});
   if (!names) {
     unnamed++;
+    continue;
+  }
+  if (isStreet(names.fr)) {
+    streets++;
     continue;
   }
   const lat = e.lat ?? e.center?.lat;
@@ -180,7 +192,7 @@ for (const [city, raw] of rows) {
   const commune = cities.get((city ?? "").trim());
   const name = cleanName(raw ?? "");
   if (!commune) continue;
-  if (!name) {
+  if (!name || isStreet(name)) {
     notPlaces++;
     continue;
   }
@@ -208,6 +220,38 @@ for (const [city, raw] of rows) {
 }
 console.log(`Poste Maroc: ${rows.length} rows in ${cities.size} cities; ${posted} added, ${known} already there or repeated, ${respelt} already there spelt another way, ${notPlaces} not a place`);
 
+// A postal city takes in its neighbours: Poste Maroc's Inezgane lists Bensergao, which is in
+// Agadir, and its Témara lists Sable d'Or, in Harhoura. A name OpenStreetMap places in a
+// commune bordering the city, and not in the city, is that commune's, when it's rare enough
+// to be the same place: found in 2 communes at most across the whole list. Riad and Nahda,
+// found in dozens, prove nothing and stay where Poste Maroc put them.
+const adjacency = JSON.parse(await readFile("data/v1/geometry/adjacency.json", "utf8")) as { code: string; neighbours: { code: string }[] }[];
+const borders = new Map(adjacency.map((r) => [r.code, new Set(r.neighbours.map((n) => n.code))]));
+const communeOfUnit = (code: string) => arrondissements.find((a) => a.code === code)?.communeCode ?? code;
+const located = [...kept.values()].filter((row) => row[3] !== "poste");
+const communesNamed = new Map<string, Set<string>>();
+for (const row of kept.values()) {
+  const k = coreOf(normalise(row[0]));
+  if (!communesNamed.has(k)) communesNamed.set(k, new Set());
+  communesNamed.get(k)!.add(communeOfUnit(row[2]));
+}
+let spilt = 0;
+const spiltSamples: string[] = [];
+for (const [key, row] of kept) {
+  if (row[3] !== "poste") continue;
+  const city = row[2];
+  if ((communesNamed.get(coreOf(normalise(row[0])))?.size ?? 0) > 2) continue;
+  const same = (other: Neighbourhood) => coreOf(normalise(other[0])) === coreOf(normalise(row[0])) || sameName(row[0], other[0]);
+  if (located.some((o) => communeOfUnit(o[2]) === city && same(o))) continue;
+  const next = located.find((o) => borders.get(city)?.has(communeOfUnit(o[2])) && same(o));
+  if (!next) continue;
+  kept.delete(key);
+  if (row[0] !== next[0] && !(next[4] ?? []).includes(row[0])) next[4] = [...(next[4] ?? []), row[0]].sort();
+  spilt++;
+  if (spiltSamples.length < 12) spiltSamples.push(`${row[0]} (Poste Maroc's ${communes.find((c) => c.code === city)?.name.fr}) is ${next[0]}, in ${[...communes, ...arrondissements].find((u) => u.code === next[2])?.name.fr}`);
+}
+console.log(`postal cities: ${spilt} names left to the bordering commune OpenStreetMap places them in; e.g. ${spiltSamples.join("; ")}`);
+
 const places = [...kept.values()].sort((a, b) => a[2].localeCompare(b[2]) || a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
 // A busy Overpass server can answer with part of the map, so a list that lost more than a
 // few of the last one's OpenStreetMap names is refused rather than written over it.
@@ -232,5 +276,5 @@ await writeFile(
 );
 const count = (source: string) => places.filter((p) => p[3] === source).length;
 console.log(`kept ${places.length}: ${count("osm")} from OpenStreetMap (${before} last time), ${count("hand")} added by hand, ${count("poste")} from Poste Maroc`);
-console.log(`left out of OpenStreetMap's: ${unnamed} with no name, ${outside} in no boundary, ${sameAsUnit} named like their unit`);
+console.log(`left out of OpenStreetMap's: ${unnamed} with no name, ${streets} named like a street, ${outside} in no boundary, ${sameAsUnit} named like their unit`);
 for (const added of ADDED) console.log(`${added.fr}:`, JSON.stringify(places.filter((p) => p[0] === added.fr)));

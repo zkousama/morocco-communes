@@ -69,3 +69,11 @@ describe("a fetch that came back short", () => {
     expect(tooShrunk(0, 10)).toBe(false);
   });
 });
+
+describe("a street mistaken for a neighbourhood", () => {
+  it("is told by the word it starts with", async () => {
+    const { isStreet } = await import("../../src/lib/neighbourhoods.ts");
+    for (const name of ["Bd. Mohammed V", "Rue de Casablanca", "Av. du Caire", "Avenue Hassan II", "Route de Fès", "Impasse 3"]) expect(isStreet(name), name).toBe(true);
+    for (const name of ["Place d'Armes", "Hay Riad", "Routes Neuves", "Ruelle"]) expect(isStreet(name), name).toBe(false);
+  });
+});

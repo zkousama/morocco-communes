@@ -103,3 +103,12 @@ describe("2 spellings under the same postcode", () => {
     expect(sameName("Ain Chifa II", "Ain Chifa III", { samePostcode: true })).toBe(false);
   });
 });
+
+describe("tidying a name", () => {
+  it("parts a number from the name it's run into, and leaves an ordinal alone", () => {
+    expect(cleanName("QUARTIER 1AKHATAR")).toBe("1 Akhatar");
+    expect(cleanName("12ELMASSIRA")).toBe("12 Elmassira");
+    expect(cleanName("5ÈME TRANCHE")).toBe("5ème Tranche");
+    expect(cleanName("11 JANVIER")).toBe("11 Janvier");
+  });
+});

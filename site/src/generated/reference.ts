@@ -6055,7 +6055,7 @@ export const reference = {
         ],
         "meta": {
           "datasetVersion": "1.9.1",
-          "total": 10051
+          "total": 10038
         },
         "links": {
           "self": "/api/neighbourhoods.json",
@@ -6065,7 +6065,7 @@ export const reference = {
       },
       "cut": {
         "shown": 3,
-        "total": 10051
+        "total": 10038
       }
     },
     "getNationalHousing": {

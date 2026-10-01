@@ -16,7 +16,9 @@ const capital = (word: string) => word.replace(/(^|[-'’])(\p{L})/gu, (_, sep: 
 
 /** A row's name, cleaned, or null when it isn't a place to search for. */
 export function cleanName(raw: string): string | null {
-  const words = raw.trim().replace(/\s+/g, " ").toLowerCase().split(" ").filter(Boolean);
+  // A block number run into its name, 1AKHATAR in Meknès, gets its space; 5ÈME is an ordinal and keeps none.
+  const spaced = raw.trim().replace(/^(?:quartier\s+)?(\d+)(?!(?:e|er|ere|ère|eme|ème)\b)(\p{L})/iu, (m, n: string, ch: string) => `${m.slice(0, m.length - n.length - ch.length)}${n} ${ch}`);
+  const words = spaced.replace(/\s+/g, " ").toLowerCase().split(" ").filter(Boolean);
   if (words[0] === "quartier") words.shift();
   if (words.length === 0 || NOT_A_PLACE.has(normalise(words[0]!))) return null;
   // "Quartier A" and "Quartier 133" say nothing a search could find.

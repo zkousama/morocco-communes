@@ -29,6 +29,9 @@ export function namesOf(tags: Record<string, string>): { fr: string; ar: string 
   return fr || ar ? { fr, ar } : null;
 }
 
+/** A street's name where a neighbourhood's should be: a few places are tagged with the boulevard they're on. */
+export const isStreet = (name: string) => /^(rue|bd|boulevard|av|avenue|route|impasse)\b\.?\s/i.test(name.trim());
+
 /** Whether a point is inside a polygon, outer ring first and holes after, by the even-odd rule. */
 export function inside([x, y]: [number, number], rings: [number, number][][]): boolean {
   let within = false;
