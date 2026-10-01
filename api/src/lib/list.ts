@@ -201,11 +201,12 @@ export async function listCommunes<T extends ListedCommune>(
   fetchJson: FetchJson,
   indicators?: IndicatorTable,
 ): Promise<{ rows: unknown[]; meta: PageMeta } | null> {
+  // A filter whose list is empty has no file, and neither does a page past the last: both are
+  // worked out below, which gives the empty page 1 and refuses the rest.
   const direct = aliasPath(query);
   if (direct) {
     const body = await fetchJson(direct);
-    if (!body) return null;
-    return { rows: body.data, meta: body.meta as PageMeta };
+    if (body) return { rows: body.data, meta: body.meta as PageMeta };
   }
   const { slice, meta } = paginate(collectCommunes(query, communes, indicators), query.page, PER_PAGE);
   if (query.page > meta.totalPages) return null;

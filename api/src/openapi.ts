@@ -202,11 +202,11 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
         get: {
           operationId: "listArrondissements",
           summary: "The arrondissements of a commune",
-          description: "Only 6 communes have arrondissements; every other commune returns an empty list.",
+          description: "Only the 6 communes divided into arrondissements have this file; any other commune is a 404.",
           parameters: [code("The dotted commune code.", "01.511.01.0")],
           responses: {
             "200": ok("The commune's arrondissements.", { type: "array", items: { type: "object" } }),
-            "404": problem("No commune has that code."),
+            "404": problem("No commune has that code, or it has no arrondissements."),
           },
         },
       },
@@ -312,12 +312,12 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           summary: "The communes that border a commune",
           description:
             "Each with its names and the length of the border the two share, in km, measured along their OpenStreetMap boundaries. " +
-            "Sidi Mohamed Benmansour has no boundary, so its list is empty.",
+            "Sidi Mohamed Benmansour has no boundary, so it has no file.",
           parameters: [code("A dotted code, padded or unpadded digits, or a slug.", "tiznit")],
           responses: {
             "200": ok("The communes it borders.", { type: "array", items: ref("Neighbour") }),
             "400": problem("Not an identifier."),
-            "404": problem("No commune has that identifier."),
+            "404": problem("No commune has that identifier, or it has no boundary."),
           },
         },
       },

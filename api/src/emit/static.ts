@@ -82,7 +82,10 @@ export function emitTree(d: Dataset): Tree {
     put(path, envelope(rows, { self: path }, { total: rows.length }));
 
   /** A paginated list always has page 1, even when it holds nothing. */
+  // An empty list has no file: the Worker works out the empty page itself, and a parent with
+  // no children of that kind answers 404 for its list, as a commune with no housing does.
   const paged = (base: string, rows: unknown[]) => {
+    if (rows.length === 0) return;
     const totalPages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
     for (let page = 1; page <= totalPages; page++) {
       const { slice, meta } = paginate(rows, page);
@@ -107,7 +110,8 @@ export function emitTree(d: Dataset): Tree {
   whole(api("provinces.json"), d.provinces);
   for (const p of d.provinces) {
     put(api(`provinces/${p.code}.json`), envelope(p, { self: api(`provinces/${p.code}.json`) }));
-    whole(api(`provinces/${p.code}/cercles.json`), cerclesByProvince.get(p.code) ?? []);
+    const cercles = cerclesByProvince.get(p.code) ?? [];
+    if (cercles.length > 0) whole(api(`provinces/${p.code}/cercles.json`), cercles);
     paged(api(`provinces/${p.code}/communes/page`), communesByProvince.get(p.code) ?? []);
   }
 
@@ -130,11 +134,12 @@ export function emitTree(d: Dataset): Tree {
   const neighboursOf = new Map(d.adjacency.map((row) => [row.code, row.neighbours]));
   for (const c of d.communes) {
     put(api(`communes/${c.code}.json`), envelope(c, { self: api(`communes/${c.code}.json`) }));
-    whole(api(`communes/${c.code}/arrondissements.json`), arrondissementsByCommune.get(c.code) ?? []);
-    whole(
-      api(`communes/${c.code}/neighbours.json`),
-      (neighboursOf.get(c.code) ?? []).map((n) => ({ code: n.code, name: nameOf.get(n.code) ?? null, km: n.km })),
-    );
+    const arrondissements = arrondissementsByCommune.get(c.code) ?? [];
+    if (arrondissements.length > 0) whole(api(`communes/${c.code}/arrondissements.json`), arrondissements);
+    const neighbours = neighboursOf.get(c.code) ?? [];
+    if (neighbours.length > 0) {
+      whole(api(`communes/${c.code}/neighbours.json`), neighbours.map((n) => ({ code: n.code, name: nameOf.get(n.code) ?? null, km: n.km })));
+    }
   }
 
   whole(api("arrondissements.json"), d.arrondissements);

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
 import { emitTree, HEADERS_FILE } from "../../src/emit/static.ts";
 import { PER_PAGE } from "../../src/lib/envelope.ts";
+import { listCommunes } from "../../src/lib/list.ts";
 import type { Dataset } from "../../src/lib/dataset.ts";
 
 const read = (name: string) =>
@@ -19,8 +20,9 @@ const d: Dataset = {
 };
 const tree = emitTree(d);
 
-/** Counted from the dataset, not read back off the tree, so the two can disagree. */
-const pagesOver = (groups: number[]) => groups.reduce((n, size) => n + Math.max(1, Math.ceil(size / PER_PAGE)), 0);
+/** Counted from the dataset, not read back off the tree, so the two can disagree. An empty list has no page. */
+const pagesOver = (groups: number[]) => groups.reduce((n, size) => n + Math.ceil(size / PER_PAGE), 0);
+const having = <T>(rows: T[], key: (r: T) => string | null) => new Set(rows.map(key).filter((k) => k !== null)).size;
 const sizes = <T>(rows: T[], key: (r: T) => string | null, keys: string[]) =>
   keys.map((k) => rows.filter((r) => key(r) === k).length);
 
@@ -34,20 +36,22 @@ describe("emitTree", () => {
       1 + // version
       1 + d.regions.length + d.regions.length + // regions list, detail, nested provinces
       pagesOver(sizes(d.communes, (c) => c.parents.region, regionCodes)) +
-      1 + d.provinces.length + d.provinces.length + // provinces list, detail, nested cercles
+      1 + d.provinces.length + having(d.cercles, (c) => c.provinceCode) + // provinces list, detail, nested cercles
       pagesOver(sizes(d.communes, (c) => c.parents.province, provinceCodes)) +
       1 + d.cercles.length + // cercles list, detail
       pagesOver(sizes(d.communes, (c) => c.parents.cercle, cercleCodes)) +
       Math.ceil(d.communes.length / PER_PAGE) +
       pagesOver([d.communes.filter((c) => c.type === "urban").length]) +
       pagesOver([d.communes.filter((c) => c.type === "rural").length]) +
-      d.communes.length + d.communes.length + d.communes.length + // commune detail, nested arrondissements, neighbours
+      d.communes.length + // commune detail
+      having(d.arrondissements, (a) => a.communeCode) + // nested arrondissements, for the 6 cities
+      d.adjacency.filter((row) => row.neighbours.length > 0).length + // neighbours, for every commune with a boundary
       1 + d.arrondissements.length; // arrondissements list, detail
 
     expect(tree.size).toBe(expected);
     // Named outright: adding an endpoint has to be a deliberate edit here, and the tree
     // has to stay well inside Cloudflare's 20,000-file ceiling.
-    expect(tree.size).toBe(5355);
+    expect(tree.size).toBe(3835);
     expect(tree.size).toBeLessThan(20_000);
   });
 
@@ -59,25 +63,30 @@ describe("emitTree", () => {
     for (const a of d.arrondissements) expect(tree.has(`/api/arrondissements/${a.code}.json`)).toBe(true);
   });
 
-  it("gives the 8 préfectures with no communes an empty page 1 rather than nothing", () => {
+  it("writes no page for the 8 préfectures with no communes, and their list still answers an empty page 1", async () => {
     const childless = d.provinces.filter((p) => !d.communes.some((c) => c.parents.province === p.code));
     expect(childless.length).toBe(8);
+    const fetchJson = async (path: string) => (tree.get(path) ?? null) as never;
     for (const p of childless) {
-      const body = tree.get(`/api/provinces/${p.code}/communes/page/1.json`)!;
-      expect(body.data).toEqual([]);
-      expect(body.meta).toMatchObject({ page: 1, total: 0, totalPages: 1 });
-      expect(body.links.next).toBeNull();
+      expect(tree.has(`/api/provinces/${p.code}/communes/page/1.json`)).toBe(false);
+      const listed = await listCommunes({ province: p.code, page: 1 }, d.communes as never[], fetchJson);
+      expect(listed).toEqual({ rows: [], meta: { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 } });
+      expect(await listCommunes({ province: p.code, page: 2 }, d.communes as never[], fetchJson)).toBeNull();
     }
   });
 
-  it("gives the 1,497 communes with no arrondissements an empty list, not a 404", () => {
+  it("writes no empty file: arrondissements only for the 6 cities, cercles only where there are some", () => {
     const withArrondissements = new Set(d.arrondissements.map((a) => a.communeCode));
     expect(withArrondissements.size).toBe(6);
     const without = d.communes.filter((c) => !withArrondissements.has(c.code));
     expect(without.length).toBe(1497);
-    expect(tree.get(`/api/communes/${without[0]!.code}/arrondissements.json`)!.data).toEqual([]);
+    expect(tree.has(`/api/communes/${without[0]!.code}/arrondissements.json`)).toBe(false);
     const tanger = tree.get("/api/communes/01.511.01.0/arrondissements.json")!;
     expect((tanger.data as unknown[]).length).toBe(4);
+    for (const [path, body] of tree) {
+      const data = (body as { data?: unknown }).data;
+      if (Array.isArray(data)) expect(data.length, path).toBeGreaterThan(0);
+    }
   });
 
   it("chains pagination links across a multi-page list", () => {

@@ -336,10 +336,10 @@ app.get("/api/communes", async (c) => {
   const { query } = parsed;
   const { page } = query;
 
+  // An empty list has no file, so a miss falls through to be worked out below.
   const direct = aliasPath(query);
-  if (direct) {
-    const asset = await c.env.ASSETS.fetch(new Request(new URL(direct, url)));
-    if (!asset.ok) return fail(url, "not-found", `no page ${page} for this filter`, instance);
+  const asset = direct ? await c.env.ASSETS.fetch(new Request(new URL(direct, url))) : null;
+  if (direct && asset?.ok) {
     return new Response(asset.body, {
       headers: {
         "content-type": "application/json",

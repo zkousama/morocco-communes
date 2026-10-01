@@ -16,6 +16,11 @@ change a shape something already reads.
   rather than a guess.
 - `/api/communes/{code}/douars.json` serves a commune's fractions and douars, and
   `get_douars` is the twelfth MCP tool.
+- An API file with nothing in it is no longer written, as a commune with no housing already
+  had none: `arrondissements.json` for the 1,497 communes not divided into them, `cercles.json`
+  and the commune pages for the préfectures that have neither, and `neighbours.json` for
+  Sidi Mohamed Benmansour, which has no boundary. Each is a 404 now rather than an empty list.
+  `/api/communes?province=` still answers an empty list for a préfecture with no communes.
 - Neighbourhoods and postcodes, from OpenStreetMap and Poste Maroc: search finds the
   commune or arrondissement a neighbourhood is in, or the commune a 5-digit postcode
   belongs to. `/api/communes/{code}/neighbourhoods.json` serves a commune's, with its

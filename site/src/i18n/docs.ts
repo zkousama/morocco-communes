@@ -60,10 +60,10 @@ export const SPEC_FR: Record<string, string> = {
 
   "listArrondissements.summary": "Les arrondissements d’une commune",
   "listArrondissements.description":
-    "Seules 6 communes ont des arrondissements ; pour toutes les autres, la liste est vide.",
+    "Seules les 6 communes divisées en arrondissements ont ce fichier ; pour toute autre commune, c’est une 404.",
   "listArrondissements.param.code": "Le code à points de la commune.",
   "listArrondissements.200": "Les arrondissements de la commune.",
-  "listArrondissements.404": "Aucune commune ne porte ce code.",
+  "listArrondissements.404": "Aucune commune ne porte ce code, ou elle n’a pas d’arrondissements.",
 
   "getIndicators.summary": "Les chiffres d’une unité aux recensements de 2024 et 2014",
   "getIndicators.description":
@@ -108,11 +108,11 @@ export const SPEC_FR: Record<string, string> = {
   "listNeighbours.summary": "Les communes voisines d’une commune",
   "listNeighbours.description":
     "Chacune avec ses noms et la longueur de la limite que les deux partagent, en km, mesurée le long de leurs limites OpenStreetMap. " +
-    "Sidi Mohamed Benmansour n’a pas de limite, sa liste est donc vide.",
+    "Sidi Mohamed Benmansour n’a pas de limite, elle n’a donc pas de fichier.",
   "listNeighbours.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
   "listNeighbours.200": "Les communes qu’elle borde.",
   "listNeighbours.400": "Ce n’est pas un identifiant.",
-  "listNeighbours.404": "Aucune commune ne porte cet identifiant.",
+  "listNeighbours.404": "Aucune commune ne porte cet identifiant, ou elle n’a pas de limite.",
   "listNeighbourhoods.summary": "Les quartiers nommés d’une commune et ses codes postaux",
   "listNeighbourhoods.description":
     "Les quartiers qu’OpenStreetMap et Poste Maroc nomment dans une commune, arrondissements d’une ville compris, chacun avec l’arrondissement où son point le place quand il en a un, " +
