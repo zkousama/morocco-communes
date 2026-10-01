@@ -432,11 +432,22 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
     opacity: 0.55;
   }
 
+  /* The strip takes the pointer and finds the nearest mark; a mark takes the keyboard. */
   .cmp-mark {
     position: absolute;
     top: 50%;
+    margin: 0;
+    padding: 2px;
+    pointer-events: none;
+    border: 0;
+    border-radius: 50%;
+    background: none;
     line-height: 0;
     transform: translate(-50%, -50%);
+  }
+
+  .cmp-mark:focus-visible {
+    outline-offset: -2px;
   }
 
   .cmp-mark path {
@@ -561,30 +572,49 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
     stroke-linejoin: round;
   }
 
+  /* The home map's tooltip, card for card. */
   .cmp-tip {
     position: absolute;
-    z-index: 10;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    width: max-content;
-    max-width: 15rem;
-    padding: 0.5rem 0.65rem;
-    font-size: var(--t-xs);
+    top: 0;
+    left: 0;
+    z-index: 40;
+    display: grid;
+    gap: 0.1rem;
+    min-width: 11rem;
+    max-width: min(16rem, 100vw - 2rem);
+    padding: 0.55rem 0.75rem;
     background: var(--paper);
     border: 1px solid var(--rule);
-    border-radius: 0.5rem;
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.14);
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.12);
+    font-size: var(--t-xs);
+    line-height: 1.45;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cmp-tip.is-fixed {
+    position: fixed;
   }
 
   .cmp-tip strong {
     font-size: var(--t-sm);
-    font-weight: 600;
+    font-weight: 500;
   }
 
-  .cmp-tip-note {
+  .cmp-tip > span {
     color: var(--quiet);
+  }
+
+  .cmp-tip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .cmp-tip-row b {
+    font-weight: 500;
+    color: var(--ink);
   }
 
   .cmp-caption {

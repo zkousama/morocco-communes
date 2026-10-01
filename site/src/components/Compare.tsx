@@ -14,9 +14,9 @@ import {
   parseState,
   positionOf,
   queryOf,
-  rankOf,
   searchKeys,
   shapePath,
+  standing,
   tickLabel,
   ticksOf,
   VALUES_FROM,
@@ -25,6 +25,8 @@ import {
   type Group,
   type State,
 } from "../lib/compare";
+import { percent } from "../lib/format";
+import { placeTip } from "../lib/tip";
 
 /** The strings this island shows. Only these are serialised into the page for it. */
 export const COMPARE_KEYS = [
@@ -54,7 +56,8 @@ export const COMPARE_KEYS = [
   "compareSaving",
   "compareLoading",
   "compareFailed",
-  "compareRank",
+  "compareAbove",
+  "compareBelow",
   "compareImageSource",
 ] as const;
 
@@ -151,6 +154,53 @@ function Glyph(props: { i: number; size?: number }) {
     <svg class={`cmp-glyph k${props.i}`} width={size()} height={size()} viewBox="-7 -7 14 14" aria-hidden="true">
       <path d={shapePath(props.i, 4.8)} />
     </svg>
+  );
+}
+
+/** What a tooltip says: a name, a quiet line under it, figures with their values, and a closing note. */
+interface TipContent {
+  x: number;
+  y: number;
+  title: string;
+  sub?: string;
+  rows: [string, string][];
+  note?: string;
+}
+
+/**
+ * The home map's tooltip, for this page: a paper card beside the point it names, kept inside
+ * its frame by the same placement. `fixed` places it in the window rather than a box.
+ */
+function Tip(props: { tip: TipContent | null; frame: () => { width: number; height: number }; fixed?: boolean }) {
+  let card: HTMLDivElement | undefined;
+  createEffect(() => {
+    const t = props.tip;
+    if (!t || !card) return;
+    const at = placeTip({ x: t.x, y: t.y }, { width: card.offsetWidth, height: card.offsetHeight }, props.frame(), null);
+    card.style.transform = `translate(${Math.round(at.x)}px, ${Math.round(at.y)}px)`;
+  });
+  return (
+    <Show when={props.tip}>
+      {(t) => (
+        <div ref={card} class="cmp-tip" classList={{ "is-fixed": Boolean(props.fixed) }} role="tooltip">
+          <strong>{t().title}</strong>
+          <Show when={t().sub}>
+            <span>{t().sub}</span>
+          </Show>
+          <For each={t().rows}>
+            {([label, value]) => (
+              <span class="cmp-tip-row">
+                <span>{label}</span>
+                <b>{value}</b>
+              </span>
+            )}
+          </For>
+          <Show when={t().note}>
+            <span>{t().note}</span>
+          </Show>
+        </div>
+      )}
+    </Show>
   );
 }
 
@@ -406,8 +456,69 @@ function Side(props: {
   groups: Record<Group, string>;
 }) {
   const lane = (i: number) => (i - (props.picked.length - 1) / 2) * 7;
+  const [tip, setTip] = createSignal<TipContent | null>(null);
+  // Said from whichever side is nearer: "lower than 95%" rather than "higher than 5%".
+  const noteOf = (value: number, i: number) => {
+    const { below, above } = standing(value, props.data.columns[i]!);
+    const share = (n: number) => percent(props.locale, n, { digits: 0 });
+    return below >= above ? fill(props.copy.compareAbove, { rank: share(below) }) : fill(props.copy.compareBelow, { rank: share(above) });
+  };
+  const viewport = () => ({ width: document.documentElement.clientWidth, height: window.innerHeight });
+  const show = (x: number, y: number, c: Commune, i: number) => {
+    const f = FIGURES[i]!;
+    const value = c.values[i] ?? null;
+    const morocco = props.data.morocco[i] ?? null;
+    if (value === null) return;
+    setTip({
+      x,
+      y,
+      title: c.name,
+      rows: [
+        [props.figures[f.id] ?? f.id, formatValue(props.locale, f.unit, value)],
+        ...(morocco === null ? [] : ([[props.copy.compareMorocco, formatValue(props.locale, f.unit, morocco)]] as [string, string][])),
+      ],
+      note: noteOf(value, i),
+    });
+  };
+  const showMark = (mark: HTMLElement, c: Commune, i: number) => {
+    const box = mark.getBoundingClientRect();
+    show(box.left + box.width / 2, box.top + box.height / 2, c, i);
+  };
+  // Marks a few points apart overlap, so the strip, not the mark, takes the pointer: the card
+  // is for whichever mark is nearest it, within reach.
+  const pointAt = (event: PointerEvent | MouseEvent, i: number) => {
+    const strip = event.currentTarget as HTMLElement;
+    const box = strip.getBoundingClientRect();
+    const reach = "pointerType" in event && event.pointerType !== "mouse" ? 30 : 18;
+    let best: { c: Commune; x: number; y: number; d: number } | null = null;
+    props.picked.forEach((c, k) => {
+      const value = c.values[i];
+      if (value == null) return;
+      const x = box.left + positionOf(value, props.data.axes[i]!) * box.width;
+      const y = box.top + box.height / 2 + lane(k);
+      const d = Math.hypot(event.clientX - x, event.clientY - y);
+      if (d <= reach && (!best || d < best.d)) best = { c, x, y, d };
+    });
+    const found = best as { c: Commune; x: number; y: number } | null;
+    if (found) show(found.x, found.y, found.c, i);
+    else setTip(null);
+  };
+  // The card is placed in the window, so it goes when the page moves under it, or a tap lands elsewhere.
+  onMount(() => {
+    const hide = () => setTip(null);
+    const away = (event: PointerEvent) => {
+      if (!(event.target as Element).closest?.(".cmp-strip")) hide();
+    };
+    window.addEventListener("scroll", hide, { passive: true });
+    document.addEventListener("pointerdown", away);
+    onCleanup(() => {
+      window.removeEventListener("scroll", hide);
+      document.removeEventListener("pointerdown", away);
+    });
+  });
   return (
     <div class="cmp-side">
+      <Tip tip={tip()} frame={viewport} fixed />
       <ul class="cmp-legend" aria-hidden="true">
         <li class="lg-morocco">
           <i />
@@ -446,7 +557,12 @@ function Side(props: {
                         </span>
                       </Show>
                     </div>
-                    <div class="cmp-strip">
+                    <div
+                      class="cmp-strip"
+                      onPointerMove={(e) => e.pointerType === "mouse" && pointAt(e, i)}
+                      onPointerLeave={(e) => e.pointerType === "mouse" && setTip(null)}
+                      onClick={(e) => pointAt(e, i)}
+                    >
                       <svg class="cmp-bars" viewBox={`0 0 ${BINS} 10`} preserveAspectRatio="none" aria-hidden="true">
                         {bins.map((n, b) => {
                           const h = n === 0 ? 0 : Math.max(0.5, (n / tallest) * 10);
@@ -461,17 +577,17 @@ function Side(props: {
                           const value = () => c.values[i] ?? null;
                           return (
                             <Show when={value() !== null}>
-                              <span
+                              <button
+                                type="button"
                                 class={`cmp-mark k${k()}`}
                                 style={{ left: `${positionOf(value()!, axis) * 100}%`, "margin-top": `${lane(k())}px` }}
-                                title={fill(props.copy.compareRank, {
-                                  name: c.name,
-                                  value: formatValue(props.locale, f.unit, value()),
-                                  rank: String(rankOf(value()!, props.data.columns[i]!)),
-                                })}
+                                aria-label={`${c.name}, ${props.figures[f.id]}: ${formatValue(props.locale, f.unit, value())}`}
+                                tabIndex={0}
+                                onFocus={(e) => showMark(e.currentTarget, c, i)}
+                                onBlur={() => setTip(null)}
                               >
                                 <Glyph i={k()} size={14} />
-                              </span>
+                              </button>
                             </Show>
                           );
                         }}
@@ -587,11 +703,21 @@ function Scatter(props: {
     const rect = (event.currentTarget as SVGSVGElement).getBoundingClientRect();
     return nearest(points(), event.clientX - rect.left, event.clientY - rect.top, event.pointerType === "touch" ? 22 : 12);
   };
-  const tip = () => {
+  const tip = (): TipContent | null => {
     const h = hover();
     if (!h) return null;
     const c = props.data.communes[h.i]!;
-    return { h, c };
+    return {
+      x: h.x,
+      y: h.y,
+      title: c.name,
+      sub: `${c.urban ? props.copy.compareUrban : props.copy.compareRural} · ${c.province}`,
+      rows: [
+        [props.figures[fx().id] ?? fx().id, formatValue(props.locale, fx().unit, c.values[xi()] ?? null)],
+        [props.figures[fy().id] ?? fy().id, formatValue(props.locale, fy().unit, c.values[yi()] ?? null)],
+      ],
+      note: !taken().has(c.slug) && props.picked.length >= MAX_COMMUNES ? props.copy.compareFull : undefined,
+    };
   };
 
   return (
@@ -667,28 +793,7 @@ function Scatter(props: {
             )}
           </For>
         </svg>
-        <Show when={tip()}>
-          {(t) => (
-            <div
-              class="cmp-tip"
-              style={{
-                left: `${Math.min(t().h.x + 12, width() - 190)}px`,
-                top: `${Math.max(t().h.y - 64, 0)}px`,
-              }}
-            >
-              <strong>{t().c.name}</strong>
-              <span>
-                {props.figures[fx().id]}: {formatValue(props.locale, fx().unit, t().c.values[xi()] ?? null)}
-              </span>
-              <span>
-                {props.figures[fy().id]}: {formatValue(props.locale, fy().unit, t().c.values[yi()] ?? null)}
-              </span>
-              <Show when={!taken().has(t().c.slug) && props.picked.length >= MAX_COMMUNES}>
-                <span class="cmp-tip-note">{props.copy.compareFull}</span>
-              </Show>
-            </div>
-          )}
-        </Show>
+        <Tip tip={tip()} frame={() => ({ width: width(), height: height() })} />
       </div>
       <p class="cmp-caption">{props.copy.compareDots}</p>
     </div>

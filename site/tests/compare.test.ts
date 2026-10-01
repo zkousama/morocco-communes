@@ -15,6 +15,7 @@ import {
   matchCommunes,
   searchKeys,
   shapePath,
+  standing,
   ticksOf,
 } from "../src/lib/compare.ts";
 import { compareData } from "../src/lib/compareData.ts";
@@ -201,5 +202,13 @@ describe("tick labels along a narrow axis", () => {
     const labels = ["0%", "10%", "20%"].map((text, i) => ({ text, x: 20 + i * 120 }));
     const shown = fitLabels(labels, 400, 6.5);
     expect(shown.map((l) => l.anchor)).toEqual(["middle", "middle", "middle"]);
+  });
+});
+
+describe("where a value stands", () => {
+  it("counts the others below it and above it, leaving itself out", () => {
+    expect(standing(3, [1, 2, 3, 4, 5])).toEqual({ below: 50, above: 50 });
+    expect(standing(1, [1, 2, 3, 4, 5, null])).toEqual({ below: 0, above: 100 });
+    expect(standing(5, [1, 2, 3, 4, 5])).toEqual({ below: 100, above: 0 });
   });
 });

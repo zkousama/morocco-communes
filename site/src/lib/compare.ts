@@ -180,16 +180,22 @@ export function histogram(values: (number | null)[], axis: Axis, bins: number): 
   return counts;
 }
 
-/** The share of the other values below this one, 0 to 100. */
-export function rankOf(value: number, values: (number | null)[]): number {
+/**
+ * Where a value stands among the others: the share of them below it and the share above it,
+ * 0 to 100. A value counted among them is left out of both.
+ */
+export function standing(value: number, values: (number | null)[]): { below: number; above: number } {
   let below = 0;
+  let above = 0;
   let count = 0;
   for (const v of values) {
     if (v === null) continue;
     count++;
     if (v < value) below++;
+    else if (v > value) above++;
   }
-  return count > 1 ? Math.round((below / (count - 1)) * 100) : 50;
+  const others = Math.max(count - 1, 1);
+  return { below: Math.round((below / others) * 100), above: Math.round((above / others) * 100) };
 }
 
 /** The point closest to (x, y) within `reach`, or null. */
