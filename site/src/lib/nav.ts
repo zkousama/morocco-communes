@@ -22,6 +22,7 @@ export const explore = (copy: Copy): Section[] => [
   { route: "insights/", label: copy.navInsights },
   { route: "where/", label: copy.navWhere },
   { route: "compare/", label: copy.navCompare },
+  { route: "douars/", label: copy.navDouars },
 ];
 
 export const data = (copy: Copy): Section[] => [

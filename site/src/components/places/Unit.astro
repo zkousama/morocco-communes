@@ -9,9 +9,12 @@ import Inset from "./Inset.astro";
 import People from "./People.astro";
 import Economy from "./Economy.astro";
 import Housing from "./Housing.astro";
+import DouarFigures from "./DouarFigures.astro";
 import { indicatorsOf } from "../../lib/indicators";
 import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
+import { allDouars } from "../../lib/douars";
+import { summarise } from "../../lib/access";
 import { de, fill, places } from "../../i18n/places";
 import { path, REPO_URL, type Locale } from "../../i18n/ui";
 import { density, percent } from "../../lib/format";
@@ -47,6 +50,8 @@ const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 
 const communes = province ? communesIn(province.code) : communesInRegion(region.code);
+const inside = new Set(communes.map((c) => c.code));
+const douars = summarise(allDouars.filter((d) => inside.has(d.communeCode)));
 const arrondissements = province?.type === "prefecture_of_arrondissements" ? arrondissementsInPrefecture(province.code) : [];
 const subunits = province ? [] : provincesIn(region.code);
 
@@ -196,6 +201,17 @@ const standouts = [
   {housing && <Housing locale={locale} record={housing} name={unit.name.fr} />}
 
   {economy && <Economy locale={locale} record={economy} population={unit.population["2024"].total} />}
+
+  {douars.douars > 0 && (
+    <section id="douars">
+      <h2>{p.douars}</h2>
+      <p>
+        {fill(p.douarsUnitBody, { name: unit.name.fr, ofName: de(unit.name.fr), n: n.format(douars.douars), people: n.format(douars.people) })}
+      </p>
+      <DouarFigures locale={locale} summary={douars} />
+      <p class="map-note"><a href={path(locale, "douars/")}>{p.douarsOnMap}</a></p>
+    </section>
+  )}
 
   {subunits.length > 0 && (
     <section>

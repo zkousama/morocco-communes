@@ -27,6 +27,14 @@ describe("normalise: the folds the data needs", () => {
     expect(normalise("سئيد")).toBe(normalise("سييد"));
   });
 
+  it("folds the hard g douar names are written with to the kaf a keyboard has, and the lam-alef form to its letters", () => {
+    expect(normalise("تيݣراو")).toBe(normalise("تيكراو"));
+    expect(normalise("لڭفاف")).toBe(normalise("لكفاف"));
+    expect(normalise("بني گيل")).toBe(normalise("بني كيل"));
+    expect(normalise("دکارة")).toBe(normalise("دكاره"));
+    expect(normalise("اوﻻد")).toBe(normalise("اولاد"));
+  });
+
   it("folds the French accents, which are the only non-ASCII letters in the Latin names", () => {
     expect(normalise("Tétouan")).toBe("tetouan");
     expect(normalise("Aïn Châabat")).toBe("ain chaabat");

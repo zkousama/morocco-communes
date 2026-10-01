@@ -26,6 +26,8 @@ import {
 import type { Census } from "../../api/src/lib/indicators.ts";
 import { mismatches } from "../../api/src/lib/mismatch.ts";
 import { readLevel } from "../../pipeline/src/lib/levels.ts";
+import { ROAD_BREAKS, SERVICE_BREAKS, summarise } from "../src/lib/access.ts";
+import { allDouars } from "../src/lib/douars.ts";
 
 const WIDTH = 1000;
 /** In viewBox units: under a pixel wherever the map is drawn. */
@@ -101,6 +103,16 @@ for (const record of indicators) {
   serviceRows.push({ tram, train, population: byCode.get(record.code)?.population["2024"].total ?? 0 });
 }
 const services = serviceCounts(serviceRows);
+
+// How far each commune's rural homes are, from its douars. A commune with no douar HCP
+// gives distances for, a town, has none.
+const douarsOf = new Map<string, typeof allDouars>();
+for (const d of allDouars) douarsOf.set(d.communeCode, [...(douarsOf.get(d.communeCode) ?? []), d]);
+const accessOf = new Map([...douarsOf].map(([code, rows]) => [code, summarise(rows).km]));
+const km = (code: string, key: "highSchool" | "middleSchool" | "healthCentre" | "pavedRoad") => {
+  const value = accessOf.get(code)?.[key];
+  return value === undefined ? null : Math.round(value * 10) / 10;
+};
 const files = await readBoundaries("data/v1/geometry");
 // The railway and tram lines and the stations drawn under the "commuting" view, from
 // OpenStreetMap (ODbL, credited on the map) and kept in site/scripts/data/rail.json.
@@ -180,7 +192,9 @@ for (const { topology, arcs } of decoded) {
         `data-e="${shadeOf(elderlyOf.get(code) ?? null, ELDERLY_BREAKS, false)}" ` +
         `data-f="${shadeOf(womenOf.get(code) ?? null, WOMEN_BREAKS, false)}" ` +
         `data-u="${shadeOf(unemploymentOf.get(code) ?? null, UNEMPLOYMENT_BREAKS, false)}" ` +
-        `data-k="${serviceOf(tramOf.get(code) ?? null, trainOf.get(code) ?? null, commune.population["2024"].total)}"/>`,
+        `data-k="${serviceOf(tramOf.get(code) ?? null, trainOf.get(code) ?? null, commune.population["2024"].total)}" ` +
+        `data-y="${classOf(km(code, "highSchool"), SERVICE_BREAKS)}" data-o="${classOf(km(code, "middleSchool"), SERVICE_BREAKS)}" ` +
+        `data-h="${classOf(km(code, "healthCentre"), SERVICE_BREAKS)}" data-p="${classOf(km(code, "pavedRoad"), ROAD_BREAKS)}"/>`,
     );
   }
 
@@ -214,7 +228,8 @@ const markup =
   `<path class="station-ring" d="${stationPath}"/><path class="station" d="${stationPath}"/></g>`;
 
 // What the tooltip shows, fetched once on first hover. After illiteracy come running
-// water, people aged 65 and over, women's illiteracy, unemployment, then tram and train.
+// water, people aged 65 and over, women's illiteracy, unemployment, tram and train, then how
+// far the rural homes are from a lycée, a collège, a health centre and a paved road.
 const tooltip = Object.fromEntries(
   communes.map((c) => [
     c.code,
@@ -232,6 +247,10 @@ const tooltip = Object.fromEntries(
       unemploymentOf.get(c.code) ?? null,
       tramOf.get(c.code) ?? null,
       trainOf.get(c.code) ?? null,
+      km(c.code, "highSchool"),
+      km(c.code, "middleSchool"),
+      km(c.code, "healthCentre"),
+      km(c.code, "pavedRoad"),
     ],
   ]),
 );
@@ -249,6 +268,8 @@ export const waterBreaks = ${JSON.stringify(WATER_BREAKS)};
 export const elderlyBreaks = ${JSON.stringify(ELDERLY_BREAKS)};
 export const womenBreaks = ${JSON.stringify(WOMEN_BREAKS)};
 export const unemploymentBreaks = ${JSON.stringify(UNEMPLOYMENT_BREAKS)};
+export const serviceBreaks = ${JSON.stringify(SERVICE_BREAKS)};
+export const roadBreaks = ${JSON.stringify(ROAD_BREAKS)};
 export const tramCommunes = ${services.tram};
 export const trainCommunes = ${services.train};
 export const shapes = ${shapes.length};

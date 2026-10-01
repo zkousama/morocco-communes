@@ -14,12 +14,13 @@ export interface Fraction extends FractionRecord {
 const read = <T>(name: string) => JSON.parse(readFileSync(`data/v1/douars/${name}.json`, "utf8")) as T;
 const REGIONS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
 
+/** Every douar, in HCP's code order. */
+export const allDouars: DouarRecord[] = REGIONS.flatMap((region) => read<DouarRecord[]>(region));
+
 const byFraction = new Map<string, DouarRecord[]>();
-for (const region of REGIONS) {
-  for (const d of read<DouarRecord[]>(region)) {
-    if (!byFraction.has(d.fraction)) byFraction.set(d.fraction, []);
-    byFraction.get(d.fraction)!.push(d);
-  }
+for (const d of allDouars) {
+  if (!byFraction.has(d.fraction)) byFraction.set(d.fraction, []);
+  byFraction.get(d.fraction)!.push(d);
 }
 const byCommune = new Map<string, Fraction[]>();
 for (const f of read<FractionRecord[]>("fractions")) {

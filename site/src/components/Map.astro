@@ -1,12 +1,14 @@
 ---
-import { changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
+import { changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, roadBreaks, serviceBreaks, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
 import { path, t, type Locale } from "../i18n/ui";
 import { percent } from "../lib/format";
 
 interface Props {
   locale: Locale;
+  /** The views to offer, in order, the first shown first. The home page's set when left out. */
+  views?: string[];
 }
-const { locale } = Astro.props;
+const { locale, views: only } = Astro.props;
 const copy = t(locale);
 const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
@@ -19,6 +21,11 @@ const bands = (breaks: number[], prefix: string) => [
     text: range(breaks, i, (v) => percent(locale, v, { digits: 0 })),
   })),
   { cls: `${prefix}n`, text: copy.mapNoValue },
+];
+const km = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+const kmBands = (breaks: number[], prefix: string) => [
+  ...[0, 1, 2, 3, 4, 5].map((i) => ({ cls: `${prefix}${i}`, text: `${range(breaks, i, (v) => km.format(v))} km` })),
+  { cls: `${prefix}n`, text: copy.mapNoDouars },
 ];
 const views = [
   {
@@ -109,19 +116,43 @@ const views = [
       { cls: "tr", text: copy.rural },
     ],
   },
+  { id: "highSchool", label: copy.mapHighSchool, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "y") },
+  { id: "middleSchool", label: copy.mapMiddleSchool, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "o") },
+  { id: "healthCentre", label: copy.mapHealthCentre, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "h") },
+  { id: "pavedRoad", label: copy.mapPavedRoad, unit: copy.legendDistance, swatches: kmBands(roadBreaks, "p") },
 ];
+const HOME = ["density", "change", "illiteracy", "water", "elderly", "women", "unemployment", "service", "type"];
+const shown = (only ?? HOME).map((id) => {
+  const view = views.find((v) => v.id === id);
+  if (!view) throw new Error(`the map has no view ${id}`);
+  return view;
+});
+
+// The markup carries every view's class on every commune. A map drops the ones it doesn't
+// offer, and the railway when it doesn't offer the commuting view, so a page carries only
+// what it can show.
+const ATTRIBUTE: Record<string, string> = {
+  density: "d", change: "g", illiteracy: "i", water: "w", elderly: "e", women: "f", unemployment: "u", service: "k", type: "t",
+  highSchool: "y", middleSchool: "o", healthCentre: "h", pavedRoad: "p",
+};
+const kept = new Set(shown.map((v) => ATTRIBUTE[v.id]));
+const dropped = Object.values(ATTRIBUTE).filter((a) => !kept.has(a));
+let drawn = dropped.length > 0 ? markup.replace(new RegExp(` data-(?:${dropped.join("|")})="[^"]*"`, "g"), "") : markup;
+if (!kept.has("k")) drawn = drawn.replace(/<g class="network">.*?<\/g>/s, "");
 const communesRoute = path(locale, "communes/");
 ---
 
-<figure class="atlas" data-view="density" data-base={communesRoute} data-lang={locale}
+<figure class="atlas" data-view={shown[0]!.id} data-base={communesRoute} data-lang={locale}
   data-people={copy.tipPeople} data-density={copy.tipDensity} data-change={copy.tipChange}
   data-illiteracy={copy.tipIlliteracy} data-water={copy.tipWater} data-elderly={copy.tipElderly}
   data-women={copy.tipWomen} data-unemployment={copy.tipUnemployment}
   data-tram={copy.tipTram} data-train={copy.tipTrain}
+  data-high-school={copy.tipHighSchool} data-middle-school={copy.tipMiddleSchool}
+  data-health-centre={copy.tipHealthCentre} data-paved-road={copy.tipPavedRoad}
   data-urban={copy.urban} data-rural={copy.rural} data-open={copy.tipOpen}
   data-gap={copy.gapAny} data-gap-03={copy.gap03} data-gap-04={copy.gap04}>
   <div class="frame">
-    <svg class="map" viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={markup} />
+    <svg class="map" viewBox={viewBox} role="img" aria-label={copy.mapAlt.replace("{n}", n.format(shapes))} set:html={drawn} />
     <p id="map-keys" hidden>{copy.mapKeys}</p>
     <div class="zoom" role="group" aria-label={copy.mapZoom} hidden>
       <button type="button" data-zoom="in" aria-label={copy.mapZoomIn}>
@@ -141,11 +172,11 @@ const communesRoute = path(locale, "communes/");
   </div>
   <figcaption>
     <div class="views" role="group" aria-label={copy.mapShade} hidden>
-      {views.map((v, i) => (
+      {shown.map((v, i) => (
         <button type="button" data-view={v.id} aria-pressed={i === 0 ? "true" : "false"}>{v.label}</button>
       ))}
     </div>
-    {views.map((v, i) => (
+    {shown.map((v, i) => (
       <div class="legend" data-for={v.id} hidden={i !== 0}>
         <ul>
           {v.swatches.map((s) => <li><span class:list={["swatch", s.cls]} />{s.text}</li>)}
@@ -196,6 +227,10 @@ const communesRoute = path(locale, "communes/");
     unemployment: number | null,
     tram: number | null,
     train: number | null,
+    highSchool: number | null,
+    middleSchool: number | null,
+    healthCentre: number | null,
+    pavedRoad: number | null,
   ];
 
   const atlas = document.querySelector<HTMLElement>(".atlas");
@@ -265,7 +300,7 @@ const communesRoute = path(locale, "communes/");
       focus.setAttribute("d", shape.getAttribute("d") ?? "");
       const row = rows?.[shape.dataset.c ?? ""];
       if (!row) return;
-      const [slug, name, type, people, density, change, illiteracy, water, elderly, women, unemployment, tram, train] = row;
+      const [slug, name, type, people, density, change, illiteracy, water, elderly, women, unemployment, tram, train, highSchool, middleSchool, healthCentre, pavedRoad] = row;
       const signed =
         change === null
           ? ""
@@ -273,19 +308,22 @@ const communesRoute = path(locale, "communes/");
       const pct = d.lang === "fr" ? "\u202f%" : "%";
       const share = (value: number | null, label: string | undefined) =>
         value === null || !label ? "" : `<span>${tenths.format(value)}${pct} ${label}</span>`;
-      const view = atlas.dataset.view;
-      const extra =
-        view === "water"
-          ? share(water, d.water)
-          : view === "elderly"
-            ? share(elderly, d.elderly)
-            : view === "women"
-              ? share(women, d.women)
-              : view === "unemployment"
-                ? share(unemployment, d.unemployment)
-                : view === "service"
-                  ? [tram !== null && tram >= 1 ? share(tram, d.tram) : "", train !== null && train >= 1 ? share(train, d.train) : ""].join("")
-                  : "";
+      const distance = (value: number | null, label: string | undefined) =>
+        value === null || !label ? "" : `<span>${label.replace("{km}", tenths.format(value))}</span>`;
+      // The line the current view adds under the ones every view shows.
+      const extras: Record<string, () => string> = {
+        water: () => share(water, d.water),
+        elderly: () => share(elderly, d.elderly),
+        women: () => share(women, d.women),
+        unemployment: () => share(unemployment, d.unemployment),
+        service: () =>
+          [tram !== null && tram >= 1 ? share(tram, d.tram) : "", train !== null && train >= 1 ? share(train, d.train) : ""].join(""),
+        highSchool: () => distance(highSchool, d.highSchool),
+        middleSchool: () => distance(middleSchool, d.middleSchool),
+        healthCentre: () => distance(healthCentre, d.healthCentre),
+        pavedRoad: () => distance(pavedRoad, d.pavedRoad),
+      };
+      const extra = extras[atlas.dataset.view ?? ""]?.() ?? "";
       tip.innerHTML =
         `<strong>${escape(name)}</strong><span>${type === "urban" ? d.urban : d.rural}</span>` +
         `<span>${number.format(people)} ${d.people}</span>` +
@@ -791,6 +829,63 @@ const communesRoute = path(locale, "communes/");
   .swatch.u4 { fill: var(--unemp-4); background: var(--unemp-4); }
   .atlas[data-view="unemployment"] :global([data-u="5"]),
   .swatch.u5 { fill: var(--unemp-5); background: var(--unemp-5); }
+  /* How far rural homes are: the one-hue ramp, read light to dark, near to far. A town has no douars, and no shade. */
+  .atlas[data-view="highSchool"] :global([data-y="0"]),
+  .swatch.y0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="highSchool"] :global([data-y="1"]),
+  .swatch.y1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="highSchool"] :global([data-y="2"]),
+  .swatch.y2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="highSchool"] :global([data-y="3"]),
+  .swatch.y3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="highSchool"] :global([data-y="4"]),
+  .swatch.y4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="highSchool"] :global([data-y="5"]),
+  .swatch.y5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="highSchool"] :global([data-y="n"]),
+  .swatch.yn { fill: var(--map-none); background: var(--map-none); }
+  .atlas[data-view="middleSchool"] :global([data-o="0"]),
+  .swatch.o0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="middleSchool"] :global([data-o="1"]),
+  .swatch.o1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="middleSchool"] :global([data-o="2"]),
+  .swatch.o2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="middleSchool"] :global([data-o="3"]),
+  .swatch.o3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="middleSchool"] :global([data-o="4"]),
+  .swatch.o4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="middleSchool"] :global([data-o="5"]),
+  .swatch.o5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="middleSchool"] :global([data-o="n"]),
+  .swatch.on { fill: var(--map-none); background: var(--map-none); }
+  .atlas[data-view="healthCentre"] :global([data-h="0"]),
+  .swatch.h0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="healthCentre"] :global([data-h="1"]),
+  .swatch.h1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="healthCentre"] :global([data-h="2"]),
+  .swatch.h2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="healthCentre"] :global([data-h="3"]),
+  .swatch.h3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="healthCentre"] :global([data-h="4"]),
+  .swatch.h4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="healthCentre"] :global([data-h="5"]),
+  .swatch.h5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="healthCentre"] :global([data-h="n"]),
+  .swatch.hn { fill: var(--map-none); background: var(--map-none); }
+  .atlas[data-view="pavedRoad"] :global([data-p="0"]),
+  .swatch.p0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="pavedRoad"] :global([data-p="1"]),
+  .swatch.p1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="pavedRoad"] :global([data-p="2"]),
+  .swatch.p2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="pavedRoad"] :global([data-p="3"]),
+  .swatch.p3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="pavedRoad"] :global([data-p="4"]),
+  .swatch.p4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="pavedRoad"] :global([data-p="5"]),
+  .swatch.p5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="pavedRoad"] :global([data-p="n"]),
+  .swatch.pn { fill: var(--map-none); background: var(--map-none); }
   .atlas[data-view="water"] :global([data-w="n"]),
   .atlas[data-view="elderly"] :global([data-e="n"]),
   .atlas[data-view="women"] :global([data-f="n"]),

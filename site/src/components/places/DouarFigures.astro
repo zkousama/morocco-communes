@@ -1,0 +1,67 @@
+---
+/**
+ * How far a group of douars' homes are from a lycée, a collège, a health centre, a paved
+ * road and a primary school: the average in km, and the share of households further than
+ * 10 km. The douars page shows Morocco's, a région's or a province's page its own.
+ */
+import { fill, places } from "../../i18n/places";
+import type { Locale } from "../../i18n/ui";
+import { numbers, percent } from "../../lib/format";
+import { ACCESS, FAR_KM, type Summary } from "../../lib/access";
+
+interface Props {
+  locale: Locale;
+  summary: Summary;
+}
+const { locale, summary } = Astro.props;
+const p = places[locale];
+const km = numbers(locale, 1, true);
+const labels = p.accessNames as Record<string, string>;
+---
+
+{summary.km && summary.far && (
+  <dl class="access">
+    {ACCESS.map((key) => (
+      <div>
+        <dt>{labels[key]}</dt>
+        <dd>
+          {fill(p.accessKm, { km: km.format(summary.km![key]) })}
+          <small>{fill(p.accessFar, { share: percent(locale, summary.far![key], { fixed: true }), km: String(FAR_KM) })}</small>
+        </dd>
+      </div>
+    ))}
+  </dl>
+)}
+
+<style>
+  .access {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    margin: 1.25rem 0 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .access > div {
+    padding: 1rem 1.25rem 1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .access dt {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .access dd {
+    margin: 0.2rem 0 0;
+    font-size: var(--t-lg);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .access dd small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+</style>

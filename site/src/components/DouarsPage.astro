@@ -1,0 +1,330 @@
+---
+/**
+ * The douars page: Morocco's douars counted, how far their homes are from a lycée, a
+ * collège, a health centre and a paved road, the map of it by commune, the communes
+ * furthest from a health centre, and a box to find a douar by its Arabic name. The finder
+ * loads /douars/names.json the first time someone types; without JavaScript it stays
+ * hidden, and each commune's page still lists its douars.
+ */
+import Base from "../layouts/Base.astro";
+import Map from "./Map.astro";
+import DouarFigures from "./places/DouarFigures.astro";
+import { allDouars } from "../lib/douars";
+import { summarise } from "../lib/access";
+import { pageOf } from "../lib/places";
+import { places } from "../i18n/places";
+import { path, t, type Locale } from "../i18n/ui";
+import { numbers, percent } from "../lib/format";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const p = places[locale];
+const n = numbers(locale);
+const km = numbers(locale, 1, true);
+
+const total = summarise(allDouars);
+
+/** A commune enters the list with at least this many households counted, so a few homes can't top it. */
+const FARTHEST_MIN = 100;
+const SHOWN = 10;
+const byCommune = new globalThis.Map<string, typeof allDouars>();
+for (const d of allDouars) byCommune.set(d.communeCode, [...(byCommune.get(d.communeCode) ?? []), d]);
+const farthest = [...byCommune]
+  .map(([code, rows]) => ({ code, page: pageOf(code), summary: summarise(rows) }))
+  .filter((c) => c.page && c.summary.km && c.summary.counted >= FARTHEST_MIN)
+  .sort((a, b) => b.summary.km!.healthCentre - a.summary.km!.healthCentre)
+  .slice(0, SHOWN);
+---
+
+<Base locale={locale} route="douars/" title={copy.douarsTitle} description={copy.douarsLede}>
+  <article class="dp">
+    <h1>{copy.douarsTitle}</h1>
+    <p class="lede">{copy.douarsLede}</p>
+
+    <dl class="counts">
+      <div><dt>{copy.douarsCountDouars}</dt><dd>{n.format(total.douars)}</dd></div>
+      <div><dt>{copy.douarsCountFractions}</dt><dd>{n.format(total.fractions)}</dd></div>
+      <div><dt>{copy.douarsCountCommunes}</dt><dd>{n.format(total.communes)}</dd></div>
+      <div><dt>{copy.douarsCountPeople}</dt><dd>{n.format(total.people)}</dd></div>
+    </dl>
+
+    <section>
+      <h2>{copy.douarsHowFar}</h2>
+      <p>{copy.douarsHowFarBody.replace("{share}", percent(locale, (total.counted / total.households) * 100, { digits: 0 }))}</p>
+      <DouarFigures locale={locale} summary={total} />
+      <div class="map">
+        <Map locale={locale} views={["highSchool", "middleSchool", "healthCentre", "pavedRoad"]} />
+      </div>
+    </section>
+
+    <section>
+      <h2>{copy.douarsFarthest}</h2>
+      <p>{copy.douarsFarthestBody}</p>
+      <div class="scroll" tabindex="0">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{p.colCommune}</th>
+              <th scope="col" class="num">{p.accessNames.healthCentre}, km</th>
+              <th scope="col" class="num">{p.accessNames.highSchool}, km</th>
+            </tr>
+          </thead>
+          <tbody>
+            {farthest.map((c) => (
+              <tr>
+                <td><a href={path(locale, c.page!.route) + "#douars"}>{c.page!.name.fr}</a></td>
+                <td class="num">{km.format(c.summary.km!.healthCentre)}</td>
+                <td class="num">{km.format(c.summary.km!.highSchool)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="find">
+      <h2>{copy.douarsFind}</h2>
+      <p>{copy.douarsFindBody}</p>
+      <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale}
+        data-none={copy.douarsFindNone} data-arabic={copy.douarsFindArabic} data-more={copy.douarsFindMore} data-people={copy.douarsPeople}>
+        <input type="search" lang="ar" dir="auto" autocomplete="off" spellcheck="false" aria-label={copy.douarsFindLabel} aria-describedby="find-status" />
+        <p id="find-status" class="find-status" aria-live="polite"></p>
+        <ul class="hits"></ul>
+      </div>
+      <noscript><p>{copy.douarsFindNoScript}</p></noscript>
+    </section>
+
+    <p class="source">
+      {copy.douarsSource} <a href={path(locale, "docs/indicators/#douars")}>{p.douarsMore}</a>
+    </p>
+  </article>
+</Base>
+
+<script>
+  import { normalise } from "../../../api/src/lib/normalise";
+
+  type Names = { communes: [slug: string, name: string, prefix: string][]; douars: [name: string, commune: number, rest: string, people: number][] };
+
+  const finder = document.querySelector<HTMLElement>(".finder");
+  const input = finder?.querySelector<HTMLInputElement>("input");
+  const status = finder?.querySelector<HTMLElement>(".find-status");
+  const hits = finder?.querySelector<HTMLUListElement>(".hits");
+  if (finder && input && status && hits) {
+    finder.hidden = false;
+    const d = finder.dataset;
+    const count = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB");
+    const LIMIT = 20;
+    let names: Names | null = null;
+    let keys: string[] = [];
+    let loading: Promise<void> | null = null;
+    const load = () =>
+      (loading ??= fetch("/douars/names.json")
+        .then((r) => r.json())
+        .then((json: Names) => {
+          names = json;
+          keys = json.douars.map(([name]) => normalise(name));
+        })
+        .catch(() => undefined));
+
+    const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    const render = () => {
+      const query = normalise(input.value);
+      hits.replaceChildren();
+      status.textContent = "";
+      if (!query) return;
+      if (!/\p{Script=Arabic}/u.test(query)) {
+        status.textContent = d.arabic ?? "";
+        return;
+      }
+      if (!names) return;
+      // A name that starts with the query comes first, then one with a word that does, then
+      // any that holds it; the bigger douar first within each.
+      const found: { i: number; rank: number }[] = [];
+      keys.forEach((key, i) => {
+        const at = key.indexOf(query);
+        if (at < 0) return;
+        found.push({ i, rank: at === 0 ? 0 : key[at - 1] === " " ? 1 : 2 });
+      });
+      found.sort((a, b) => a.rank - b.rank || names!.douars[b.i]![3] - names!.douars[a.i]![3]);
+      if (found.length === 0) {
+        status.textContent = d.none ?? "";
+        return;
+      }
+      if (found.length > LIMIT) status.textContent = (d.more ?? "").replace("{n}", count.format(found.length)).replace("{shown}", String(LIMIT));
+      for (const { i } of found.slice(0, LIMIT)) {
+        const [name, commune, rest, people] = names.douars[i]!;
+        const [slug, communeName, prefix] = names.communes[commune]!;
+        const li = document.createElement("li");
+        li.innerHTML =
+          `<a href="${d.base}${slug}/#douar-${prefix}${rest}"><span lang="ar" dir="rtl">${escape(name)}</span>` +
+          `<span class="in">${escape(communeName)} · ${(d.people ?? "{n}").replace("{n}", count.format(people))}</span></a>`;
+        hits.append(li);
+      }
+    };
+    input.addEventListener("focus", load, { once: true });
+    input.addEventListener("input", () => {
+      if (names) render();
+      else load().then(render);
+    });
+  }
+</script>
+
+<style>
+  .dp {
+    padding-block: clamp(2rem, 6vw, 4rem);
+    max-width: 60rem;
+  }
+
+  .dp h1 {
+    font-family: var(--display);
+    font-size: clamp(var(--t-lg), 5vw, var(--t-xl));
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.75rem;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 52ch;
+    font-size: var(--t-md);
+    line-height: 1.45;
+    color: var(--quiet);
+  }
+
+  .counts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    margin: clamp(1.75rem, 4vw, 2.5rem) 0 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .counts > div {
+    padding: 1rem 1.25rem 1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .counts dt {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .counts dd {
+    margin: 0.2rem 0 0;
+    font-size: var(--t-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  section {
+    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    font-weight: 400;
+    margin: 0 0 0.5rem;
+  }
+
+  section > p {
+    max-width: 60ch;
+    color: var(--quiet);
+  }
+
+  .map {
+    margin-top: 2rem;
+  }
+
+  /* The place pages' table, for the one table here. */
+  .scroll {
+    overflow-x: auto;
+    max-width: 36rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  th {
+    text-align: start;
+    font-weight: 400;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    padding: 0 1rem 0.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.5rem 1rem 0.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  th.num,
+  td.num {
+    text-align: end;
+  }
+
+  .finder input {
+    width: min(100%, 24rem);
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .finder[hidden] {
+    display: none;
+  }
+
+  .find-status {
+    margin: 0.5rem 0 0;
+    min-height: 1.4em;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .hits {
+    margin: 0.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hits :global(li) {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hits :global(a) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    padding: 0.5rem 0;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .hits :global(a:hover) :global(span[lang="ar"]) {
+    text-decoration: underline;
+  }
+
+  .hits :global(.in) {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .source {
+    margin-top: 3rem;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+</style>

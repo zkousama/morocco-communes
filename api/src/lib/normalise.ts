@@ -3,7 +3,7 @@
  *
  * NFD decomposition plus dropping combining marks does most of the work in one step: it
  * folds the Arabic alef variants (أ إ آ → ا), waw and ya hamza (ؤ ئ → و ي), every
- * haraka, and the French accents (â è é → a e e). What it cannot reach are the four
+ * haraka, and the French accents (â è é → a e e). What it cannot reach are the
  * characters that carry no decomposition, mapped explicitly below.
  *
  * Two of those four, tatweel and the harakat, appear in **no** commune name. They are
@@ -13,10 +13,18 @@
  * written without them.
  */
 const EXPLICIT: Record<string, string> = {
-  "ة": "ه", // ta marbuta ة → ه, 367 names
-  "ى": "ي", // alef maqsura ى → ي, 42 names
+  "ة": "ه", // ta marbuta ة → ه, 367 commune names
+  "ى": "ي", // alef maqsura ى → ي, 42 commune names
   "ء": "", // standalone hamza ء, 28 names carry a hamza form
   "ـ": "", // tatweel ـ, absent from the data, typed by people
+  // The hard g Moroccan names are written with, as ݣ, ڭ or گ, and keheh, folded to the kaf
+  // they're drawn from, since a name is typed with whichever the keyboard has. Douar names
+  // carry them: 1,308 ݣ, 122 گ, 22 ڭ and 2 ک.
+  "ݣ": "ك",
+  "ڭ": "ك",
+  "گ": "ك",
+  "ک": "ك",
+  "ﻻ": "لا", // the lam-alef presentation form, which NFD leaves whole, in 6 douar names
 };
 
 /** Apostrophes and dashes separate words in the French names; en-dash appears too. */
@@ -24,7 +32,7 @@ const SEPARATORS = /[’'`‘\-–—_/.,()]+/g;
 
 export function normalise(input: string): string {
   let s = input.normalize("NFD").replace(/\p{Mn}/gu, "");
-  s = s.replace(/[ةىءـ]/g, (c) => EXPLICIT[c] ?? c);
+  s = s.replace(/[ةىءـݣڭگکﻻ]/g, (c) => EXPLICIT[c] ?? c);
   s = s.toLowerCase().replace(SEPARATORS, " ");
   // Anything left that is neither a letter nor a digit nor a space cannot be typed
   // usefully into a name search.
