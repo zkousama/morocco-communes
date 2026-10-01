@@ -14,6 +14,12 @@ change a shape something already reads.
   unpaved one, a primary school, a collège, a lycée and a health centre.
 - HCP withholds those figures for the 10,560 douars under 30 households, which get null
   rather than a guess.
+- `/api/communes/{code}/douars.json` serves a commune's fractions and douars, and
+  `get_douars` is the twelfth MCP tool.
+- Neighbourhoods and postcodes, from OpenStreetMap and Poste Maroc: search finds the
+  commune or arrondissement a neighbourhood is in, or the commune a 5-digit postcode
+  belongs to. `/api/communes/{code}/neighbourhoods.json` serves a commune's, with its
+  postcodes, and `get_neighbourhoods` is the eleventh MCP tool.
 
 ## 1.9.1
 
