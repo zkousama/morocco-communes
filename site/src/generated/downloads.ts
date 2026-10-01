@@ -401,7 +401,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/api/neighbourhoods.json",
-        "bytes": 1279895
+        "bytes": 1246297
       }
     ]
   },

@@ -6,7 +6,7 @@
  */
 import type { Neighbourhood, NeighbourhoodSource } from "./neighbourhoods.ts";
 import { normalise } from "./normalise.ts";
-import { coreOf } from "./postNeighbourhoods.ts";
+import { coreOf, sameName } from "./postNeighbourhoods.ts";
 
 export interface TableRow {
   name: { fr: string; ar: string };
@@ -26,17 +26,29 @@ const key = (name: string) => coreOf(normalise(name));
 /** `communeOf` gives a unit's commune: its own code, or its city's for an arrondissement. */
 export function neighbourhoodTable(places: Neighbourhood[], postcodes: PostcodeRow[], communeOf: (code: string) => string): TableRow[] {
   const named = new Map<string, Set<string>>();
+  // Each commune's names under its postcodes, as written, for a name the list spells another way.
+  const listed = new Map<string, Map<string, Set<string>>>();
   for (const [postcode, commune, names] of postcodes) {
     for (const name of names) {
       const k = `${commune}|${key(name)}`;
       if (!named.has(k)) named.set(k, new Set());
       named.get(k)!.add(postcode);
+      if (!listed.has(commune)) listed.set(commune, new Map());
+      if (!listed.get(commune)!.has(name)) listed.get(commune)!.set(name, new Set());
+      listed.get(commune)!.get(name)!.add(postcode);
     }
   }
+  /** The postcodes Poste Maroc lists under a name, or under the same name spelt another way. */
+  const postcodesOf = (commune: string, name: string): Set<string> | undefined => {
+    const exact = named.get(`${commune}|${key(name)}`);
+    if (exact) return exact;
+    for (const [other, codes] of listed.get(commune) ?? []) if (sameName(name, other)) return codes;
+    return undefined;
+  };
   return places
     .map(([fr, ar, code, source]) => {
       const commune = communeOf(code);
-      const codes = named.get(`${commune}|${key(fr || ar)}`);
+      const codes = postcodesOf(commune, fr || ar);
       return {
         name: { fr: fr || ar, ar: fr ? ar : "" },
         commune,

@@ -36,3 +36,10 @@ describe("the table of neighbourhoods", () => {
     expect(postcodesByCommune([["20050", "a", []], ["20040", "a", []], ["85450", "b", []]])).toEqual(new Map([["a", ["20040", "20050"]], ["b", ["85450"]]]));
   });
 });
+
+describe("a neighbourhood the postcode list spells another way", () => {
+  it("still gets its postcodes", () => {
+    const rows = neighbourhoodTable([["Ain Diab", "عين الذئاب", "06.141.01.0", "osm"]], [["20180", "06.141.01.0", ["Ain Daib"]]], (c) => c);
+    expect(rows[0]?.postcodes).toEqual(["20180"]);
+  });
+});

@@ -75,3 +75,65 @@ export function citiesOf<T extends { type?: string; name: { fr: string } }>(name
   if (missing.size > 0) throw new Error(`no urban commune for Poste Maroc's cities: ${[...missing].join(", ")}`);
   return cities;
 }
+
+/** Words a name can carry or not and still be the same name. */
+const OPTIONAL = new Set(["el", "al", "l", "la", "le", "les", "d", "de", "du", "des"]);
+const VOWEL = /[aeiouy]/;
+/** A name as 2 lists might both write it: no article, and Lot for Lotissement. */
+const bareName = (name: string) =>
+  normalise(name)
+    .split(" ")
+    .map((w) => (w === "lotissement" ? "lot" : w))
+    .filter((w) => !OPTIONAL.has(w))
+    .join(" ");
+
+/** The one way 2 strings differ, when they differ in exactly one place. */
+function oneEdit(a: string, b: string): { kind: "swap" | "change" | "add"; at: number; ch: string; other: string } | null {
+  if (a === b) return null;
+  if (a.length === b.length) {
+    const diffs = [...a].map((ch, i) => (ch === b[i] ? -1 : i)).filter((i) => i >= 0);
+    if (diffs.length === 1) return { kind: "change", at: diffs[0]!, ch: a[diffs[0]!]!, other: b[diffs[0]!]! };
+    if (diffs.length === 2 && diffs[1] === diffs[0]! + 1 && a[diffs[0]!] === b[diffs[1]!] && a[diffs[1]!] === b[diffs[0]!]) {
+      return { kind: "swap", at: diffs[0]!, ch: a[diffs[0]!]!, other: b[diffs[0]!]! };
+    }
+    return null;
+  }
+  const [short, long] = a.length < b.length ? [a, b] : [b, a];
+  if (long.length - short.length !== 1) return null;
+  let i = 0;
+  while (i < short.length && short[i] === long[i]) i++;
+  return long.slice(i + 1) === short.slice(i) ? { kind: "add", at: i, ch: long[i]!, other: "" } : null;
+}
+
+/**
+ * Whether 2 spellings name the same neighbourhood, for setting a second list's name aside
+ * when the first has it. Measured on the 205 pairs a looser rule paired in 34 cities: a
+ * single letter is often the whole of what tells 2 names apart (Farah and Faraj, Raja and
+ * Raha, Amal and Kamal), so only these count, and a number or numeral at the end has to match:
+ * 2 letters swapped (Daib, Diab), a letter doubled (Bretone, Bretonne), or a vowel changed,
+ * added or dropped inside a word of 7 letters or more (Mahrach, Mahrech). Under the same
+ * postcode, a vowel changed at a word's end counts too: Poste Maroc lists California and
+ * Californie both at 20150. One added there still doesn't: Farid and Farida share a postcode.
+ */
+export function sameName(a: string, b: string, options: { samePostcode?: boolean } = {}): boolean {
+  const x = bareName(a);
+  const y = bareName(b);
+  if (x === y) return x.length > 0;
+  const sector = (s: string) => / (\d+|[ivx]+|[a-z])$/.exec(s)?.[1] ?? "";
+  if (sector(x) !== sector(y)) return false;
+  const edit = oneEdit(x, y);
+  if (!edit) return false;
+  if (edit.kind === "swap") return true;
+  const longer = x.length >= y.length ? x : y;
+  // A doubled letter: the one added sits beside the same letter.
+  if (edit.kind === "add" && (longer[edit.at - 1] === edit.ch || longer[edit.at + 1] === edit.ch)) return true;
+  const vowels = edit.kind === "add" ? VOWEL.test(edit.ch) : VOWEL.test(edit.ch) && VOWEL.test(edit.other);
+  if (!vowels) return false;
+  // Inside its word, and the word long enough that a vowel isn't what names it.
+  const start = longer.lastIndexOf(" ", edit.at) + 1;
+  const end = longer.indexOf(" ", edit.at) === -1 ? longer.length : longer.indexOf(" ", edit.at);
+  const word = longer.slice(start, end);
+  // A vowel changed at the end, not one added: California and Californie, never Farid and Farida.
+  if (options.samePostcode && edit.kind === "change" && word.length >= 5 && edit.at > start) return true;
+  return word.length >= 7 && edit.at > start && edit.at < end - 1;
+}

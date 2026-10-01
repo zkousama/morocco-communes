@@ -8,7 +8,10 @@
  * A place no boundary holds is left out, and so is one named like the unit it's in, which
  * the search finds already, and a second place with the same names in the same unit. The
  * few OpenStreetMap doesn't map, listed by hand in neighbourhoodsAdded.ts, are placed the
- * same way after it.
+ * same way after it. When only Poste Maroc's side has to change, OSM=keep takes
+ * OpenStreetMap's and the hand-added ones from the current file instead of fetching them:
+ *
+ *   OSM=keep pnpm api:neighbourhoods
  *
  * Then Poste Maroc's list of neighbourhoods by postcode, from data.gov.ma. Its rows have a
  * city and no point, so each goes in its city's commune, and a name OpenStreetMap already
@@ -20,7 +23,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { readArrondissements, readBoundaries, type Boundary } from "../src/emit/boundaries.ts";
 import { inside, MAX_LOSS, namesOf, tooShrunk, type Neighbourhood } from "../src/lib/neighbourhoods.ts";
 import { ADDED } from "../src/lib/neighbourhoodsAdded.ts";
-import { cityKey, cleanName, coreOf } from "../src/lib/postNeighbourhoods.ts";
+import { cityKey, cleanName, coreOf, sameName } from "../src/lib/postNeighbourhoods.ts";
 import { readSheetRows } from "../../pipeline/src/lib/xlsx.ts";
 import { normalise } from "../src/lib/normalise.ts";
 import { overpass } from "./overpass.ts";
@@ -72,12 +75,22 @@ const unitAt = (lng: number, lat: number): Unit | null => {
   return null;
 };
 
-const { elements, asOf } = await overpass(QUERY);
+const keepOsm = process.env.OSM === "keep";
+const previous = existsSync(OUT) ? (JSON.parse(await readFile(OUT, "utf8")) as { source: string; places: Neighbourhood[] }) : null;
+if (keepOsm && !previous) throw new Error(`OSM=keep needs ${OUT} to take OpenStreetMap's names from`);
+const { elements, asOf } = keepOsm
+  ? { elements: [], asOf: /map as of (\d{4}-\d{2}-\d{2})/.exec(previous!.source)?.[1] ?? "" }
+  : await overpass(QUERY);
 // The hand-added ones go through the same checks, after OpenStreetMap's, as if it had them.
-for (const added of ADDED) {
-  elements.push({ type: "node", id: 0, lat: added.lat, lon: added.lng, tags: { "name:fr": added.fr, "name:ar": added.ar } });
+if (!keepOsm) {
+  for (const added of ADDED) {
+    elements.push({ type: "node", id: 0, lat: added.lat, lon: added.lng, tags: { "name:fr": added.fr, "name:ar": added.ar } });
+  }
 }
 const kept = new Map<string, Neighbourhood>();
+if (keepOsm) {
+  for (const p of previous!.places) if (p[3] !== "poste") kept.set(`${p[2]}|${normalise(p[0])}|${normalise(p[1])}`, p);
+}
 let unnamed = 0;
 let outside = 0;
 let sameAsUnit = 0;
@@ -123,17 +136,38 @@ for (const [city] of rows) {
 if (unmatched.size > 0) throw new Error(`no urban commune for Poste Maroc's cities: ${[...unmatched].join(", ")}`);
 // The names each city already has: OpenStreetMap's, in the commune or its arrondissements, and the units' own.
 const taken = new Map<string, Set<string>>();
+// And the same names as written, to catch one spelt another way: Ain Daib for Ain Diab.
+const spelt = new Map<string, string[]>();
 const inCity = (code: string) => arrondissements.filter((a) => a.communeCode === code).map((a) => a.code).concat(code);
 for (const commune of cities.values()) {
   const codes = new Set(inCity(commune.code));
   const names = new Set<string>();
-  for (const [fr, , code] of kept.values()) if (codes.has(code)) names.add(coreOf(normalise(fr)));
-  for (const u of [...communes, ...arrondissements]) if (codes.has(u.code)) names.add(coreOf(normalise(u.name.fr)));
+  const written: string[] = [];
+  for (const [fr, , code] of kept.values()) if (codes.has(code) && fr) (names.add(coreOf(normalise(fr))), written.push(fr));
+  for (const u of [...communes, ...arrondissements]) if (codes.has(u.code)) (names.add(coreOf(normalise(u.name.fr))), written.push(u.name.fr));
   taken.set(commune.code, names);
+  spelt.set(commune.code, written);
 }
 let posted = 0;
 let notPlaces = 0;
 let known = 0;
+let respelt = 0;
+// Every name's postcodes first, from the whole list, so 2 spellings under one postcode meet
+// whichever of them comes first in it.
+const codesOf = new Map<string, Set<string>>();
+for (const [city, raw, postcode] of rows) {
+  const commune = cities.get((city ?? "").trim());
+  const name = cleanName(raw ?? "");
+  if (!commune || !name) continue;
+  const k = `${commune.code}|${coreOf(normalise(name))}`;
+  if (!codesOf.has(k)) codesOf.set(k, new Set());
+  codesOf.get(k)!.add((postcode ?? "").trim());
+}
+const sharePostcode = (code: string, a: string, b: string) => {
+  const mine = codesOf.get(`${code}|${coreOf(normalise(a))}`);
+  const theirs = codesOf.get(`${code}|${coreOf(normalise(b))}`);
+  return Boolean(mine && theirs && [...mine].some((p) => theirs.has(p)));
+};
 for (const [city, raw] of rows) {
   const commune = cities.get((city ?? "").trim());
   const name = cleanName(raw ?? "");
@@ -148,11 +182,17 @@ for (const [city, raw] of rows) {
     known++;
     continue;
   }
+  const written = spelt.get(commune.code)!;
+  if (written.some((other) => sameName(name, other, { samePostcode: sharePostcode(commune.code, name, other) }))) {
+    respelt++;
+    continue;
+  }
   names.add(core);
+  written.push(name);
   kept.set(`${commune.code}|${normalise(name)}|`, [name, "", commune.code, "poste"]);
   posted++;
 }
-console.log(`Poste Maroc: ${rows.length} rows in ${cities.size} cities; ${posted} added, ${known} already there or repeated, ${notPlaces} not a place`);
+console.log(`Poste Maroc: ${rows.length} rows in ${cities.size} cities; ${posted} added, ${known} already there or repeated, ${respelt} already there spelt another way, ${notPlaces} not a place`);
 
 const places = [...kept.values()].sort((a, b) => a[2].localeCompare(b[2]) || a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
 // A busy Overpass server can answer with part of the map, so a list that lost more than a

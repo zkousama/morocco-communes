@@ -51,3 +51,55 @@ describe("a locality from Poste Maroc's list, matched to a commune", () => {
     expect(communeFor("ABACHKOU", communes)).toBeNull();
   });
 });
+
+describe("2 spellings of the same neighbourhood", () => {
+  it("are a swap, a doubled letter, or a vowel inside a long word", async () => {
+    const { sameName } = await import("../../src/lib/postNeighbourhoods.ts");
+    for (const [a, b] of [
+      ["Ain Daib", "Ain Diab"],
+      ["Ferme Bretone", "Ferme Bretonne"],
+      ["Hay Al Izdihar", "Hay Al Izzdihar"],
+      ["Habouss", "Habous"],
+      ["Lot Anoaur", "Lot. Anouar"],
+      ["Lot Mahrach", "Lot. Mahrech"],
+      ["Hay Mohammadi", "Hay Mohammedi"],
+      ["Hay Hassani", "Hay El Hassani"],
+      ["Lotissement Mahrach", "Lot. Mahrech"],
+    ]) {
+      expect(sameName(a!, b!), `${a} = ${b}`).toBe(true);
+    }
+  });
+
+  it("are never a changed or added consonant, a vowel at a word's end, a short word's vowel, or another sector", async () => {
+    const { sameName } = await import("../../src/lib/postNeighbourhoods.ts");
+    for (const [a, b] of [
+      ["Hay Farah", "Hay Faraj"],
+      ["Salama", "Salima"],
+      ["Salma", "Salima"],
+      ["Lot Erraja", "Lot. Erraha"],
+      ["Lot Sania", "Lot. Rania"],
+      ["Hay Al Amal", "Hay El Kamal"],
+      ["El Harar", "El Hara"],
+      ["Lot El Hilal", "Lot. Hilali"],
+      ["Hay Hassania", "Hay Hassani"],
+      ["Sidi Omar", "Sidi Amer"],
+      ["Ain Chifa II", "Ain Chifa III"],
+      ["Ain Chifa II", "Aîn-Chifaa"],
+      ["Sidi Maarouf 4", "Sidi Maârouf"],
+    ]) {
+      expect(sameName(a!, b!), `${a} ≠ ${b}`).toBe(false);
+    }
+  });
+});
+
+describe("2 spellings under the same postcode", () => {
+  it("may also differ by a vowel at a word's end, and still not by a consonant", async () => {
+    const { sameName } = await import("../../src/lib/postNeighbourhoods.ts");
+    expect(sameName("California", "Californie")).toBe(false);
+    expect(sameName("California", "Californie", { samePostcode: true })).toBe(true);
+    expect(sameName("Hay Farah", "Hay Faraj", { samePostcode: true })).toBe(false);
+    expect(sameName("Farida", "Farid", { samePostcode: true })).toBe(false);
+    expect(sameName("Lot El Hilal", "Lot. Hilali", { samePostcode: true })).toBe(false);
+    expect(sameName("Ain Chifa II", "Ain Chifa III", { samePostcode: true })).toBe(false);
+  });
+});

@@ -5999,7 +5999,7 @@ export const reference = {
         },
         "meta": {
           "datasetVersion": "1.9.1",
-          "total": 175
+          "total": 173
         },
         "links": {
           "self": "/api/communes/09.001.01.01/neighbourhoods.json",
@@ -6009,7 +6009,7 @@ export const reference = {
       },
       "cut": {
         "shown": 4,
-        "total": 175
+        "total": 173
       }
     },
     "listAllNeighbourhoods": {
@@ -6055,7 +6055,7 @@ export const reference = {
         ],
         "meta": {
           "datasetVersion": "1.9.1",
-          "total": 10321
+          "total": 10051
         },
         "links": {
           "self": "/api/neighbourhoods.json",
@@ -6065,7 +6065,7 @@ export const reference = {
       },
       "cut": {
         "shown": 3,
-        "total": 10321
+        "total": 10051
       }
     },
     "getNationalHousing": {
