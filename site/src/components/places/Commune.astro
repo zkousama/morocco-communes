@@ -395,53 +395,31 @@ getCommune("${c.slug}");`;
           <span class="hood-count" aria-live="polite" data-found={p.neighbourhoodsFound}></span>
         </div>
       )}
-      {[hoods.slice(0, HOODS_SHOWN), hoods.slice(HOODS_SHOWN)].map((rows, part) =>
-        rows.length === 0 ? null : (
-          <Fragment>
-            {part === 1 ? (
-              <details class="more hoods">
-                <summary>{fill(p.neighbourhoodsAll, { n: n.format(hoods.length) })}</summary>
-                <div class="scroll" tabindex="0">
-                  <table class="hood-table">
-                    <tbody>
-                      {rows.map((h) => (
-                        <tr>
-                          <td>
-                            {h.fr} {h.ar && <span lang="ar" dir="rtl" class="ar">{h.ar}</span>}
-                            {h.arrondissement && <span class="in">{h.arrondissement}</span>}
-                          </td>
-                          <td class="num">{h.postcodes.join(", ") || "—"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            ) : (
-              <div class="scroll" tabindex="0">
-                <table class="hood-table">
-                  <thead>
-                    <tr>
-                      <th>{p.colNeighbourhood}</th>
-                      <th class="num">{p.colPostcode}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((h) => (
-                      <tr>
-                        <td>
-                          {h.fr} {h.ar && <span lang="ar" dir="rtl" class="ar">{h.ar}</span>}
-                          {h.arrondissement && <span class="in">{h.arrondissement}</span>}
-                        </td>
-                        <td class="num">{h.postcodes.join(", ") || "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </Fragment>
-        ),
+      <div class="scroll" tabindex="0">
+        <table class="hood-table">
+          <thead>
+            <tr>
+              <th>{p.colNeighbourhood}</th>
+              <th class="num">{p.colPostcode}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hoods.map((h, i) => (
+              <tr class:list={[i >= HOODS_SHOWN && "later"]}>
+                <td>
+                  {h.fr} {h.ar && <span lang="ar" dir="rtl" class="ar">{h.ar}</span>}
+                  {h.arrondissement && <span class="in">{h.arrondissement}</span>}
+                </td>
+                <td class="num">{h.postcodes.join(", ") || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {hoods.length > HOODS_SHOWN && (
+        <button type="button" class="hood-more" hidden aria-expanded="false" data-all={fill(p.neighbourhoodsAll, { n: n.format(hoods.length) })} data-fewer={p.neighbourhoodsFewer}>
+          {fill(p.neighbourhoodsAll, { n: n.format(hoods.length) })}
+        </button>
       )}
     </section>
   )}
@@ -487,37 +465,45 @@ getCommune("${c.slug}");`;
 </Place>
 
 <script>
-  // The neighbourhood table's search: every row is in the page, so this only hides the ones
-  // that don't match, and opens the fold while there's a query so its rows show too. The box
-  // stays hidden without JavaScript, where it would do nothing.
+  // The neighbourhood table: one table, its rows past the first few folded away by a class this
+  // adds, so without JavaScript every row shows. The search filters the same rows, fold or not.
   const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[’'.-]/g, " ").replace(/\s+/g, " ");
-  for (const box of document.querySelectorAll<HTMLElement>(".hood-search")) {
-    const section = box.closest("section");
-    const input = box.querySelector<HTMLInputElement>(".hood-find");
-    const count = box.querySelector<HTMLElement>(".hood-count");
-    if (!section || !input || !count) continue;
-    const rows = [...section.querySelectorAll<HTMLTableRowElement>("tbody tr")];
+  for (const table of document.querySelectorAll<HTMLTableElement>(".hood-table")) {
+    const section = table.closest("section");
+    const more = section?.querySelector<HTMLButtonElement>(".hood-more");
+    const search = section?.querySelector<HTMLElement>(".hood-search");
+    const input = search?.querySelector<HTMLInputElement>(".hood-find");
+    const count = search?.querySelector<HTMLElement>(".hood-count");
+    let expanded = false;
+    const paint = () => {
+      table.classList.toggle("folded", !expanded);
+      if (!more) return;
+      more.setAttribute("aria-expanded", String(expanded));
+      more.textContent = (expanded ? more.dataset.fewer : more.dataset.all) ?? "";
+    };
+    if (more) {
+      more.hidden = false;
+      more.addEventListener("click", () => {
+        expanded = !expanded;
+        paint();
+      });
+    }
+    paint();
+    if (!search || !input || !count) continue;
+    const rows = [...table.querySelectorAll<HTMLTableRowElement>("tbody tr")];
     const keys = rows.map((row) => fold(row.textContent ?? ""));
-    const more = section.querySelector<HTMLDetailsElement>("details");
-    let openBefore = more?.open ?? false;
-    box.hidden = false;
+    search.hidden = false;
     input.addEventListener("input", () => {
       const query = fold(input.value.trim());
-      if (more && query && !input.dataset.searching) {
-        openBefore = more.open;
-        more.open = true;
-      }
-      input.dataset.searching = query ? "1" : "";
       let found = 0;
       rows.forEach((row, i) => {
         const shown = !query || keys[i]!.includes(query);
         row.hidden = !shown;
         if (shown && query) found++;
       });
-      if (more && !query) more.open = openBefore;
-      // The fold's label means nothing while the 2 tables show one list of matches.
-      const label = more?.querySelector("summary");
-      if (label) label.hidden = Boolean(query);
+      // A query searches every row, folded or not; clearing it puts the fold back as it was.
+      table.classList.toggle("folded", !query && !expanded);
+      if (more) more.hidden = Boolean(query);
       count.textContent = query ? (count.dataset.found ?? "{n}").replace("{n}", String(found)) : "";
     });
   }
@@ -544,8 +530,6 @@ getCommune("${c.slug}");`;
     font-variant-numeric: tabular-nums;
   }
 
-  /* The rest of a long list sits in its own table under the fold, with the same columns,
-     so the 2 line up. */
   .hood-table {
     table-layout: fixed;
     width: 100%;
@@ -558,6 +542,32 @@ getCommune("${c.slug}");`;
 
   /* The arrondissement, where the neighbourhood was placed by its point: a note on the
      name, since most of a city's come from a list that only gives the city. */
+  .hood-table.folded .later {
+    display: none;
+  }
+
+  .hood-more {
+    margin: 1rem 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 0.2em;
+  }
+
+  .hood-more:hover {
+    color: var(--ink);
+  }
+
+  .hood-more[hidden] {
+    display: none;
+  }
+
   .hood-search {
     display: flex;
     align-items: center;
