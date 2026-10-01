@@ -25,7 +25,7 @@ export const reference = {
         "get": {
           "operationId": "searchUnits",
           "summary": "Find any administrative unit by name",
-          "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
+          "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's, under the ODbL.",
           "parameters": [
             {
               "name": "q",
@@ -1298,8 +1298,13 @@ export const reference = {
                 "alias",
                 "prefix",
                 "spelling",
-                "trigram"
+                "trigram",
+                "neighbourhood"
               ]
+            },
+            "neighbourhood": {
+              "$ref": "#/components/schemas/Name",
+              "description": "The neighbourhood the query named, when the unit was found through one: its names in OpenStreetMap, which the unit holds. HCP publishes no figures for a neighbourhood."
             }
           }
         },
@@ -1635,7 +1640,7 @@ export const reference = {
       "op": {
         "operationId": "searchUnits",
         "summary": "Find any administrative unit by name",
-        "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès.",
+        "description": "Matches French names, Arabic names, slugs and codes, dotted, zero-padded or without their leading zeros. Accents, Arabic letter variants and vowel marks are folded, and places are also found by other names they go by, such as Fez for Fès. A neighbourhood's name finds the arrondissement or commune that holds it, with `matched: neighbourhood` and the neighbourhood's names: Sidi Maârouf finds Aïn-Chock, in Casablanca. The neighbourhoods are OpenStreetMap's, under the ODbL.",
         "parameters": [
           {
             "name": "q",

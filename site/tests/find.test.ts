@@ -162,3 +162,35 @@ describe("the shortcuts", () => {
     ]);
   });
 });
+
+describe("a neighbourhood the search found", () => {
+  const hit = (level: string, code: string, fr: string, neighbourhood: { fr: string; ar: string }) => ({
+    code,
+    level,
+    name: { fr, ar: "" },
+    slug: fr.toLowerCase(),
+    neighbourhood,
+  });
+
+  it("names the neighbourhood, and says which arrondissement and city it's in", () => {
+    const row = rowOf(hit("arrondissement", "06.141.01.41", "Aïn-Chock", { fr: "Sidi Maârouf", ar: "سيدي معروف" }), places, levels);
+    expect(row).toEqual({ href: "/communes/casablanca/", name: "Sidi Maârouf", meta: "Neighbourhood · Aïn-Chock, Casablanca", ar: "سيدي معروف" });
+  });
+
+  it("says which commune, where it's in one", () => {
+    const row = rowOf(hit("commune", "09.001.01.01", "Agadir", { fr: "Talborjt", ar: "" }), places, levels);
+    expect(row?.meta).toBe("Neighbourhood · Agadir");
+    expect(row?.href).toBe("/communes/agadir/");
+  });
+
+  it("falls back to the Arabic name where there's no French one", () => {
+    const row = rowOf(hit("commune", "09.001.01.01", "Agadir", { fr: "", ar: "تجزئة الأمل" }), places, levels);
+    expect(row?.name).toBe("تجزئة الأمل");
+    expect(row?.ar).toBe("");
+  });
+
+  it("is called a quartier in French", () => {
+    const row = rowOf(hit("commune", "09.001.01.01", "Agadir", { fr: "Talborjt", ar: "" }), places, ui.fr.findLevels);
+    expect(row?.meta).toBe("Quartier · Agadir");
+  });
+});

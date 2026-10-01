@@ -10,6 +10,8 @@ export interface Hit {
   level: string;
   name: { fr: string; ar: string };
   slug: string;
+  /** The neighbourhood a search named, when it found this unit through one. */
+  neighbourhood?: { fr: string; ar: string };
 }
 
 /** One row of the list: a link, the name, the quiet line and the Arabic. */
@@ -74,7 +76,18 @@ export const metaOf = (hit: Hit, places: Places, levels: Record<string, string>)
 
 export const rowOf = (hit: Hit, places: Places, levels: Record<string, string>): Row | null => {
   const href = hrefOf(hit, places);
-  return href === null ? null : { href, name: hit.name.fr, meta: metaOf(hit, places, levels), ar: hit.name.ar };
+  if (href === null) return null;
+  const hood = hit.neighbourhood;
+  if (!hood) return { href, name: hit.name.fr, meta: metaOf(hit, places, levels), ar: hit.name.ar };
+  // The neighbourhood is the name the reader typed, and the unit holding it goes on the quiet line.
+  const city = hit.level === "arrondissement" ? places.cities[cityCode(hit.code)]?.name : undefined;
+  const label = capital(levels.neighbourhood ?? "neighbourhood");
+  return {
+    href,
+    name: hood.fr || hood.ar,
+    meta: `${label} · ${city ? `${hit.name.fr}, ${city}` : hit.name.fr}`,
+    ar: hood.fr ? hood.ar : "",
+  };
 };
 
 const arabic = "\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFC";
