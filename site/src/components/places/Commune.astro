@@ -16,7 +16,8 @@ import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
 import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
-import { path, REPO_URL, type Locale } from "../../i18n/ui";
+import { path, REPO_URL, t, type Locale } from "../../i18n/ui";
+import { ordinary } from "../../../../api/src/lib/ordinary.ts";
 import { density, numbers, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
@@ -132,6 +133,12 @@ const twinFigures = (twin?.closest ?? [])
   .join(p.twinJoin);
 // The figures start a sentence of their own, and the labels are written to sit mid-sentence.
 const [twinBefore, twinAfter] = fill(p.twin, { figures: twinFigures.charAt(0).toLocaleUpperCase(locale) + twinFigures.slice(1) }).split("{twin}");
+// The compare page, set up with this commune and its closest match. Only for a commune it compares.
+const ui = t(locale);
+const comparable = indicatorsOf.has(c.code) && ordinary(people.total, people.households);
+const twinSlug = twin ? communeOf.get(twin.code)?.slug : undefined;
+const compareHref = comparable ? path(locale, `compare/?c=${[c.slug, twinSlug].filter(Boolean).join(",")}`) : null;
+const compareText = twinPage ? fill(ui.compareWith, { name: twinPage.name.fr }) : ui.compareAnother;
 
 const description =
   `${c.name.fr} (${c.name.ar}): ${n.format(people.total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}` +
@@ -214,11 +221,12 @@ getCommune("${c.slug}");`;
     </div>
   </dl>
 
-  {(gapPage || moved || twinPage || rare.length > 0) && (
+  {(gapPage || moved || twinPage || rare.length > 0 || compareHref) && (
     <div class="context">
       {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
       {moved && <p>{moved}</p>}
       {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
+      {compareHref && <p class="compare"><a href={compareHref}>{compareText} →</a></p>}
       {rare.map((line) => <p>{line}</p>)}
     </div>
   )}
@@ -400,6 +408,10 @@ getCommune("${c.slug}");`;
   .context p {
     margin: 0 0 0.5rem;
     max-width: var(--measure);
+  }
+
+  .context .compare {
+    font-size: var(--t-sm);
   }
 
   /* Quiet like the breadcrumb, and wrapping the same way, so a phone gets 2 or 3 short
