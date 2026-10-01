@@ -314,7 +314,9 @@ evidence for every pairing, so each row can be checked rather than taken on trus
 - [tn-municipality-api](https://tn-municipality-api.vercel.app), the Tunisian project
   this is modelled on.
 - [Bouazzi Maghribi](https://github.com/aleftypefoundry/bouazzi-maghribi), the Maghribi face
-  the site sets Arabic in, from Alef Type Foundry under the SIL Open Font License.
+  the site sets Arabic in, from Alef Type Foundry under the SIL Open Font License. The site
+  serves it as Communes Maghribi, with ݣ, ڭ, گ, ک, پ, چ and ﻻ built from its own letters and
+  dots by `site/scripts/font.py`, since the licence reserves the original name.
 
 ## Citing it, and correcting it
 

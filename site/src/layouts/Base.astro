@@ -315,8 +315,8 @@ const themes = themeList(copy);
 
     <style is:global>
       @font-face {
-        font-family: "Bouazzi Maghribi";
-        src: url("/fonts/BouazziMaghribi-Regular.woff2") format("woff2");
+        font-family: "Communes Maghribi";
+        src: url("/fonts/CommunesMaghribi-Regular.woff2") format("woff2");
         font-display: swap;
         /* Its letters sit small beside the Latin faces; this brings them level. */
         size-adjust: 130%;
@@ -390,12 +390,14 @@ const themes = themeList(copy);
         --code-string: #7a5f1c;
         --code-number: #0c7059;
 
-        /* Arabic is set in Bouazzi Maghribi, a revival of a Moroccan Maghribi face. Its
-           @font-face covers the Arabic block only, so it sits in every stack and only
-           ever draws Arabic. */
-        --display: "Instrument Serif", "Bouazzi Maghribi", Georgia, "Times New Roman", serif;
-        --sans: "Instrument Sans", "Bouazzi Maghribi", system-ui, -apple-system, "Segoe UI", sans-serif;
-        --mono: "JetBrains Mono", "Bouazzi Maghribi", ui-monospace, Menlo, Consolas, monospace;
+        /* Arabic is set in Bouazzi Maghribi, a revival of a Moroccan Maghribi face, with the
+           letters Moroccan place names use added (site/scripts/font.py); its licence
+           reserves the name, so the changed font is Communes Maghribi. Its @font-face
+           covers the Arabic block only, so it sits in every stack and only ever draws
+           Arabic. */
+        --display: "Instrument Serif", "Communes Maghribi", Georgia, "Times New Roman", serif;
+        --sans: "Instrument Sans", "Communes Maghribi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "JetBrains Mono", "Communes Maghribi", ui-monospace, Menlo, Consolas, monospace;
 
         /* A fourth, per Bringhurst. */
         --t-xs: 0.8125rem;
