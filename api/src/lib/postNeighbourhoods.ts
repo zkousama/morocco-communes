@@ -4,7 +4,7 @@
  * its city and postcode but no point, so a name is placed in its city's commune, and in
  * no arrondissement. These are the rules that turn a row into a name people would type.
  */
-import { normalise } from "./normalise.ts";
+import { normalise, skeleton } from "./normalise.ts";
 
 /** First words of rows that name a building or a market, not a place people live in. */
 const NOT_A_PLACE = new Set(["immeuble", "imm", "bloc", "kissariat", "kissariate", "kissaria", "marche", "complexe", "groupe", "magasin"]);
@@ -38,3 +38,40 @@ export const coreOf = (normalised: string) => normalised.replace(ARTICLES, "");
 
 /** A city's name with its spaces gone, so ELJADIDA and El Jadida meet. */
 export const cityKey = (name: string) => normalise(name).replace(/ /g, "");
+
+/**
+ * The commune a locality of Poste Maroc's names, among its province's: the same name, or
+ * failing that the one commune with the same consonants, as the search reads Titwan.
+ * Null when there's none or more than one, since a guess would give a commune a postcode
+ * that isn't its own; a village that isn't a commune finds none.
+ */
+export function communeFor<T extends { name: { fr: string } }>(locality: string, communes: T[]): T | null {
+  const key = cityKey(locality);
+  const same = communes.filter((c) => cityKey(c.name.fr) === key);
+  if (same.length === 1) return same[0]!;
+  if (same.length > 1) return null;
+  const bones = skeleton(normalise(locality));
+  if (bones.length < 3) return null;
+  const alike = communes.filter((c) => skeleton(normalise(c.name.fr)) === bones);
+  return alike.length === 1 ? alike[0]! : null;
+}
+
+/**
+ * Each of Poste Maroc's city names to its urban commune. A city with none is an error
+ * rather than a skip: the list names 34 cities, and losing one would drop its postcodes
+ * and neighbourhoods without a word.
+ */
+export function citiesOf<T extends { type?: string; name: { fr: string } }>(names: string[], communes: T[]): Map<string, T> {
+  const towns = new Map(communes.filter((c) => c.type === "urban").map((c) => [cityKey(c.name.fr), c]));
+  const cities = new Map<string, T>();
+  const missing = new Set<string>();
+  for (const raw of names) {
+    const name = raw.trim();
+    if (!name || cities.has(name)) continue;
+    const commune = towns.get(cityKey(name));
+    if (commune) cities.set(name, commune);
+    else missing.add(name);
+  }
+  if (missing.size > 0) throw new Error(`no urban commune for Poste Maroc's cities: ${[...missing].join(", ")}`);
+  return cities;
+}

@@ -25,6 +25,7 @@
     "site:og": "node --experimental-strip-types site/scripts/og.ts",
     "site:rail": "node --experimental-strip-types site/scripts/rail.ts",
     "api:neighbourhoods": "node --experimental-strip-types api/scripts/neighbourhoods.ts",
+    "api:postcodes": "node --experimental-strip-types api/scripts/postcodes.ts",
     "npm:build": "node --experimental-strip-types packages/morocco-communes/build.ts",
     "py:build": "python3 packages/morocco-communes-py/build_data.py",
     "eval": "node --experimental-strip-types evals/run.ts",

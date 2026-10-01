@@ -35,3 +35,19 @@ describe("comparing names", () => {
     expect(cityKey("FES")).toBe(cityKey("Fès"));
   });
 });
+
+describe("a locality from Poste Maroc's list, matched to a commune", () => {
+  it("matches a name spelt another way within its province, by its consonants", async () => {
+    const { communeFor } = await import("../../src/lib/postNeighbourhoods.ts");
+    const communes = [
+      { code: "a", name: { fr: "Afourar" } },
+      { code: "b", name: { fr: "Aguelmous" } },
+      { code: "c", name: { fr: "Aghbalou" } },
+      { code: "d", name: { fr: "Aghbalou Aqorar" } },
+    ];
+    expect(communeFor("AFOURER", communes)?.code).toBe("a");
+    expect(communeFor("AGUELMOUSS", communes)?.code).toBe("b");
+    expect(communeFor("AGHBALOU", communes)?.code).toBe("c");
+    expect(communeFor("ABACHKOU", communes)).toBeNull();
+  });
+});
