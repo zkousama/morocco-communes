@@ -10,6 +10,7 @@ import People from "./People.astro";
 import Economy from "./Economy.astro";
 import Housing from "./Housing.astro";
 import Insights from "./Insights.astro";
+import Douars from "./Douars.astro";
 import { indicatorsOf } from "../../lib/indicators";
 import { moveLine, movedMost, nextDoor, onlyHere, onlyHereLine, twinOf } from "../../lib/context";
 import { contentsOf } from "../../lib/contents";
@@ -20,6 +21,7 @@ import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, t, type Locale } from "../../i18n/ui";
 import { ordinary } from "../../../../api/src/lib/ordinary.ts";
 import { hasNeighbourhoods, postcodesOf } from "../../lib/neighbourhoods";
+import { douarsOf } from "../../lib/douars";
 import { density, numbers, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
@@ -97,6 +99,7 @@ const census = indicatorsOf.get(c.code);
 const economy = economyOf.get(c.code);
 const housing = housingOf.get(c.code);
 const insights = insightsOf.get(c.code);
+const fractions = douarsOf(c.code);
 const arrondissements = arrondissementsOf(c.code);
 const cityDrawing = drawArrondissements(c.code);
 // Every arrondissement in Casablanca is past the top national break, so the city is shaded
@@ -118,6 +121,7 @@ const contents = contentsOf(locale, {
   dwellings: Boolean(housing),
   work: Boolean(economy),
   urbanCentres: c.urbanCentres.length > 0,
+  douars: fractions.length > 0,
   arrondissements: arrondissements.length > 0,
 });
 
@@ -338,6 +342,8 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
+  {fractions.length > 0 && <Douars locale={locale} fractions={fractions} name={c.name.fr} urban={c.type === "urban"} />}
+
   {arrondissements.length > 0 && (
     <section id="arrondissements">
       <h2>{p.arrondissements}</h2>
@@ -408,6 +414,9 @@ getCommune("${c.slug}");`;
         )}
         {hoods && (
           <div><dt>{p.neighbourhoodsData}</dt><dd><a href={`/api/communes/${c.code}/neighbourhoods.json`}><code>/api/communes/{c.code}/neighbourhoods.json</code></a></dd></div>
+        )}
+        {fractions.length > 0 && (
+          <div><dt>{p.douars}</dt><dd><a href={`/api/communes/${c.code}/douars.json`}><code>/api/communes/{c.code}/douars.json</code></a></dd></div>
         )}
         {c.osm && (
           <div><dt>{p.osm}</dt><dd><a href={`https://www.openstreetmap.org/relation/${c.osm.relationId}`}>{c.osm.relationId}</a></dd></div>

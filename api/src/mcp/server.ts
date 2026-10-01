@@ -41,6 +41,7 @@ export const TOOL_NAMES: ReadonlySet<string> = new Set([
   "get_housing",
   "get_insights",
   "get_neighbourhoods",
+  "get_douars",
 ]);
 
 /** Read-only, closed-world and repeatable, which lets a client call these without asking. */
@@ -61,6 +62,8 @@ const INSTRUCTIONS =
   "get_insights gives up to 3 of a commune's 2024 census figures that stand out, each with its context worked out from the census: " +
   "the communes it borders on the same figure, and the same figure in 2014 beside Morocco's, where the two censuses can be compared. " +
   "A census figure in a commune of 2,000 households or more is marked sampled. " +
+  "get_neighbourhoods gives a commune's named neighbourhoods and its postcodes, and get_douars a rural commune's fractions and douars, " +
+  "with each douar's people and households and, for one of 30 households or more, how far it is from a road, a school and a health centre. " +
   "No language model writes or judges any of it.";
 
 /** Where each level's files live. */
@@ -1003,6 +1006,75 @@ export function createMcpServer(deps: McpDeps): McpServer {
           arrondissement: n.arrondissement,
           source: n.source,
           postcodes: n.postcodes,
+        })),
+      });
+    },
+  );
+
+  server.registerTool(
+    "get_douars",
+    {
+      title: "A rural commune's douars",
+      description:
+        "The douars of a rural commune from HCP's 2024 census, the villages and hamlets it's made of, grouped in its fractions (mashyakha), named in Arabic only. " +
+        "Each has its kind (grouped, split into sub-douars, or dispersed), its households and its people. " +
+        "With figures, a douar of 30 households or more also has the nationality, sex, age, civil registration and marital status of its people, " +
+        "the kind of dwelling its households live in, and the average distance in km from its dwellings to a paved road, an unpaved road a car can drive on, " +
+        "a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, and says null. " +
+        "A town has no douars, though 21 communes counted as urban have some in their rural part.",
+      inputSchema: {
+        unit: z.string().min(1).describe("A commune, by code or slug."),
+        fraction: z.string().regex(/^\d{10}$/).optional().describe("Only the douars of this fraction, by its 10-digit code."),
+        figures: z.boolean().optional().describe("Include each douar's figures. Left out, a douar is its name, kind, households and people."),
+      },
+      outputSchema: {
+        unit: z.object({ code: z.string(), name_fr: z.string() }),
+        total: z.number().describe("How many douars are returned."),
+        fractions: z.array(z.object({ code: z.string(), name_ar: z.string(), douars: z.number(), households: z.number(), population: z.number() })),
+        douars: z.array(
+          z.object({
+            code: z.string(),
+            fraction: z.string().describe("The fraction's code."),
+            name_ar: z.string(),
+            type: z.enum(["grouped", "split", "dispersed"]),
+            households: z.number(),
+            population: z.number(),
+            figures: z.record(z.string(), z.record(z.string(), z.number().nullable())).nullable().optional().describe("Null where HCP withholds them."),
+          }),
+        ),
+        message: z.string().optional().describe("Present when the commune has no douars."),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ unit, fraction, figures }) => {
+      const found = resolve(lookup, unit, "commune");
+      if (found.kind === "malformed") return fail(`${unit} is not a code or a slug.`);
+      if (found.kind === "absent") return fail(`No commune has the identifier ${unit}. Call search to find its code.`);
+      const unitOut = { code: found.code, name_fr: nameOf.get(found.code) ?? found.code };
+      const body = await fetchJson(`/api/communes/${found.code}/douars.json`);
+      if (!body) return ok({ unit: unitOut, total: 0, fractions: [], douars: [], message: `${unitOut.name_fr} has no douars: the census counts douars in rural areas only.` });
+      const data = body.data as unknown as {
+        fractions: { code: string; name: { ar: string }; douars: number; households: number; population: number }[];
+        douars: { code: string; fraction: string; name: { ar: string }; type: "grouped" | "split" | "dispersed"; households: number; population: number; topics: Record<string, Record<string, number | null>> | null }[];
+      };
+      if (fraction && !data.fractions.some((f) => f.code === fraction)) {
+        return fail(`${unitOut.name_fr} has no fraction ${fraction}. Its fractions are ${data.fractions.map((f) => f.code).join(", ")}.`);
+      }
+      const douars = data.douars.filter((d) => !fraction || d.fraction === fraction);
+      return ok({
+        unit: unitOut,
+        total: douars.length,
+        fractions: data.fractions
+          .filter((f) => !fraction || f.code === fraction)
+          .map((f) => ({ code: f.code, name_ar: f.name.ar, douars: f.douars, households: f.households, population: f.population })),
+        douars: douars.map((d) => ({
+          code: d.code,
+          fraction: d.fraction,
+          name_ar: d.name.ar,
+          type: d.type,
+          households: d.households,
+          population: d.population,
+          ...(figures ? { figures: d.topics } : {}),
         })),
       });
     },

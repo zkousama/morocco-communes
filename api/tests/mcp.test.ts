@@ -4,7 +4,8 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer, TOOL_NAMES } from "../src/mcp/server.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../src/emit/static.ts";
+import { emitDouars, emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../src/emit/static.ts";
+import { readDouars } from "../src/emit/douars.ts";
 import { neighbourhoodTable, postcodesByCommune } from "../src/lib/neighbourhoodTable.ts";
 import { readIndicators } from "../src/emit/indicators.ts";
 import { readEconomy } from "../src/emit/economy.ts";
@@ -41,6 +42,10 @@ emitIndicators(tree as never, indicatorRecords);
 const economyRecords = await readEconomy("data/v1");
 emitEconomy(tree as never, economyRecords);
 emitHousing(tree as never, await readHousing("data/v1"));
+{
+  const { douars, fractions } = await readDouars("data/v1");
+  emitDouars(tree as never, douars, fractions);
+}
 // A hand-written unit stands in for a published one, so these tests don't move each time the
 // pipeline is re-run: Rabat, with one figure and its context.
 emitInsights(tree as never, {
@@ -96,10 +101,10 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 11 read-only tools", async () => {
+  it("offers 12 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_economy", "get_housing", "get_indicators", "get_insights", "get_neighbourhoods", "get_unit", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_douars", "get_economy", "get_housing", "get_indicators", "get_insights", "get_neighbourhoods", "get_unit", "list_communes", "search",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
@@ -126,6 +131,31 @@ describe("the MCP server, through a real client", () => {
     expect(out.neighbourhoods).toEqual([]);
     expect(out.postcodes).toEqual(["85450"]);
     expect(out.message).toMatch(/No neighbourhoods/);
+  });
+
+  it("gives a rural commune's douars in their fractions, without their figures unless asked", async () => {
+    const r = await client.callTool({ name: "get_douars", arguments: { unit: "imi-mqourn" } });
+    const out = r.structuredContent as { total: number; fractions: { code: string; name_ar: string; douars: number }[]; douars: { code: string; figures?: unknown }[] };
+    expect(out.total).toBe(45);
+    expect(out.fractions.map((f) => [f.code, f.name_ar, f.douars])).toEqual([["1630717201", "إكونكا", 29], ["1630717202", "إداومنو", 16]]);
+    expect(out.douars[0]).toEqual({ code: "1630717201001", fraction: "1630717201", name_ar: "توريرت نترست", type: "dispersed", households: 32, population: 105 });
+  });
+
+  it("gives a fraction's douars with their figures, null where HCP withholds them", async () => {
+    const r = await client.callTool({ name: "get_douars", arguments: { unit: "imi-mqourn", fraction: "1630717201", figures: true } });
+    const out = r.structuredContent as { total: number; douars: { code: string; figures: Record<string, Record<string, number | null>> | null }[] };
+    expect(out.total).toBe(29);
+    expect(out.douars[0]!.figures?.distanceKm).toMatchObject({ pavedRoad: 3.75, drivableTrack: 1.06, healthCentre: 12.72 });
+    expect(out.douars.find((d) => d.code === "1630717201002")!.figures).toBeNull();
+    const wrong = await client.callTool({ name: "get_douars", arguments: { unit: "imi-mqourn", fraction: "1630717299" } });
+    expect(wrong.isError).toBe(true);
+    expect(text(wrong as Result)).toMatch(/no fraction 1630717299/);
+  });
+
+  it("says a town has no douars", async () => {
+    const out = (await client.callTool({ name: "get_douars", arguments: { unit: "tanger" } })).structuredContent as { douars: unknown[]; message?: string };
+    expect(out.douars).toEqual([]);
+    expect(out.message).toMatch(/rural areas only/);
   });
 
   it("registers exactly the tools TOOL_NAMES lists, which the demand log keeps by name", async () => {

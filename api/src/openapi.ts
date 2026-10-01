@@ -2,6 +2,7 @@ import { LIMIT, PAGE, PER_PAGE, POPULATION, QUERY, RADIUS_KM } from "./lib/param
 import { HOUSEHOLD_TOPICS, PEOPLE_TOPICS } from "./lib/indicators.ts";
 import { ECONOMY_TOPICS } from "./lib/economy.ts";
 import { HOUSING_TOPICS } from "./lib/housing.ts";
+import { DOUAR_TOPICS } from "./lib/douars.ts";
 
 /**
  * The OpenAPI 3.1 description of the API, built from the same limits the Worker enforces,
@@ -336,6 +337,23 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           },
         },
       },
+      "/api/communes/{code}/douars": {
+        get: {
+          operationId: "listDouars",
+          summary: "A rural commune's fractions and douars",
+          description:
+            "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. " +
+            "Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, " +
+            "the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. " +
+            "HCP withholds those for a smaller douar, which has null topics. Names are in Arabic only. A commune with no rural part has no file.",
+          parameters: [code("A dotted code, padded or unpadded digits, or a slug.", "imi-mqourn")],
+          responses: {
+            "200": ok("The commune's fractions and douars.", ref("Douars")),
+            "400": problem("Not an identifier."),
+            "404": problem("No commune has that identifier, or it has no douars."),
+          },
+        },
+      },
       "/api/neighbourhoods.json": {
         get: {
           operationId: "listAllNeighbourhoods",
@@ -488,6 +506,41 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           properties: {
             neighbourhoods: { type: "array", items: ref("Neighbourhood") },
             postcodes: { type: "array", items: { type: "string" } },
+          },
+        },
+        Fraction: {
+          type: "object",
+          required: ["code", "name", "douars", "households", "population"],
+          properties: {
+            code: { type: "string", description: "10 digits: the douar codes under it start with it." },
+            name: { type: "object", required: ["ar"], properties: { ar: { type: "string" } } },
+            douars: { type: "integer" },
+            households: { type: "integer" },
+            population: { type: "integer" },
+          },
+        },
+        Douar: {
+          type: "object",
+          required: ["code", "fraction", "name", "type", "households", "population", "topics"],
+          properties: {
+            code: { type: "string", description: "HCP's 13 digits: province, cercle, commune, fraction and douar." },
+            fraction: { type: "string", description: "Its fraction's code." },
+            name: { type: "object", required: ["ar"], properties: { ar: { type: "string" } } },
+            type: { type: "string", enum: ["grouped", "split", "dispersed"], description: "HCP's douar groupé, éclaté or dispersé." },
+            households: { type: "integer" },
+            population: { type: "integer" },
+            topics: {
+              type: ["object", "null"],
+              description: `By topic, then by key: ${[...DOUAR_TOPICS.keys()].join(", ")}. Percentages of its people or households, but for maritalStatus.population15Plus, a count, and distanceKm, in km. Null for a douar of fewer than 30 households.`,
+            },
+          },
+        },
+        Douars: {
+          type: "object",
+          required: ["fractions", "douars"],
+          properties: {
+            fractions: { type: "array", items: ref("Fraction") },
+            douars: { type: "array", items: ref("Douar") },
           },
         },
         NearHit: {

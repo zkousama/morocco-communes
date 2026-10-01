@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { contentsOf } from "../src/lib/contents.ts";
 import { places } from "../src/i18n/places.ts";
 
-const everything = { change: true, people: true, dwellings: true, work: true, urbanCentres: true, arrondissements: true };
+const everything = { change: true, people: true, dwellings: true, work: true, urbanCentres: true, douars: true, arrondissements: true };
 
 describe("a commune page's section links", () => {
   it("link every section the page has, in its order, by the section's own heading", () => {
@@ -14,6 +14,7 @@ describe("a commune page's section links", () => {
       { id: "dwellings", label: "Urban dwellings" },
       { id: "work", label: "Business and jobs" },
       { id: "urban-centres", label: "Urban centres" },
+      { id: "douars", label: "Douars" },
       { id: "arrondissements", label: "Arrondissements" },
       { id: "data", label: "In the data" },
     ]);
@@ -27,18 +28,19 @@ describe("a commune page's section links", () => {
       places.fr.dwellingsTitle,
       places.fr.work,
       places.fr.urbanCentres,
+      places.fr.douars,
       places.fr.arrondissements,
       places.fr.inTheData,
     ]);
   });
 
   it("skip a section the page doesn't have", () => {
-    const rural = { change: true, people: true, dwellings: false, work: true, urbanCentres: false, arrondissements: false };
-    expect(contentsOf("en", rural).map((s) => s.id)).toEqual(["where", "change", "people", "work", "data"]);
+    const rural = { change: true, people: true, dwellings: false, work: true, urbanCentres: false, douars: true, arrondissements: false };
+    expect(contentsOf("en", rural).map((s) => s.id)).toEqual(["where", "change", "people", "work", "douars", "data"]);
   });
 
   it("point at ids the sections carry", () => {
-    const sources = ["Commune", "People", "Housing", "Economy"]
+    const sources = ["Commune", "People", "Housing", "Economy", "Douars"]
       .map((name) => readFileSync(`site/src/components/places/${name}.astro`, "utf8"))
       .join("\n");
     for (const { id } of contentsOf("en", everything)) {

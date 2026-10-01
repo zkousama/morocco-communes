@@ -1,12 +1,13 @@
 import { existsSync } from "node:fs";
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
+import { emitDouars, emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree, HEADERS_FILE, ROUTES_FILE, type Tree } from "./static.ts";
 import { neighbourhoodTable, postcodesByCommune } from "../lib/neighbourhoodTable.ts";
 import { buildIndicatorTable } from "../lib/indicators.ts";
 import { readIndicators } from "./indicators.ts";
 import { readEconomy } from "./economy.ts";
 import { readHousing } from "./housing.ts";
+import { readDouars } from "./douars.ts";
 import { readInsights } from "./insights.ts";
 import { buildIndex } from "./searchIndex.ts";
 import type { Neighbourhood } from "../lib/neighbourhoods.ts";
@@ -59,6 +60,10 @@ emitIndicators(tree, indicators);
 const economy = await readEconomy(DATA);
 emitEconomy(tree, economy);
 emitHousing(tree, await readHousing(DATA));
+{
+  const { douars, fractions } = await readDouars(DATA);
+  emitDouars(tree, douars, fractions);
+}
 emitInsights(tree, await readInsights(DATA));
 {
   const places = (JSON.parse(await readFile("api/data/neighbourhoods.json", "utf8")) as { places: Neighbourhood[] }).places;

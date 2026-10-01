@@ -358,6 +358,27 @@ export const downloads = [
     ]
   },
   {
+    "key": "dlDouars",
+    "licence": "hcp",
+    "files": [
+      {
+        "label": "douars.csv",
+        "href": "/data/v1/douars/douars.csv",
+        "bytes": 5811533
+      },
+      {
+        "label": "fractions.json",
+        "href": "/data/v1/douars/fractions.json",
+        "bytes": 700018
+      },
+      {
+        "label": "fields.json",
+        "href": "/data/v1/douars/fields.json",
+        "bytes": 12267
+      }
+    ]
+  },
+  {
     "key": "dlAdjacency",
     "licence": "odbl",
     "files": [
@@ -401,7 +422,7 @@ export const downloads = [
       {
         "label": "JSON",
         "href": "/data/v1/sources.json",
-        "bytes": 5709
+        "bytes": 6175
       }
     ]
   }

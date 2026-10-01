@@ -145,6 +145,15 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    key: "dlDouars",
+    licence: "hcp",
+    files: [
+      { label: "douars.csv", path: "data/v1/douars/douars.csv" },
+      { label: "fractions.json", path: "data/v1/douars/fractions.json" },
+      { label: "fields.json", path: "data/v1/douars/fields.json" },
+    ],
+  },
+  {
     key: "dlAdjacency",
     licence: "odbl",
     files: [

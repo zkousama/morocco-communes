@@ -8,12 +8,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { buildIndex } from "../../api/src/emit/searchIndex.ts";
-import { emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../../api/src/emit/static.ts";
+import { emitDouars, emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../../api/src/emit/static.ts";
 import { neighbourhoodTable, postcodesByCommune } from "../../api/src/lib/neighbourhoodTable.ts";
 import { readFileSync } from "node:fs";
 import { readIndicators } from "../../api/src/emit/indicators.ts";
 import { readEconomy } from "../../api/src/emit/economy.ts";
 import { readHousing } from "../../api/src/emit/housing.ts";
+import { readDouars } from "../../api/src/emit/douars.ts";
 import { readInsights } from "../../api/src/emit/insights.ts";
 import { buildIndicatorTable, type IndicatorRecord, type Topics } from "../../api/src/lib/indicators.ts";
 import { envelope, PROBLEMS, problem, type Envelope } from "../../api/src/lib/envelope.ts";
@@ -59,6 +60,10 @@ emitInsights(tree, await readInsights("data/v1"));
   const codes = read("api/data/postcodes.json").postcodes;
   emitNeighbourhoods(tree, neighbourhoodTable(read("api/data/neighbourhoods.json").places, codes, (c) => cityOf.get(c) ?? c), postcodesByCommune(codes));
 }
+{
+  const { douars, fractions } = await readDouars("data/v1");
+  emitDouars(tree, douars, fractions);
+}
 const agadir = (dataset.communes as { code: string; slug: string }[]).find((c) => c.slug === "agadir")!.code;
 /** A commune's neighbourhoods file with its first few neighbourhoods, and its postcodes whole. */
 const someNeighbourhoods = (request: string, body: Envelope<unknown>, keep: number): Example => {
@@ -69,6 +74,16 @@ const someNeighbourhoods = (request: string, body: Envelope<unknown>, keep: numb
     cut: { shown: keep, total: data.neighbourhoods.length },
   };
 };
+/** A commune's douars file with its fractions whole and its first few douars. */
+const someDouars = (request: string, body: Envelope<unknown>, keep: number): Example => {
+  const data = body.data as { fractions: unknown[]; douars: unknown[] };
+  return {
+    request,
+    body: { ...body, data: { ...data, douars: data.douars.slice(0, keep) } },
+    cut: { shown: keep, total: data.douars.length },
+  };
+};
+const imiMqourn = (dataset.communes as { code: string; slug: string }[]).find((c) => c.slug === "imi-mqourn")!.code;
 const indicators = buildIndicatorTable(
   indicatorRecords.filter((r) => r.level === "commune"),
   economyRecords.filter((r) => r.level === "commune"),
@@ -191,6 +206,7 @@ const examples: Record<string, Example> = {
   listNeighbours: { request: "/api/communes/tiznit/neighbours", body: file("/api/communes/09.581.01.07/neighbours.json") },
   listNeighbourhoods: someNeighbourhoods("/api/communes/agadir/neighbourhoods", file(`/api/communes/${agadir}/neighbourhoods.json`), 4),
   listAllNeighbourhoods: cut("/api/neighbourhoods.json", file("/api/neighbourhoods.json"), 3),
+  listDouars: someDouars("/api/communes/imi-mqourn/douars", file(`/api/communes/${imiMqourn}/douars.json`), 3),
   getNationalHousing: { request: "/api/housing.json", body: file("/api/housing.json") },
   listInsights: { request: "/api/insights.json", body: file("/api/insights.json") },
   getVersion: { request: "/api/version.json", body: file("/api/version.json") },

@@ -12,6 +12,7 @@ export interface Has {
   dwellings: boolean;
   work: boolean;
   urbanCentres: boolean;
+  douars: boolean;
   arrondissements: boolean;
 }
 
@@ -25,6 +26,7 @@ export function contentsOf(locale: Locale, has: Has): { id: string; label: strin
     { id: "dwellings", label: p.dwellingsTitle, shown: has.dwellings },
     { id: "work", label: p.work, shown: has.work },
     { id: "urban-centres", label: p.urbanCentres, shown: has.urbanCentres },
+    { id: "douars", label: p.douars, shown: has.douars },
     { id: "arrondissements", label: p.arrondissements, shown: has.arrondissements },
     { id: "data", label: p.inTheData, shown: true },
   ]

@@ -1,0 +1,177 @@
+---
+/**
+ * A commune's douars, the villages and hamlets of its rural part, as the 2024 census counted
+ * them: one table, a group of rows per fraction, each douar with its kind, its households
+ * and people, and how far its homes are from a paved road, a primary school and a health
+ * centre. The other figures HCP gives a douar are in the API and the downloads.
+ *
+ * HCP withholds a douar's figures under 30 households, so those rows show a dash, and say
+ * why under the table. Rows past the first few fold away once the script runs; without it,
+ * every row shows.
+ */
+import { fill, places } from "../../i18n/places";
+import { path, type Locale } from "../../i18n/ui";
+import { numbers } from "../../lib/format";
+import type { Fraction } from "../../lib/douars";
+
+interface Props {
+  locale: Locale;
+  fractions: Fraction[];
+  name: string;
+  /** A commune the census counts as urban, whose douars are its rural part. */
+  urban: boolean;
+}
+const { locale, fractions, name, urban } = Astro.props;
+const p = places[locale];
+const n = numbers(locale);
+const km = numbers(locale, 1, true);
+
+/** Rows shown before the fold, counting douars across fractions. */
+const SHOWN = 12;
+const total = fractions.reduce((sum, f) => sum + f.rows.length, 0);
+const people = fractions.reduce((sum, f) => sum + f.population, 0);
+const kinds = p.douarKinds as Record<string, string>;
+const distance = (v: number | null | undefined) => (v === null || v === undefined ? "—" : km.format(v));
+const withheld = fractions.some((f) => f.rows.some((d) => d.topics === null));
+
+// Each fraction's place in the count, so a fraction whose rows all fall past the fold folds too.
+let seen = 0;
+const groups = fractions.map((f) => {
+  const start = seen;
+  seen += f.rows.length;
+  return { ...f, start };
+});
+---
+
+<section class="douars" id="douars">
+  <h2>{p.douars}</h2>
+  <p>
+    {fill(urban ? p.douarsBodyUrban : p.douarsBody, { name, n: n.format(total), fractions: n.format(fractions.length), people: n.format(people) })}
+    {" "}<a href={path(locale, "docs/indicators/#douars")}>{p.douarsMore}</a>
+  </p>
+  <div class="scroll" tabindex="0">
+    <table class="douar-table">
+      <thead>
+        <tr>
+          <th rowspan="2" scope="col">{p.colDouar}</th>
+          <th rowspan="2" scope="col">{p.colKind}</th>
+          <th rowspan="2" scope="col" class="num">{p.colHouseholds}</th>
+          <th rowspan="2" scope="col" class="num">{p.colPeople}</th>
+          <th colspan="3" scope="colgroup" class="num span">{p.colDistance}</th>
+        </tr>
+        <tr>
+          <th scope="col" class="num">{p.colPavedRoad}</th>
+          <th scope="col" class="num">{p.colSchool}</th>
+          <th scope="col" class="num">{p.colHealth}</th>
+        </tr>
+      </thead>
+      {groups.map((f) => (
+        <tbody>
+          <tr class:list={["fraction", { later: f.start >= SHOWN }]}>
+            <th colspan="7" scope="rowgroup">
+              <span lang="ar" dir="rtl">{f.name.ar}</span>
+              <span class="sum">{fill(p.douarsFraction, { n: n.format(f.rows.length), people: n.format(f.population) })}</span>
+            </th>
+          </tr>
+          {f.rows.map((d, i) => (
+            <tr class:list={{ later: f.start + i >= SHOWN }}>
+              <td><span lang="ar" dir="rtl">{d.name.ar}</span></td>
+              <td>{kinds[d.type] ?? d.type}</td>
+              <td class="num">{n.format(d.households)}</td>
+              <td class="num">{n.format(d.population)}</td>
+              <td class="num">{distance(d.topics?.distanceKm?.pavedRoad)}</td>
+              <td class="num">{distance(d.topics?.distanceKm?.primarySchool)}</td>
+              <td class="num">{distance(d.topics?.distanceKm?.healthCentre)}</td>
+            </tr>
+          ))}
+        </tbody>
+      ))}
+    </table>
+  </div>
+  {total > SHOWN && (
+    <button type="button" class="douars-more" hidden aria-expanded="false" data-all={fill(p.douarsAll, { n: n.format(total) })} data-fewer={p.douarsFewer}>
+      {fill(p.douarsAll, { n: n.format(total) })}
+    </button>
+  )}
+  {withheld && <p class="note">{p.douarsWithheld}</p>}
+</section>
+
+<script>
+  for (const table of document.querySelectorAll<HTMLTableElement>(".douar-table")) {
+    const more = table.closest("section")?.querySelector<HTMLButtonElement>(".douars-more");
+    if (!more) continue;
+    let expanded = false;
+    const paint = () => {
+      table.classList.toggle("folded", !expanded);
+      more.setAttribute("aria-expanded", String(expanded));
+      more.textContent = (expanded ? more.dataset.fewer : more.dataset.all) ?? "";
+    };
+    more.hidden = false;
+    more.addEventListener("click", () => {
+      expanded = !expanded;
+      paint();
+    });
+    paint();
+  }
+</script>
+
+<style>
+  .douar-table thead .span {
+    text-align: center;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* A name on one line: an Arabic name broken across lines in a narrow column reads as 2. */
+  .douar-table td:first-child {
+    white-space: nowrap;
+  }
+
+  .douar-table .fraction th {
+    padding-top: 1rem;
+    text-align: start;
+    font-weight: 600;
+  }
+
+  .douar-table tbody:first-of-type .fraction th {
+    padding-top: 0.5rem;
+  }
+
+  .douar-table .sum {
+    margin-inline-start: 0.75rem;
+    color: var(--quiet);
+    font-size: var(--t-xs);
+    font-weight: 400;
+  }
+
+  .douar-table.folded .later {
+    display: none;
+  }
+
+  .douars-more {
+    margin: 1rem 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 0.2em;
+  }
+
+  .douars-more:hover {
+    color: var(--ink);
+  }
+
+  .douars-more[hidden] {
+    display: none;
+  }
+
+  .note {
+    margin-top: 0.75rem;
+    color: var(--quiet);
+    font-size: var(--t-xs);
+  }
+</style>

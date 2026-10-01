@@ -4,6 +4,7 @@ import { groupBy, type Dataset } from "../lib/dataset.ts";
 import type { IndicatorRecord } from "../lib/indicators.ts";
 import type { EconomyRecord } from "../lib/economy.ts";
 import type { HousingRecord } from "../lib/housing.ts";
+import type { DouarRecord, FractionRecord } from "../lib/douars.ts";
 
 export type Tree = Map<string, Envelope<unknown>>;
 
@@ -252,6 +253,22 @@ export function emitHousing(tree: Tree, records: HousingRecord[]): void {
     const path = api(`${collection}/housing.json`);
     if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
     tree.set(path, envelope(rows, { self: path }, { total: rows.length }));
+  }
+}
+
+/**
+ * A rural commune's douars at `/api/communes/{code}/douars.json`: its fractions, then its
+ * douars in HCP's code order, each naming its fraction by code. Only the 1,279 communes with
+ * douars have a file.
+ */
+export function emitDouars(tree: Tree, douars: DouarRecord[], fractions: FractionRecord[]): void {
+  const fractionsOf = groupBy(fractions, (f) => f.communeCode);
+  for (const [commune, inside] of groupBy(douars, (d) => d.communeCode)) {
+    const path = api(`communes/${commune}/douars.json`);
+    if (tree.has(path)) throw new Error(`two answers claim the same path: ${path}`);
+    const rows = inside.map(({ communeCode: _, ...d }) => d);
+    const groups = (fractionsOf.get(commune) ?? []).map(({ communeCode: _, ...f }) => f);
+    tree.set(path, envelope({ fractions: groups, douars: rows }, { self: path }, { total: rows.length }));
   }
 }
 

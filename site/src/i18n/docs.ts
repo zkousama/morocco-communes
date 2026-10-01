@@ -122,6 +122,16 @@ export const SPEC_FR: Record<string, string> = {
   "listNeighbourhoods.200": "Les quartiers et les codes postaux de la commune.",
   "listNeighbourhoods.400": "Ce n’est pas un identifiant.",
   "listNeighbourhoods.404": "Aucune commune ne porte cet identifiant, ou elle n’a ni quartier nommé ni code postal.",
+  "listDouars.summary": "Les fractions et les douars d’une commune rurale",
+  "listDouars.description":
+    "Les douars d’une commune selon le recensement de 2024 du HCP, les villages et hameaux de sa partie rurale, avec les fractions (mashyakha) qui les regroupent. " +
+    "Chaque douar a son type, ses ménages et sa population, et, pour un douar de 30 ménages ou plus, la nationalité, le sexe, l’âge, l’inscription à l’état civil et l’état matrimonial de ses habitants, " +
+    "le type de logement de ses ménages, et la distance moyenne de ses logements à une route goudronnée, une route carrossable non goudronnée, une école primaire, un collège, un lycée et un centre de santé. " +
+    "Le HCP les retire pour un douar plus petit, dont topics est null. Les noms sont en arabe seulement. Une commune sans partie rurale n’a pas de fichier.",
+  "listDouars.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
+  "listDouars.200": "Les fractions et les douars de la commune.",
+  "listDouars.400": "Ce n’est pas un identifiant.",
+  "listDouars.404": "Aucune commune ne porte cet identifiant, ou elle n’a pas de douar.",
   "listAllNeighbourhoods.summary": "Tous les quartiers nommés, avec leur commune",
   "listAllNeighbourhoods.description": "Le tableau entier en un fichier : chaque quartier avec sa commune, son arrondissement quand il est connu, sa source et ses codes postaux. Sous licence ODbL.",
   "listAllNeighbourhoods.200": "Tous les quartiers nommés.",
@@ -335,6 +345,24 @@ export const docs = {
         walls: "Walls",
         roofs: "Roofs",
         networks: "On the public networks",
+      },
+      douars: "Douars",
+      douarsBody: [
+        "A rural commune is divided into fractions (mashyakha), and a fraction into douars, its villages and hamlets. HCP publishes the 2024 census by douar, and `/data/v1/douars/` has all 33,189 of them, in 5,203 fractions across 1,279 communes.",
+        "A douar's code is 13 digits: its first 7 are its commune's code less the région, and its first 10 its fraction's.",
+        "Shares are percentages of the douar's people or households, to one decimal. Distances are averages over its dwellings, in km. A drivable road is an unpaved one, so a douar can be nearer a paved road.",
+        "HCP withholds a douar's shares and distances when it has fewer than 30 households, and its `topics` is null. Its households and people are always given.",
+        "Names are in Arabic only, as the workbook gives them.",
+        "`/api/communes/imi-mqourn/douars` gives a commune's fractions and douars, and the MCP server's `get_douars` tool gives them to an assistant.",
+      ],
+      douarTopics: {
+        nationality: "Nationality",
+        sex: "Sex",
+        age: "Age",
+        civilRegistration: "Civil registration",
+        maritalStatus: "Marital status, aged 15 and over",
+        dwellingType: "Kind of dwelling",
+        distanceKm: "How far from home",
       },
       establishments: "Establishments",
       establishmentsBody: [
@@ -706,6 +734,24 @@ export const docs = {
         walls: "Murs",
         roofs: "Toits",
         networks: "Raccordement aux réseaux",
+      },
+      douars: "Douars",
+      douarsBody: [
+        "Une commune rurale se divise en fractions (mashyakha), et une fraction en douars, ses villages et hameaux. Le HCP publie le recensement de 2024 par douar, et `/data/v1/douars/` les a tous, 33 189 douars dans 5 203 fractions de 1 279 communes.",
+        "Le code d'un douar a 13 chiffres : les 7 premiers sont le code de sa commune sans la région, et les 10 premiers celui de sa fraction.",
+        "Les parts sont des pourcentages des habitants ou des ménages du douar, à une décimale. Les distances sont des moyennes sur ses logements, en km. Une route carrossable n'est pas goudronnée : un douar peut être plus près d'une route goudronnée.",
+        "Le HCP retire les parts et les distances d'un douar de moins de 30 ménages, et son `topics` est null. Ses ménages et sa population sont toujours donnés.",
+        "Les noms sont en arabe seulement, tels que le classeur les donne.",
+        "`/api/communes/imi-mqourn/douars` donne les fractions et les douars d'une commune, et l'outil `get_douars` du serveur MCP les donne à un assistant.",
+      ],
+      douarTopics: {
+        nationality: "Nationalité",
+        sex: "Sexe",
+        age: "Âge",
+        civilRegistration: "État civil",
+        maritalStatus: "État matrimonial des 15 ans et plus",
+        dwellingType: "Type de logement",
+        distanceKm: "Distance depuis le logement",
       },
       establishments: "Établissements",
       establishmentsBody: [
