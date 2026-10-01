@@ -293,6 +293,13 @@ describe("neighbourhoods", () => {
     }
   });
 
+  it("finds the ones added by hand, placed like the rest", () => {
+    const [malabata] = search(withHoods, "Malabata");
+    expect(malabata).toMatchObject({ code: "01.511.01.05", matched: "neighbourhood", neighbourhood: { fr: "Malabata", ar: "ملابطا" } });
+    const [derb] = search(withHoods, "Derb Sultan");
+    expect(derb).toMatchObject({ code: "06.141.01.13", matched: "neighbourhood", neighbourhood: { fr: "Derb Sultan", ar: "درب السلطان" } });
+  });
+
   it("ranks a unit's own name above a neighbourhood with the same name", () => {
     // Agdal is a neighbourhood in Rabat, Marrakech and Aït Melloul, and Fès has an arrondissement called Agdal.
     const [top] = search(withHoods, "Agdal");

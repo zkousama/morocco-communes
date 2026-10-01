@@ -6,11 +6,14 @@
  *   pnpm api:neighbourhoods
  *
  * A place no boundary holds is left out, and so is one named like the unit it's in, which
- * the search finds already, and a second place with the same names in the same unit.
+ * the search finds already, and a second place with the same names in the same unit. The
+ * few OpenStreetMap doesn't map, listed by hand in neighbourhoodsAdded.ts, are placed the
+ * same way after it.
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { readArrondissements, readBoundaries, type Boundary } from "../src/emit/boundaries.ts";
 import { inside, namesOf, type Neighbourhood } from "../src/lib/neighbourhoods.ts";
+import { ADDED } from "../src/lib/neighbourhoodsAdded.ts";
 import { normalise } from "../src/lib/normalise.ts";
 import { overpass } from "./overpass.ts";
 
@@ -57,6 +60,10 @@ const unitAt = (lng: number, lat: number): Unit | null => {
 };
 
 const elements = await overpass(QUERY);
+// The hand-added ones go through the same checks, after OpenStreetMap's, as if it had them.
+for (const added of ADDED) {
+  elements.push({ type: "node", id: 0, lat: added.lat, lon: added.lng, tags: { "name:fr": added.fr, "name:ar": added.ar } });
+}
 const kept = new Map<string, Neighbourhood>();
 let unnamed = 0;
 let outside = 0;
@@ -93,7 +100,6 @@ await writeFile(
     places,
   })}\n`,
 );
-console.log(`${elements.length} places in OpenStreetMap; kept ${places.length}`);
+console.log(`${elements.length - ADDED.length} places in OpenStreetMap and ${ADDED.length} added by hand; kept ${places.length}`);
 console.log(`left out: ${unnamed} with no name, ${outside} in no boundary, ${sameAsUnit} named like their unit, ${elements.length - unnamed - outside - sameAsUnit - places.length} repeats`);
-const sample = places.filter((p) => /ma[aâ]rouf/i.test(p[0]));
-console.log("Sidi Maârouf:", JSON.stringify(sample));
+for (const added of ADDED) console.log(`${added.fr}:`, JSON.stringify(places.filter((p) => p[0] === added.fr)));

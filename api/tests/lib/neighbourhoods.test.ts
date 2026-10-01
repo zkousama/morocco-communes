@@ -48,3 +48,14 @@ describe("a point inside a boundary", () => {
     expect(inside([12, 5], square)).toBe(false);
   });
 });
+
+describe("the neighbourhoods added by hand", () => {
+  it("each say where their name and point come from, and sit in Morocco", async () => {
+    const { ADDED } = await import("../../src/lib/neighbourhoodsAdded.ts");
+    for (const n of ADDED) {
+      expect(n.fr || n.ar, JSON.stringify(n)).toBeTruthy();
+      expect(n.origin.length, n.fr).toBeGreaterThan(20);
+      expect(n.lat > 20 && n.lat < 36 && n.lng > -17.2 && n.lng < -0.9, n.fr).toBe(true);
+    }
+  });
+});
