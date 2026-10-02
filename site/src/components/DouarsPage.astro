@@ -14,7 +14,7 @@ import { summarise } from "../lib/access";
 import { pageOf } from "../lib/places";
 import { places } from "../i18n/places";
 import { path, t, type Locale } from "../i18n/ui";
-import { numbers, percent } from "../lib/format";
+import { numbers } from "../lib/format";
 
 interface Props {
   locale: Locale;
@@ -53,7 +53,7 @@ const farthest = [...byCommune]
 
     <section>
       <h2>{copy.douarsHowFar}</h2>
-      <p>{copy.douarsHowFarBody.replace("{share}", percent(locale, (total.counted / total.households) * 100, { digits: 0 }))}</p>
+      <p>{copy.douarsHowFarBody}</p>
       <DouarFigures locale={locale} summary={total} />
       <div class="map">
         <Map locale={locale} views={["highSchool", "middleSchool", "healthCentre", "pavedRoad"]} />

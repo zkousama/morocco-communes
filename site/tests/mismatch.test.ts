@@ -21,24 +21,24 @@ describe("the census notes", () => {
 
   it("say the languages don't line up, and nothing about amenities", () => {
     expect(languageNote("en", [darija, water])).toBe(
-      "The two censuses don’t line up here: Darija 5.0% in 2014, 60.0% in 2024. Both are HCP’s figures. The population didn’t change enough to explain it, so the answer was most likely recorded differently.",
+      "The two censuses don’t line up here: Darija 5.0% in 2014, 60.0% in 2024.",
     );
     expect(languageNote("en", [water])).toBeNull();
   });
 
   it("state an amenity's fall with no cause", () => {
     expect(amenityNote("en", [darija, water], codeOf("Lounasda"))).toBe(
-      "Between the two censuses, households with running water went from 97.2% to 3.0%. Both are HCP’s figures. A fall this large is rare, and the site keeps it out of comparisons.",
+      "Between the two censuses, households with running water went from 97.2% to 3.0%. A fall this large is rare, and the site keeps it out of comparisons.",
     );
     expect(amenityNote("en", [darija], codeOf("Lounasda"))).toBeNull();
   });
 
   it("add the earthquake in the provinces it affected", () => {
     expect(amenityNote("en", [water, power], codeOf("Ijoukak"))).toBe(
-      "Between the two censuses, households with running water went from 97.2% to 3.0%; households with electricity went from 92.7% to 56.2%. Both are HCP’s figures. Falls this large are rare, and the site keeps them out of comparisons. The 2024 census came a year after the September 2023 earthquake.",
+      "Between the two censuses, households with running water went from 97.2% to 3.0%; households with electricity went from 92.7% to 56.2%. Falls this large are rare, and the site keeps them out of comparisons. The 2024 census came a year after the September 2023 earthquake.",
     );
     expect(amenityNote("fr", [kitchen], codeOf("Anougal"))).toBe(
-      "Entre les deux recensements, les ménages ayant une cuisine sont passés de 96,0\u202f% à 56,0\u202f%. Les deux chiffres sont ceux du HCP. Une baisse aussi forte est rare, et le site l’écarte des comparaisons. Le recensement de 2024 a eu lieu un an après le séisme de septembre 2023.",
+      "Entre les deux recensements, les ménages ayant une cuisine sont passés de 96,0\u202f% à 56,0\u202f%. Une baisse aussi forte est rare, et le site l’écarte des comparaisons. Le recensement de 2024 a eu lieu un an après le séisme de septembre 2023.",
     );
   });
 

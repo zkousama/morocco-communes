@@ -9,7 +9,7 @@ describe("the header and the phone menu", () => {
   it("share one list of groups", () => {
     const links = [
       ["communes/", "insights/", "where/", "compare/", "douars/"],
-      ["docs/indicators/", "docs/glossary/"],
+      ["docs/indicators/", "docs/glossary/", "docs/names/", "docs/insights/"],
       ["docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/"],
     ];
     expect(routes("en")).toEqual([

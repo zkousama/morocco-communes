@@ -28,6 +28,8 @@ export const explore = (copy: Copy): Section[] => [
 export const data = (copy: Copy): Section[] => [
   { route: "docs/indicators/", label: copy.navFigures },
   { route: "docs/glossary/", label: copy.navGlossary },
+  { route: "docs/names/", label: copy.navNaming },
+  { route: "docs/insights/", label: copy.navPicking },
 ];
 
 export const build = (copy: Copy): Section[] => [
