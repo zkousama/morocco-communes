@@ -132,7 +132,9 @@ const groups = fractions.map((f) => {
         <label>
           <span>{p.suggestDouar}</span>
           <select name="douar" required>
-            {open.map((d) => <option value={d.code}>{d.name.ar} · {latinOf(d).name}</option>)}
+            {open.map((d) => (
+              <option value={d.code} data-latin={latinOf(d).name} data-ar={d.name.ar}>{latinOf(d).name} · {d.name.ar}</option>
+            ))}
           </select>
         </label>
         <label>
@@ -147,6 +149,7 @@ const groups = fractions.map((f) => {
 </section>
 
 <script>
+  import { listbox } from "../../lib/listbox";
   for (const table of document.querySelectorAll<HTMLTableElement>(".douar-table")) {
     const more = table.closest("section")?.querySelector<HTMLButtonElement>(".douars-more");
     if (!more) continue;
@@ -176,6 +179,20 @@ const groups = fractions.map((f) => {
     const input = form.querySelector<HTMLInputElement>("input")!;
     const button = form.querySelector<HTMLButtonElement>("button")!;
     const status = form.querySelector<HTMLElement>(".suggest-status")!;
+    // The page's own list over the select: each douar's Latin name, its Arabic beside it.
+    listbox(select, (option) => {
+      const line = document.createElement("span");
+      line.className = "lb-douar";
+      const latin = document.createElement("span");
+      latin.textContent = option.dataset.latin ?? option.text;
+      const arabic = document.createElement("span");
+      arabic.lang = "ar";
+      arabic.dir = "rtl";
+      arabic.className = "lb-ar";
+      arabic.textContent = option.dataset.ar ?? "";
+      line.append(latin, arabic);
+      return line;
+    });
     const name = (douar: string, text: string) => {
       const latin = document.querySelector<HTMLElement>(`#douar-${douar} .latin`);
       if (latin) {
@@ -351,6 +368,33 @@ const groups = fractions.map((f) => {
     min-width: min(100%, 14rem);
     max-width: 100%;
     font-size: var(--t-sm);
+  }
+
+  /* The douar list (lib/listbox.ts): the Latin name, then the Arabic in grey at the far end. */
+  .suggest :global(.lb) {
+    min-width: min(100%, 18rem);
+    font-size: var(--t-sm);
+  }
+
+  .suggest :global(.lb-douar) {
+    display: flex;
+    flex: 1;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .suggest :global(.lb-button .lb-douar span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .suggest :global(.lb-ar) {
+    font-family: var(--sans);
+    color: var(--quiet);
+    font-weight: 400;
   }
 
   /* A pill, as the site's other buttons are, as tall as the fields beside it. */

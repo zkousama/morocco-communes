@@ -513,8 +513,8 @@ const themes = themeList(copy);
       }
 
       /* Fields: the compare bar's box everywhere, the page's paper and rule, rounded and roomy,
-         with a soft brass halo on focus. At no weight, so a page that wants another look (the
-         compare bar itself, the header's search) still has it. */
+         the border darkening on hover and on focus as the compare bar's does. At no weight, so a
+         page that wants another look (the compare bar itself, the header's search) still has it. */
       :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]), select, textarea) {
         font: inherit;
         color: var(--ink);
@@ -523,17 +523,17 @@ const themes = themeList(copy);
         border-radius: 0.65rem;
         padding: 0.7rem 0.95rem;
         line-height: 1.3;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        transition: border-color 0.15s ease;
       }
 
       :where(input, select, textarea):hover {
         border-color: var(--quiet);
       }
 
+      :where(input, select, textarea):focus,
       :where(input, select, textarea):focus-visible {
         outline: none;
-        border-color: var(--brass);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--brass) 22%, transparent);
+        border-color: var(--ink);
       }
 
       ::placeholder {
@@ -559,6 +559,110 @@ const themes = themeList(copy);
 
       :where(select) {
         font-family: var(--sans-field);
+      }
+
+      /* The page's own dropdown (lib/listbox.ts): a button drawn as a field, and a list that
+         fades in under it, the row under the pointer or the arrows in the well. */
+      .lb {
+        position: relative;
+        min-width: min(100%, 14rem);
+        max-width: 100%;
+      }
+
+      .lb-button {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        font: inherit;
+        font-family: var(--sans-field);
+        text-align: start;
+        color: var(--ink);
+        background: var(--paper) var(--chevron) no-repeat right 0.95rem center / 0.65rem auto;
+        border: 1px solid var(--rule);
+        border-radius: 0.65rem;
+        padding: 0.7rem 2.5rem 0.7rem 0.95rem;
+        line-height: 1.3;
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+      }
+
+      .lb-button:hover,
+      .lb.open .lb-button,
+      .lb-button:focus-visible {
+        border-color: var(--ink);
+        outline: none;
+      }
+
+      .lb-list {
+        position: absolute;
+        z-index: 20;
+        inset-inline-start: 0;
+        top: calc(100% + 6px);
+        min-width: 100%;
+        width: max-content;
+        max-width: min(34rem, calc(100vw - 2rem));
+        max-height: min(20rem, 55vh);
+        overflow: auto;
+        margin: 0;
+        padding: 0.3rem;
+        list-style: none;
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 0.65rem;
+        box-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+        outline: none;
+        animation: lb-in 0.14s ease-out;
+      }
+
+      .lb-list[hidden] {
+        display: none;
+      }
+
+      @keyframes lb-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+      }
+
+      .lb-list [role="option"] {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.7rem;
+        border-radius: 0.45rem;
+        cursor: pointer;
+        transition: background-color 0.1s ease;
+      }
+
+      .lb-list [role="option"].active {
+        background: var(--well);
+      }
+
+      /* The chosen one carries the brass check, on the side text starts from. */
+      .lb-list [role="option"]::before {
+        content: "";
+        flex: none;
+        width: 0.8rem;
+        height: 0.5rem;
+        margin-top: -0.2rem;
+        border-inline-start: 1.5px solid transparent;
+        border-bottom: 1.5px solid transparent;
+        transform: rotate(-45deg);
+      }
+
+      .lb-list [role="option"][aria-selected="true"]::before {
+        border-color: var(--brass);
+      }
+
+      .lb-list [role="option"][aria-selected="true"] {
+        font-weight: 500;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .lb-list {
+          animation: none;
+        }
       }
 
       /* Where the browser lets a page draw the open list too, it's drawn like the rest: the
@@ -663,7 +767,9 @@ const themes = themeList(copy);
         color: var(--brass);
       }
 
-      :focus-visible {
+      /* Fields and lists show focus with their own darker border, so they're left out here:
+         a brass ring around a box with a border reads as 2 frames. */
+      :focus-visible:where(:not(input, select, textarea, [role="listbox"])) {
         outline: 2px solid var(--brass);
         outline-offset: 2px;
       }
