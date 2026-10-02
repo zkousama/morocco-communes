@@ -94,12 +94,32 @@ function latinWord(word: string, construct: boolean, openings: Record<string, st
  * than spells: المركز, a village's centre, is the Centre HCP writes in French, so تمروت
  * المركز is Tamrout Centre and not Tamrout El Markz.
  */
-const TRANSLATED: Record<string, string> = { "المركز": "Centre", "مركز": "Centre" };
+const TRANSLATED: Record<string, string> = { "المركز": "Centre", "مركز": "Centre", "سابقا": "ex", "كلم": "Km", "دوار": "Douar" };
+
+/** "Formerly", which an Arabic name puts after the old name and Latin puts before it, as ex. */
+const FORMERLY = /(?:^|\s)سابقاً?(?=\s|$)/;
 
 /** Arabic-Indic digits as the digits Latin writes. */
 const westernDigits = (word: string) => word.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
 
+/**
+ * An Arabic name in Latin letters. A name can hold another in brackets, the place it's part
+ * of or what it used to be called: each part is spelt on its own and the brackets kept, so
+ * ارمزاد (لمرج) is Armzad (Lmerj), and an old name reads (ex Adar Ougadir).
+ */
 export function toLatin(name: string, table: WordTable, models?: Models): string {
+  const bracket = name.match(/^(.*?)\s*\(([^()]*)\)\s*(.*)$/);
+  if (bracket) {
+    const [, before, inside, after] = bracket as unknown as [string, string, string, string];
+    const old = FORMERLY.test(inside);
+    const inner = toLatin(inside.replace(FORMERLY, " ").trim(), table, models);
+    const parts = [before.trim() && toLatin(before, table, models), inner && `(${old ? "ex " : ""}${inner})`, after.trim() && toLatin(after, table, models)];
+    return parts.filter(Boolean).join(" ");
+  }
+  return spellWords(name.replace(/[()]/g, " "), table, models);
+}
+
+function spellWords(name: string, table: WordTable, models?: Models): string {
   const words = arabicWords(name);
   return words
     .map((word, i) => {

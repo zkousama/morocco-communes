@@ -44,6 +44,18 @@ describe("a word that's translated, not spelt", () => {
   });
 });
 
+describe("a name with another in brackets", () => {
+  it("keeps the brackets, each part spelt on its own, and writes formerly as ex before the old name", () => {
+    expect(toLatin("حلابة (أولاد علي منصور)", table)).toBe("Halaba (Oulad Ali Mansour)");
+    expect(toLatin("إيمي مقورن المركز (اضار اوكادير سابقا)", table)).toBe("Imi Mqourn Centre (ex Adar Ougadir)");
+    expect(toLatin("دوار 12(الضوسي)", table)).toMatch(/^Douar 12 \(.+\)$/);
+  });
+
+  it("drops a bracket left open", () => {
+    expect(toLatin("(بن شرو", table)).not.toContain("(");
+  });
+});
+
 describe("a number in a name", () => {
   it("stays a number in both directions, whatever the table learned", () => {
     expect(toLatin("أولاد كثير 1", { ...table, toLatin: { ...table.toLatin, "1": "Hay" } })).toBe("Oulad Ktir 1");
