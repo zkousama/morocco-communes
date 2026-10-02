@@ -11,13 +11,16 @@
  *
  * Before writing, the matching runs again with every commune's places put against another
  * commune's douars. A match there is chance, so their count over the real count is how
- * many of the real matches are likely chance. Over 5% stops the script.
+ * many of the real matches are likely chance. The second pass, near a fraction's placed
+ * douars, is checked the same way with each douar given another douar's name. Over 5% in
+ * either stops the script.
  */
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { readBoundaries } from "../src/emit/boundaries.ts";
 import { inside } from "../src/lib/neighbourhoods.ts";
-import { matchDouars, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
+import { matchDouars, matchNearFractions, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
+import { arabicKeys } from "../src/lib/translit.ts";
 import { toLatin } from "../src/lib/spell.ts";
 import type { WordTable } from "../src/lib/translitWords.ts";
 import { readZipEntry } from "../../pipeline/src/lib/zip.ts";
@@ -138,10 +141,36 @@ console.log(
 );
 if (chance > MAX_CHANCE) throw new Error(`more than ${MAX_CHANCE * 100}% of the matches would be chance; nothing written`);
 
+// The second pass, then the same with each douar given a name from another commune, as
+// long a name as its own, so what still matches nearby is chance.
+const near = matchNearFractions(douarsIn, places, communeAt, matches);
+const lengthOf = (d: Douar) => Math.max(...arabicKeys(d.name.ar).map((k) => k.replace(/l/g, "").length));
+const all = [...douarsIn.values()].flat();
+const byLength = new Map<number, Douar[]>();
+for (const d of all) byLength.set(lengthOf(d), [...(byLength.get(lengthOf(d)) ?? []), d]);
+const communeOfDouar = new Map<string, string>();
+for (const [commune, list] of douarsIn) for (const d of list) communeOfDouar.set(d.code, commune);
+const borrowed = new Map<string, Douar>();
+for (const list of byLength.values()) {
+  list.forEach((d, i) => {
+    let j = (i + 97) % list.length;
+    for (let k = 0; k < list.length && communeOfDouar.get(list[j]!.code) === communeOfDouar.get(d.code); k++) j = (j + 1) % list.length;
+    borrowed.set(d.code, { ...d, name: list[j]!.name, spelt: list[j]!.spelt });
+  });
+}
+const nearDecoys = matchNearFractions(douarsIn, places, communeAt, matches, (d) => borrowed.get(d.code)!);
+const nearChance = nearDecoys.length / Math.max(near.length, 1);
+console.log(
+  `douar-places: ${near.length} more matched near their fraction's placed douars; ` +
+    `${nearDecoys.length} with a borrowed name, so about ${(nearChance * 100).toFixed(1)}% of them are chance`,
+);
+if (nearChance > MAX_CHANCE) throw new Error(`more than ${MAX_CHANCE * 100}% of the second pass would be chance; nothing written`);
+
 const round = (v: number) => Math.round(v * 1e5) / 1e5;
-const rows = matches
-  .sort((a, b) => (a.douar < b.douar ? -1 : 1))
-  .map((m) => [m.douar, m.name, m.place.source, round(m.place.lat), round(m.place.lng), m.place.id]);
+// Each row says how it was matched: by its name alone, or by its name near its fraction.
+const rows = [...matches.map((m) => ({ m, how: "name" })), ...near.map((m) => ({ m, how: "near" }))]
+  .sort((a, b) => (a.m.douar < b.m.douar ? -1 : 1))
+  .map(({ m, how }) => [m.douar, m.name, m.place.source, round(m.place.lat), round(m.place.lng), m.place.id, how]);
 const oldest = asOf.sort()[0]!.slice(0, 10);
 await writeFile(
   OUT,
@@ -151,6 +180,7 @@ await writeFile(
       `OpenStreetMap contributors, ODbL, map as of ${oldest} or later: place=${KINDS.join(", ")} inside Morocco; ` +
       `each matched to an HCP douar in the commune whose boundary holds it`,
     chance: Math.round(chance * 1000) / 1000,
+    nearChance: Math.round(nearChance * 1000) / 1000,
     places: rows,
   })}\n`,
 );
