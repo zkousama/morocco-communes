@@ -63,6 +63,20 @@ export const NEAR_CLOSE = 0.7;
 /** GeoNames writes "Douar" before many a name; HCP never does. */
 export const cleanLatin = (name: string) => name.replace(/^douar\s+/i, "").trim();
 
+const LATIN_PREFIX =
+  /^(?:(?:ecole|école|e\.?\s?p\.?|groupe(?:ment)?\s+scolaire|g\.?\s?s\.?|ss|satellite|unit[ée]\s+scolaire|primaire|mosqu[ée]e|masjid|mosque|bureau\s+de\s+poste|poste|dispensaire|centre\s+de\s+sant[ée]|csr?|douar|dr)\b[\s.:-]*)+/i;
+const ARABIC_PREFIX =
+  /^(?:(?:مجموعة\s+مدارس|مجموعة\s+مدرسية|م\.?\s?م\.?|مدرسة\s+فرعية|المدرسة|مدرسة|فرعية|الوحدة\s+المدرسية|وحدة|مسجد|جامع|مركز\s+صحي|المستوصف|مستوصف|دوار)\s*)+/;
+
+/**
+ * The name a feature gives its douar. A school, a mosque or a health post is named after the
+ * village it serves, behind a word saying what it is: École Tagmout, مسجد دوار أيت علي.
+ * That word comes off; a place's own name is kept whole.
+ */
+export function douarNameOf(name: string, isPlace: boolean): string {
+  return isPlace ? name.trim() : name.replace(LATIN_PREFIX, "").replace(ARABIC_PREFIX, "").trim();
+}
+
 function closeness(a: string, b: string): number {
   const x = normalise(a).replace(/ /g, "");
   const y = normalise(b).replace(/ /g, "");

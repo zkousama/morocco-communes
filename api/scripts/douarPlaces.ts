@@ -4,10 +4,9 @@
  * someone wrote down, where it came from, and the point. `pnpm api:douar-places`.
  *
  * GeoNames' populated places come from its Morocco file, pinned by digest in the output.
- * OpenStreetMap's villages, hamlets, towns, localities and isolated dwellings come from
- * Overpass, one kind at a time, since the whole country in one query times out; each
- * answer is kept in .cache/osm, and a kind Overpass won't answer is read from there.
- * OSM=keep reads every kind already kept from there without asking.
+ * OpenStreetMap's come from .cache/osm/morocco-features.json, which `pnpm api:osm-features`
+ * reads out of Geofabrik's extract: every place, and the schools, mosques and other features
+ * named after a douar, whose name is taken without the word saying what they are.
  *
  * Before writing, the matching runs again with every commune's places put against another
  * commune's douars. A match there is chance, so their count over the real count is how
@@ -16,23 +15,19 @@
  * either stops the script.
  */
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { readBoundaries } from "../src/emit/boundaries.ts";
 import { inside } from "../src/lib/neighbourhoods.ts";
-import { matchDouars, matchNearFractions, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
+import { douarNameOf, matchDouars, matchNearFractions, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
 import { arabicKeys } from "../src/lib/translit.ts";
 import { toLatin } from "../src/lib/spell.ts";
 import type { WordTable } from "../src/lib/translitWords.ts";
 import { readZipEntry } from "../../pipeline/src/lib/zip.ts";
 import { fetchFile } from "./fetchFile.ts";
-import { overpass } from "./overpass.ts";
 
 const OUT = "api/data/douar-places.json";
 const GEONAMES = "https://download.geonames.org/export/dump/MA.zip";
-const KINDS = ["village", "hamlet", "town", "locality", "isolated_dwelling"];
-const CACHE = ".cache/osm";
-/** A village mapped this long ago is the same village. */
-const MAX_AGE_DAYS = 180;
+const FEATURES = ".cache/osm/morocco-features.json";
 /** The most of the matches that may be chance. */
 const MAX_CHANCE = 0.05;
 
@@ -85,46 +80,17 @@ for (const line of new TextDecoder().decode(readZipEntry(geonames.bytes, "MA.txt
   });
 }
 
-// OpenStreetMap: a node's names, the French one first, split where a name holds 2 scripts.
-await mkdir(CACHE, { recursive: true });
-const asOf: string[] = [];
-for (const kind of KINDS) {
-  const cached = `${CACHE}/places-${kind}.json`;
-  let elements: { id: number; lat?: number; lon?: number; tags?: Record<string, string> }[];
-  if (process.env.OSM === "keep" && existsSync(cached)) {
-    const kept = await read<{ asOf: string; elements: typeof elements }>(cached);
-    console.log(`douar-places: ${kind} from the copy of ${kept.asOf}, ${kept.elements.length} places`);
-    elements = kept.elements;
-    asOf.push(kept.asOf);
-  } else try {
-    const answer = await overpass(
-      `[out:json][timeout:600];area["ISO3166-1"="MA"][admin_level=2]->.ma;node["place"="${kind}"](area.ma);out body qt;`,
-      { maxAgeDays: MAX_AGE_DAYS },
-    );
-    elements = answer.elements;
-    asOf.push(answer.asOf);
-    await writeFile(cached, JSON.stringify({ asOf: answer.asOf, elements }));
-  } catch (error) {
-    if (!existsSync(cached)) throw error;
-    const kept = await read<{ asOf: string; elements: typeof elements }>(cached);
-    console.warn(`douar-places: Overpass didn't answer for ${kind}, so the copy of ${kept.asOf} is used`);
-    elements = kept.elements;
-    asOf.push(kept.asOf);
-  }
-  for (const e of elements) {
-    if (e.lat === undefined || e.lon === undefined) continue;
-    const tags = e.tags ?? {};
-    const ordered = [tags["name:fr"], tags["name:en"], tags["name:latn"], tags.name, tags["name:ar"], tags.alt_name, tags.old_name].filter((n): n is string => Boolean(n));
-    const parts = [...new Set(ordered.flatMap((n) => n.split(/\s*[;\/|]\s*|\s+-\s+/)).map((n) => n.replace(/[ⴰ-⵿]+/g, "").trim()).filter(Boolean))];
-    places.push({
-      source: "osm",
-      id: String(e.id),
-      lat: e.lat,
-      lng: e.lon,
-      latin: parts.filter((n) => /[A-Za-z]/.test(n) && !arabicScript.test(n)),
-      arabic: parts.filter((n) => arabicScript.test(n)),
-    });
-  }
+// OpenStreetMap: a feature's names, the French one first, split where a name holds 2 scripts.
+if (!existsSync(FEATURES)) throw new Error(`no ${FEATURES}: run pnpm api:osm-features first`);
+const osm = await read<{ asOf: string; features: { id: string; kind: string; lat: number; lng: number; names: Record<string, string> }[] }>(FEATURES);
+for (const f of osm.features) {
+  const n = f.names;
+  const ordered = [n["name:fr"], n["name:en"], n["name:latn"], n.name, n["name:ar"], n.alt_name, n.old_name, n.official_name].filter((x): x is string => Boolean(x));
+  const parts = [...new Set(ordered.flatMap((x) => x.split(/\s*[;\/|]\s*|\s+-\s+/)).map((x) => x.replace(/[\u2D30-\u2D7F]+/g, "").trim()).filter(Boolean))];
+  const named = parts.map((x) => douarNameOf(x, f.kind.startsWith("place="))).filter((x) => x.length > 1);
+  const latin = named.filter((x) => /[A-Za-z]/.test(x) && !arabicScript.test(x));
+  const arabic = named.filter((x) => arabicScript.test(x));
+  if (latin.length + arabic.length > 0) places.push({ source: "osm", id: f.id, lat: f.lat, lng: f.lng, latin, arabic });
 }
 
 // The real matching, then the same against another commune's douars, one of a like size.
@@ -171,13 +137,12 @@ const round = (v: number) => Math.round(v * 1e5) / 1e5;
 const rows = [...matches.map((m) => ({ m, how: "name" })), ...near.map((m) => ({ m, how: "near" }))]
   .sort((a, b) => (a.m.douar < b.m.douar ? -1 : 1))
   .map(({ m, how }) => [m.douar, m.name, m.place.source, round(m.place.lat), round(m.place.lng), m.place.id, how]);
-const oldest = asOf.sort()[0]!.slice(0, 10);
 await writeFile(
   OUT,
   `${JSON.stringify({
     source:
       `GeoNames, CC BY 4.0, ${GEONAMES}, sha256 ${geonames.digest}: populated places; ` +
-      `OpenStreetMap contributors, ODbL, map as of ${oldest} or later: place=${KINDS.join(", ")} inside Morocco; ` +
+      `OpenStreetMap contributors, ODbL, Geofabrik's extract of ${osm.asOf.slice(0, 10)}: places, and schools, mosques and other features named after a douar; ` +
       `each matched to an HCP douar in the commune whose boundary holds it`,
     chance: Math.round(chance * 1000) / 1000,
     nearChance: Math.round(nearChance * 1000) / 1000,

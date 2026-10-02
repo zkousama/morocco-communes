@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanLatin, km, matchDouars, matchNearFractions, score, type Douar, type Place } from "../../src/lib/douarPlaces.ts";
+import { cleanLatin, douarNameOf, km, matchDouars, matchNearFractions, score, type Douar, type Place } from "../../src/lib/douarPlaces.ts";
 
 const douar = (code: string, ar: string, spelt: string): Douar => ({ code, name: { ar }, spelt });
 const place = (id: string, latin: string[], arabic: string[] = [], lat = 30, lng = -9): Place => ({ source: "geonames", id, lat, lng, latin, arabic });
@@ -57,5 +57,18 @@ describe("the second pass, near a fraction's placed douars", () => {
 
   it("measures distance on the earth", () => {
     expect(Math.round(km({ lat: 30, lng: -9 }, { lat: 31, lng: -9 }))).toBe(111);
+  });
+});
+
+describe("the name a feature gives its douar", () => {
+  it("drops the word saying what a school, mosque or health post is", () => {
+    expect(douarNameOf("École Tagmout", false)).toBe("Tagmout");
+    expect(douarNameOf("Groupe scolaire Douar Ait Ali", false)).toBe("Ait Ali");
+    expect(douarNameOf("مسجد دوار أيت علي", false)).toBe("أيت علي");
+    expect(douarNameOf("مجموعة مدارس تاكموت", false)).toBe("تاكموت");
+  });
+
+  it("keeps a place's own name whole, though it start with one of those words", () => {
+    expect(douarNameOf("Douar Jdid", true)).toBe("Douar Jdid");
   });
 });

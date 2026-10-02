@@ -28,6 +28,7 @@
     "api:neighbourhoods": "node --experimental-strip-types api/scripts/neighbourhoods.ts",
     "api:postcodes": "node --experimental-strip-types api/scripts/postcodes.ts",
     "translit": "node --experimental-strip-types api/scripts/translit.ts",
+    "api:osm-features": "python3 api/scripts/osm_features.py",
     "api:douar-places": "node --experimental-strip-types api/scripts/douarPlaces.ts",
     "npm:build": "node --experimental-strip-types packages/morocco-communes/build.ts",
     "py:build": "python3 packages/morocco-communes-py/build_data.py",
