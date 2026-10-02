@@ -299,8 +299,8 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.35rem;
-    padding: 1.1rem 1rem;
+    gap: 0.7rem;
+    padding: 1.5rem 1rem 1.6rem;
     border: 1px solid var(--rule);
     border-radius: 4px;
   }
@@ -318,6 +318,11 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
   .arrow {
     color: var(--quiet);
     font-size: var(--t-sm);
+    line-height: 1;
+  }
+
+  .examples + .note {
+    margin-top: 1rem;
   }
 
   .keys {
