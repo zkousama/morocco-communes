@@ -6,7 +6,6 @@
  * decides it; the words are i18n/names.ts.
  */
 import Docs from "../../layouts/Docs.astro";
-import Map from "../Map.astro";
 import { names } from "../../i18n/names";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
@@ -91,9 +90,6 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
         </li>
       ))}
     </ul>
-    <div class="map">
-      <Map locale={locale} views={["named"]} />
-    </div>
   </section>
 
   <section id="chance">
@@ -228,10 +224,6 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
   .num {
     color: var(--quiet);
     font-variant-numeric: tabular-nums;
-  }
-
-  .map {
-    margin-top: 1.75rem;
   }
 
   /* Bars on one scale, a row each, in the 3 columns the rows share. */

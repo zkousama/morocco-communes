@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACCESS, FAR_KM, summarise } from "../src/lib/access.ts";
+import { ACCESS, bandsOf, FAR_KM, summarise } from "../src/lib/access.ts";
 import { allDouars } from "../src/lib/douars.ts";
 import type { DouarRecord } from "../../api/src/lib/douars.ts";
 
@@ -35,5 +35,23 @@ describe("how far a group of douars' homes are", () => {
     expect(Math.round(s.km!.highSchool * 10) / 10).toBe(12.1);
     expect(Math.round(s.km!.primarySchool * 10) / 10).toBe(1.9);
     expect(Math.round(s.far!.highSchool)).toBe(42);
+  });
+});
+
+describe("homes split by distance", () => {
+  it("puts each counted household in its band, nearest first, and leaves out a douar HCP withholds", () => {
+    const bands = bandsOf([douar("1630717201001", 30, 2), douar("1630717201002", 10, 15), douar("1630717201003", 60, 25), douar("1630717201004", 12, null)])!;
+    expect(bands.healthCentre).toEqual([30, 0, 10, 60]);
+    // A home exactly on an edge goes in the band beyond it.
+    expect(bandsOf([douar("1630717201001", 40, 3)])!.highSchool).toEqual([0, 100, 0, 0]);
+  });
+
+  it("adds up to every counted home for each of the 5, across Morocco", () => {
+    const bands = bandsOf(allDouars)!;
+    for (const key of ACCESS) expect(bands[key].reduce((a, b) => a + b, 0)).toBeCloseTo(100, 6);
+  });
+
+  it("is null with nothing counted", () => {
+    expect(bandsOf([douar("1630717201001", 12, null)])).toBeNull();
   });
 });

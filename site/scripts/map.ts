@@ -224,12 +224,19 @@ const stationPath = network.stations.map((station) => {
   const [x, y] = fine.project(station);
   return `M${x} ${y}h0`;
 }).join("");
+// Every douar GeoNames or OpenStreetMap places, a dot each, drawn the way the stations are.
+const placed = allDouars.filter((d) => d.place);
+const douarPath = placed.map((d) => {
+  const [x, y] = fine.project([d.place!.lng, d.place!.lat]);
+  return `M${x} ${y}h0`;
+}).join("");
 const markup =
   `${hatch}<g class="communes">${shapes.join("")}</g>${gaps.join("")}` +
   `<path class="regions" d="${regionPaths.join("")}"/>` +
   `<g class="network"><path class="rail-line" d="${linesOf(network.rail)}"/>` +
   `<path class="tram-line" d="${linesOf(network.tram)}"/>` +
-  `<path class="station-ring" d="${stationPath}"/><path class="station" d="${stationPath}"/></g>`;
+  `<path class="station-ring" d="${stationPath}"/><path class="station" d="${stationPath}"/></g>` +
+  `<g class="douars"><path class="douar-dots" d="${douarPath}"/></g>`;
 
 // What the tooltip shows, fetched once on first hover. After illiteracy come running
 // water, people aged 65 and over, women's illiteracy, unemployment, tram and train, then how
@@ -275,6 +282,8 @@ export const unemploymentBreaks = ${JSON.stringify(UNEMPLOYMENT_BREAKS)};
 export const serviceBreaks = ${JSON.stringify(SERVICE_BREAKS)};
 export const roadBreaks = ${JSON.stringify(ROAD_BREAKS)};
 export const namedBreaks = ${JSON.stringify(NAMED_BREAKS)};
+export const placedDouars = ${placed.length};
+export const allDouarCount = ${allDouars.length};
 export const tramCommunes = ${services.tram};
 export const trainCommunes = ${services.train};
 export const shapes = ${shapes.length};

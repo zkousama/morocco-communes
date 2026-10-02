@@ -1,14 +1,15 @@
 ---
 /**
- * The douars page: Morocco's douars counted, how far their homes are from a lycée, a
- * collège, a health centre and a paved road, the map of it by commune, the communes
- * furthest from a health centre, and a box to find a douar by its Arabic name. The finder
- * loads /douars/names.json the first time someone types; without JavaScript it stays
- * hidden, and each commune's page still lists its douars.
+ * The douars page: a box to find a douar by name, Morocco's douars counted, the map with
+ * every douar a map places as a dot and how far homes are by commune, how far rural homes
+ * are from a lycée, a collège, a health centre, a paved road and a primary school, and the
+ * communes furthest from a health centre. The finder loads /douars/names.json the first
+ * time someone types; without JavaScript it stays hidden, and each commune's page still
+ * lists its douars.
  */
 import Base from "../layouts/Base.astro";
 import Map from "./Map.astro";
-import DouarFigures from "./places/DouarFigures.astro";
+import AccessBands from "./AccessBands.astro";
 import { allDouars } from "../lib/douars";
 import { summarise } from "../lib/access";
 import { pageOf } from "../lib/places";
@@ -44,6 +45,19 @@ const farthest = [...byCommune]
     <h1>{copy.douarsTitle}</h1>
     <p class="lede">{copy.douarsLede}</p>
 
+    <section id="find" class="find">
+      <h2 class="sr">{copy.douarsFind}</h2>
+      <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale}
+        data-none={copy.douarsFindNone} data-more={copy.douarsFindMore} data-people={copy.douarsPeople}>
+        <label for="douar-query">{copy.douarsFind}</label>
+        <input id="douar-query" type="search" dir="auto" autocomplete="off" spellcheck="false" placeholder={copy.douarsFindPlaceholder} aria-describedby="find-hint find-status" />
+        <p id="find-hint" class="hint">{copy.douarsFindBody} <a href={path(locale, "docs/names/")}>{copy.douarsNamed}</a></p>
+        <p id="find-status" class="find-status" aria-live="polite"></p>
+        <ul class="hits"></ul>
+      </div>
+      <noscript><p>{copy.douarsFindNoScript}</p></noscript>
+    </section>
+
     <dl class="counts">
       <div><dt>{copy.douarsCountDouars}</dt><dd>{n.format(total.douars)}</dd></div>
       <div><dt>{copy.douarsCountFractions}</dt><dd>{n.format(total.fractions)}</dd></div>
@@ -52,50 +66,31 @@ const farthest = [...byCommune]
     </dl>
 
     <section>
+      <h2>{copy.douarsWhere}</h2>
+      <div class="map">
+        <Map locale={locale} views={["douars", "highSchool", "middleSchool", "healthCentre", "pavedRoad", "named"]} />
+      </div>
+    </section>
+
+    <section>
       <h2>{copy.douarsHowFar}</h2>
       <p>{copy.douarsHowFarBody}</p>
-      <DouarFigures locale={locale} summary={total} />
-      <div class="map">
-        <Map locale={locale} views={["highSchool", "middleSchool", "healthCentre", "pavedRoad"]} />
-      </div>
+      <AccessBands locale={locale} douars={allDouars} />
     </section>
 
     <section>
       <h2>{copy.douarsFarthest}</h2>
       <p>{copy.douarsFarthestBody}</p>
-      <div class="scroll" tabindex="0">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">{p.colCommune}</th>
-              <th scope="col" class="num">{p.accessNames.healthCentre}, km</th>
-              <th scope="col" class="num">{p.accessNames.highSchool}, km</th>
-            </tr>
-          </thead>
-          <tbody>
-            {farthest.map((c) => (
-              <tr>
-                <td><a href={path(locale, c.page!.route) + "#douars"}>{c.page!.name.fr}</a></td>
-                <td class="num">{km.format(c.summary.km!.healthCentre)}</td>
-                <td class="num">{km.format(c.summary.km!.highSchool)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ol class="farthest">
+        {farthest.map((c) => (
+          <li>
+            <a href={path(locale, c.page!.route) + "#douars"}>{c.page!.name.fr}</a>
+            <span class="bar" aria-hidden="true"><span style={`width:${(c.summary.km!.healthCentre / farthest[0]!.summary.km!.healthCentre) * 100}%`}></span></span>
+            <span class="num">{km.format(c.summary.km!.healthCentre)}</span>
+          </li>
+        ))}
+      </ol>
       <p class="note">{copy.douarsFarthestNote}</p>
-    </section>
-
-    <section id="find">
-      <h2>{copy.douarsFind}</h2>
-      <p>{copy.douarsFindBody} <a href={path(locale, "docs/names/")}>{copy.douarsNamed}</a></p>
-      <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale}
-        data-none={copy.douarsFindNone} data-more={copy.douarsFindMore} data-people={copy.douarsPeople}>
-        <input type="search" dir="auto" autocomplete="off" spellcheck="false" aria-label={copy.douarsFindLabel} aria-describedby="find-status" />
-        <p id="find-status" class="find-status" aria-live="polite"></p>
-        <ul class="hits"></ul>
-      </div>
-      <noscript><p>{copy.douarsFindNoScript}</p></noscript>
     </section>
 
     <p class="source">
@@ -272,43 +267,73 @@ const farthest = [...byCommune]
     margin-top: 2rem;
   }
 
-  /* The place pages' table, for the one table here. */
-  .scroll {
-    overflow-x: auto;
-    max-width: 36rem;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--t-sm);
-    font-variant-numeric: tabular-nums;
-  }
-
-  th {
-    text-align: start;
-    font-weight: 400;
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    padding: 0 1rem 0.5rem 0;
-    border-bottom: 1px solid var(--rule);
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
     white-space: nowrap;
   }
 
-  td {
-    padding: 0.5rem 1rem 0.5rem 0;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: baseline;
+  /* The finder leads the page: a wide box, its label above it. */
+  .find {
+    padding-top: clamp(1.5rem, 4vw, 2.25rem);
   }
 
-  th.num,
-  td.num {
+  .finder label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: var(--t-sm);
+  }
+
+  .hint {
+    margin: 0.5rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  /* Ranked bars, as on the insights page's lists. */
+  .farthest {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+    max-width: 40rem;
+  }
+
+  .farthest li {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 3.5rem;
+    gap: 0.75rem;
+    align-items: center;
+    font-size: var(--t-sm);
+  }
+
+  .farthest .bar {
+    display: block;
+    height: 0.7rem;
+  }
+
+  .farthest .bar span {
+    display: block;
+    height: 100%;
+    background: var(--seq-5);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .farthest .num {
     text-align: end;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
   }
 
   .finder input {
-    width: min(100%, 24rem);
-    padding: 0.55rem 0.75rem;
+    width: min(100%, 34rem);
+    padding: 0.8rem 1rem;
+    font-size: var(--t-md);
     border: 1px solid var(--rule);
     border-radius: 6px;
     background: var(--paper);

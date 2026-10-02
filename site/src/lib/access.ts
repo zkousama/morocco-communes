@@ -60,3 +60,26 @@ export function summarise(douars: readonly DouarRecord[]): Summary {
     far: of(beyond, 100),
   };
 }
+
+/** Where the douars page splits homes by distance, in km: under 3, 3 to 10, 10 to 20, over 20. */
+export const BAND_BREAKS = [3, 10, 20];
+
+/**
+ * For each of the 5, the share of the counted households in each band of BAND_BREAKS, in
+ * percent, nearest first. Null with nothing counted.
+ */
+export function bandsOf(douars: readonly DouarRecord[]): Record<Access, number[]> | null {
+  const counts = Object.fromEntries(ACCESS.map((k) => [k, BAND_BREAKS.map(() => 0).concat(0)])) as Record<Access, number[]>;
+  let counted = 0;
+  for (const d of douars) {
+    const km = d.topics?.distanceKm;
+    if (!km) continue;
+    counted += d.households;
+    for (const k of ACCESS) {
+      const at = BAND_BREAKS.findIndex((edge) => km[k]! < edge);
+      counts[k][at === -1 ? BAND_BREAKS.length : at]! += d.households;
+    }
+  }
+  if (counted === 0) return null;
+  return Object.fromEntries(ACCESS.map((k) => [k, counts[k].map((n) => (n / counted) * 100)])) as Record<Access, number[]>;
+}

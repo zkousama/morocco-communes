@@ -1,0 +1,134 @@
+---
+/**
+ * How far rural homes are from a lycée, a collège, a health centre, a paved road and a
+ * primary school, as a bar each split by distance (bandsOf in lib/access.ts), nearest in the
+ * lightest shade, with the average beside it. The same ramp as the map's distance views.
+ */
+import { places } from "../i18n/places";
+import { t, type Locale } from "../i18n/ui";
+import { numbers, percent } from "../lib/format";
+import { ACCESS, BAND_BREAKS, bandsOf, summarise } from "../lib/access";
+import type { DouarRecord } from "../lib/douars";
+
+interface Props {
+  locale: Locale;
+  douars: readonly DouarRecord[];
+}
+const { locale, douars } = Astro.props;
+const copy = t(locale);
+const labels = places[locale].accessNames as Record<string, string>;
+const km = numbers(locale, 1, true);
+const whole = numbers(locale);
+const bands = bandsOf(douars);
+const average = summarise(douars).km;
+
+const edges = BAND_BREAKS.map((b) => whole.format(b));
+const names = [
+  copy.bandUnder.replace("{km}", edges[0]!),
+  ...edges.slice(1).map((to, i) => copy.bandBetween.replace("{from}", edges[i]!).replace("{to}", to)),
+  copy.bandOver.replace("{km}", edges[edges.length - 1]!),
+];
+const tones = ["b0", "b1", "b2", "b3"];
+---
+
+{bands && average && (
+  <div class="bands">
+    <ul class="rows">
+      {ACCESS.map((key) => (
+        <li>
+          <span class="label">{labels[key]}</span>
+          <span class="bar" role="img" aria-label={bands[key].map((v, i) => `${names[i]}: ${percent(locale, v, { digits: 0 })}`).join(", ")}>
+            {bands[key].map((v, i) => <span class={tones[i]} style={`flex-grow:${v}`} title={`${names[i]}: ${percent(locale, v, { digits: 0 })}`}></span>)}
+          </span>
+          <span class="avg">{copy.averageKm.replace("{km}", km.format(average[key]))}</span>
+        </li>
+      ))}
+    </ul>
+    <ul class="key">
+      {names.map((name, i) => <li><span class={`swatch ${tones[i]}`}></span>{name}</li>)}
+    </ul>
+  </div>
+)}
+
+<style>
+  .bands {
+    margin-top: 1.25rem;
+  }
+
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    gap: 0.7rem 1rem;
+    align-items: center;
+    font-size: var(--t-sm);
+  }
+
+  .rows li {
+    display: contents;
+  }
+
+  .bar {
+    display: flex;
+    gap: 2px;
+    height: 1.25rem;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar span {
+    min-width: 0;
+  }
+
+  .avg {
+    color: var(--quiet);
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+  }
+
+  .b0 { background: var(--seq-0); }
+  .b1 { background: var(--seq-2); }
+  .b2 { background: var(--seq-4); }
+  .b3 { background: var(--seq-5); }
+
+  .key {
+    list-style: none;
+    margin: 0.9rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .key li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 34rem) {
+    .rows {
+      grid-template-columns: minmax(0, 1fr) max-content;
+    }
+
+    .rows .label {
+      grid-column: 1 / -1;
+      margin-bottom: -0.45rem;
+    }
+
+    .rows .bar {
+      grid-column: 1;
+    }
+  }
+</style>

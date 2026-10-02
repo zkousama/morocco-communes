@@ -1,5 +1,5 @@
 ---
-import { changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, namedBreaks, roadBreaks, serviceBreaks, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
+import { allDouarCount, changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, namedBreaks, placedDouars, roadBreaks, serviceBreaks, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
 import { path, t, type Locale } from "../i18n/ui";
 import { percent } from "../lib/format";
 
@@ -116,6 +116,12 @@ const views = [
       { cls: "tr", text: copy.rural },
     ],
   },
+  {
+    id: "douars",
+    label: copy.mapDouars,
+    unit: copy.legendDouars.replace("{placed}", n.format(placedDouars)).replace("{douars}", n.format(allDouarCount)),
+    swatches: [{ cls: "dot", text: copy.mapDouarDot }],
+  },
   { id: "highSchool", label: copy.mapHighSchool, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "y") },
   { id: "middleSchool", label: copy.mapMiddleSchool, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "o") },
   { id: "healthCentre", label: copy.mapHealthCentre, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "h") },
@@ -145,6 +151,8 @@ const kept = new Set(shown.map((v) => ATTRIBUTE[v.id]));
 const dropped = Object.values(ATTRIBUTE).filter((a) => !kept.has(a));
 let drawn = dropped.length > 0 ? markup.replace(new RegExp(` data-(?:${dropped.join("|")})="[^"]*"`, "g"), "") : markup;
 if (!kept.has("k")) drawn = drawn.replace(/<g class="network">.*?<\/g>/s, "");
+// The douars' dots only on a map that offers them, since they weigh as much as the communes.
+if (!shown.some((v) => v.id === "douars")) drawn = drawn.replace(/<g class="douars">.*?<\/g>/s, "");
 const communesRoute = path(locale, "communes/");
 ---
 
@@ -931,6 +939,14 @@ const communesRoute = path(locale, "communes/");
   .swatch.kl { background: linear-gradient(var(--ink), var(--ink)) center / 100% 2px no-repeat; }
   .swatch.km { background: linear-gradient(var(--ink), var(--ink)) center / 100% 4px no-repeat; }
   .swatch.ks { background: radial-gradient(circle, var(--paper) 30%, var(--ink) 38% 70%, transparent 76%); }
+
+  /* The douars, a dot each, over communes left plain: the dots are the picture. */
+  .map :global(.douars) { display: none; pointer-events: none; }
+  .atlas[data-view="douars"] .map :global(.douars) { display: inline; }
+  .atlas[data-view="douars"] :global(.communes path) { fill: var(--well); }
+  .map :global(.douar-dots) { fill: none; stroke: var(--chart-up); stroke-width: 1.6px; stroke-linecap: round; }
+  .frame.zoomed :global(.douar-dots) { stroke-width: 3.5px; }
+  .swatch.dot { background: var(--chart-up); border-radius: 50%; }
 
   /* The railway and the stations show under the commuting view only, drawn over the shading. */
   .map :global(.network) { display: none; pointer-events: none; }
