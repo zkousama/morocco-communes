@@ -14,10 +14,8 @@ const toc = [
   { id: "search", label: "Une recherche" },
   { id: "kept", label: "Ce qui reste" },
   { id: "suggested", label: "Une graphie proposée" },
-  { id: "code", label: "Le code" },
 ];
 
-const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
 ---
 
 <Docs
@@ -106,22 +104,6 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
   </section>
 
-  <section id="code">
-    <h2>Le code</h2>
-    <p>
-      Tout cela tourne depuis <a href={file("api/src/worker/usage.ts")}><code>api/src/worker/usage.ts</code></a>,{" "}
-      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a>,{" "}
-      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a> et{" "}
-      <a href={file("api/src/worker/suggest.ts")}><code>api/src/worker/suggest.ts</code></a>, la balise dans{" "}
-      <a href={file("site/src/components/Beacon.astro")}><code>Beacon.astro</code></a> et{" "}
-      <a href={file("site/src/components/Search.astro")}><code>Search.astro</code></a>, et le rollup nocturne
-      dans <a href={file("workers/rollup/")}><code>workers/rollup/</code></a>. Tout est public.
-    </p>
-  </section>
+  <p class="note">Tout cela est public, dans <a href={REPO_URL}>le code source</a>.</p>
 </Docs>
 
-<style>
-  .doc :global(#code code) {
-    font-size: 0.88em;
-  }
-</style>

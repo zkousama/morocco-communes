@@ -4,7 +4,7 @@
  * le commentaire qui dit d’où chaque phrase vient.
  */
 import Docs from "../../../layouts/Docs.astro";
-import { REPO_URL, t } from "../../../i18n/ui";
+import { t } from "../../../i18n/ui";
 import { numbers, percent } from "../../../lib/format";
 import { method } from "../../../lib/insights";
 
@@ -15,9 +15,6 @@ const toc = [
   { id: "stands-out", label: "Ce qui se détache" },
   { id: "left-out", label: "Ce qui est écarté" },
   { id: "context", label: "Ce qui accompagne chaque chiffre" },
-  { id: "no-model", label: "Aucun modèle" },
-  { id: "pilot", label: "La version précédente" },
-  { id: "sources", label: "Où tout se trouve" },
 ];
 
 const n = numbers(locale);
@@ -25,7 +22,6 @@ const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
 const pct = (value: number) => percent(locale, value, { digits: 0 });
 
-const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
 ---
 
 <Docs
@@ -132,32 +128,4 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
   </section>
 
-  <section id="no-model">
-    <h2>Aucun modèle</h2>
-    <p>
-      Chaque phrase est une phrase fixe, en anglais et en français, où les nombres viennent se placer, et chaque
-      nombre est celui du HCP ou en est calculé. <code>pnpm insights</code> construit tout à partir du jeu de
-      données, sans modèle ni appel réseau, et le même jeu de données donne toujours les mêmes fichiers.
-    </p>
-  </section>
-
-  <section id="pilot">
-    <h2>La version précédente</h2>
-    <p>
-      Une version précédente demandait à un modèle de langage de proposer des raisons possibles pour chaque
-      chiffre, et à un second modèle de les contester. Le pilote de 2026 qui a choisi ses modèles est publié comme
-      une étude, avec son préenregistrement, ses notes et ses résultats, dans{" "}
-      <a href={file("insights/pilot/README.md")}><code>insights/pilot/</code></a>. Le passage complet qui a suivi a
-      laissé près de la moitié des chiffres sans raison qui tienne, et la solidité d’une raison ne pouvait pas être
-      notée de façon fiable. Cette version montre donc les chiffres avec leur contexte.
-    </p>
-  </section>
-
-  <section id="sources">
-    <h2>Où tout se trouve</h2>
-    <p>
-      Le pipeline est dans <a href={file("insights/")}><code>insights/</code></a>, et ce qu’il publie est dans{" "}
-      <a href={file("data/v1/insights/")}><code>data/v1/insights/</code></a>.
-    </p>
-  </section>
 </Docs>

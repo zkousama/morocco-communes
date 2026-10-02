@@ -7,7 +7,7 @@
  * this page under /fr/ says the same in French.
  */
 import Docs from "../../layouts/Docs.astro";
-import { REPO_URL, t } from "../../i18n/ui";
+import { t } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
 import { method } from "../../lib/insights";
 
@@ -18,9 +18,6 @@ const toc = [
   { id: "stands-out", label: "What stands out" },
   { id: "left-out", label: "What’s left out" },
   { id: "context", label: "What’s beside each figure" },
-  { id: "no-model", label: "No model" },
-  { id: "pilot", label: "The earlier design" },
-  { id: "sources", label: "Where it lives" },
 ];
 
 const n = numbers(locale);
@@ -28,7 +25,6 @@ const count = (value: number) => n.format(value);
 const whole = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
 const pct = (value: number) => percent(locale, value, { digits: 0 });
 
-const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
 ---
 
 <Docs
@@ -126,31 +122,4 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
   </section>
 
-  <section id="no-model">
-    <h2>No model</h2>
-    <p>
-      Every line is a fixed sentence in English and French with the numbers put in, and every number is HCP’s or
-      worked out from HCP’s. <code>pnpm insights</code> builds it all from the dataset with no model and no network
-      call, and the same dataset always gives the same files.
-    </p>
-  </section>
-
-  <section id="pilot">
-    <h2>The earlier design</h2>
-    <p>
-      An earlier design had a language model propose possible reasons for each figure, and a second model argue
-      against them. The 2026 pilot that chose its models is published as a study, with its preregistration, ratings
-      and results, in <a href={file("insights/pilot/README.md")}><code>insights/pilot/</code></a>. The full run
-      that followed left nearly half the figures with no reason that held, and whether a reason was sound couldn’t
-      be graded reliably. So this version shows the figures with their context instead.
-    </p>
-  </section>
-
-  <section id="sources">
-    <h2>Where it lives</h2>
-    <p>
-      The pipeline is in <a href={file("insights/")}><code>insights/</code></a>, and what it publishes is in{" "}
-      <a href={file("data/v1/insights/")}><code>data/v1/insights/</code></a>.
-    </p>
-  </section>
 </Docs>
