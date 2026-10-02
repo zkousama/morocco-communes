@@ -32,10 +32,23 @@ export function latinWords(name: string): string[] {
 export const arabicWords = (name: string) => name.split(/[\s\-–]+/).filter(Boolean);
 
 /**
- * The table from pairs of names. A pair counts word by word only where both have as many
- * words and each word's keys meet its partner's, so a translated name (Banlieue Nord for
- * أحواز ... الشمالية) teaches nothing. Each word keeps its most frequent partner.
+ * Pairs of names as pairs of words: only where both have as many words and each word's keys
+ * meet its partner's, so a translated name (Banlieue Nord for أحواز ... الشمالية) gives none.
  */
+export function wordPairs(pairs: readonly { fr: string; ar: string }[]): [arabic: string, latin: string][] {
+  const out: [string, string][] = [];
+  for (const { fr, ar } of pairs) {
+    const a = arabicWords(ar);
+    const f = latinWords(fr);
+    if (a.length !== f.length) continue;
+    a.forEach((word, i) => {
+      if (keysMeet(arabicKeys(word), latinKeys(f[i]!))) out.push([word, f[i]!]);
+    });
+  }
+  return out;
+}
+
+/** The table from pairs of names: each word, as wordPairs reads them, with its most frequent partner. */
 export function buildWordTable(pairs: readonly { fr: string; ar: string }[]): WordTable {
   const toLatin = new Map<string, Map<string, number>>();
   const toArabic = new Map<string, Map<string, number>>();
@@ -44,16 +57,9 @@ export function buildWordTable(pairs: readonly { fr: string; ar: string }[]): Wo
     counts.set(value, (counts.get(value) ?? 0) + 1);
     table.set(key, counts);
   };
-  for (const { fr, ar } of pairs) {
-    const a = arabicWords(ar);
-    const f = latinWords(fr);
-    if (a.length !== f.length) continue;
-    a.forEach((word, i) => {
-      const latin = f[i]!;
-      if (!keysMeet(arabicKeys(word), latinKeys(latin))) return;
-      add(toLatin, normalise(word), latin);
-      add(toArabic, normalise(latin), word);
-    });
+  for (const [word, latin] of wordPairs(pairs)) {
+    add(toLatin, normalise(word), latin);
+    add(toArabic, normalise(latin), word);
   }
   // The most frequent partner, and the first seen among equals, so a rebuild is stable.
   const best = (table: Map<string, Map<string, number>>) =>

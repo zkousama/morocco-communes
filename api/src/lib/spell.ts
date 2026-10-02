@@ -3,14 +3,25 @@
  * Latin for a douar named only in Arabic, Arabic for a neighbourhood named only in Latin.
  * Plain rules on top of the word table, no model.
  *
- * Each word the table knows comes out as HCP writes it. Any other is spelt letter by letter,
- * and that's a guess: Arabic leaves out short vowels, which Latin has to put in (تسلطانت is
- * HCP's Tassoultante, spelt Tsltante here), and Latin can't tell س from ص or ت from ط. On
- * names held back from the table, about 2 in 5 come out exactly as HCP writes them either
- * way, and the rest a few letters off: run `pnpm translit --eval` for the figures.
+ * Each word the table knows comes out as HCP writes it. Any other is spelt by the model
+ * (graphones.ts) where there is one, and letter by letter by rule where there isn't, and
+ * either is a guess: Arabic leaves out short vowels, which Latin has to put in, and Latin
+ * can't tell س from ص or ت from ط. `pnpm translit --eval` gives how often each way comes
+ * out exactly as HCP writes a name it was kept from learning.
  */
 import { normalise } from "./normalise.ts";
+import { spell, type Model } from "./graphones.ts";
 import { arabicWords, latinWords, type WordTable } from "./translitWords.ts";
+
+/** The 2 models, one for each direction, trained by `pnpm translit --model`. */
+export interface Models {
+  toLatin: Model;
+  toArabic: Model;
+}
+
+/** What the models read and write: Arabic without vowel marks, and Latin lowercased without accents. */
+export const modelArabic = (word: string) => word.normalize("NFC").replace(/[\u064B-\u0652\u0670ـ]/g, "");
+export const modelLatin = (word: string) => word.normalize("NFD").replace(/\p{Mn}/gu, "").toLowerCase().replace(/[^a-z ]/g, "");
 
 const LATIN: Record<string, string> = {
   "ب": "b", "پ": "p", "ت": "t", "ث": "t", "ج": "j", "ح": "h", "خ": "kh", "د": "d", "ذ": "d", "ر": "r",
@@ -62,13 +73,15 @@ function latinWord(word: string, construct: boolean): string {
   return capital(article + out);
 }
 
-/** An Arabic name in Latin: HCP's spelling of each word the table knows, the rules for the rest. */
-export function toLatin(name: string, table: WordTable): string {
+/** An Arabic name in Latin: HCP's spelling of each word the table knows, the model's or the rules' for the rest. */
+export function toLatin(name: string, table: WordTable, models?: Models): string {
   const words = arabicWords(name);
   return words
     .map((word, i) => {
       const known = table.toLatin[normalise(word)];
       if (known) return known;
+      const guess = models && spell(models.toLatin, modelArabic(word))[0]?.text;
+      if (guess) return capital(guess);
       // A ta marbuta before a word without the article is said as t: Zaouiat Sidi, not Zaouia Sidi.
       const construct = word.endsWith("ة") && i < words.length - 1 && !words[i + 1]!.startsWith("ال");
       return latinWord(word, construct);
@@ -106,9 +119,14 @@ function arabicWord(word: string): string {
   return article + [...spelt].map((ch) => ARABIC[ch] ?? ch).join("");
 }
 
-/** A Latin name in Arabic: HCP's spelling of each word the table knows, the rules for the rest. */
-export function toArabic(name: string, table: WordTable): string {
+/** A Latin name in Arabic: HCP's spelling of each word the table knows, the model's or the rules' for the rest. */
+export function toArabic(name: string, table: WordTable, models?: Models): string {
   return latinWords(name)
-    .map((word) => table.toArabic[normalise(word)] ?? arabicWord(word))
+    .map((word) => {
+      const known = table.toArabic[normalise(word)];
+      if (known) return known;
+      const guess = models && spell(models.toArabic, modelLatin(word))[0]?.text;
+      return guess || arabicWord(word);
+    })
     .join(" ");
 }
