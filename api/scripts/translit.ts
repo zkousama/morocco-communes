@@ -19,12 +19,14 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { normalise } from "../src/lib/normalise.ts";
-import { arabicKeys, keysMeet, latinKeys } from "../src/lib/translit.ts";
+import { arabicKeys, keysMeet, latinKeys, lettersApart } from "../src/lib/translit.ts";
 import { buildWordTable, wordPairs, type WordTable } from "../src/lib/translitWords.ts";
 import { modelArabic, modelLatin, toArabic, toLatin, type Models } from "../src/lib/spell.ts";
 import { train } from "../src/lib/graphones.ts";
 
 const TABLE = "api/generated/translit-words.json";
+/** What --eval found, for the page that describes the engine (site/src/pages/docs/names.astro). */
+const SCORES = "api/generated/translit-eval.json";
 /** Not committed: the site spells by the table and the rules, and the models are an experiment (see --eval). */
 const MODELS = ".cache/translit-models.json";
 const LEVELS = ["regions", "provinces", "cercles", "communes", "arrondissements"];
@@ -70,16 +72,6 @@ function trainModels(pairs: Pair[]): Models {
 
 const isArabic = (text: string) => /\p{Script=Arabic}/u.test(text);
 
-function distance(a: string, b: string): number {
-  let row = Array.from({ length: b.length + 1 }, (_, j) => j);
-  for (let i = 1; i <= a.length; i++) {
-    const next = [i];
-    for (let j = 1; j <= b.length; j++) next[j] = Math.min(row[j]! + 1, next[j - 1]! + 1, row[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
-    row = next;
-  }
-  return row[b.length]!;
-}
-
 function evaluate(): void {
   // A fixed shuffle, so a run compares with the last one.
   let seed = 7;
@@ -101,17 +93,23 @@ function evaluate(): void {
   // A name that isn't a spelling of the other (Casablanca for الدار البيضاء) can't come out right.
   const spellings = held.filter((p) => keysMeet(arabicKeys(p.ar), latinKeys(p.fr)));
   const flat = (s: string) => normalise(s).replace(/ /g, "");
+  const scores: Record<string, { names: number; exact: number; withinALetter: number; lettersOff: number }> = {};
   const score = (label: string, spell: (p: Pair) => string, truth: (p: Pair) => string, on = held) => {
     let exact = 0;
     let wrong = 0;
     let length = 0;
+    let close = 0;
     for (const p of on) {
       const guess = flat(spell(p));
       const right = flat(truth(p));
       if (guess === right) exact++;
-      wrong += distance(guess, right);
+      const off = lettersApart(guess, right);
+      if (off <= 1) close++;
+      wrong += off;
       length += right.length;
     }
+    const share = (n: number, of: number) => Math.round((n / of) * 1000) / 1000;
+    scores[label] = { names: on.length, exact: share(exact, on.length), withinALetter: share(close, on.length), lettersOff: share(wrong, length) };
     if (on !== held) {
       console.log(`${label}: ${((exact / on.length) * 100).toFixed(1)}% exactly as the place writes it, ${((wrong / length) * 100).toFixed(1)}% of letters off, on ${on.length} douars held back`);
       return;
@@ -129,6 +127,8 @@ function evaluate(): void {
   score("Latin to Arabic, table and model", (p) => toArabic(p.fr, table, models), (p) => p.ar);
   score("Douars to Latin, table and rules", (p) => toLatin(p.ar, table), (p) => p.fr, heldDouars);
   score("Douars to Latin, table and model", (p) => toLatin(p.ar, table, models), (p) => p.fr, heldDouars);
+  writeFileSync(SCORES, `${JSON.stringify({ day: new Date().toISOString().slice(0, 10), keysMeet: Math.round((met / all.length) * 1000) / 1000, names: all.length, scores }, null, 2)}\n`);
+  console.log(`translit: scores to ${SCORES}`);
 }
 
 const args = process.argv.slice(2);

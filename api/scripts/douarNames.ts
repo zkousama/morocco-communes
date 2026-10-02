@@ -11,6 +11,7 @@
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { nameDouars, type School } from "../src/lib/douarNames.ts";
+import { MAX_CHANCE } from "../src/lib/douarPlaces.ts";
 import { normalise } from "../src/lib/normalise.ts";
 import { keysMeet, latinKeys } from "../src/lib/translit.ts";
 import { readSheetRows } from "../../pipeline/src/lib/xlsx.ts";
@@ -24,8 +25,6 @@ const LISTS = [
   `${DATASET}/17805f1b-6d88-41d5-ace9-bf0e4007e51f/resource/3ce45071-bbb1-49b4-b8b3-00065c3a0f2e/download/etablissement_publics_qualifiant_juillet-2026.xlsx`,
 ];
 const COLUMNS = ["NOM_ETABL", "NOM_ETABA", "AdresseL", "AdresseA", "LL_COM", "LL_PROV"] as const;
-/** The most of the names that may be chance. */
-const MAX_CHANCE = 0.05;
 
 const read = async <T>(path: string) => JSON.parse(await readFile(path, "utf8")) as T;
 const squash = (s: string) => normalise(s).replace(/ /g, "");

@@ -47,6 +47,7 @@ An identifier can be written 4 ways and all resolve to one unit: \`01.511.01.0\`
 - [Glossary](${at("/docs/glossary/")}): what the units, the census terms, the establishments and the dwelling types mean, with HCP's own wording where it defines one
 - [Census figures](${at("/docs/indicators/")}): every census indicator from 2024 and 2014, with HCP's heading for it, its unit, its path and CSV column, and how to read it
 - [How the insights are made](${at("/docs/insights/")}): how a figure that stands out is picked, what's left out, and how its context is worked out
+- [How douars get their Latin names](${at("/docs/names/")}): the sources matched to HCP's Arabic and tested against chance, and the engine that spells the rest
 
 ## Data
 

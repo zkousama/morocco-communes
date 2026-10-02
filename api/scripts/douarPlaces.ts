@@ -18,7 +18,7 @@ import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { readBoundaries } from "../src/emit/boundaries.ts";
 import { inside } from "../src/lib/neighbourhoods.ts";
-import { douarNameOf, matchDouars, matchNearFractions, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
+import { douarNameOf, matchDouars, matchNearFractions, MAX_CHANCE, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
 import { arabicKeys } from "../src/lib/translit.ts";
 import { toLatin } from "../src/lib/spell.ts";
 import type { WordTable } from "../src/lib/translitWords.ts";
@@ -28,8 +28,6 @@ import { fetchFile } from "./fetchFile.ts";
 const OUT = "api/data/douar-places.json";
 const GEONAMES = "https://download.geonames.org/export/dump/MA.zip";
 const FEATURES = ".cache/osm/morocco-features.json";
-/** The most of the matches that may be chance. */
-const MAX_CHANCE = 0.05;
 
 const arabicScript = /\p{Script=Arabic}/u;
 const read = async <T>(path: string) => JSON.parse(await readFile(path, "utf8")) as T;

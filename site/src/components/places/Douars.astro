@@ -121,7 +121,7 @@ const groups = fractions.map((f) => {
       {fill(p.douarsAll, { n: n.format(total) })}
     </button>
   )}
-  <p class="note">{p.douarsLatin}</p>
+  <p class="note">{p.douarsLatin} <a href={path(locale, "docs/names/")}>{p.douarsNamed}</a></p>
   {withheld && <p class="note">{p.douarsWithheld}</p>}
   {open.length > 0 && (
     <form class="suggest" hidden data-code={code} data-by={p.douarsSuggested}

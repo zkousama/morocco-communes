@@ -25,8 +25,11 @@ for (const d of allDouars) {
   if (!byFraction.has(d.fraction)) byFraction.set(d.fraction, []);
   byFraction.get(d.fraction)!.push(d);
 }
+/** Every fraction, with its Latin name or its label where it has one. */
+export const allFractions: FractionRecord[] = withFractionNames(read<FractionRecord[]>("fractions"), allDouars);
+
 const byCommune = new Map<string, Fraction[]>();
-for (const f of withFractionNames(read<FractionRecord[]>("fractions"), allDouars)) {
+for (const f of allFractions) {
   if (!byCommune.has(f.communeCode)) byCommune.set(f.communeCode, []);
   byCommune.get(f.communeCode)!.push({ ...f, rows: byFraction.get(f.code) ?? [] });
 }

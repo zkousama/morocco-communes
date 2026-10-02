@@ -92,5 +92,16 @@ export function keysMeet(a: readonly string[], b: readonly string[]): boolean {
   return false;
 }
 
+/** How many letters apart 2 spellings are: the edits that turn one into the other. */
+export function lettersApart(a: string, b: string): number {
+  let row = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const next = [i];
+    for (let j = 1; j <= b.length; j++) next[j] = Math.min(row[j]! + 1, next[j - 1]! + 1, row[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
+    row = next;
+  }
+  return row[b.length]!;
+}
+
 /** The key a name is filed under for lookup: its first, with every l out. */
 export const lookupKey = (key: string) => withoutL(key);

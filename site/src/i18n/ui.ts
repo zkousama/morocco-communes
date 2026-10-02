@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "insights/", "where/", "compare/", "douars/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/privacy/"] as const;
+export const PAGES = ["", "communes/", "insights/", "where/", "compare/", "douars/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/names/", "docs/privacy/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -273,7 +273,8 @@ export const ui = {
     douarsFarthestBody: "The communes whose rural homes are, on average, furthest from one.",
     douarsFarthestNote: "In the far south, a douar can be a fishing village or a worksite camp rather than a village.",
     douarsFind: "Find a douar",
-    douarsFindBody: "Type a name in Arabic or Latin letters. HCP names douars in Arabic only: Latin names come from the Ministry of Education’s school lists, OpenStreetMap or GeoNames, and are spelt from the Arabic, in italics, where none has one.",
+    douarsFindBody: "In Arabic or Latin letters.",
+    douarsNamed: "How douars get their names",
     douarsFindLabel: "A douar’s name",
     douarsFindNone: "No douar by that name.",
     douarsFindMore: "{n} douars match. Here are the first {shown}.",
@@ -619,7 +620,8 @@ export const ui = {
     douarsFarthestBody: "Les communes dont les logements ruraux sont, en moyenne, les plus loin d’un centre de santé.",
     douarsFarthestNote: "Dans l’extrême sud, un douar peut être un village de pêcheurs ou un campement de chantier plutôt qu’un village.",
     douarsFind: "Trouver un douar",
-    douarsFindBody: "Tapez un nom en lettres arabes ou latines. Le HCP ne nomme les douars qu’en arabe : les noms latins viennent des listes d’écoles du ministère de l’Éducation, d’OpenStreetMap ou de GeoNames, et sont déduits de l’arabe, en italique, là où aucune n’en a.",
+    douarsFindBody: "En lettres arabes ou latines.",
+    douarsNamed: "Comment les douars sont nommés",
     douarsFindLabel: "Le nom d’un douar",
     douarsFindNone: "Aucun douar de ce nom.",
     douarsFindMore: "{n} douars correspondent. Voici les {shown} premiers.",

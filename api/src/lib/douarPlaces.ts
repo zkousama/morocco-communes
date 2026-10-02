@@ -50,6 +50,12 @@ export interface Match {
   score: number;
 }
 
+/**
+ * The most of a pass's matches that may be chance: the share it still finds once each douar's
+ * commune is swapped for another. A pass over it writes nothing, here and in douarNames.ts.
+ */
+export const MAX_CHANCE = 0.05;
+
 /** A Latin match needs keys of at least this many consonants, the l's aside. */
 export const MIN_KEY = 3;
 /** And a Latin spelling at least this close to the douar's by rule, once its key is under 4. */

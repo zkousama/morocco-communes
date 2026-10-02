@@ -1,0 +1,126 @@
+---
+/**
+ * La version française de /docs/names/. Même contenu, même code : voir ce fichier pour le
+ * commentaire qui dit d’où chaque phrase vient.
+ */
+import Docs from "../../../layouts/Docs.astro";
+import { REPO_URL } from "../../../i18n/ui";
+import { numbers, percent } from "../../../lib/format";
+import { naming, spell } from "../../../lib/naming";
+
+const locale = "fr";
+
+const toc = [
+  { id: "found", label: "Trouvés dans une source" },
+  { id: "chance", label: "Testés contre le hasard" },
+  { id: "spelt", label: "Écrits par le moteur" },
+  { id: "typed", label: "Tapés dans un sens ou l’autre" },
+  { id: "fractions", label: "Les fractions" },
+  { id: "visitors", label: "Proposés par les visiteurs" },
+  { id: "sources", label: "Où tout se trouve" },
+];
+
+const n = numbers(locale);
+const count = (value: number) => n.format(value);
+const share = (fraction: number) => percent(locale, fraction * 100, { digits: 0 });
+const exactly = (fraction: number) => percent(locale, fraction * 100, { digits: 1 });
+
+const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
+---
+
+<Docs
+  locale={locale}
+  route="docs/names/"
+  title="Comment les douars reçoivent leur nom latin"
+  description="D’où vient le nom latin de chaque douar : d’une source qui l’écrit, rapprochée de l’arabe du HCP et testée contre le hasard, ou d’un moteur qui l’écrit à partir de l’arabe."
+  lede={`Le HCP ne nomme ses ${count(naming.douars)} douars qu’en arabe. ${count(naming.sourced)} ont un nom latin qu’une source écrit, rapproché de l’arabe du HCP et testé contre le hasard. Un moteur bâti sur des noms marocains écrit les autres, hors ligne.`}
+  toc={toc}
+>
+  <p class="note"><a href="/fr/douars/">Trouver un douar</a></p>
+
+  <section id="found">
+    <h2>Trouvés dans une source</h2>
+    <p>
+      Les listes d’écoles publiques du ministère de l’Éducation donnent le nom et l’adresse de chaque école dans les
+      2 écritures, et une école rurale porte le nom du douar qu’elle sert. Cela nomme {count(naming.education)}{" "}
+      douars. OpenStreetMap en nomme {count(naming.osm)} de plus, par ses lieux et par les écoles, les mosquées et
+      les autres éléments qui portent le nom d’un douar, et GeoNames {count(naming.geonames)}.
+    </p>
+    <p>
+      Chaque nom n’est rapproché de l’arabe du HCP que parmi les douars de sa propre commune, si bien que 2 villages
+      du même nom dans 2 provinces ne se croisent jamais.
+    </p>
+  </section>
+
+  <section id="chance">
+    <h2>Testés contre le hasard</h2>
+    <p>
+      Chaque passe de rapprochement tourne une seconde fois avec les communes échangées, chacune contre une autre de
+      taille voisine, si bien que ce qu’elle trouve encore relève du hasard : {exactly(naming.chance.schools)} des
+      noms pour les listes d’écoles, et {exactly(naming.chance.places)} pour les cartes. Une seconde passe sur les
+      cartes prend un nom près des douars de la même fraction déjà placés, et son test donne à chaque douar le nom
+      d’un douar d’une autre commune : {exactly(naming.chance.near)}. Une passe au-delà de{" "}
+      {share(naming.chance.most)} n’écrit rien.
+    </p>
+  </section>
+
+  <section id="spelt">
+    <h2>Écrits par le moteur</h2>
+    <p>
+      Les {count(naming.spelt)} autres sont écrits à partir de l’arabe, et s’affichent en italique. Le moteur réduit
+      un nom à ses consonnes dans l’une ou l’autre écriture, et les 2 se rejoignent pour {exactly(naming.keysMeet)}{" "}
+      des {count(naming.hcpNames)} noms que le HCP donne dans les 2. S’y ajoutent {count(naming.words)} mots appris de
+      noms écrits dans les 2 écritures, et c’est ainsi que <span lang="ar" dir="rtl">تالوين</span> donne{" "}
+      {spell("تالوين")}, comme le HCP écrit la commune. Des règles pour la façon dont le français écrit les noms
+      marocains écrivent un mot qu’il n’a jamais vu : <span lang="ar" dir="rtl">تيفنوين</span> donne{" "}
+      {spell("تيفنوين")}.
+    </p>
+    <p>
+      Sur des douars nommés par une source et tenus à l’écart de son apprentissage, le moteur en écrit{" "}
+      {share(naming.rules.exact)} exactement comme la source, et {share(naming.rules.withinALetter)} à une lettre
+      près. Là où le ministère et une carte nomment le même douar, ils l’écrivent pareil {share(naming.agree.exact)}{" "}
+      du temps.
+    </p>
+  </section>
+
+  <section id="typed">
+    <h2>Tapés dans un sens ou l’autre</h2>
+    <p>
+      Les mêmes consonnes se lisent depuis les lettres latines, si bien qu’un douar tapé comme il se prononce sur{" "}
+      <a href="/fr/douars/">la page des douars</a> est trouvé par son nom arabe, quelle que soit la façon d’en
+      écrire les voyelles.
+    </p>
+  </section>
+
+  <section id="fractions">
+    <h2>Les fractions</h2>
+    <p>
+      Là où une fraction porte le nom d’un douar de sa commune, elle prend le nom latin qu’une source donne à ce
+      douar : {count(naming.fractionsNamed)} des {count(naming.fractions)}. Le HCP en range {count(naming.outside)} comme
+      fraction hors commune et {count(naming.notional)} comme fraction fictive, et celles-là affichent l’étiquette
+      traduite. Le moteur écrit les autres.
+    </p>
+  </section>
+
+  <section id="visitors">
+    <h2>Proposés par les visiteurs</h2>
+    <p>
+      La page d’une commune accepte une graphie pour un douar qu’aucune source ne nomme. Elle s’affiche dès que{" "}
+      {count(naming.votes)} visiteurs la proposent, et seulement si ses consonnes rejoignent l’arabe du douar, si
+      bien qu’on ne peut pas y glisser un autre nom. Ce qui est gardé d’un visiteur est sur{" "}
+      <a href="/fr/docs/privacy/">la page de confidentialité</a>.
+    </p>
+  </section>
+
+  <section id="sources">
+    <h2>Où tout se trouve</h2>
+    <p>
+      Le moteur est dans <a href={file("api/src/lib/translit.ts")}><code>translit.ts</code></a> et{" "}
+      <a href={file("api/src/lib/spell.ts")}><code>spell.ts</code></a>, et <code>pnpm translit</code> écrit un nom
+      dans un sens ou l’autre, ou note le moteur. Le rapprochement est dans{" "}
+      <a href={file("api/src/lib/douarNames.ts")}><code>douarNames.ts</code></a> et{" "}
+      <a href={file("api/src/lib/douarPlaces.ts")}><code>douarPlaces.ts</code></a>, et les noms trouvés sont dans{" "}
+      <a href={file("api/data/")}><code>api/data/</code></a> avec leurs sources.
+    </p>
+  </section>
+</Docs>

@@ -88,7 +88,7 @@ const farthest = [...byCommune]
 
     <section id="find">
       <h2>{copy.douarsFind}</h2>
-      <p>{copy.douarsFindBody}</p>
+      <p>{copy.douarsFindBody} <a href={path(locale, "docs/names/")}>{copy.douarsNamed}</a></p>
       <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale}
         data-none={copy.douarsFindNone} data-more={copy.douarsFindMore} data-people={copy.douarsPeople}>
         <input type="search" dir="auto" autocomplete="off" spellcheck="false" aria-label={copy.douarsFindLabel} aria-describedby="find-status" />

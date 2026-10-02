@@ -1,0 +1,43 @@
+{
+  "day": "2026-10-02",
+  "keysMeet": 0.983,
+  "names": 1852,
+  "scores": {
+    "Arabic to Latin, table and rules": {
+      "names": 370,
+      "exact": 0.476,
+      "withinALetter": 0.697,
+      "lettersOff": 0.119
+    },
+    "Arabic to Latin, table and model": {
+      "names": 370,
+      "exact": 0.486,
+      "withinALetter": 0.673,
+      "lettersOff": 0.128
+    },
+    "Latin to Arabic, table and rules": {
+      "names": 370,
+      "exact": 0.538,
+      "withinALetter": 0.773,
+      "lettersOff": 0.112
+    },
+    "Latin to Arabic, table and model": {
+      "names": 370,
+      "exact": 0.578,
+      "withinALetter": 0.792,
+      "lettersOff": 0.105
+    },
+    "Douars to Latin, table and rules": {
+      "names": 3096,
+      "exact": 0.321,
+      "withinALetter": 0.592,
+      "lettersOff": 0.153
+    },
+    "Douars to Latin, table and model": {
+      "names": 3096,
+      "exact": 0.32,
+      "withinALetter": 0.556,
+      "lettersOff": 0.172
+    }
+  }
+}
