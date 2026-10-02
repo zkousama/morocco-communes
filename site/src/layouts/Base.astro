@@ -512,17 +512,18 @@ const themes = themeList(copy);
         --map-none: #34362e;
       }
 
-      /* Fields: one look everywhere, the page's paper and rule, a brass ring on focus. At
-         no weight, so a page that wants another look (the compare bar's pill) still has it. */
+      /* Fields: the compare bar's box everywhere, the page's paper and rule, rounded and roomy,
+         with a soft brass halo on focus. At no weight, so a page that wants another look (the
+         compare bar itself, the header's search) still has it. */
       :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]), select, textarea) {
         font: inherit;
         color: var(--ink);
         background-color: var(--paper);
         border: 1px solid var(--rule);
-        border-radius: 6px;
-        padding: 0.55rem 0.75rem;
+        border-radius: 0.65rem;
+        padding: 0.7rem 0.95rem;
         line-height: 1.3;
-        transition: border-color 0.15s ease;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
       }
 
       :where(input, select, textarea):hover {
@@ -530,9 +531,9 @@ const themes = themeList(copy);
       }
 
       :where(input, select, textarea):focus-visible {
-        outline: 2px solid var(--brass);
-        outline-offset: 1px;
+        outline: none;
         border-color: var(--brass);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--brass) 22%, transparent);
       }
 
       ::placeholder {
@@ -543,9 +544,9 @@ const themes = themeList(copy);
       /* A dropdown draws its own chevron, the menus' one, in the theme's grey. */
       :where(select) {
         appearance: none;
-        padding-inline-end: 2.25rem;
+        padding-inline-end: 2.5rem;
         background-image: var(--chevron);
-        background-position: right 0.85rem center;
+        background-position: right 0.95rem center;
         background-size: 0.65rem auto;
         background-repeat: no-repeat;
         cursor: pointer;
@@ -579,14 +580,14 @@ const themes = themeList(copy);
           color: var(--ink);
           background: var(--paper);
           border: 1px solid var(--rule);
-          border-radius: 8px;
+          border-radius: 0.65rem;
           box-shadow: 0 10px 28px rgb(0 0 0 / 0.16);
           max-height: min(22rem, 60vh);
         }
 
         :where(select) option {
-          padding: 0.45rem 0.65rem;
-          border-radius: 5px;
+          padding: 0.5rem 0.7rem;
+          border-radius: 0.45rem;
           font-family: var(--sans-field);
         }
 
