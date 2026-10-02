@@ -7,7 +7,11 @@
  * scripts run by hand that fetch from OpenStreetMap; no build does.
  */
 
-const ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+];
 
 export interface OverpassElement {
   type: "node" | "way" | "relation";
@@ -23,12 +27,23 @@ export interface OverpassElement {
 /** Days a server's copy of the map may lag before its answer is turned away. */
 export const MAX_AGE_DAYS = 7;
 
-export async function overpass(query: string): Promise<{ elements: OverpassElement[]; asOf: string }> {
+/** A query asks for at most 10 minutes; a server still silent a minute past that isn't answering. */
+const TIMEOUT_MS = 11 * 60_000;
+/** Servers that couldn't be reached at all this run, skipped from then on: one can hang a request for its whole timeout. */
+const unreachable = new Set<string>();
+
+/**
+ * `maxAgeDays` lets a script take an older map where that's no loss: a village mapped 2
+ * months ago is the same village.
+ */
+export async function overpass(query: string, { maxAgeDays = MAX_AGE_DAYS } = {}): Promise<{ elements: OverpassElement[]; asOf: string }> {
   const failures: string[] = [];
   for (let attempt = 0; attempt < 3; attempt++) {
     for (const endpoint of ENDPOINTS) {
+      if (unreachable.has(endpoint)) continue;
       try {
         const response = await fetch(endpoint, {
+          signal: AbortSignal.timeout(TIMEOUT_MS),
           method: "POST",
           headers: {
             "content-type": "application/x-www-form-urlencoded",
@@ -43,7 +58,7 @@ export async function overpass(query: string): Promise<{ elements: OverpassEleme
           const body = (await response.json()) as { elements: OverpassElement[]; osm3s?: { timestamp_osm_base?: string } };
           const asOf = body.osm3s?.timestamp_osm_base ?? "";
           const days = asOf ? (Date.now() - Date.parse(asOf)) / 86_400_000 : Number.POSITIVE_INFINITY;
-          if (days > MAX_AGE_DAYS) {
+          if (days > maxAgeDays) {
             failures.push(`${new URL(endpoint).host} answered from the map of ${asOf || "an unknown date"}`);
             continue;
           }
@@ -53,6 +68,8 @@ export async function overpass(query: string): Promise<{ elements: OverpassEleme
         failures.push(`${new URL(endpoint).host} ${response.status}`);
       } catch (error) {
         failures.push(`${new URL(endpoint).host} ${(error as Error).message}`);
+        // A refused or dropped connection, as against an answer that didn't parse.
+        if (!(error instanceof SyntaxError)) unreachable.add(endpoint);
       }
     }
     await new Promise((resolve) => setTimeout(resolve, 15_000));
