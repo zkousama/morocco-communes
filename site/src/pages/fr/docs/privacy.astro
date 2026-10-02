@@ -13,6 +13,7 @@ const toc = [
   { id: "asked-for", label: "Ce qui est demandé" },
   { id: "search", label: "Une recherche" },
   { id: "kept", label: "Ce qui reste" },
+  { id: "suggested", label: "Une graphie proposée" },
   { id: "code", label: "Le code" },
 ];
 
@@ -24,7 +25,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   route="docs/privacy/"
   title="Ce que ce site compte"
   description="Ce que ce site garde à chaque recherche, ouverture de lieu ou appel d’outil."
-  lede="L’usage du site et de son API est compté dans 2 registres. Aucun ne relie une ligne à un visiteur."
+  lede="L’usage du site et de son API est compté dans 2 registres. Aucun ne relie une ligne à un visiteur. La graphie proposée pour un douar est gardée à part, avec une clé qui change chaque jour."
   toc={toc}
 >
   <section id="requests">
@@ -90,12 +91,28 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
   </section>
 
+  <section id="suggested">
+    <h2>Une graphie proposée</h2>
+    <p>
+      La page d’un douar accepte une graphie latine pour un douar qu’aucune source ne nomme en lettres latines, et
+      l’affiche dès que 2 visiteurs ont proposé la même. Pour distinguer 2 visiteurs, une proposition est gardée
+      avec une clé tirée de l’adresse du visiteur et d’un secret qui change chaque jour : la même adresse donne la
+      même clé un jour donné et une autre le lendemain, et la clé ne permet pas de retrouver l’adresse. L’adresse
+      elle-même n’est pas gardée.
+    </p>
+    <p>
+      Une proposition contient le douar, la graphie, la clé et le jour, et elle est effacée au bout de 90 jours.
+      Une graphie affichée est gardée avec le douar et le jour où elle l’a été, sans rien sur qui l’a proposée.
+    </p>
+  </section>
+
   <section id="code">
     <h2>Le code</h2>
     <p>
       Tout cela tourne depuis <a href={file("api/src/worker/usage.ts")}><code>api/src/worker/usage.ts</code></a>,{" "}
-      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a> et{" "}
-      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a>, la balise dans{" "}
+      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a>,{" "}
+      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a> et{" "}
+      <a href={file("api/src/worker/suggest.ts")}><code>api/src/worker/suggest.ts</code></a>, la balise dans{" "}
       <a href={file("site/src/components/Beacon.astro")}><code>Beacon.astro</code></a> et{" "}
       <a href={file("site/src/components/Search.astro")}><code>Search.astro</code></a>, et le rollup nocturne
       dans <a href={file("workers/rollup/")}><code>workers/rollup/</code></a>. Tout est public.

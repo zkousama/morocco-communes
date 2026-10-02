@@ -41,5 +41,5 @@ const table = JSON.parse(readFileSync("api/generated/translit-words.json", "utf8
  * A douar's name in Latin: the one a source writes for it where one does, and otherwise its
  * spelling from the Arabic, which `spelt` marks.
  */
-export const latinOf = (d: DouarRecord): { name: string; spelt: boolean } =>
-  d.latin ? { name: d.latin.name, spelt: false } : { name: toLatin(d.name.ar, table), spelt: true };
+export const latinOf = (d: DouarRecord): { name: string; spelt: boolean; source?: string } =>
+  d.latin ? { name: d.latin.name, spelt: false, source: d.latin.source } : { name: toLatin(d.name.ar, table), spelt: true };

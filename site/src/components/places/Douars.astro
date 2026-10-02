@@ -8,6 +8,11 @@
  * HCP withholds a douar's figures under 30 households, so those rows show a dash, and say
  * why under the table. Rows past the first few fold away once the script runs; without it,
  * every row shows.
+ *
+ * A douar no source names in Latin shows its spelling from the Arabic, in italics, and can
+ * take a visitor's spelling: the form under the table sends it to /api/douar-suggestions,
+ * and the names visitors have had accepted since the page was built are laid over it live
+ * from /api/communes/{code}/douar-names. Without the script, the form stays hidden.
  */
 import { de, fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
@@ -16,12 +21,14 @@ import { latinOf, type Fraction } from "../../lib/douars";
 
 interface Props {
   locale: Locale;
+  /** The commune's code, which its accepted names are asked for under. */
+  code: string;
   fractions: Fraction[];
   name: string;
   /** A commune the census counts as urban, whose douars are its rural part. */
   urban: boolean;
 }
-const { locale, fractions, name, urban } = Astro.props;
+const { locale, code, fractions, name, urban } = Astro.props;
 const p = places[locale];
 const n = numbers(locale);
 const km = numbers(locale, 1, true);
@@ -35,6 +42,8 @@ const plural = new Intl.PluralRules(locale === "fr" ? "fr-FR" : "en-GB");
 const counted = (forms: { one: string; other: string }, v: number) => fill(plural.select(v) === "one" ? forms.one : forms.other, { n: n.format(v) });
 const distance = (v: number | null | undefined) => (v === null || v === undefined ? "—" : km.format(v));
 const withheld = fractions.some((f) => f.rows.some((d) => d.topics === null));
+// The douars a visitor can name: the ones spelt from the Arabic.
+const open = fractions.flatMap((f) => f.rows).filter((d) => latinOf(d).spelt);
 
 // Each fraction's place in the count, so a fraction whose rows all fall past the fold folds too.
 let seen = 0;
@@ -85,7 +94,9 @@ const groups = fractions.map((f) => {
             <tr id={`douar-${d.code}`} class:list={{ later: f.start + i >= SHOWN }}>
               <td>
                 <span lang="ar" dir="rtl">{d.name.ar}</span>
-                <span class:list={["latin", { spelt: latinOf(d).spelt }]}>{latinOf(d).name}</span>
+                <span class:list={["latin", { spelt: latinOf(d).spelt }]}>
+                  {latinOf(d).name}{latinOf(d).source === "visitors" && <span class="by">{p.douarsSuggested}</span>}
+                </span>
               </td>
               <td>{kinds[d.type] ?? d.type}</td>
               <td class="num">{n.format(d.households)}</td>
@@ -106,6 +117,27 @@ const groups = fractions.map((f) => {
   )}
   <p class="note">{p.douarsLatin}</p>
   {withheld && <p class="note">{p.douarsWithheld}</p>}
+  {open.length > 0 && (
+    <form class="suggest" hidden data-code={code} data-by={p.douarsSuggested}
+      data-counted={p.suggestCounted} data-accepted={p.suggestAccepted} data-named={p.suggestNamed}
+      data-mismatch={p.suggestMismatch} data-limit={p.suggestLimit} data-invalid={p.suggestInvalid} data-failed={p.suggestFailed}>
+      <p class="suggest-ask">{p.suggestAsk}</p>
+      <div class="suggest-fields">
+        <label>
+          <span>{p.suggestDouar}</span>
+          <select name="douar" required>
+            {open.map((d) => <option value={d.code}>{d.name.ar} · {latinOf(d).name}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>{p.suggestName}</span>
+          <input name="name" type="text" required minlength="2" maxlength="60" autocomplete="off" spellcheck="false" lang="fr" />
+        </label>
+        <button type="submit">{p.suggestSend}</button>
+      </div>
+      <p class="suggest-status" aria-live="polite"></p>
+    </form>
+  )}
 </section>
 
 <script>
@@ -128,6 +160,60 @@ const groups = fractions.map((f) => {
     if (target?.classList.contains("later")) expanded = true;
     paint();
     target?.scrollIntoView({ block: "center" });
+  }
+
+  // Visitors' names: laid over the built page once accepted, and sent from the form.
+  const form = document.querySelector<HTMLFormElement>("form.suggest");
+  if (form) {
+    const d = form.dataset;
+    const select = form.querySelector<HTMLSelectElement>("select")!;
+    const input = form.querySelector<HTMLInputElement>("input")!;
+    const button = form.querySelector<HTMLButtonElement>("button")!;
+    const status = form.querySelector<HTMLElement>(".suggest-status")!;
+    const name = (douar: string, text: string) => {
+      const latin = document.querySelector<HTMLElement>(`#douar-${douar} .latin`);
+      if (latin) {
+        latin.classList.remove("spelt");
+        latin.textContent = text;
+        const by = document.createElement("span");
+        by.className = "by";
+        by.textContent = d.by ?? "";
+        latin.append(by);
+      }
+      select.querySelector(`option[value="${douar}"]`)?.remove();
+      if (select.options.length === 0) form.hidden = true;
+    };
+    fetch(`/api/communes/${d.code}/douar-names`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body: { data?: { names?: Record<string, string> } } | null) => {
+        for (const [douar, text] of Object.entries(body?.data?.names ?? {})) name(douar, text);
+      })
+      .catch(() => undefined);
+    form.hidden = select.options.length === 0;
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      status.textContent = "";
+      const douar = select.value;
+      try {
+        const response = await fetch("/api/douar-suggestions", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ douar, name: input.value }),
+        });
+        const body = (await response.json().catch(() => ({}))) as { status?: string; name?: string };
+        const said: Record<string, string | undefined> = {
+          counted: d.counted, accepted: d.accepted, named: d.named, mismatch: d.mismatch, limit: d.limit, invalid: d.invalid,
+        };
+        status.textContent = said[body.status ?? ""] ?? d.failed ?? "";
+        if (body.status === "accepted" && body.name) name(douar, body.name);
+        if (body.status === "counted" || body.status === "accepted") input.value = "";
+      } catch {
+        status.textContent = d.failed ?? "";
+      } finally {
+        button.disabled = false;
+      }
+    });
   }
 </script>
 
@@ -203,5 +289,82 @@ const groups = fractions.map((f) => {
     margin-top: 0.75rem;
     color: var(--quiet);
     font-size: var(--t-xs);
+  }
+
+  .douar-table .by,
+  .douar-table :global(.by) {
+    margin-inline-start: 0.4rem;
+    font-style: normal;
+    opacity: 0.8;
+  }
+
+  .douar-table :global(.by)::before,
+  .douar-table .by::before {
+    content: "· ";
+  }
+
+  .suggest {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .suggest[hidden] {
+    display: none;
+  }
+
+  .suggest-ask {
+    margin: 0 0 0.75rem;
+    font-size: var(--t-sm);
+  }
+
+  .suggest-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: end;
+  }
+
+  .suggest label {
+    display: grid;
+    gap: 0.3rem;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .suggest select,
+  .suggest input {
+    min-width: min(100%, 14rem);
+    max-width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--t-sm);
+  }
+
+  .suggest button {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--ink);
+    border-radius: 6px;
+    background: var(--ink);
+    color: var(--paper);
+    font: inherit;
+    font-size: var(--t-sm);
+    cursor: pointer;
+  }
+
+  .suggest button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .suggest-status {
+    min-height: 1.4em;
+    margin: 0.6rem 0 0;
+    font-size: var(--t-sm);
+    color: var(--quiet);
   }
 </style>

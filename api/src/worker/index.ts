@@ -21,6 +21,7 @@ import { DATASET_VERSION } from "../../../pipeline/src/sources/registry.ts";
 import { downloads } from "../../../site/src/generated/downloads.ts";
 import { pagesOf } from "../lib/pages.ts";
 import { SHOWN_FROM } from "../../../workers/rollup/src/sql.ts";
+import { acceptedIn, cleanSpelling, readsAs, suggest, visitorOf } from "./suggest.ts";
 
 // Module scope on purpose. Cloudflare gives the global scope a 1 s startup budget, while
 // each request gets 10 ms, so parsing the index here costs a few ms once per isolate
@@ -33,6 +34,9 @@ const tileIndex = prepareIndex(rawTiles as TileIndex);
 // country. 1.7 MB, which parses in about 8 ms here, once, instead of 31 page reads on
 // every request.
 const communes = rawCommunes as unknown as ListedCommune[];
+// The start every douar code of a commune shares: its code's digits less the région's.
+const communeDigits = new Map((rawCommunes as { code: string; codeDigits: string }[]).map((c) => [c.code, c.codeDigits.slice(2)]));
+const communeOfDouar = new Map([...communeDigits].map(([code, digits]) => [digits, code]));
 // Each commune's census figures and establishment counts, for lists sorted by one. 1.3 MB.
 const indicators = rawIndicators as IndicatorTable;
 // The 6 communes divided into arrondissements, whose boundaries a point lookup reads too.
@@ -46,6 +50,8 @@ interface Env {
   USAGE?: UsageDataset;
   /** D1 database, bound in wrangler.toml. recordDemand() does nothing without it. */
   DEMAND?: D1Database;
+  /** The secret a visitor's daily key is made with, set with `wrangler pages secret put`. Suggestions are refused without it. */
+  SUGGEST_KEY?: string;
 }
 
 /** The country Cloudflare places a request in, when it says. */
@@ -429,6 +435,30 @@ app.get("/api/:collection/:id", async (c) => {
 });
 
 /**
+ * The Latin names visitors have given a commune's douars, accepted since the last deploy or
+ * before it: what the commune's page lays over the spellings it was built with. Read live,
+ * so a name shows minutes after it's accepted; a 503 leaves the page as it was built.
+ */
+app.get("/api/communes/:id/douar-names", async (c) => {
+  const url = new URL(c.req.url);
+  const found = resolve(lookup, c.req.param("id"), "commune");
+  if (found.kind === "malformed") return fail(url, "invalid-code", `${c.req.param("id")} can’t be read as a code or a slug`, url.pathname);
+  if (found.kind === "absent") return fail(url, "not-found", `no commune has code ${c.req.param("id")}`, url.pathname);
+  const commune = communeDigits.get(found.code);
+  if (!commune) return fail(url, "not-found", `${found.code} is not a commune`, url.pathname);
+  let names: Record<string, string>;
+  try {
+    if (!c.env.DEMAND) throw new Error("no database bound");
+    names = await acceptedIn(c.env.DEMAND, commune);
+  } catch {
+    return new Response(null, { status: 503, headers: { "retry-after": "300" } });
+  }
+  return new Response(JSON.stringify(envelope({ names }, { self: url.pathname })), {
+    headers: { "content-type": "application/json", "cache-control": "public, max-age=300", "x-api-tier": "computed" },
+  });
+});
+
+/**
  * A unit's figures by any spelling of its identifier: /api/communes/tanger/indicators for
  * the census, /economy for the establishments, /housing for the urban dwellings,
  * /neighbours for the communes it borders, /neighbourhoods for its named neighbourhoods and
@@ -603,6 +633,54 @@ async function bodyUpTo(request: Request, limit: number): Promise<Uint8Array | n
   }
   return bytes;
 }
+
+/**
+ * A visitor's Latin spelling for a douar no source names in Latin. From the site's own
+ * pages only, like the beacon. The douar is read from its commune's douar file, so a code
+ * that isn't a douar, or a douar a source already names, is refused before anything is kept.
+ */
+app.post("/api/douar-suggestions", async (c) => {
+  const url = new URL(c.req.url);
+  const origin = c.req.header("origin");
+  let sameOrigin = false;
+  try {
+    sameOrigin = origin !== undefined && new URL(origin).host === url.host;
+  } catch {
+    sameOrigin = false;
+  }
+  if (!sameOrigin && c.req.header("sec-fetch-site") !== "same-origin") return new Response(null, { status: 400 });
+  if (Number(c.req.header("content-length")) > BEACON_BYTES) return new Response(null, { status: 400 });
+  const bytes = await bodyUpTo(c.req.raw, BEACON_BYTES);
+  let body: { douar?: unknown; name?: unknown } | null = null;
+  try {
+    body = bytes ? JSON.parse(new TextDecoder().decode(bytes)) : null;
+  } catch {
+    body = null;
+  }
+  const douar = typeof body?.douar === "string" && /^\d{13}$/.test(body.douar) ? body.douar : null;
+  const name = cleanSpelling(body?.name);
+  if (!douar || !name) return Response.json({ status: "invalid" }, { status: 400 });
+  if (!c.env.DEMAND || !c.env.SUGGEST_KEY) return new Response(null, { status: 503 });
+
+  const commune = communeOfDouar.get(douar.slice(0, 7));
+  const file = commune ? await fetchJsonFrom(c.env, url)(`/api/communes/${commune}/douars.json`) : null;
+  const record = (file?.data as unknown as { douars?: { code: string; name: { ar: string }; latin?: unknown }[] } | undefined)?.douars?.find(
+    (d) => d.code === douar,
+  );
+  if (!record) return Response.json({ status: "unknown" }, { status: 404 });
+  if (record.latin) return Response.json({ status: "named" }, { status: 409 });
+  if (!readsAs(name, record.name.ar)) return Response.json({ status: "mismatch" }, { status: 422 });
+
+  const day = new Date().toISOString().slice(0, 10);
+  const visitor = await visitorOf(c.env.SUGGEST_KEY, day, c.req.header("cf-connecting-ip") ?? "local");
+  try {
+    const outcome = await suggest(c.env.DEMAND, { douar, name, visitor, day });
+    const status = outcome.status === "named" ? 409 : outcome.status === "limit" ? 429 : outcome.status === "accepted" ? 201 : 202;
+    return Response.json(outcome, { status });
+  } catch {
+    return new Response(null, { status: 503 });
+  }
+});
 
 /**
  * What a static page can't count for itself: a place opened, a file taken, and a search

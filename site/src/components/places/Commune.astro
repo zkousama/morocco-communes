@@ -339,7 +339,7 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
-  {fractions.length > 0 && <Douars locale={locale} fractions={fractions} name={c.name.fr} urban={c.type === "urban"} />}
+  {fractions.length > 0 && <Douars locale={locale} code={c.code} fractions={fractions} name={c.name.fr} urban={c.type === "urban"} />}
 
   {arrondissements.length > 0 && (
     <section id="arrondissements">

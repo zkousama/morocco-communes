@@ -29,8 +29,8 @@ export interface DouarPlace {
 /** A douar's Latin name and who writes it so. */
 export interface DouarLatin {
   name: string;
-  /** The Ministry of National Education's school lists, OpenStreetMap or GeoNames. */
-  source: "education" | "osm" | "geonames";
+  /** The Ministry of National Education's school lists, OpenStreetMap, GeoNames, or 2 visitors who suggested it. */
+  source: "education" | "osm" | "geonames" | "visitors";
 }
 
 /**
@@ -38,6 +38,9 @@ export interface DouarLatin {
  * or none before api:douar-places and api:douar-names have run. The Ministry's spelling
  * comes first, a government's spelling in current use; then the matched place's.
  */
+/** The names visitors had accepted when the site was last deployed. Not in git. */
+export const VISITORS = "api/generated/douar-visitors.json";
+
 export function readDouarSources(dir = "api/data"): Map<string, { place?: DouarPlace; latin?: DouarLatin }> {
   const out = new Map<string, { place?: DouarPlace; latin?: DouarLatin }>();
   const places = `${dir}/douar-places.json`;
@@ -51,6 +54,13 @@ export function readDouarSources(dir = "api/data"): Map<string, { place?: DouarP
   if (existsSync(names)) {
     for (const [code, name] of (JSON.parse(readFileSync(names, "utf8")) as { names: [string, string][] }).names) {
       out.set(code, { ...out.get(code), latin: { name, source: "education" } });
+    }
+  }
+  // Visitors' names, pulled from the live database at deploy (douarVisitors.ts); only for a
+  // douar no source names, which is the only kind that takes a suggestion.
+  if (existsSync(VISITORS)) {
+    for (const [code, name] of (JSON.parse(readFileSync(VISITORS, "utf8")) as { names: [string, string][] }).names) {
+      if (!out.get(code)?.latin) out.set(code, { ...out.get(code), latin: { name, source: "visitors" } });
     }
   }
   return out;

@@ -11,3 +11,5 @@ packages/morocco-communes-py/dist/
 __pycache__/
 *.egg-info/
 evals/results/
+api/generated/douar-visitors.json
+.dev.vars

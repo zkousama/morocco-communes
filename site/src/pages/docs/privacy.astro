@@ -2,9 +2,9 @@
 /**
  * What each store keeps about a visit, in plain terms, and what it drops. Every sentence
  * here has to stay true of api/src/worker/usage.ts, api/src/worker/demand.ts,
- * api/src/worker/index.ts, the beacon in site/src/components/Beacon.astro and
- * site/src/components/Search.astro, and workers/rollup/: those are the only places that
- * write a row, and the mirror of this page under /fr/ says the same in French.
+ * api/src/worker/index.ts, api/src/worker/suggest.ts, the beacon in
+ * site/src/components/Beacon.astro and site/src/components/Search.astro, and
+ * workers/rollup/: those are the only places that write a row, and the mirror of this page under /fr/ says the same in French.
  */
 import Docs from "../../layouts/Docs.astro";
 import { REPO_URL } from "../../i18n/ui";
@@ -16,6 +16,7 @@ const toc = [
   { id: "asked-for", label: "What’s asked for" },
   { id: "search", label: "A search" },
   { id: "kept", label: "What’s kept" },
+  { id: "suggested", label: "A suggested spelling" },
   { id: "code", label: "The code" },
 ];
 
@@ -27,7 +28,7 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
   route="docs/privacy/"
   title="What this site counts"
   description="What this site keeps when someone searches, opens a place or calls a tool."
-  lede="How this site and its API get used is counted in 2 stores. Neither keeps anything that ties a row to a visitor."
+  lede="How this site and its API get used is counted in 2 stores. Neither keeps anything that ties a row to a visitor. A douar’s suggested spelling is kept apart, with a key that changes every day."
   toc={toc}
 >
   <section id="requests">
@@ -89,12 +90,27 @@ const file = (path: string) => `${REPO_URL}/blob/main/${path}`;
     </p>
   </section>
 
+  <section id="suggested">
+    <h2>A suggested spelling</h2>
+    <p>
+      A douar’s page takes a Latin spelling for a douar no source names in Latin, and shows it once 2 visitors
+      have suggested the same one. To tell 2 visitors apart, a suggestion is kept with a key made from the
+      visitor’s address and a secret that changes every day: the same address gives the same key on one day and
+      a different one the next, and the key can’t be turned back into the address. The address itself isn’t kept.
+    </p>
+    <p>
+      A suggestion holds the douar, the spelling, the key and the day, and is deleted after 90 days. A spelling
+      that’s gone live is kept with the douar and the day it went live, and nothing about who suggested it.
+    </p>
+  </section>
+
   <section id="code">
     <h2>The code</h2>
     <p>
       This runs from <a href={file("api/src/worker/usage.ts")}><code>api/src/worker/usage.ts</code></a>,{" "}
-      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a> and{" "}
-      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a>, the beacon in{" "}
+      <a href={file("api/src/worker/demand.ts")}><code>api/src/worker/demand.ts</code></a>,{" "}
+      <a href={file("api/src/worker/index.ts")}><code>api/src/worker/index.ts</code></a> and{" "}
+      <a href={file("api/src/worker/suggest.ts")}><code>api/src/worker/suggest.ts</code></a>, the beacon in{" "}
       <a href={file("site/src/components/Beacon.astro")}><code>Beacon.astro</code></a> and{" "}
       <a href={file("site/src/components/Search.astro")}><code>Search.astro</code></a>, and the nightly rollup in{" "}
       <a href={file("workers/rollup/")}><code>workers/rollup/</code></a>. All of it is public.

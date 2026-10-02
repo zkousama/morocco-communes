@@ -6,7 +6,7 @@
  * The SQL goes through prepare() in one batch. D1's exec() splits its input on newlines,
  * so a statement written across lines can't pass through it.
  */
-import { KEEP_DAYS, PRUNE, RANK, ROLLUP, UNRANK } from "./sql.ts";
+import { KEEP_DAYS, PRUNE, PRUNE_SUGGESTIONS, RANK, ROLLUP, UNRANK } from "./sql.ts";
 
 /** Each night counts the 7 days before it again, so a night that doesn't run is caught up on the next. */
 const WINDOW = 7;
@@ -24,6 +24,7 @@ export default {
     await env.DEMAND.batch([
       ...days.map((day) => env.DEMAND.prepare(ROLLUP).bind(day)),
       env.DEMAND.prepare(PRUNE).bind(dayBefore(now, KEEP_DAYS)),
+      env.DEMAND.prepare(PRUNE_SUGGESTIONS).bind(dayBefore(now, KEEP_DAYS)),
       // One batch is one transaction, so the page never reads the table between these two.
       env.DEMAND.prepare(UNRANK),
       env.DEMAND.prepare(RANK).bind(dayBefore(now, RANKED_DAYS)),

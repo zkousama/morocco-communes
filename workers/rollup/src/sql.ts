@@ -38,6 +38,9 @@ export const ROLLUP = `WITH kept AS (
 /** Every row from before the given day. */
 export const PRUNE = "DELETE FROM events WHERE day < ?1";
 
+/** Every douar suggestion from before the given day. An accepted name is kept in douar_names. */
+export const PRUNE_SUGGESTIONS = "DELETE FROM douar_suggestions WHERE day < ?1";
+
 /** How many times a place has to be opened before the public ranking names it. */
 export const SHOWN_FROM = 5;
 

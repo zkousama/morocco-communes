@@ -1042,9 +1042,9 @@ export function createMcpServer(deps: McpDeps): McpServer {
             population: z.number(),
             figures: z.record(z.string(), z.record(z.string(), z.number().nullable())).nullable().optional().describe("Null where HCP withholds them."),
             name_latin: z
-              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames"]) })
+              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames", "visitors"]) })
               .optional()
-              .describe("Its name in Latin letters where a source writes one: the Ministry of National Education's school lists, OpenStreetMap or GeoNames. HCP names douars in Arabic only."),
+              .describe("Its name in Latin letters where a source writes one: the Ministry of National Education's school lists, OpenStreetMap, GeoNames, or 2 visitors who suggested it on the site. HCP names douars in Arabic only."),
             place: z
               .object({ source: z.enum(["geonames", "osm"]), lat: z.number(), lng: z.number() })
               .optional()
@@ -1073,7 +1073,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           population: number;
           topics: Record<string, Record<string, number | null>> | null;
           place?: { source: "geonames" | "osm"; lat: number; lng: number };
-          latin?: { name: string; source: "education" | "osm" | "geonames" };
+          latin?: { name: string; source: "education" | "osm" | "geonames" | "visitors" };
         }[];
       };
       if (fraction && !data.fractions.some((f) => f.code === fraction)) {
