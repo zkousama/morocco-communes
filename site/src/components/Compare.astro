@@ -480,14 +480,14 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
     flex-direction: column;
     gap: 0.3rem;
     flex: 1 1 13rem;
+    min-width: 0;
     font-size: var(--t-xs);
     color: var(--quiet);
   }
 
   .cmp-axis select {
-    height: 2.5rem;
+    min-height: 2.5rem;
     font-size: var(--t-sm);
-    padding-block: 0;
   }
 
   .cmp-swap {

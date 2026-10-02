@@ -403,6 +403,8 @@ const themes = themeList(copy);
            Arabic. */
         --display: "Instrument Serif", "Communes Maghribi", Georgia, "Times New Roman", serif;
         --sans: "Instrument Sans", "Communes Maghribi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        /* The same without the site's Arabic face, which a dropdown draws with its letters apart. */
+        --sans-field: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
         --mono: "JetBrains Mono", "Communes Maghribi", ui-monospace, Menlo, Consolas, monospace;
 
         /* A fourth, per Bringhurst. */
@@ -552,6 +554,55 @@ const themes = themeList(copy);
       :where(select):disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+
+      :where(select) {
+        font-family: var(--sans-field);
+      }
+
+      /* Where the browser lets a page draw the open list too, it's drawn like the rest: the
+         page's paper, a rule, the well behind the option under the pointer. Elsewhere the
+         browser's own list shows, in the theme's colours. */
+      @supports (appearance: base-select) {
+        :where(select),
+        ::picker(select) {
+          appearance: base-select;
+        }
+
+        :where(select)::picker-icon {
+          display: none;
+        }
+
+        ::picker(select) {
+          margin-block: 4px;
+          padding: 0.3rem;
+          color: var(--ink);
+          background: var(--paper);
+          border: 1px solid var(--rule);
+          border-radius: 8px;
+          box-shadow: 0 10px 28px rgb(0 0 0 / 0.16);
+          max-height: min(22rem, 60vh);
+        }
+
+        :where(select) option {
+          padding: 0.45rem 0.65rem;
+          border-radius: 5px;
+          font-family: var(--sans-field);
+        }
+
+        :where(select) option:hover,
+        :where(select) option:focus-visible {
+          background: var(--well);
+          outline: none;
+        }
+
+        :where(select) option:checked {
+          font-weight: 500;
+        }
+
+        :where(select) option::checkmark {
+          color: var(--brass);
+        }
       }
 
       *,

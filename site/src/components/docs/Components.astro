@@ -161,10 +161,13 @@ const toc = [
     gap: 0.35rem;
     font-size: var(--t-sm);
     color: var(--quiet);
+    min-width: 0;
   }
 
+  /* Each fills its column, however long its names. */
   select {
     font-size: var(--t-base);
+    width: 100%;
     min-width: 0;
   }
 
