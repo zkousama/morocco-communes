@@ -91,13 +91,14 @@ const toc = [
   <section id="suggested">
     <h2>A suggested spelling</h2>
     <p>
-      A douar’s page takes a Latin spelling for a douar no source names in Latin, and shows it once 2 visitors
-      have suggested the same one. To tell 2 visitors apart, a suggestion is kept with a key made from the
+      A douar’s page takes a Latin spelling for a douar no source names in Latin. Each night the spelling engine
+      checks what’s been suggested, and shows a spelling 2 visitors suggested if it reads close enough to the
+      douar’s Arabic. To tell 2 visitors apart, a suggestion is kept with a key made from the
       visitor’s address and a secret that changes every day: the same address gives the same key on one day and
       a different one the next, and the key can’t be turned back into the address. The address itself isn’t kept.
     </p>
     <p>
-      A suggestion holds the douar, the spelling, the key and the day, and is deleted after 90 days. A spelling
+      A suggestion holds the douar, its Arabic name, the spelling, the key and the day, and is deleted after 90 days. A spelling
       that’s gone live is kept with the douar and the day it went live, and nothing about who suggested it.
     </p>
   </section>

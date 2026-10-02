@@ -17,7 +17,7 @@ function db() {
 /**
  * D1 as the Worker meets it, over SQLite. exec() throws, because D1 splits its input on
  * newlines and a statement written across lines doesn't survive that, while node:sqlite
- * would have run it. prepare, bind, run and batch go to SQLite, and a batch is one
+ * would have run it. prepare, bind, run, all and batch go to SQLite, and a batch is one
  * transaction, as it is in D1.
  */
 function d1(database: DatabaseSync) {
@@ -27,6 +27,7 @@ function d1(database: DatabaseSync) {
       database.prepare(sql).run(...values);
       return { success: true };
     },
+    all: async () => ({ results: database.prepare(sql).all(...values), success: true }),
   });
   return {
     exec: async () => {

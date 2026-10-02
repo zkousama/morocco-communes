@@ -547,7 +547,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             latin: {
               type: "object",
               required: ["name", "source"],
-              description: "Its name in Latin letters, where a source writes one: the Ministry of National Education's lists of public schools (ODbL), OpenStreetMap (ODbL) or GeoNames (CC BY 4.0), in that order, or 2 visitors who suggested the same spelling on the site, for a douar none names. Matched by name, not by HCP: a small share may belong to another place of the same name.",
+              description: "Its name in Latin letters, where a source writes one: the Ministry of National Education's lists of public schools (ODbL), OpenStreetMap (ODbL) or GeoNames (CC BY 4.0), in that order, or visitors, for a douar none names: a spelling 2 visitors suggested on the site that the spelling engine passed overnight. Matched by name, not by HCP: a small share may belong to another place of the same name.",
               properties: {
                 name: { type: "string" },
                 source: { type: "string", enum: ["education", "osm", "geonames", "visitors"] },

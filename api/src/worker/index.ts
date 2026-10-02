@@ -674,8 +674,8 @@ app.post("/api/douar-suggestions", async (c) => {
   const day = new Date().toISOString().slice(0, 10);
   const visitor = await visitorOf(c.env.SUGGEST_KEY, day, c.req.header("cf-connecting-ip") ?? "local");
   try {
-    const outcome = await suggest(c.env.DEMAND, { douar, name, visitor, day });
-    const status = outcome.status === "named" ? 409 : outcome.status === "limit" ? 429 : outcome.status === "accepted" ? 201 : 202;
+    const outcome = await suggest(c.env.DEMAND, { douar, name, arabic: record.name.ar, visitor, day });
+    const status = outcome.status === "named" ? 409 : outcome.status === "limit" ? 429 : 202;
     return Response.json(outcome, { status });
   } catch {
     return new Response(null, { status: 503 });

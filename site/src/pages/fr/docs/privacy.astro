@@ -92,14 +92,15 @@ const toc = [
   <section id="suggested">
     <h2>Une graphie proposée</h2>
     <p>
-      La page d’un douar accepte une graphie latine pour un douar qu’aucune source ne nomme en lettres latines, et
-      l’affiche dès que 2 visiteurs ont proposé la même. Pour distinguer 2 visiteurs, une proposition est gardée
+      La page d’un douar accepte une graphie latine pour un douar qu’aucune source ne nomme en lettres latines.
+      Chaque nuit, le moteur d’écriture vérifie les propositions, et affiche une graphie proposée par 2 visiteurs si
+      elle se lit assez près de l’arabe du douar. Pour distinguer 2 visiteurs, une proposition est gardée
       avec une clé tirée de l’adresse du visiteur et d’un secret qui change chaque jour : la même adresse donne la
       même clé un jour donné et une autre le lendemain, et la clé ne permet pas de retrouver l’adresse. L’adresse
       elle-même n’est pas gardée.
     </p>
     <p>
-      Une proposition contient le douar, la graphie, la clé et le jour, et elle est effacée au bout de 90 jours.
+      Une proposition contient le douar, son nom arabe, la graphie, la clé et le jour, et elle est effacée au bout de 90 jours.
       Une graphie affichée est gardée avec le douar et le jour où elle l’a été, sans rien sur qui l’a proposée.
     </p>
   </section>

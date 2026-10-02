@@ -5,19 +5,21 @@
  *
  * A suggestion is checked before it's kept: the douar has to be one with no Latin name yet,
  * and the spelling has to be Latin letters whose keys meet the douar's Arabic (translit.ts),
- * so a word that isn't this douar's name is refused however it's typed. A spelling goes live
- * once VOTES different visitors have suggested it.
+ * so a word that isn't this douar's name is refused however it's typed. Nothing goes live from
+ * here: each night accept.ts scores what's been suggested with the spelling engine, and a
+ * spelling VOTES visitors suggested that's close enough to the engine's goes live then.
  *
  * A visitor is told apart by an HMAC of their address under SUGGEST_KEY and the day, so the
  * key changes every day: it tells 2 people apart on the day they suggest, and can't be turned
- * back into an address. The privacy page says so, and the rollup Worker deletes a suggestion
+ * back into an address. It also means one person on 2 days counts twice, which is why votes
+ * alone publish nothing. The privacy page says so, and the rollup Worker deletes a suggestion
  * after 90 days.
  */
 import type { D1Database } from "@cloudflare/workers-types";
 import { normalise } from "../lib/normalise.ts";
 import { arabicKeys, keysMeet, latinKeys } from "../lib/translit.ts";
 
-/** How many visitors have to suggest a spelling for it to go live. */
+/** How many visitors have to suggest a spelling before the nightly check considers it. */
 export const VOTES = 2;
 /** How many suggestions a visitor can make in a day. */
 export const PER_DAY = 20;
@@ -49,16 +51,12 @@ export async function visitorOf(secret: string, day: string, address: string): P
   return [...new Uint8Array(mac).slice(0, 16)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export type Outcome =
-  | { status: "counted"; votes: number }
-  | { status: "accepted"; name: string }
-  | { status: "named" }
-  | { status: "limit" };
+export type Outcome = { status: "counted"; votes: number } | { status: "named" } | { status: "limit" };
 
-/** Keeps a suggestion and accepts the spelling once enough visitors have made it. */
+/** Keeps a suggestion for the nightly check, and says how many visitors have made it. */
 export async function suggest(
   db: D1Database,
-  row: { douar: string; name: string; visitor: string; day: string },
+  row: { douar: string; name: string; arabic: string; visitor: string; day: string },
 ): Promise<Outcome> {
   const named = await db.prepare("SELECT name FROM douar_names WHERE douar = ?").bind(row.douar).first<{ name: string }>();
   if (named) return { status: "named" };
@@ -69,22 +67,14 @@ export async function suggest(
   if ((today?.n ?? 0) >= PER_DAY) return { status: "limit" };
   const spelling = spellingOf(row.name);
   await db
-    .prepare("INSERT OR IGNORE INTO douar_suggestions (douar, name, spelling, visitor, day) VALUES (?, ?, ?, ?, ?)")
-    .bind(row.douar, row.name, spelling, row.visitor, row.day)
+    .prepare("INSERT OR IGNORE INTO douar_suggestions (douar, name, spelling, arabic, visitor, day) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(row.douar, row.name, spelling, row.arabic, row.visitor, row.day)
     .run();
   const votes = (await db
     .prepare("SELECT COUNT(*) AS n FROM douar_suggestions WHERE douar = ? AND spelling = ?")
     .bind(row.douar, spelling)
     .first<{ n: number }>())?.n ?? 0;
-  if (votes < VOTES) return { status: "counted", votes };
-  // The form the first visitor wrote, so the name is a person's spelling of it.
-  const first = await db
-    .prepare("SELECT name FROM douar_suggestions WHERE douar = ? AND spelling = ? ORDER BY day, rowid LIMIT 1")
-    .bind(row.douar, spelling)
-    .first<{ name: string }>();
-  const name = first?.name ?? row.name;
-  await db.prepare("INSERT OR IGNORE INTO douar_names (douar, name, since) VALUES (?, ?, ?)").bind(row.douar, name, row.day).run();
-  return { status: "accepted", name };
+  return { status: "counted", votes };
 }
 
 /** The accepted names of a commune's douars, whose codes all start with `prefix`. */

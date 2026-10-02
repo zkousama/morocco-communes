@@ -63,7 +63,7 @@ describe("a suggested spelling", () => {
     expect(cleanSpelling("a".repeat(61))).toBeNull();
   });
 
-  it("is counted from one visitor and goes live from a second", async () => {
+  it("is counted, once a visitor, and nothing goes live from a click", async () => {
     const db = database();
     const first = await post(db, { douar: "1630717201002", name: "Ait Mouss" }, "203.0.113.7");
     expect(first.status).toBe(202);
@@ -71,10 +71,11 @@ describe("a suggested spelling", () => {
     const again = await post(db, { douar: "1630717201002", name: "ait mouss" }, "203.0.113.7");
     expect(await again.json()).toEqual({ status: "counted", votes: 1 });
     const second = await post(db, { douar: "1630717201002", name: "AIT MOUSS" }, "198.51.100.4");
-    expect(second.status).toBe(201);
-    expect(await second.json()).toEqual({ status: "accepted", name: "Ait Mouss" });
-    const later = await post(db, { douar: "1630717201002", name: "Ait Mousse" }, "192.0.2.9");
-    expect(later.status).toBe(409);
+    expect(second.status).toBe(202);
+    expect(await second.json()).toEqual({ status: "counted", votes: 2 });
+    expect(db.prepare("SELECT COUNT(*) AS n FROM douar_names").get()).toEqual({ n: 0 });
+    // Kept with the douar's Arabic, which the nightly check spells.
+    expect(db.prepare("SELECT DISTINCT arabic FROM douar_suggestions").all()).toEqual([{ arabic: "أيت موس" }]);
   });
 
   it("keeps no address: the visitor is a keyed hash that changes with the day", async () => {
@@ -100,7 +101,7 @@ describe("a suggested spelling", () => {
     const day = new Date().toISOString().slice(0, 10);
     const visitor = await visitorOf("secret", day, "203.0.113.7");
     for (let i = 0; i < PER_DAY; i++) {
-      db.prepare("INSERT INTO douar_suggestions (douar, name, spelling, visitor, day) VALUES (?, ?, ?, ?, ?)").run(`x${i}`, "n", `s${i}`, visitor, day);
+      db.prepare("INSERT INTO douar_suggestions (douar, name, spelling, arabic, visitor, day) VALUES (?, ?, ?, ?, ?, ?)").run(`x${i}`, "n", `s${i}`, "ن", visitor, day);
     }
     expect((await post(db, { douar: "1630717201002", name: "Ait Mouss" }, "203.0.113.7")).status).toBe(429);
   });
@@ -121,7 +122,7 @@ describe("a suggested spelling", () => {
 
   it("is deleted after 90 days by the nightly job, and its accepted name kept", async () => {
     const db = database();
-    db.prepare("INSERT INTO douar_suggestions (douar, name, spelling, visitor, day) VALUES (?, ?, ?, ?, ?)").run("1", "A", "a", "v", "2026-06-01");
+    db.prepare("INSERT INTO douar_suggestions (douar, name, spelling, arabic, visitor, day) VALUES (?, ?, ?, ?, ?, ?)").run("1", "A", "a", "ا", "v", "2026-06-01");
     db.prepare("INSERT INTO douar_names (douar, name, since) VALUES (?, ?, ?)").run("1", "A", "2026-06-01");
     db.prepare(PRUNE_SUGGESTIONS).run("2026-07-01");
     expect(db.prepare("SELECT COUNT(*) AS n FROM douar_suggestions").get()).toEqual({ n: 0 });

@@ -103,5 +103,8 @@ export function lettersApart(a: string, b: string): number {
   return row[b.length]!;
 }
 
+/** How far apart 2 spellings are, as a share of the longer: 0 alike, 1 nothing in common. */
+export const shareApart = (a: string, b: string): number => lettersApart(a, b) / Math.max(a.length, b.length, 1);
+
 /** The key a name is filed under for lookup: its first, with every l out. */
 export const lookupKey = (key: string) => withoutL(key);

@@ -1,11 +1,13 @@
 /**
- * Once a night: the last week's rows become counts in `daily`, anything past 90 days
- * leaves `events`, and the public ranking is worked out again. The retention promise keeps
+ * Once a night: the spellings visitors suggested are checked and the ones that pass go live
+ * (api/src/worker/accept.ts), the last week's rows become counts in `daily`, anything past
+ * 90 days leaves `events`, and the public ranking is worked out again. The retention promise keeps
  * itself here, rather than waiting for somebody to run a command.
  *
  * The SQL goes through prepare() in one batch. D1's exec() splits its input on newlines,
  * so a statement written across lines can't pass through it.
  */
+import { acceptSuggestions } from "../../../api/src/worker/accept.ts";
 import { KEEP_DAYS, PRUNE, PRUNE_SUGGESTIONS, RANK, ROLLUP, UNRANK } from "./sql.ts";
 
 /** Each night counts the 7 days before it again, so a night that doesn't run is caught up on the next. */
@@ -21,6 +23,8 @@ export default {
   async scheduled(controller: ScheduledController, env: { DEMAND: D1Database }, _ctx: ExecutionContext) {
     const now = controller.scheduledTime;
     const days = Array.from({ length: WINDOW }, (_, i) => dayBefore(now, i + 1));
+    // Before the prune, so a spelling suggested 90 days ago still gets its night.
+    await acceptSuggestions(env.DEMAND as never, dayBefore(now, 0));
     await env.DEMAND.batch([
       ...days.map((day) => env.DEMAND.prepare(ROLLUP).bind(day)),
       env.DEMAND.prepare(PRUNE).bind(dayBefore(now, KEEP_DAYS)),

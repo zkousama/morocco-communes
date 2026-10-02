@@ -19,7 +19,7 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { normalise } from "../src/lib/normalise.ts";
-import { arabicKeys, keysMeet, latinKeys, lettersApart } from "../src/lib/translit.ts";
+import { arabicKeys, keysMeet, latinKeys, lettersApart, shareApart } from "../src/lib/translit.ts";
 import { buildWordTable, wordPairs, type WordTable } from "../src/lib/translitWords.ts";
 import { modelArabic, modelLatin, toArabic, toLatin, type Models } from "../src/lib/spell.ts";
 import { train } from "../src/lib/graphones.ts";
@@ -93,15 +93,17 @@ function evaluate(): void {
   // A name that isn't a spelling of the other (Casablanca for الدار البيضاء) can't come out right.
   const spellings = held.filter((p) => keysMeet(arabicKeys(p.ar), latinKeys(p.fr)));
   const flat = (s: string) => normalise(s).replace(/ /g, "");
-  const scores: Record<string, { names: number; exact: number; withinALetter: number; lettersOff: number }> = {};
+  const scores: Record<string, { names: number; exact: number; withinALetter: number; lettersOff: number; apart90: number }> = {};
   const score = (label: string, spell: (p: Pair) => string, truth: (p: Pair) => string, on = held) => {
     let exact = 0;
     let wrong = 0;
     let length = 0;
     let close = 0;
+    const apart: number[] = [];
     for (const p of on) {
       const guess = flat(spell(p));
       const right = flat(truth(p));
+      apart.push(shareApart(guess, right));
       if (guess === right) exact++;
       const off = lettersApart(guess, right);
       if (off <= 1) close++;
@@ -109,7 +111,9 @@ function evaluate(): void {
       length += right.length;
     }
     const share = (n: number, of: number) => Math.round((n / of) * 1000) / 1000;
-    scores[label] = { names: on.length, exact: share(exact, on.length), withinALetter: share(close, on.length), lettersOff: share(wrong, length) };
+    // How far 9 in 10 real names are from the spelling, at most: the bar a visitor's spelling has to clear.
+    const apart90 = [...apart].sort((a, b) => a - b)[Math.floor(apart.length * 0.9)] ?? 0;
+    scores[label] = { names: on.length, exact: share(exact, on.length), withinALetter: share(close, on.length), lettersOff: share(wrong, length), apart90: Math.round(apart90 * 1000) / 1000 };
     if (on !== held) {
       console.log(`${label}: ${((exact / on.length) * 100).toFixed(1)}% exactly as the place writes it, ${((wrong / length) * 100).toFixed(1)}% of letters off, on ${on.length} douars held back`);
       return;

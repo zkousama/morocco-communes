@@ -125,7 +125,7 @@ const groups = fractions.map((f) => {
   {withheld && <p class="note">{p.douarsWithheld}</p>}
   {open.length > 0 && (
     <form class="suggest" hidden data-code={code} data-by={p.douarsSuggested}
-      data-counted={p.suggestCounted} data-accepted={p.suggestAccepted} data-named={p.suggestNamed}
+      data-counted={p.suggestCounted} data-named={p.suggestNamed}
       data-mismatch={p.suggestMismatch} data-limit={p.suggestLimit} data-invalid={p.suggestInvalid} data-failed={p.suggestFailed}>
       <p class="suggest-ask">{p.suggestAsk}</p>
       <div class="suggest-fields">
@@ -209,11 +209,10 @@ const groups = fractions.map((f) => {
         });
         const body = (await response.json().catch(() => ({}))) as { status?: string; name?: string };
         const said: Record<string, string | undefined> = {
-          counted: d.counted, accepted: d.accepted, named: d.named, mismatch: d.mismatch, limit: d.limit, invalid: d.invalid,
+          counted: d.counted, named: d.named, mismatch: d.mismatch, limit: d.limit, invalid: d.invalid,
         };
         status.textContent = said[body.status ?? ""] ?? d.failed ?? "";
-        if (body.status === "accepted" && body.name) name(douar, body.name);
-        if (body.status === "counted" || body.status === "accepted") input.value = "";
+        if (body.status === "counted") input.value = "";
       } catch {
         status.textContent = d.failed ?? "";
       } finally {
