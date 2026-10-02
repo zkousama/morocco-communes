@@ -1031,7 +1031,17 @@ export function createMcpServer(deps: McpDeps): McpServer {
       outputSchema: {
         unit: z.object({ code: z.string(), name_fr: z.string() }),
         total: z.number().describe("How many douars are returned."),
-        fractions: z.array(z.object({ code: z.string(), name_ar: z.string(), douars: z.number(), households: z.number(), population: z.number() })),
+        fractions: z.array(
+          z.object({
+            code: z.string(),
+            name_ar: z.string(),
+            douars: z.number(),
+            households: z.number(),
+            population: z.number(),
+            name_latin: z.object({ name: z.string(), source: z.enum(["education", "osm", "geonames", "visitors"]) }).optional().describe("Where one of its douars has the same name and a source spells it."),
+            label: z.enum(["outside", "notional"]).optional().describe("HCP's label in place of a name: a fraction outside the commune, or a notional one."),
+          }),
+        ),
         douars: z.array(
           z.object({
             code: z.string(),
@@ -1063,7 +1073,15 @@ export function createMcpServer(deps: McpDeps): McpServer {
       const body = await fetchJson(`/api/communes/${found.code}/douars.json`);
       if (!body) return ok({ unit: unitOut, total: 0, fractions: [], douars: [], message: `${unitOut.name_fr} has no douars: the census counts douars in rural areas only.` });
       const data = body.data as unknown as {
-        fractions: { code: string; name: { ar: string }; douars: number; households: number; population: number }[];
+        fractions: {
+          code: string;
+          name: { ar: string };
+          douars: number;
+          households: number;
+          population: number;
+          latin?: { name: string; source: "education" | "osm" | "geonames" | "visitors" };
+          label?: "outside" | "notional";
+        }[];
         douars: {
           code: string;
           fraction: string;
@@ -1085,7 +1103,15 @@ export function createMcpServer(deps: McpDeps): McpServer {
         total: douars.length,
         fractions: data.fractions
           .filter((f) => !fraction || f.code === fraction)
-          .map((f) => ({ code: f.code, name_ar: f.name.ar, douars: f.douars, households: f.households, population: f.population })),
+          .map((f) => ({
+            code: f.code,
+            name_ar: f.name.ar,
+            douars: f.douars,
+            households: f.households,
+            population: f.population,
+            ...(f.latin ? { name_latin: f.latin } : {}),
+            ...(f.label ? { label: f.label } : {}),
+          })),
         douars: douars.map((d) => ({
           code: d.code,
           fraction: d.fraction,

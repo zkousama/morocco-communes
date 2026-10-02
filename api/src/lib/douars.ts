@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { normalise } from "./normalise.ts";
 import { DOUAR_FIELDS } from "../../../pipeline/src/sources/douarFields.ts";
 import type { Topics } from "./indicators.ts";
 
@@ -80,6 +81,39 @@ export interface FractionRecord {
   douars: number;
   households: number;
   population: number;
+  /** Its name in Latin letters, where one of its commune's douars has the same name and a source spells it. */
+  latin?: DouarLatin;
+  /** What a fraction HCP lists under a label rather than a name is: outside the commune, or notional. */
+  label?: FractionLabel;
+}
+
+/** The labels HCP gives a fraction in place of a name. */
+export type FractionLabel = "outside" | "notional";
+const LABELS: Record<string, FractionLabel> = {
+  [normalise("مشيخة خارج الجماعة")]: "outside",
+  [normalise("مشيخة وهمية")]: "notional",
+};
+
+/** A name without its article and spaces, so الواد and واد are one name. */
+const bare = (name: string) => normalise(name).replace(/ /g, "").replace(/^ال(?=..)/, "");
+
+/**
+ * Fractions with their label, or the Latin name of the douar of their commune that shares
+ * their name and has one: a fraction is often named after its main village. A douar's own
+ * source carries over, so the name is as traceable as the douar's.
+ */
+export function withFractionNames(fractions: readonly FractionRecord[], douars: readonly DouarRecord[]): FractionRecord[] {
+  const named = new Map<string, DouarLatin>();
+  for (const d of douars) {
+    const key = `${d.communeCode}|${bare(d.name.ar)}`;
+    if (d.latin && !named.has(key)) named.set(key, d.latin);
+  }
+  return fractions.map((f) => {
+    const label = LABELS[normalise(f.name.ar)];
+    if (label) return { ...f, label };
+    const latin = named.get(`${f.communeCode}|${bare(f.name.ar)}`);
+    return latin ? { ...f, latin } : f;
+  });
 }
 
 /** Each topic's keys, in the order the workbook gives them. */

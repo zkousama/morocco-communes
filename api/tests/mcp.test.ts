@@ -151,6 +151,17 @@ describe("the MCP server, through a real client", () => {
     });
   });
 
+  it("names a fraction in Latin where one of its douars has the same name, and labels HCP's catch-all", async () => {
+    const out = (await client.callTool({ name: "get_douars", arguments: { unit: "bni-idder" } })).structuredContent as {
+      fractions: { code: string; name_latin?: unknown; label?: string }[];
+    };
+    expect(out.fractions.map(({ code, name_latin, label }) => ({ code, name_latin, label }))).toEqual([
+      { code: "5710311201", name_latin: { name: "El Ounsar", source: "osm" }, label: undefined },
+      { code: "5710311202", name_latin: undefined, label: undefined },
+      { code: "5710311297", name_latin: undefined, label: "outside" },
+    ]);
+  });
+
   it("gives a fraction's douars with their figures, null where HCP withholds them", async () => {
     const r = await client.callTool({ name: "get_douars", arguments: { unit: "imi-mqourn", fraction: "1630717201", figures: true } });
     const out = r.structuredContent as { total: number; douars: { code: string; figures: Record<string, Record<string, number | null>> | null }[] };

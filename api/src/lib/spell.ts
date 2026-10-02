@@ -89,6 +89,13 @@ function latinWord(word: string, construct: boolean, openings: Record<string, st
 }
 
 /** An Arabic name in Latin: HCP's spelling of each word the table knows, the model's or the rules' for the rest. */
+/**
+ * Words a name holds as an ordinary noun rather than a name, which French translates rather
+ * than spells: المركز, a village's centre, is the Centre HCP writes in French, so تمروت
+ * المركز is Tamrout Centre and not Tamrout El Markz.
+ */
+const TRANSLATED: Record<string, string> = { "المركز": "Centre", "مركز": "Centre" };
+
 /** Arabic-Indic digits as the digits Latin writes. */
 const westernDigits = (word: string) => word.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
 
@@ -98,8 +105,12 @@ export function toLatin(name: string, table: WordTable, models?: Models): string
     .map((word, i) => {
       // A number stays a number: أولاد كثير 1 is Oulad Ktir 1.
       if (/^[0-9٠-٩]+$/.test(word)) return westernDigits(word);
-      const known = table.toLatin[normalise(word)];
-      if (known) return known;
+      const translated = TRANSLATED[normalise(word)];
+      if (translated) return translated;
+      // Sources write some words in lower case (mloulne, el Berd); a name's words start with a capital,
+      // all but the n' that joins 2 Tamazight words.
+      const known = table.toLatin[normalise(word)]?.replace(/’/g, "'");
+      if (known) return /^[nd]'/.test(known) ? known : capital(known);
       const guess = models && spell(models.toLatin, modelArabic(word))[0]?.text;
       if (guess) return capital(guess);
       // A ta marbuta before a word without the article is said as t: Zaouiat Sidi, not Zaouia Sidi.

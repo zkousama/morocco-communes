@@ -127,7 +127,7 @@ export const SPEC_FR: Record<string, string> = {
     "Les douars d’une commune selon le recensement de 2024 du HCP, les villages et hameaux de sa partie rurale, avec les fractions (mashyakha) qui les regroupent. " +
     "Chaque douar a son type, ses ménages et sa population, et, pour un douar de 30 ménages ou plus, la nationalité, le sexe, l’âge, l’inscription à l’état civil et l’état matrimonial de ses habitants, " +
     "le type de logement de ses ménages, et la distance moyenne de ses logements à une route goudronnée, une route carrossable non goudronnée, une école primaire, un collège, un lycée et un centre de santé. " +
-    "Le HCP les retire pour un douar plus petit, dont topics est null. Le HCP ne nomme les douars qu’en arabe ; `latin` est le nom d’un douar en lettres latines là où une source l’écrit, et `place` son point là où GeoNames ou OpenStreetMap le cartographie. Une commune sans partie rurale n’a pas de fichier.",
+    "Le HCP les retire pour un douar plus petit, dont topics est null. Le HCP ne nomme les douars qu’en arabe ; `latin` est le nom d’un douar en lettres latines là où une source l’écrit, et `place` son point là où GeoNames ou OpenStreetMap le cartographie. Une fraction a `latin` là où un douar de sa commune porte le même nom et qu’une source l’écrit, et `label` là où le HCP la range sous une étiquette plutôt qu’un nom. Une commune sans partie rurale n’a pas de fichier.",
   "listDouars.param.code": "Un code à points, les chiffres avec ou sans zéros de tête, ou un slug.",
   "listDouars.200": "Les fractions et les douars de la commune.",
   "listDouars.400": "Ce n’est pas un identifiant.",

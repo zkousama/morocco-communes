@@ -21,6 +21,9 @@ change a shape something already reads.
   Arabic names by spelling within the commune. 14,686 douars have one. Where GeoNames or
   OpenStreetMap maps the douar, `place` gives its point. Visitors can suggest a spelling on
   the site for a douar none names, and one 2 visitors suggest is added as `visitors`.
+- A fraction's name in Latin letters, `latin`, where a douar of its commune has the same
+  name and a source writes it: 710 fractions. The 139 HCP lists as a fraction outside the
+  commune or a notional one get `label` instead.
 - An API file with nothing in it is no longer written, as a commune with no housing already
   had none: `arrondissements.json` for the 1,497 communes not divided into them, `cercles.json`
   and the commune pages for the préfectures that have neither, and `neighbours.json` for

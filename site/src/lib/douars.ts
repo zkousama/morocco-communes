@@ -3,7 +3,7 @@
  * fractions in code order, each with its douars in code order.
  */
 import { readFileSync } from "node:fs";
-import { readDouarSources, withSources, type DouarRecord, type FractionRecord } from "../../../api/src/lib/douars.ts";
+import { readDouarSources, withFractionNames, withSources, type DouarRecord, type FractionRecord } from "../../../api/src/lib/douars.ts";
 import { toLatin } from "../../../api/src/lib/spell.ts";
 import type { WordTable } from "../../../api/src/lib/translitWords.ts";
 
@@ -26,7 +26,7 @@ for (const d of allDouars) {
   byFraction.get(d.fraction)!.push(d);
 }
 const byCommune = new Map<string, Fraction[]>();
-for (const f of read<FractionRecord[]>("fractions")) {
+for (const f of withFractionNames(read<FractionRecord[]>("fractions"), allDouars)) {
   if (!byCommune.has(f.communeCode)) byCommune.set(f.communeCode, []);
   byCommune.get(f.communeCode)!.push({ ...f, rows: byFraction.get(f.code) ?? [] });
 }
@@ -43,3 +43,7 @@ const table = JSON.parse(readFileSync("api/generated/translit-words.json", "utf8
  */
 export const latinOf = (d: DouarRecord): { name: string; spelt: boolean; source?: string } =>
   d.latin ? { name: d.latin.name, spelt: false, source: d.latin.source } : { name: toLatin(d.name.ar, table), spelt: true };
+
+/** A fraction's name in Latin, as latinOf gives a douar's; a label has none, its page translates it. */
+export const fractionLatinOf = (f: FractionRecord): { name: string; spelt: boolean } | null =>
+  f.label ? null : f.latin ? { name: f.latin.name, spelt: false } : { name: toLatin(f.name.ar, table), spelt: true };

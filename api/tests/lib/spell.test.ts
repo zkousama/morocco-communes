@@ -28,6 +28,22 @@ describe("an Arabic name in Latin", () => {
   });
 });
 
+describe("a word a source writes in lower case", () => {
+  it("starts with a capital, but for the n' joining 2 words", () => {
+    const lower: WordTable = { toLatin: { "ملولن": "mloulne", "البرد": "el Berd", "نترست": "n’Tirst" }, toArabic: {} };
+    expect(toLatin("إغير ملولن", lower)).toBe("Ighir Mloulne");
+    expect(toLatin("البرد", lower)).toBe("El Berd");
+    expect(toLatin("توريرت نترست", lower)).toMatch(/ n'Tirst$/);
+  });
+});
+
+describe("a word that's translated, not spelt", () => {
+  it("is Centre for the centre of a commune", () => {
+    expect(toLatin("المركز", none)).toBe("Centre");
+    expect(toLatin("مركز اكاون", none)).toBe("Centre Akaoune");
+  });
+});
+
 describe("a number in a name", () => {
   it("stays a number in both directions, whatever the table learned", () => {
     expect(toLatin("أولاد كثير 1", { ...table, toLatin: { ...table.toLatin, "1": "Hay" } })).toBe("Oulad Ktir 1");

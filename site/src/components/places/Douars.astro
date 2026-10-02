@@ -17,7 +17,7 @@
 import { de, fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers } from "../../lib/format";
-import { latinOf, type Fraction } from "../../lib/douars";
+import { fractionLatinOf, latinOf, type Fraction } from "../../lib/douars";
 
 interface Props {
   locale: Locale;
@@ -38,6 +38,7 @@ const SHOWN = 12;
 const total = fractions.reduce((sum, f) => sum + f.rows.length, 0);
 const people = fractions.reduce((sum, f) => sum + f.population, 0);
 const kinds = p.douarKinds as Record<string, string>;
+const labels = p.fractionLabels as Record<string, string>;
 const plural = new Intl.PluralRules(locale === "fr" ? "fr-FR" : "en-GB");
 const counted = (forms: { one: string; other: string }, v: number) => fill(plural.select(v) === "one" ? forms.one : forms.other, { n: n.format(v) });
 const distance = (v: number | null | undefined) => (v === null || v === undefined ? "—" : km.format(v));
@@ -87,6 +88,11 @@ const groups = fractions.map((f) => {
           <tr class:list={["fraction", { later: f.start >= SHOWN }]}>
             <th colspan="7" scope="rowgroup">
               <span lang="ar" dir="rtl">{f.name.ar}</span>
+              {f.label ? (
+                <span class="fraction-latin">{labels[f.label]}</span>
+              ) : (
+                <span class:list={["fraction-latin", { spelt: fractionLatinOf(f)!.spelt }]}>{fractionLatinOf(f)!.name}</span>
+              )}
               <span class="sum">{fill(p.douarsFraction, { douars: counted(p.douarCount, f.rows.length), people: n.format(f.population) })}</span>
             </th>
           </tr>
@@ -246,6 +252,15 @@ const groups = fractions.map((f) => {
 
   .douar-table tbody:first-of-type .fraction th {
     padding-top: 0.5rem;
+  }
+
+  .douar-table .fraction-latin {
+    margin-inline-start: 0.6rem;
+    font-weight: 400;
+  }
+
+  .douar-table .fraction-latin.spelt {
+    font-style: italic;
   }
 
   .douar-table .sum {
