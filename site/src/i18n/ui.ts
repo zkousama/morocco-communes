@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "insights/", "where/", "compare/", "douars/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/downloads/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/names/", "docs/privacy/"] as const;
+export const PAGES = ["", "communes/", "insights/", "compare/", "douars/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/downloads/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/names/", "docs/privacy/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -53,7 +53,6 @@ export const ui = {
     navNaming: "Naming douars",
     navPicking: "Picking standouts",
     navInsights: "Insights",
-    navWhere: "Where",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Components",
@@ -256,8 +255,9 @@ export const ui = {
     insightsShowMore: "Show more",
     insightsFigures: "The figures themselves",
     insightsTopics: "Topics",
-    whereTitle: "Where they are",
-    whereLede: "Which communes have workers who commute by tram or train, and which have foreign residents. It counts where people live, not where the lines run.",
+    rareTitle: "Rare in Morocco",
+    rareBody: "Figures few communes reach. Commuters count where they live, not where the line runs.",
+    plotRows: { here: "This commune", neighbours: "Its neighbours", province: "Its province", morocco: "Morocco", average: "Average commune" },
     whereFigures: {
       tram: { title: "Tram", rule: "Communes of at least 1,000 people where at least 1% of workers commute by tram." },
       train: { title: "Train", rule: "Communes of at least 1,000 people where at least 1% of workers commute by train." },
@@ -405,7 +405,6 @@ export const ui = {
     navNaming: "Nommer les douars",
     navPicking: "Choisir les constats",
     navInsights: "Constats",
-    navWhere: "Où",
     navApi: "API",
     navMcp: "MCP",
     navComponents: "Composants",
@@ -608,8 +607,9 @@ export const ui = {
     insightsShowMore: "Voir la suite",
     insightsFigures: "Les chiffres eux-mêmes",
     insightsTopics: "Sujets",
-    whereTitle: "Où on les trouve",
-    whereLede: "Quelles communes comptent des actifs qui vont au travail en tram ou en train, et des habitants étrangers. Ce sont les lieux de résidence, pas le tracé des lignes.",
+    rareTitle: "Rares au Maroc",
+    rareBody: "Des chiffres que peu de communes atteignent. Les actifs comptent là où ils vivent, pas là où passe la ligne.",
+    plotRows: { here: "Cette commune", neighbours: "Ses voisines", province: "Sa province", morocco: "Maroc", average: "Commune moyenne" },
     whereFigures: {
       tram: { title: "Tram", rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail en tram." },
       train: { title: "Train", rule: "Communes d’au moins 1 000 habitants où au moins 1 % des actifs occupés vont au travail en train." },

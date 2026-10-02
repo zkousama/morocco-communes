@@ -233,7 +233,7 @@ export function subjectOf(path: string): Words | null {
 const capitalise = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /** The subject a line opens with; a field with no phrase falls back on its label. */
-function opening(path: string): Words {
+export function opening(path: string): Words {
   const words = subjectOf(path) ?? field(path)?.label ?? w(path, path);
   return w(capitalise(words.en), capitalise(words.fr));
 }

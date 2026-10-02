@@ -27,4 +27,9 @@ export default defineConfig({
     routing: { prefixDefaultLocale: false },
   },
   devToolbar: { enabled: false },
+  // The tram, train and foreign-resident lists moved onto the insights page.
+  redirects: {
+    "/where": "/insights/#rare",
+    "/fr/where": "/fr/insights/#rare",
+  },
 });

@@ -1,10 +1,12 @@
 ---
 /**
- * The figures that stand out across Morocco, one commune each. The list is worked out
- * in lib/insights.ts. The first 10 of a topic show, and the rest sit in a fold that is
- * open in the markup: a phone shuts it as the page is read, the same way a place page does.
+ * The figures that stand out across Morocco, one commune each, worked out in
+ * lib/insights.ts: one grid of cards in topic order, each topic's first card carrying its
+ * anchor. Then the figures few communes reach, whose long lists sit in folds open in the
+ * markup that shut as the page is read.
  */
 import Base from "../layouts/Base.astro";
+import RareLists from "./RareLists.astro";
 import Standout from "./Standout.astro";
 import { places } from "../i18n/places";
 import { path, t, type Locale } from "../i18n/ui";
@@ -19,7 +21,6 @@ const copy = t(locale);
 const how = places[locale].insightsMore;
 const groups = standouts(insightsOf.values(), pageOf);
 const topicName = (topic: string) => (copy.insightTopics as Record<string, string>)[topic] ?? topic;
-const shown = 10;
 ---
 
 <Base locale={locale} route="insights/" title={copy.insightsTitle} description={copy.insightsLede}>
@@ -34,30 +35,27 @@ const shown = 10;
           {groups.map((group) => (
             <li><a href={`#${group.topic}`}>{topicName(group.topic)}</a></li>
           ))}
+          <li><a href="#rare">{copy.rareTitle}</a></li>
         </ul>
       </nav>
     )}
-    {groups.map((group) => {
-      const rest = group.rows.slice(shown);
-      return (
-        <section id={group.topic}>
-          <h2>{topicName(group.topic)}</h2>
-          {group.rows.slice(0, shown).map((row) => <Standout locale={locale} row={row} />)}
-          {rest.length > 0 && (
-            <details class="more" open>
-              <summary>{copy.insightsShowMore}</summary>
-              {rest.map((row) => <Standout locale={locale} row={row} />)}
-            </details>
-          )}
-        </section>
-      );
-    })}
+    <div class="grid">
+      {groups.flatMap((group) =>
+        group.rows.map((row, i) => (
+          <Standout locale={locale} row={row} topic={topicName(group.topic)} id={i === 0 ? group.topic : undefined} />
+        )),
+      )}
+    </div>
+    <section id="rare">
+      <h2>{copy.rareTitle}</h2>
+      <p class="section-body">{copy.rareBody}</p>
+      <RareLists locale={locale} />
+    </section>
     <script is:inline>
-      // Open in the markup, so the rest of a topic shows without JavaScript. A phone starts
-      // with it shut, and this runs as the page is read rather than after it loads, so the
-      // page is never drawn open first. Same fold as a place page.
+      // Open in the markup, so the rest of a list shows without JavaScript. With it, the list
+      // starts shut, and this runs as the page is read rather than after it loads, so the
+      // page is never drawn open first.
       (function () {
-        if (!window.matchMedia("(max-width: 48rem)").matches) return;
         var folds = document.querySelectorAll(".insights details.more");
         for (var i = 0; i < folds.length; i++) folds[i].open = false;
       })();
@@ -68,7 +66,21 @@ const shown = 10;
 <style>
   .insights {
     padding-block: clamp(2rem, 6vw, 4rem);
-    max-width: 46rem;
+  }
+
+  /* 2 cards a row where they fit, each with room for its plot. */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+    gap: 2rem 3rem;
+    margin-top: 1.25rem;
+  }
+
+  .section-body {
+    margin: 0.35rem 0 0;
+    color: var(--quiet);
+    font-size: var(--t-sm);
+    max-width: 62ch;
   }
 
   h1 {

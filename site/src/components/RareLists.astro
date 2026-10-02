@@ -1,0 +1,131 @@
+---
+/**
+ * The figures 100 communes or fewer reach: tram and train commuters, foreign residents, and
+ * a weekly souk when few enough communes have one (lib/where.ts). Each list is ranked, with
+ * a bar against its highest. A list over 30 rows shows its first 10 and folds the rest, in a
+ * fold open in the markup that the insights page shuts as it's read.
+ */
+import { path, t, type Locale } from "../i18n/ui";
+import { numbers, percent } from "../lib/format";
+import { WHERE_FOLD, WHERE_SHOWN, whereLists, type WhereRow } from "../lib/where";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const sections = whereLists();
+const figures = copy.whereFigures;
+const amount = (id: string, value: number) =>
+  id === "souk" ? numbers(locale).format(value) : percent(locale, value, { fixed: true });
+---
+
+<div class="rare">
+  {sections.map((section) => {
+    const figure = figures[section.id as keyof typeof figures];
+    const fold = section.rows.length > WHERE_FOLD;
+    const shown = fold ? section.rows.slice(0, WHERE_SHOWN) : section.rows;
+    const rest = fold ? section.rows.slice(WHERE_SHOWN) : [];
+    const most = section.rows[0]?.value || 1;
+    const row = (r: WhereRow) => (
+      <li>
+        <a href={path(locale, r.route)} title={r.name}>{r.name}</a>
+        <span class="bar" aria-hidden="true"><span style={`width:${(r.value / most) * 100}%`}></span></span>
+        <span class="value">{amount(section.id, r.value)}</span>
+      </li>
+    );
+    return (
+      <div class="list" id={`rare-${section.id}`}>
+        <h3>{figure.title}</h3>
+        <p class="rule">{figure.rule}</p>
+        <ol>{shown.map(row)}</ol>
+        {rest.length > 0 && (
+          <details class="more" open>
+            <summary>{copy.insightsShowMore}</summary>
+            <ol start={shown.length + 1}>{rest.map(row)}</ol>
+          </details>
+        )}
+      </div>
+    );
+  })}
+</div>
+
+<style>
+  .rare {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: 2rem 2.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .list {
+    min-width: 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: var(--t-base);
+    font-weight: 500;
+  }
+
+  .rule {
+    margin: 0.3rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  ol {
+    list-style: none;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr) 3.25rem;
+    gap: 0.6rem;
+    align-items: center;
+    font-size: var(--t-sm);
+  }
+
+  li a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bar {
+    display: block;
+    height: 0.55rem;
+  }
+
+  .bar span {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    background: var(--chart-up);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .value {
+    text-align: end;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  details.more summary {
+    margin: 0.75rem 0 0;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    cursor: pointer;
+  }
+
+  details.more summary:hover {
+    color: var(--ink);
+  }
+</style>

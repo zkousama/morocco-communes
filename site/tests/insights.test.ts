@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { CommuneFile, Published } from "../../insights/src/run.ts";
 import { PAGES, t } from "../src/i18n/ui.ts";
 import { explore } from "../src/lib/nav.ts";
-import { insightsOf, method, nearLine, peerLine, peerLineOf, peerTailOf, readInsights, since2014Line, standouts } from "../src/lib/insights.ts";
+import { insightsOf, method, nearLine, peerLine, peerLineOf, peerTailOf, readInsights, scaleTop, since2014Line, standoutPlot, standouts } from "../src/lib/insights.ts";
 import { communeOf, pageOf } from "../src/lib/places.ts";
 
 describe("insights on the site", () => {
@@ -272,5 +272,54 @@ describe("the insights page's list", () => {
       expect(insightsOf.get(row.code)?.name.fr).toBe(row.name);
       expect(pageOf(row.code)?.route).toBe(row.route);
     }
+  });
+});
+
+describe("a standout's plot", () => {
+  const finding = (over: Partial<Published>): Published =>
+    ({
+      id: "x",
+      kind: "extreme",
+      measure: "employmentStatus.familyWorker",
+      value: 40.7,
+      reference: 3.5,
+      score: 7,
+      direction: "high",
+      sampled: false,
+      line: { en: "", fr: "" },
+      breakdown: null,
+      context: { others: [], neighbours: null, since2014: null },
+      ...over,
+    }) as Published;
+
+  it("tops its scale at the first round number past every value, and at 100 for a share", () => {
+    expect(scaleTop([40.7, 7.75, 3.5], "percent")).toBe(50);
+    expect(scaleTop([0.6, 0], "percent")).toBe(1);
+    expect(scaleTop([97, 99.5], "percent")).toBe(100);
+    expect(scaleTop([12.1, 3], "km")).toBe(20);
+    expect(scaleTop([0], "percent")).toBe(1);
+  });
+
+  it("sets an edge figure beside its neighbours and the average commune, or Morocco where 2014 asked it", () => {
+    const neighbours = { bordering: 8, compared: 4, median: 7.75, furthest: null };
+    expect(standoutPlot(finding({ context: { others: [], neighbours, since2014: null } as never })).rows).toEqual([
+      { key: "here", value: 40.7 },
+      { key: "neighbours", value: 7.75 },
+      { key: "average", value: 3.5 },
+    ]);
+    const since2014 = { then: 14.4, now: 26.3, morocco: { then: 93.7, now: 97.3 } };
+    expect(standoutPlot(finding({ context: { others: [], neighbours: null, since2014 } as never })).rows.map((r) => r.key)).toEqual(["here", "morocco"]);
+  });
+
+  it("draws a change from 2014 to 2024, for the commune and Morocco, and a gap against the province", () => {
+    const since2014 = { then: 39.6, now: 1.1, morocco: { then: 4.5, now: 3 } };
+    expect(standoutPlot(finding({ kind: "change", value: -38.5, reference: 0, context: { others: [], neighbours: null, since2014 } as never })).rows).toEqual([
+      { key: "here", from: 39.6, value: 1.1 },
+      { key: "morocco", from: 4.5, value: 3 },
+    ]);
+    expect(standoutPlot(finding({ kind: "gap", value: 0.6, reference: 0 })).rows).toEqual([
+      { key: "here", value: 0.6 },
+      { key: "province", value: 0 },
+    ]);
   });
 });

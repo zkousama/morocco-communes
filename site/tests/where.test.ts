@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { PAGES, t } from "../src/i18n/ui.ts";
 import { explore } from "../src/lib/nav.ts";
@@ -63,12 +64,12 @@ describe("the published lists", () => {
     }
   });
 
-  it("is in the explore menu beside insights, and in the sitemap", () => {
-    expect(PAGES).toContain("where/");
-    const en = explore(t("en")).map((section) => section.route);
-    const fr = explore(t("fr")).map((section) => section.route);
-    expect(en).toContain("where/");
-    expect(fr).toContain("where/");
-    expect(en.indexOf("where/")).toBe(en.indexOf("insights/") + 1);
+  it("sits on the insights page, and the old page sends a reader there", () => {
+    expect(PAGES).not.toContain("where/");
+    expect(explore(t("en")).map((section) => section.route)).not.toContain("where/");
+    expect(readFileSync("site/src/components/Standouts.astro", "utf8")).toContain("<RareLists");
+    const config = readFileSync("site/astro.config.mjs", "utf8");
+    expect(config).toContain('"/where": "/insights/#rare"');
+    expect(config).toContain('"/fr/where": "/fr/insights/#rare"');
   });
 });

@@ -1,70 +1,223 @@
 ---
 /**
- * One row of the insights page: the commune, the figure that stands out, and the
- * communes it borders, in the same words as on its own page. A figure with no
- * neighbour that could be compared has no second line.
+ * One figure on the insights page: the commune, the figure large, the sentence that says
+ * what it is, and a plot that sets it beside the communes it borders and Morocco, or its
+ * province, on one scale from 0 (standoutPlot in lib/insights.ts). The plot's rows are text,
+ * with the values written out, so a screen reader gets everything the dots show.
  */
 import { places } from "../i18n/places";
-import { path, type Locale } from "../i18n/ui";
-import { nearLine, peerLine, type StandoutRow } from "../lib/insights";
-import { pageOf } from "../lib/places";
+import { path, t, type Locale } from "../i18n/ui";
+import { numbers, percent } from "../lib/format";
+import { standoutPlot, type StandoutRow } from "../lib/insights";
+import { figure, opening } from "../../../insights/src/text.ts";
 
 interface Props {
   locale: Locale;
   row: StandoutRow;
+  topic: string;
+  /** The topic's anchor, on its first figure. */
+  id?: string;
 }
-const { locale, row } = Astro.props;
-const near = nearLine(locale, row.finding);
-const nearPage = near && pageOf(near.code);
+const { locale, row, topic, id } = Astro.props;
+const copy = t(locale);
+const labels = copy.plotRows as Record<string, string>;
 const sample = places[locale].insightsSample;
-const peers = peerLine(locale, row.code, row.finding);
+const f = row.finding;
+const plot = standoutPlot(f);
+const here = plot.rows.find((r) => r.key === "here");
+
+const short = (v: number, digits = 1) =>
+  plot.unit === "percent" ? percent(locale, v, { digits, fixed: true }) : numbers(locale, digits, true).format(v);
+const whole = (v: number) => short(v, Number.isInteger(v) ? 0 : 1);
+const at = (v: number) => `${(Math.max(0, v) / plot.top) * 100}%`;
+const big =
+  here?.from !== undefined
+    ? `${figure(f.measure, here.from, locale)} → ${figure(f.measure, here.value, locale)}`
+    : figure(f.measure, f.value, locale);
 ---
 
-<div class="finding">
+<article class="finding" id={id}>
+  <p class="topic">{topic}</p>
   <p class="who"><a href={path(locale, row.route)}>{row.name}</a></p>
-  <p class="line">{row.line[locale]}</p>
-  {row.finding.sampled && (
+  {here && <p class="big">{big}</p>}
+  <p class="line">{opening(f.measure)[locale]}</p>
+  {plot.rows.length > 1 && (
+    <ul class="plot">
+      {plot.rows.map((r) => (
+        <li class={r.key}>
+          <span class="label">{labels[r.key]}</span>
+          <span class="track" aria-hidden="true">
+            {r.from !== undefined && (
+              <span
+                class="link"
+                style={`inset-inline-start:${at(Math.min(r.from, r.value))};width:calc(${at(Math.max(r.from, r.value))} - ${at(Math.min(r.from, r.value))})`}
+              ></span>
+            )}
+            {r.from !== undefined && <span class="dot then" style={`inset-inline-start:${at(r.from)}`}></span>}
+            <span class="dot" style={`inset-inline-start:${at(r.value)}`}></span>
+          </span>
+          <span class="value">
+            {r.from !== undefined && <span class="was">{short(r.from)} →</span>} {short(r.value)}
+          </span>
+        </li>
+      ))}
+      <li class="scale" aria-hidden="true">
+        <span></span>
+        <span class="ends"><span>0</span><span>{whole(plot.top)}</span></span>
+        <span></span>
+      </li>
+    </ul>
+  )}
+  {f.sampled && (
     <p class="sample"><a href={`${path(locale, "docs/indicators/")}#reading`}>{sample}</a></p>
   )}
-  {near && (
-    <p class="context">
-      {near.before}{nearPage ? <a href={path(locale, nearPage.route)}>{near.name}</a> : near.name}{near.after}
-    </p>
-  )}
-  {peers && <p class="context">{peers}</p>}
-</div>
+</article>
 
 <style>
   .finding {
-    margin-top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
     padding-top: 1rem;
     border-top: 1px solid var(--rule);
-    max-width: var(--measure);
+    min-width: 0;
+    scroll-margin-top: calc(var(--bar-h, 4.5rem) + 0.75rem);
   }
 
-  .who {
+  .topic {
     margin: 0;
-  }
-
-  .line,
-  .context,
-  .sample {
-    overflow-wrap: break-word;
-  }
-
-  .sample {
-    margin: 0.35rem 0 0;
     font-size: var(--t-xs);
     color: var(--quiet);
   }
 
-  .line {
-    margin: 0.35rem 0 0;
+  .who,
+  .big,
+  .line,
+  .sample {
+    margin: 0;
+    overflow-wrap: break-word;
   }
 
-  .context {
-    margin: 0.35rem 0 0;
+  .who {
+    font-size: var(--t-sm);
+  }
+
+  .big {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .line {
     font-size: var(--t-sm);
     color: var(--quiet);
+  }
+
+  .sample {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  /* A row per thing compared, each a dot on the same scale from 0: the commune in the chart
+     colour, the others in grey, as the home page's 2014-to-2024 chart draws them. */
+  /* The rows share one grid, so the tracks line up whatever the labels and values are. */
+  .plot {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    gap: 0.25rem 0.75rem;
+    align-items: center;
+  }
+
+  .plot li {
+    display: contents;
+  }
+
+  .label,
+  .value,
+  .ends {
+    font-size: var(--t-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .label {
+    color: var(--quiet);
+    line-height: 1.25;
+  }
+
+  .here .label {
+    color: var(--ink);
+  }
+
+  .value {
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  .was {
+    color: var(--quiet);
+  }
+
+  .track {
+    position: relative;
+    display: block;
+    height: 0.85rem;
+    border-inline-start: 1px solid var(--rule);
+    background: linear-gradient(var(--rule), var(--rule)) center / 100% 1px no-repeat;
+  }
+
+  .dot {
+    position: absolute;
+    top: 50%;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--quiet);
+    transform: translate(-50%, -50%);
+  }
+
+  .here .dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    background: var(--chart-up);
+  }
+
+  .dot.then,
+  .here .dot.then {
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--paper);
+    border: 1.5px solid var(--quiet);
+  }
+
+  .here .dot.then {
+    border-color: var(--chart-up);
+  }
+
+  .link {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    background: var(--quiet);
+    transform: translateY(-50%);
+  }
+
+  .here .link {
+    background: var(--chart-up);
+  }
+
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    color: var(--quiet);
+  }
+
+  @media (max-width: 30rem) {
+    .plot {
+      column-gap: 0.5rem;
+    }
   }
 </style>

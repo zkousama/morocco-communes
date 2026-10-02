@@ -274,3 +274,58 @@ export function peerLine(locale: Locale, code: string, f: Published): string | n
   }
   return peerLineOf(locale, { type, population, measure: f.measure, value, peers });
 }
+
+/** One line of a standout's plot: a single value, or where it was in 2014 and is now. */
+export interface PlotRow {
+  key: "here" | "neighbours" | "province" | "morocco" | "average";
+  from?: number;
+  value: number;
+}
+
+export interface StandoutPlot {
+  unit: string;
+  top: number;
+  rows: PlotRow[];
+}
+
+const ROUND = [1, 2, 2.5, 5];
+
+/** The top of a plot's scale: the first round number past every value on it, and 100 for a share at most. */
+export function scaleTop(values: number[], unit: string): number {
+  const most = Math.max(0, ...values) * 1.08;
+  if (most === 0) return 1;
+  let power = 10 ** Math.floor(Math.log10(most));
+  for (;;) {
+    for (const step of ROUND) {
+      const top = step * power;
+      if (top >= most) return unit === "percent" ? Math.min(top, 100) : top;
+    }
+    power *= 10;
+  }
+}
+
+/**
+ * What a standout's plot sets side by side, on one scale from 0. A change shows the commune
+ * and Morocco from 2014 to 2024. A figure set against its province shows the province, and one
+ * at the edge of Morocco's communes shows Morocco where the 2014 census asked it the same way,
+ * and the average commune where it didn't. The communes it borders show where any were
+ * compared, except on a change, whose neighbour median is a change and not a level.
+ */
+export function standoutPlot(f: Published): StandoutPlot {
+  const unit = field(f.measure)?.unit ?? "";
+  const since = f.context.since2014;
+  const rows: PlotRow[] = [];
+  if (f.kind === "change") {
+    if (since) {
+      rows.push({ key: "here", from: since.then, value: since.now });
+      if (since.morocco) rows.push({ key: "morocco", from: since.morocco.then, value: since.morocco.now });
+    }
+  } else {
+    rows.push({ key: "here", value: f.value });
+    if (f.context.neighbours?.median != null) rows.push({ key: "neighbours", value: f.context.neighbours.median });
+    if (f.kind === "gap") rows.push({ key: "province", value: f.reference });
+    else if (since?.morocco) rows.push({ key: "morocco", value: since.morocco.now });
+    else rows.push({ key: "average", value: f.reference });
+  }
+  return { unit, top: scaleTop(rows.flatMap((r) => [r.value, r.from ?? 0]), unit), rows };
+}
