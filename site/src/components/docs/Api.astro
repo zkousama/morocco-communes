@@ -96,10 +96,10 @@ const errors = Object.entries(reference.errors as Record<string, { status: numbe
 
 const toc = [
   { id: "basics", label: d.basics },
-  { id: "tiers", label: copy.tiersHeading },
   { id: "routes", label: d.routes },
   { id: "files", label: d.files },
   { id: "errors", label: d.errors },
+  { id: "tiers", label: copy.tiersHeading },
 ];
 ---
 
@@ -129,25 +129,6 @@ const toc = [
         <dd>{d.specBody} <a href="/api/openapi.json"><code>/api/openapi.json</code></a></dd>
       </div>
     </dl>
-  </section>
-
-  <section id="tiers">
-    <h2>{copy.tiersHeading}</h2>
-    <p class="quiet">{copy.tiersBody}</p>
-    <ol class="tiers">
-      {tiers.map((tier) => (
-        <li>
-          <h3>{tier.name}</h3>
-          <p class="mono header">{tier.header}</p>
-          <p>{tier.body}</p>
-        </li>
-      ))}
-    </ol>
-    <ul class="routes">
-      {routeLines.map((route) => (
-        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
-      ))}
-    </ul>
   </section>
 
   <section id="routes">
@@ -190,9 +171,12 @@ const toc = [
           ))}
         </ul>
 
-        <Code locale={locale} label={`${d.example} · GET ${op.example.request}`} html={highlightJson(op.example.body)} tall />
-        {op.example.cut && <p class="note cut">{fill(op.example.cut.shown === 1 ? d.cutNoteOne : d.cutNote, op.example.cut)}</p>}
-        {op.example.trimmed && <p class="note cut">{d.trimNote}</p>}
+        <details class="example">
+          <summary>{d.example} · <code>GET {op.example.request}</code></summary>
+          <Code locale={locale} label="JSON" html={highlightJson(op.example.body)} tall />
+          {op.example.cut && <p class="note cut">{fill(op.example.cut.shown === 1 ? d.cutNoteOne : d.cutNote, op.example.cut)}</p>}
+          {op.example.trimmed && <p class="note cut">{d.trimNote}</p>}
+        </details>
       </article>
     ))}
   </section>
@@ -235,9 +219,51 @@ const toc = [
     </dl>
     <Code locale={locale} label={d.errorExample} html={highlightJson(reference.errorExample)} />
   </section>
+
+  <section id="tiers">
+    <h2>{copy.tiersHeading}</h2>
+    <p class="quiet">{copy.tiersBody}</p>
+    <ol class="tiers">
+      {tiers.map((tier) => (
+        <li>
+          <h3>{tier.name}</h3>
+          <p class="mono header">{tier.header}</p>
+          <p>{tier.body}</p>
+        </li>
+      ))}
+    </ol>
+    <ul class="routes">
+      {routeLines.map((route) => (
+        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
+      ))}
+    </ul>
+  </section>
 </Docs>
 
 <style>
+  .example {
+    margin-top: 0.75rem;
+  }
+
+  .example summary {
+    cursor: pointer;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    padding: 0.35rem 0;
+  }
+
+  .example summary:hover {
+    color: var(--ink);
+  }
+
+  .example summary code {
+    font-size: 0.9em;
+  }
+
+  .example[open] summary {
+    margin-bottom: 0.5rem;
+  }
+
   /* Tiers: a sequence, because a request really does fall through them in order. */
   .tiers {
     list-style: none;
@@ -280,7 +306,6 @@ const toc = [
     color: var(--brass);
     direction: ltr;
   }
-
 
   .tiers li p:last-child {
     grid-column: 3;

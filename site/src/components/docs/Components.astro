@@ -86,13 +86,19 @@ const toc = [
       </table>
     </div>
     <p set:html={inline(d.selfHost)} />
-    <Code locale={locale} label="commune-picker.js" code={pickerSource} lang="js" tall />
+    <details class="source">
+      <summary><code>commune-picker.js</code> · {d.showCode}</summary>
+      <Code locale={locale} label="commune-picker.js" code={pickerSource} lang="js" tall />
+    </details>
   </section>
 
   <section id="react">
     <h2>{d.react}</h2>
     <p set:html={inline(d.reactBody)} />
-    <Code locale={locale} label="CommunePicker.jsx" code={react} lang="jsx" tall />
+    <details class="source">
+      <summary><code>CommunePicker.jsx</code> · {d.showCode}</summary>
+      <Code locale={locale} label="CommunePicker.jsx" code={react} lang="jsx" tall />
+    </details>
   </section>
 
   <section id="behaviour">
@@ -120,6 +126,23 @@ const toc = [
 </script>
 
 <style>
+  .source summary {
+    cursor: pointer;
+    font-size: var(--t-sm);
+    color: var(--quiet);
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+
+  .source summary:hover {
+    color: var(--ink);
+  }
+
+  .source[open] summary {
+    margin-bottom: 0.5rem;
+  }
+
   .demo {
     margin-top: 1rem;
     padding: clamp(1rem, 3vw, 1.5rem);

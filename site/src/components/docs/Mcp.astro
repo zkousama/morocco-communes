@@ -7,6 +7,8 @@ import { mcp } from "../../generated/mcp";
 import { docs } from "../../i18n/docs";
 import { fill } from "../../i18n/places";
 import { inline } from "../../lib/inline";
+import communes from "../../../../data/v1/attributes/communes.json";
+import provinces from "../../../../data/v1/attributes/provinces.json";
 import type { Locale } from "../../i18n/ui";
 
 interface Props {
@@ -89,103 +91,162 @@ const clients = [
 ];
 
 
+// The first question to try, answered from the dataset the server reads, so the exchange
+// shown is the one an assistant would have.
+const tafraout = communes.find((c) => c.slug === "tafraout")!;
+const province = provinces.find((p) => p.code === tafraout.parents.province)!;
+const kind = province.type === "prefecture" ? "préfecture" : "province";
+const answer = fill(d.exampleAnswer, {
+  commune: tafraout.name.fr,
+  kind,
+  province: province.name.fr,
+  people: new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB").format(tafraout.population["2024"].total),
+});
+const [first, ...more] = d.questions;
+
+const panels = [{ id: "prompt", name: d.byPrompt, body: d.byPromptBody, label: d.byPromptLabel, code: byPrompt, lang: undefined }, ...clients];
+
 const toc = [
-  { id: "server", label: d.server },
+  { id: "ask", label: d.ask },
   { id: "connect", label: d.connect },
   { id: "tools", label: d.tools },
-  { id: "ask", label: d.ask },
 ];
 ---
 
 <Docs locale={locale} route="docs/mcp/" title={d.title} description={d.description} lede={d.lede} toc={toc}>
-  <section id="server">
-    <h2>{d.server}</h2>
-    <Code locale={locale} label="URL" code={url} />
-    <p>{d.serverBody}</p>
+  <section id="ask">
+    <h2>{d.ask}</h2>
+    <div class="exchange">
+      <p class="you"><span class="who">{d.exampleYou}</span>{first}</p>
+      <p class="calls"><span class="who">{d.exampleCalls}</span><code>search</code> → <code>get_commune</code></p>
+      <p class="answer">{answer}</p>
+    </div>
+    <p>{d.askBody}</p>
+    <ul class="questions">
+      {more.map((q) => <li>{q}</li>)}
+    </ul>
   </section>
 
   <section id="connect">
     <h2>{d.connect}</h2>
-    <p>{d.connectBody}</p>
-
-    <div class="client" id="prompt">
-      <h3>{d.byPrompt}</h3>
-      <p class="quiet">{d.byPromptBody}</p>
-      <Code locale={locale} label={d.byPromptLabel} code={byPrompt} />
-    </div>
-
-    {clients.map((c) => (
-      <div class="client" id={c.id}>
-        <h3>{c.name}</h3>
-        <p class="quiet" set:html={inline(c.body)} />
-        {c.code && <Code locale={locale} label={c.label} code={c.code} lang={c.lang} />}
+    <Code locale={locale} label="URL" code={url} />
+    <p class="quiet">{d.serverBody}</p>
+    <div class="apps">
+      <div class="tabs" role="tablist" aria-label={d.connectPick} hidden>
+        {panels.map((c, i) => (
+          <button type="button" role="tab" id={`tab-${c.id}`} aria-controls={c.id} aria-selected={i === 1 ? "true" : "false"} tabindex={i === 1 ? 0 : -1}>{c.name}</button>
+        ))}
       </div>
-    ))}
+      {panels.map((c) => (
+        <div class="client" id={c.id} role="tabpanel" aria-labelledby={`tab-${c.id}`}>
+          <h3>{c.name}</h3>
+          <p class="quiet" set:html={inline(c.body)} />
+          {c.code && <Code locale={locale} label={c.label} code={c.code} lang={c.lang} />}
+        </div>
+      ))}
+    </div>
   </section>
 
   <section id="tools">
     <h2>{d.tools}</h2>
     <p>{d.toolsBody}</p>
-    {mcp.tools.map((tool) => (
-      <article class="tool" id={`tool-${tool.name}`}>
-        <h3><code>{tool.name}</code> <span class="quiet">{tool.title}</span></h3>
-        {tool.description.split("\n\n").map((para) => <p class="said" lang="en">{para}</p>)}
-        <Params
-          label={d.parameters}
-          params={tool.params.map((p) => {
-            const schema = p.schema as Schema;
-            return {
-              name: p.name,
-              type: typeOf(schema),
-              required: p.required,
-              note: p.required ? d.required : undefined,
-              description: schema.description ?? "",
-              lang: locale === "en" ? undefined : "en",
-            };
-          })}
-        />
-      </article>
-    ))}
-  </section>
-
-  <section id="ask">
-    <h2>{d.ask}</h2>
-    <p>{d.askBody}</p>
-    <ul class="questions">
-      {d.questions.map((q) => <li>{q}</li>)}
+    <ul class="tool-list">
+      {mcp.tools.map((tool) => (
+        <li id={`tool-${tool.name}`}>
+          <details>
+            <summary><code>{tool.name}</code> <span>{tool.title}</span></summary>
+            <div class="tool">
+              {tool.description.split("\n\n").map((para) => <p class="said" lang="en">{para}</p>)}
+              <Params
+                label={d.parameters}
+                params={tool.params.map((p) => {
+                  const schema = p.schema as Schema;
+                  return {
+                    name: p.name,
+                    type: typeOf(schema),
+                    required: p.required,
+                    note: p.required ? d.required : undefined,
+                    description: schema.description ?? "",
+                    lang: locale === "en" ? undefined : "en",
+                  };
+                })}
+              />
+            </div>
+          </details>
+        </li>
+      ))}
     </ul>
   </section>
 </Docs>
 
+<script>
+  // One app's setup at a time once there's a script to switch them; without one, all show.
+  for (const apps of document.querySelectorAll<HTMLElement>(".apps")) {
+    const tabs = apps.querySelector<HTMLElement>(".tabs");
+    if (!tabs) continue;
+    const buttons = [...tabs.querySelectorAll<HTMLButtonElement>("[role=tab]")];
+    const show = (button: HTMLButtonElement, focus = false) => {
+      for (const b of buttons) {
+        const on = b === button;
+        b.setAttribute("aria-selected", String(on));
+        b.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(b.getAttribute("aria-controls")!);
+        if (panel) panel.hidden = !on;
+      }
+      if (focus) button.focus();
+    };
+    tabs.hidden = false;
+    apps.classList.add("tabbed");
+    show(buttons.find((b) => b.getAttribute("aria-selected") === "true") ?? buttons[0]!);
+    tabs.addEventListener("click", (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[role=tab]");
+      if (button) show(button);
+    });
+    tabs.addEventListener("keydown", (event) => {
+      const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
+      if (at < 0) return;
+      const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      if (step === 0) return;
+      event.preventDefault();
+      show(buttons[(at + step + buttons.length) % buttons.length]!, true);
+    });
+  }
+</script>
+
 <style>
-  .client {
-    scroll-margin-top: 1rem;
+  /* A question, the tools it calls and the answer, as the assistant would give it. */
+  .exchange {
+    margin: 1rem 0 1.5rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    display: grid;
+    gap: 0.6rem;
+    max-width: var(--measure);
   }
 
-  .client h3,
-  .tool h3 {
-    margin-top: 2rem;
+  .exchange p {
+    margin: 0;
   }
 
-  .client p {
-    margin-bottom: 0.75rem;
-  }
-
-  .tool {
-    scroll-margin-top: 1rem;
-  }
-
-  .tool h3 code {
-    font-size: 0.95em;
-    margin-inline-end: 0.4rem;
-  }
-
-  .tool h3 .quiet {
-    font-weight: 400;
-  }
-
-  .said {
+  .who {
+    display: inline-block;
+    min-width: 4.5rem;
+    margin-inline-end: 0.5rem;
+    font-size: var(--t-xs);
     color: var(--quiet);
+  }
+
+  .calls {
+    font-size: var(--t-sm);
+    color: var(--quiet);
+  }
+
+  .answer {
+    padding-inline-start: 5rem;
+    font-family: var(--display);
+    font-size: var(--t-md);
+    line-height: 1.35;
   }
 
   .questions {
@@ -193,13 +254,112 @@ const toc = [
     padding: 0;
     list-style: none;
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     gap: 0.6rem;
-    max-width: var(--measure);
   }
 
   .questions li {
     padding: 0.7rem 0.9rem;
     border-inline-start: 2px solid var(--brass);
     background: var(--well);
+    font-size: var(--t-sm);
+  }
+
+  .apps {
+    margin-top: 1.5rem;
+  }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .tabs[hidden] {
+    display: none;
+  }
+
+  .tabs button {
+    font: inherit;
+    font-size: var(--t-sm);
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--quiet);
+    cursor: pointer;
+  }
+
+  .tabs button[aria-selected="true"] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .client h3 {
+    margin-top: 1.5rem;
+  }
+
+  /* With the buttons, the button already names the app. */
+  .tabbed .client h3 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .client p {
+    margin-bottom: 0.75rem;
+  }
+
+  .tool-list {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .tool-list > li {
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 1rem;
+  }
+
+  .tool-list summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    align-items: baseline;
+    padding: 0.7rem 0;
+    cursor: pointer;
+  }
+
+  .tool-list summary code {
+    font-size: 0.95em;
+    min-width: 11rem;
+  }
+
+  .tool-list summary span {
+    color: var(--quiet);
+  }
+
+  .tool {
+    padding-bottom: 1rem;
+  }
+
+  /* On a phone the name and its title stack, every one the same way. */
+  @media (max-width: 34rem) {
+    .tool-list summary {
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .tool-list summary code {
+      min-width: 0;
+    }
+  }
+
+  .said {
+    color: var(--quiet);
   }
 </style>
