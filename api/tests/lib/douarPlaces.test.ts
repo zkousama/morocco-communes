@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanLatin, douarNameOf, km, matchDouars, matchNearFractions, score, type Douar, type Place } from "../../src/lib/douarPlaces.ts";
+import { cleanLatin, douarNameOf, km, matchDouars, matchNearFractions, score, withoutArticle, type Douar, type Place } from "../../src/lib/douarPlaces.ts";
 
 const douar = (code: string, ar: string, spelt: string): Douar => ({ code, name: { ar }, spelt });
 const place = (id: string, latin: string[], arabic: string[] = [], lat = 30, lng = -9): Place => ({ source: "geonames", id, lat, lng, latin, arabic });
@@ -17,6 +17,17 @@ describe("a place naming a douar", () => {
 
   it("doesn't on a key of 2 consonants, which meets too many names by chance", () => {
     expect(score(douar("1", "تامة", "Tama"), place("a", ["Toumi"]))).toBeNull();
+  });
+
+  it("doesn't on a short key spelt only half alike: Tatrarat isn't تاوريرت, though both come to T·R·T", () => {
+    expect(score(douar("1", "تاوريرت", "Taourirt"), place("a", ["Tatrarat"]))).toBeNull();
+    expect(score(douar("1", "تاوريرت", "Taourirt"), place("a", ["Taourirt"]))?.name).toBe("Taourirt");
+  });
+
+  it("compares 2 spellings without the article one of them writes", () => {
+    expect(withoutArticle("Ez Zraib")).toBe("zraib");
+    expect(withoutArticle("Ennouasser")).toBe("nouasser");
+    expect(score(douar("1", "الزرايب", "Zrayb"), place("a", ["Ez Zraib"]))?.name).toBe("Ez Zraib");
   });
 
   it("drops the Douar GeoNames writes before a name", () => {

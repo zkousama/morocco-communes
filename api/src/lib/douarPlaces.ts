@@ -58,8 +58,14 @@ export const MAX_CHANCE = 0.05;
 
 /** A Latin match needs keys of at least this many consonants, the l's aside. */
 export const MIN_KEY = 3;
-/** And a Latin spelling at least this close to the douar's by rule, once its key is under 4. */
-export const MIN_CLOSE = 0.5;
+/**
+ * And a Latin spelling at least this close to the douar's by rule, the article aside. From
+ * `pnpm api:douar-places --sweep` on 2026-10-02: the bar used to be 0.5 for a key under 4
+ * and none above, which let Tatrarat through as تاوريرت, both T·R·T. At 0.6 for every key,
+ * 153 of 12,462 matches went and the share that’s chance fell from 2.8% to 1.7%; past 0.6,
+ * what goes is mostly real.
+ */
+export const MIN_CLOSE = 0.6;
 
 /** The second pass: a place this near a douar of the same fraction already placed, in km. */
 export const NEAR_KM = 3;
@@ -83,7 +89,21 @@ export function douarNameOf(name: string, isPlace: boolean): string {
   return isPlace ? name.trim() : name.replace(LATIN_PREFIX, "").replace(ARABIC_PREFIX, "").trim();
 }
 
-function closeness(a: string, b: string): number {
+/**
+ * A Latin name without the Arabic article it opens with, however it's written: El Karma,
+ * Ez Zraib and Ennouasser come to karma, zraib and nouasser. Sources write it and the
+ * spelling by rule often doesn't, so 2 spellings are compared without it as well.
+ */
+export const withoutArticle = (name: string) =>
+  normalise(name)
+    .replace(/^(?:al|el|l|ad|ed|ar|er|as|es|at|et|az|ez|an|en|ach|ech)[ -]+/, "")
+    .replace(/^[ae]([dnrstz])\1/, "$1");
+
+export function closeness(a: string, b: string): number {
+  return Math.max(rawCloseness(a, b), rawCloseness(withoutArticle(a), withoutArticle(b)));
+}
+
+function rawCloseness(a: string, b: string): number {
   const x = normalise(a).replace(/ /g, "");
   const y = normalise(b).replace(/ /g, "");
   let row = Array.from({ length: y.length + 1 }, (_, j) => j);
@@ -109,7 +129,7 @@ function latinFor(place: Place, keys: string[]): string {
 }
 
 /** The best way a place names a douar, or null where it doesn't. */
-export function score(douar: Douar, place: Place, keys = arabicKeys(douar.name.ar)): { name: string; score: number } | null {
+export function score(douar: Douar, place: Place, keys = arabicKeys(douar.name.ar), minClose = MIN_CLOSE): { name: string; score: number } | null {
   const arabic = normalise(douar.name.ar);
   if (place.arabic.some((a) => normalise(a) === arabic)) return { name: latinFor(place, keys), score: 2 };
   const long = keys.filter((k) => k.replace(/l/g, "").length >= MIN_KEY);
@@ -119,8 +139,7 @@ export function score(douar: Douar, place: Place, keys = arabicKeys(douar.name.a
     const clean = cleanLatin(latin);
     if (!clean || !keysMeet(long, latinKeys(clean))) continue;
     const close = closeness(clean, douar.spelt);
-    const longest = Math.max(...long.map((k) => k.replace(/l/g, "").length));
-    if (longest < 4 && close < MIN_CLOSE) continue;
+    if (close < minClose) continue;
     if (!best || 1 + close > best.score) best = { name: clean, score: 1 + close };
   }
   return best;
@@ -136,6 +155,7 @@ export function matchDouars(
   places: readonly Place[],
   communeOf: (place: Place) => string | null,
   decoy?: (commune: string) => string,
+  minClose = MIN_CLOSE,
 ): Match[] {
   const keys = new Map<string, string[]>();
   for (const list of douarsIn.values()) for (const d of list) keys.set(d.code, arabicKeys(d.name.ar));
@@ -144,7 +164,7 @@ export function matchDouars(
     const commune = communeOf(place);
     if (!commune) continue;
     for (const douar of douarsIn.get(decoy ? decoy(commune) : commune) ?? []) {
-      const found = score(douar, place, keys.get(douar.code));
+      const found = score(douar, place, keys.get(douar.code), minClose);
       if (found) candidates.push({ douar: douar.code, place, ...found });
     }
   }

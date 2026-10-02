@@ -12,14 +12,16 @@
  * commune's douars. A match there is chance, so their count over the real count is how
  * many of the real matches are likely chance. The second pass, near a fraction's placed
  * douars, is checked the same way with each douar given another douar's name. Over 5% in
- * either stops the script.
+ * either stops the script. `--sweep` runs the first pass under other closeness bars instead,
+ * with each one's chance and its agreement with the Ministry's names, and writes nothing.
  */
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { readBoundaries } from "../src/emit/boundaries.ts";
 import { inside } from "../src/lib/neighbourhoods.ts";
 import { douarNameOf, matchDouars, matchNearFractions, MAX_CHANCE, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
-import { arabicKeys } from "../src/lib/translit.ts";
+import { arabicKeys, lettersApart } from "../src/lib/translit.ts";
+import { normalise } from "../src/lib/normalise.ts";
 import { toLatin } from "../src/lib/spell.ts";
 import type { WordTable } from "../src/lib/translitWords.ts";
 import { readZipEntry } from "../../pipeline/src/lib/zip.ts";
@@ -91,10 +93,40 @@ for (const f of osm.features) {
   if (latin.length + arabic.length > 0) places.push({ source: "osm", id: f.id, lat: f.lat, lng: f.lng, latin, arabic });
 }
 
-// The real matching, then the same against another commune's douars, one of a like size.
-const matches = matchDouars(douarsIn, places, communeAt);
 const bySize = [...douarsIn].sort((a, b) => a[1].length - b[1].length || (a[0] < b[0] ? -1 : 1)).map(([code]) => code);
 const swap = new Map(bySize.map((code, i) => [code, bySize[(i + 7) % bySize.length]!]));
+
+// `--sweep`: the first pass under each closeness bar, with its chance and how often
+// its names agree with the Ministry's where both name a douar. Nothing is written.
+if (process.argv.some((a) => a === "--sweep" || a.startsWith("--sweep="))) {
+  const placedIn = new Map(places.map((p) => [p, communeAt(p)]));
+  const at = (p: Place) => placedIn.get(p) ?? null;
+  const ministry = existsSync("api/data/douar-names.json")
+    ? new Map((await read<{ names: [string, string][] }>("api/data/douar-names.json")).names)
+    : new Map<string, string>();
+  const flat = (s: string) => normalise(s).replace(/ /g, "");
+  // --sweep=0.55,0.6 tries just those; plain --sweep, a range.
+  const asked = process.argv.find((a) => a.startsWith("--sweep="))?.slice(8);
+  const bars = asked ? asked.split(",").map(Number) : [0.5, 0.55, 0.6, 0.65, 0.7];
+  for (const minClose of bars) {
+    {
+      const found = matchDouars(douarsIn, places, at, undefined, minClose);
+      const decoys = matchDouars(douarsIn, places, at, (code) => swap.get(code) ?? code, minClose);
+      const both = found.filter((m) => m.name && ministry.has(m.douar));
+      const apart = both.map((m) => lettersApart(flat(m.name), flat(ministry.get(m.douar)!)));
+      console.log(
+        `closeness ${minClose}: ${found.length} matched, ${found.filter((m) => m.name).length} named, ` +
+          `chance ${((decoys.length / found.length) * 100).toFixed(2)}%, ` +
+          `Ministry agrees ${((apart.filter((n) => n === 0).length / both.length) * 100).toFixed(1)}% exactly and ` +
+          `${((apart.filter((n) => n <= 1).length / both.length) * 100).toFixed(1)}% within a letter on ${both.length}`,
+      );
+    }
+  }
+  process.exit(0);
+}
+
+// The real matching, then the same against another commune's douars, one of a like size.
+const matches = matchDouars(douarsIn, places, communeAt);
 const decoys = matchDouars(douarsIn, places, communeAt, (code) => swap.get(code) ?? code);
 const douars = [...douarsIn.values()].reduce((n, list) => n + list.length, 0);
 const chance = decoys.length / matches.length;
