@@ -1018,6 +1018,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       description:
         "The douars of a rural commune from HCP's 2024 census, the villages and hamlets it's made of, grouped in its fractions (mashyakha), named in Arabic only. " +
         "Each has its kind (grouped, split into sub-douars, or dispersed), its households and its people. " +
+        "A douar GeoNames or OpenStreetMap maps in the same commune under its name has a place: that Latin name and a point. " +
         "With figures, a douar of 30 households or more also has the nationality, sex, age, civil registration and marital status of its people, " +
         "the kind of dwelling its households live in, and the average distance in km from its dwellings to a paved road, an unpaved road a car can drive on, " +
         "a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, and says null. " +
@@ -1040,6 +1041,10 @@ export function createMcpServer(deps: McpDeps): McpServer {
             households: z.number(),
             population: z.number(),
             figures: z.record(z.string(), z.record(z.string(), z.number().nullable())).nullable().optional().describe("Null where HCP withholds them."),
+            place: z
+              .object({ name_latin: z.string(), source: z.enum(["geonames", "osm"]), lat: z.number(), lng: z.number() })
+              .optional()
+              .describe("The place GeoNames or OpenStreetMap maps in the commune under the douar's name, where one does: a Latin name and a point. Matched by name."),
           }),
         ),
         message: z.string().optional().describe("Present when the commune has no douars."),
@@ -1055,7 +1060,16 @@ export function createMcpServer(deps: McpDeps): McpServer {
       if (!body) return ok({ unit: unitOut, total: 0, fractions: [], douars: [], message: `${unitOut.name_fr} has no douars: the census counts douars in rural areas only.` });
       const data = body.data as unknown as {
         fractions: { code: string; name: { ar: string }; douars: number; households: number; population: number }[];
-        douars: { code: string; fraction: string; name: { ar: string }; type: "grouped" | "split" | "dispersed"; households: number; population: number; topics: Record<string, Record<string, number | null>> | null }[];
+        douars: {
+          code: string;
+          fraction: string;
+          name: { ar: string };
+          type: "grouped" | "split" | "dispersed";
+          households: number;
+          population: number;
+          topics: Record<string, Record<string, number | null>> | null;
+          place?: { name: string; source: "geonames" | "osm"; lat: number; lng: number };
+        }[];
       };
       if (fraction && !data.fractions.some((f) => f.code === fraction)) {
         return fail(`${unitOut.name_fr} has no fraction ${fraction}. Its fractions are ${data.fractions.map((f) => f.code).join(", ")}.`);
@@ -1075,6 +1089,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           households: d.households,
           population: d.population,
           ...(figures ? { figures: d.topics } : {}),
+          ...(d.place ? { place: { name_latin: d.place.name, source: d.place.source, lat: d.place.lat, lng: d.place.lng } } : {}),
         })),
       });
     },

@@ -345,7 +345,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. " +
             "Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, " +
             "the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. " +
-            "HCP withholds those for a smaller douar, which has null topics. Names are in Arabic only. A commune with no rural part has no file.",
+            "HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; a douar GeoNames or OpenStreetMap maps in the same commune under its name has `place`, that Latin name, its source and its point. A commune with no rural part has no file.",
           parameters: [code("A dotted code, padded or unpadded digits, or a slug.", "imi-mqourn")],
           responses: {
             "200": ok("The commune's fractions and douars.", ref("Douars")),
@@ -532,6 +532,17 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             topics: {
               type: ["object", "null"],
               description: `By topic, then by key: ${[...DOUAR_TOPICS.keys()].join(", ")}. Percentages of its people or households, but for maritalStatus.population15Plus, a count, and distanceKm, in km. Null for a douar of fewer than 30 households.`,
+            },
+            place: {
+              type: "object",
+              required: ["name", "source", "lat", "lng"],
+              description: "The place GeoNames (CC BY 4.0) or OpenStreetMap (ODbL) maps in the same commune under the douar's name, where one does. Matched by name, not by HCP: a small share may be another place of the same name.",
+              properties: {
+                name: { type: "string", description: "Its Latin name, as the source writes it." },
+                source: { type: "string", enum: ["geonames", "osm"] },
+                lat: { type: "number" },
+                lng: { type: "number" },
+              },
             },
           },
         },

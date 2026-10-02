@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { DOUAR_FIELDS } from "../../../pipeline/src/sources/douarFields.ts";
 import type { Topics } from "./indicators.ts";
 
@@ -12,6 +13,23 @@ export interface DouarRecord {
   population: number;
   /** Null where HCP withholds them, for a douar of fewer than 30 households. */
   topics: Topics | null;
+  /** A place GeoNames or OpenStreetMap maps in the same commune under its name, where one does. */
+  place?: DouarPlace;
+}
+
+/** A douar's Latin name and point, from the place matched to it (api/data/douar-places.json). */
+export interface DouarPlace {
+  name: string;
+  source: "osm" | "geonames";
+  lat: number;
+  lng: number;
+}
+
+/** The matched places by douar code, or none before api:douar-places has run. */
+export function readDouarPlaces(path = "api/data/douar-places.json"): Map<string, DouarPlace> {
+  if (!existsSync(path)) return new Map();
+  const rows = (JSON.parse(readFileSync(path, "utf8")) as { places: [string, string, "osm" | "geonames", number, number, string][] }).places;
+  return new Map(rows.map(([code, name, source, lat, lng]) => [code, { name, source, lat, lng }]));
 }
 
 /** One fraction, the level between a rural commune and its douars. */

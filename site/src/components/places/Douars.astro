@@ -12,7 +12,7 @@
 import { de, fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { numbers } from "../../lib/format";
-import type { Fraction } from "../../lib/douars";
+import { latinOf, type Fraction } from "../../lib/douars";
 
 interface Props {
   locale: Locale;
@@ -83,7 +83,10 @@ const groups = fractions.map((f) => {
           </tr>
           {f.rows.map((d, i) => (
             <tr id={`douar-${d.code}`} class:list={{ later: f.start + i >= SHOWN }}>
-              <td><span lang="ar" dir="rtl">{d.name.ar}</span></td>
+              <td>
+                <span lang="ar" dir="rtl">{d.name.ar}</span>
+                <span class:list={["latin", { spelt: latinOf(d).spelt }]}>{latinOf(d).name}</span>
+              </td>
               <td>{kinds[d.type] ?? d.type}</td>
               <td class="num">{n.format(d.households)}</td>
               <td class="num">{n.format(d.population)}</td>
@@ -101,6 +104,7 @@ const groups = fractions.map((f) => {
       {fill(p.douarsAll, { n: n.format(total) })}
     </button>
   )}
+  <p class="note">{p.douarsLatin}</p>
   {withheld && <p class="note">{p.douarsWithheld}</p>}
 </section>
 
@@ -136,6 +140,16 @@ const groups = fractions.map((f) => {
   /* A name on one line: an Arabic name broken across lines in a narrow column reads as 2. */
   .douar-table td:first-child {
     white-space: nowrap;
+  }
+
+  .douar-table .latin {
+    display: block;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .douar-table .latin.spelt {
+    font-style: italic;
   }
 
   .douar-table .fraction th {

@@ -138,7 +138,16 @@ describe("the MCP server, through a real client", () => {
     const out = r.structuredContent as { total: number; fractions: { code: string; name_ar: string; douars: number }[]; douars: { code: string; figures?: unknown }[] };
     expect(out.total).toBe(45);
     expect(out.fractions.map((f) => [f.code, f.name_ar, f.douars])).toEqual([["1630717201", "إكونكا", 29], ["1630717202", "إداومنو", 16]]);
-    expect(out.douars[0]).toEqual({ code: "1630717201001", fraction: "1630717201", name_ar: "توريرت نترست", type: "dispersed", households: 32, population: 105 });
+    expect(out.douars[0]).toEqual({
+      code: "1630717201001",
+      fraction: "1630717201",
+      name_ar: "توريرت نترست",
+      type: "dispersed",
+      households: 32,
+      population: 105,
+      // GeoNames maps it in the same commune as Taourirt n'Tirst.
+      place: { name_latin: "Taourirt n'Tirst", source: "geonames", lat: 30.10924, lng: -9.18203 },
+    });
   });
 
   it("gives a fraction's douars with their figures, null where HCP withholds them", async () => {

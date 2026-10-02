@@ -110,7 +110,7 @@ const farthest = [...byCommune]
 
   type Names = {
     communes: [slug: string, name: string, prefix: string][];
-    douars: [name: string, commune: number, rest: string, people: number, latin: string, keys: string][];
+    douars: [name: string, commune: number, rest: string, people: number, latin: string, spelt: 0 | 1, keys: string][];
   };
 
   const finder = document.querySelector<HTMLElement>(".finder");
@@ -134,7 +134,7 @@ const farthest = [...byCommune]
           names = json;
           arabic = json.douars.map(([name]) => normalise(name));
           latin = json.douars.map((d) => normalise(d[4]));
-          keyed = json.douars.map((d) => d[5].split("|"));
+          keyed = json.douars.map((d) => d[6].split("|"));
         })
         .catch(() => undefined));
 
@@ -169,9 +169,11 @@ const farthest = [...byCommune]
         // Keys meet for spellings far apart (Tigraw and Ait Ettajr both come to tkr), so a
         // match is ranked by how close its Latin spelling is to what was typed.
         const wanted = latinKeys(query).map(lookupKey).filter(Boolean);
-        const typed = query.replace(/ /g, "");
+        // French writes w as ou, so the 2 are one letter here: Tigraw is Tigraou, not Tigrar.
+        const sound = (s: string) => s.replace(/ /g, "").replace(/ou/g, "w");
+        const typed = sound(query);
         keyed.forEach((own, i) => {
-          const near = apart(typed, latin[i]!.replace(/ /g, ""));
+          const near = apart(typed, sound(latin[i]!));
           if (own.some((k) => wanted.includes(k))) found.push({ i, rank: 0, near });
           else if (wanted.some((w) => w.length >= 2 && own.some((k) => k.startsWith(w)))) found.push({ i, rank: 1, near });
           else if (query.length >= 3 && latin[i]!.includes(query)) found.push({ i, rank: 2, near });
@@ -186,12 +188,12 @@ const farthest = [...byCommune]
       }
       if (found.length > LIMIT) status.textContent = (d.more ?? "").replace("{n}", count.format(found.length)).replace("{shown}", String(LIMIT));
       for (const { i } of found.slice(0, LIMIT)) {
-        const [name, commune, rest, people, spelt] = names.douars[i]!;
+        const [name, commune, rest, people, written, spelt] = names.douars[i]!;
         const [slug, communeName, prefix] = names.communes[commune]!;
         const li = document.createElement("li");
         li.innerHTML =
           `<a href="${d.base}${slug}/#douar-${prefix}${rest}"><span lang="ar" dir="rtl">${escape(name)}</span>` +
-          `<span class="spelt">${escape(spelt)}</span>` +
+          `<span class="${spelt ? "latin spelt" : "latin"}">${escape(written)}</span>` +
           `<span class="in">${escape(communeName)} · ${(d.people ?? "{n}").replace("{n}", count.format(people))}</span></a>`;
         hits.append(li);
       }
@@ -349,7 +351,7 @@ const farthest = [...byCommune]
     text-decoration: underline;
   }
 
-  .hits :global(.spelt) {
+  .hits :global(.latin.spelt) {
     font-style: italic;
   }
 
