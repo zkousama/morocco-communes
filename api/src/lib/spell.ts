@@ -11,7 +11,7 @@
  */
 import { normalise } from "./normalise.ts";
 import { spell, type Model } from "./graphones.ts";
-import { arabicWords, latinWords, type WordTable } from "./translitWords.ts";
+import { arabicWords, latinWords, openingOf, type WordTable } from "./translitWords.ts";
 
 /** The 2 models, one for each direction, trained by `pnpm translit --model`. */
 export interface Models {
@@ -36,7 +36,7 @@ const VOWELS = new Set(["ا", "أ", "إ", "آ", "و", "ي", "ى", "ة", "ؤ", "�
 const capital = (word: string) => word.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
 /** One Arabic word, letter by letter. `construct` is a ta marbuta said as t, before another word. */
-function latinWord(word: string, construct: boolean): string {
+function latinWord(word: string, construct: boolean, openings: Record<string, string> = {}): string {
   let w = word;
   let article = "";
   if (w.startsWith("ال") && w.length > 3) {
@@ -56,7 +56,11 @@ function latinWord(word: string, construct: boolean): string {
     else if (ch === "ى") out += "a";
     // ي is a y at the start, after a vowel or before ا, and an i otherwise, as before the
     // final ة of Zaouia, though it follows the و.
-    else if (ch === "ي" || ch === "ئ") out += next === "ة" ? "i" : i === 0 || (prev && VOWELS.has(prev)) || next === "ا" ? "y" : "i";
+    // and a final ين is -ine for 8 words in 10, after a vowel too: Talouine.
+    else if (ch === "ي" || ch === "ئ") {
+      const finalIn = next === "ن" && i === letters.length - 2;
+      out += next === "ة" || finalIn ? "i" : i === 0 || (prev && VOWELS.has(prev)) || next === "ا" ? "y" : "i";
+    }
     else if (ch === "ة") out += construct ? "at" : "a";
     else {
       let letter = LATIN[ch] ?? "";
@@ -68,8 +72,19 @@ function latinWord(word: string, construct: boolean): string {
     }
   });
   out = out.replace(/a{3,}/g, "aa");
-  // A long a, i or ou before a final n or t takes a silent e: Naamane, Chaibate.
-  if (/(a|i|ou)[nt]$/.test(out) && /[اوي][نت]$/.test(w)) out += "e";
+  // A Tamazight name starting with t and a consonant starts Ta- in Latin: Tagmout, Tamezguida.
+  // Sources write it so for 6 words in 10, and 8 in 10 with a final t as well.
+  if (/^ت[^اأإآويىةعؤئ]/.test(w) && w.length > 2 && out.startsWith("t") && !/^t[aeiou]/.test(out)) out = `ta${out.slice(1)}`;
+  // The vowel sources put between the 2 consonants a word starts with, where they agree on one.
+  const opening = openingOf(w);
+  const vowel = opening ? openings[opening] : undefined;
+  if (vowel) {
+    const first = (LATIN[opening![0]!] ?? "").length;
+    if (first > 0 && !/^[aeiou]/.test(out.slice(first))) out = out.slice(0, first) + vowel + out.slice(first);
+  }
+  // A long a, i or ou before a final n takes a silent e: Taliouine, Naamane. Before a final t
+  // sources mostly leave it off: Tagmout rather than Tagmoute.
+  if (/(a|i|ou)n$/.test(out) && /[اوي]ن$/.test(w)) out += "e";
   return capital(article + out);
 }
 
@@ -84,7 +99,7 @@ export function toLatin(name: string, table: WordTable, models?: Models): string
       if (guess) return capital(guess);
       // A ta marbuta before a word without the article is said as t: Zaouiat Sidi, not Zaouia Sidi.
       const construct = word.endsWith("ة") && i < words.length - 1 && !words[i + 1]!.startsWith("ال");
-      return latinWord(word, construct);
+      return latinWord(word, construct, table.openings);
     })
     .join(" ");
 }

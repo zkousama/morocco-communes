@@ -14,7 +14,11 @@ describe("an Arabic name in Latin", () => {
 
   it("spells an unseen word by rule, the way French writes Moroccan names", () => {
     expect(toLatin("تيݣراو", none)).toBe("Tigraou");
-    expect(toLatin("شعيبات", none)).toBe("Chaibate");
+    // Sources mostly leave the e off after a final t (Tagmout), though HCP writes the commune Chaibate.
+    expect(toLatin("شعيبات", none)).toBe("Chaibat");
+    expect(toLatin("تالوين", none)).toBe("Talouine");
+    // A Tamazight name starting with t and a consonant starts Ta-.
+    expect(toLatin("تكموت", none)).toBe("Takmout");
     expect(toLatin("السوق", none)).toBe("Essouk");
     // A short vowel Arabic leaves out stays out: HCP writes الصفا as Essafa.
     expect(toLatin("الصفا", none)).toBe("Essfa");
@@ -35,6 +39,18 @@ describe("a Latin name in Arabic", () => {
   });
 });
 
+describe("the opening of a word", () => {
+  it("takes the vowel sources put between its first 2 consonants, where they agree", () => {
+    const learned = buildWordTable([
+      ...Array.from({ length: 8 }, () => ({ fr: "Belkadi", ar: "بلقاضي" })),
+      ...Array.from({ length: 8 }, () => ({ fr: "Mrizig", ar: "مريزيك" })),
+    ]);
+    expect(learned.openings).toMatchObject({ "بل": "e" });
+    expect(toLatin("بلحسن", { ...none, openings: learned.openings })).toBe("Belhsn");
+    expect(toLatin("مرزوك", { ...none, openings: { "مر": "" } })).toBe("Mrzouk");
+  });
+});
+
 describe("the word table", () => {
   it("learns a word only where its keys meet its partner's, so a translation teaches nothing", () => {
     const built = buildWordTable([
@@ -42,6 +58,7 @@ describe("the word table", () => {
       { fr: "Banlieue Nord", ar: "أحواز الشمالية" },
     ]);
     expect(built.toLatin).toEqual({ "سيدي": "Sidi", "قاسم": "Kacem" });
+    expect(built.openings).toEqual({});
     expect(built.toArabic).toEqual({ sidi: "سيدي", kacem: "قاسم" });
   });
 });

@@ -12,6 +12,48 @@ export interface WordTable {
   toLatin: Record<string, string>;
   /** A normalised Latin word, and the Arabic HCP writes most often for it. */
   toArabic: Record<string, string>;
+  /**
+   * The vowel sources put between the 2 consonants a word starts with, by those 2 letters:
+   * "e" for بل, so بلقاضي is Belkadi, "" for مر, so مرزوك is Mrzouk. Only pairs seen often
+   * enough to tell, and only where one way wins.
+   */
+  openings?: Record<string, string>;
+}
+
+/** Letters that are a vowel or carry one, as the rules read them. */
+const VOWEL_LETTERS = new Set([..."اأإآويىةعؤئ"]);
+/** Arabic letters French writes with 2 letters. */
+const DIGRAPHS = new Set([..."شخغ"]);
+/** A pair is learned from this many words, and when one way takes at least this share. */
+const OPENING_SEEN = 8;
+const OPENING_SHARE = 0.5;
+
+/** The 2 consonants an Arabic word starts with, its article and a ت aside, or null. */
+export function openingOf(word: string): string | null {
+  const w = normalise(word).replace(/ /g, "").replace(/^ال(?=..)/, "");
+  if (w.length < 4 || w[0] === "ت" || VOWEL_LETTERS.has(w[0]!) || VOWEL_LETTERS.has(w[1]!)) return null;
+  return w.slice(0, 2);
+}
+
+function learnOpenings(words: readonly [string, string][]): Record<string, string> {
+  const seen = new Map<string, Map<string, number>>();
+  for (const [arabic, latin] of words) {
+    const key = openingOf(arabic);
+    if (!key) continue;
+    const l = normalise(latin).replace(/ /g, "").replace(/^(el|al|l)(?=..)/, "");
+    const after = l.slice(DIGRAPHS.has(key[0]!) ? 2 : 1);
+    const vowel = /^[aeiou]/.test(after) && !/^(ou|w)/.test(after) ? after[0]! : "";
+    const counts = seen.get(key) ?? new Map<string, number>();
+    counts.set(vowel, (counts.get(vowel) ?? 0) + 1);
+    seen.set(key, counts);
+  }
+  const out: Record<string, string> = {};
+  for (const [key, counts] of [...seen].sort(([a], [b]) => (a < b ? -1 : 1))) {
+    const total = [...counts.values()].reduce((a, b) => a + b, 0);
+    const [vowel, n] = [...counts].reduce((top, entry) => (entry[1] > top[1] ? entry : top));
+    if (total >= OPENING_SEEN && n / total >= OPENING_SHARE) out[key] = vowel;
+  }
+  return out;
 }
 
 const ARTICLE = /^(el|al|l|ed|er|es|ez|et|en|ech|ad|ar|as|az|at|an)$/i;
@@ -68,5 +110,5 @@ export function buildWordTable(pairs: readonly { fr: string; ar: string }[]): Wo
         .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
         .map(([key, counts]) => [key, [...counts].reduce((top, entry) => (entry[1] > top[1] ? entry : top))[0]]),
     );
-  return { toLatin: best(toLatin), toArabic: best(toArabic) };
+  return { toLatin: best(toLatin), toArabic: best(toArabic), openings: learnOpenings(wordPairs(pairs)) };
 }
