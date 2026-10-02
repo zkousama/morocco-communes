@@ -976,7 +976,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             name_fr: z.string(),
             name_ar: z.string(),
             arrondissement: z.string().nullable().describe("The arrondissement's code, where it was placed in one by its point."),
-            source: z.enum(["osm", "poste", "hand"]),
+            source: z.enum(["osm", "poste", "hand", "village"]),
             postcodes: z.array(z.string()),
           }),
         ),
@@ -992,7 +992,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       const body = await fetchJson(`/api/communes/${found.code}/neighbourhoods.json`);
       if (!body) return ok({ unit: unitOut, total: 0, postcodes: [], neighbourhoods: [], message: `No neighbourhoods or postcodes are named for ${unitOut.name_fr}.` });
       const data = body.data as unknown as {
-        neighbourhoods: { name: { fr: string; ar: string }; arrondissement: string | null; source: "osm" | "poste" | "hand"; postcodes: string[] }[];
+        neighbourhoods: { name: { fr: string; ar: string }; arrondissement: string | null; source: "osm" | "poste" | "hand" | "village"; postcodes: string[] }[];
         postcodes: string[];
       };
       return ok({

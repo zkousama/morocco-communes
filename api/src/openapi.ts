@@ -493,7 +493,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           properties: {
             name: ref("Name"),
             arrondissement: { type: ["string", "null"], description: "The arrondissement's code, where it was placed in one by its point." },
-            source: { type: "string", enum: ["osm", "poste", "hand"], description: "OpenStreetMap, Poste Maroc's list of neighbourhoods by postcode, or added by hand from a public source." },
+            source: { type: "string", enum: ["osm", "poste", "hand", "village"], description: "OpenStreetMap, Poste Maroc's list of neighbourhoods by postcode, added by hand from a public source, or a village or hamlet OpenStreetMap maps inside a town." },
             postcodes: { type: "array", items: { type: "string" } },
           },
         },

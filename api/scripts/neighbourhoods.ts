@@ -13,6 +13,10 @@
  *
  *   OSM=keep pnpm api:neighbourhoods
  *
+ * Then the villages and hamlets OpenStreetMap maps inside a town, from the extract
+ * `pnpm api:osm-features` reads (.cache/osm/morocco-features.json): a town has no douars,
+ * and these are the places in it beyond its neighbourhoods. A rural commune's are its douars.
+ *
  * Then Poste Maroc's list of neighbourhoods by postcode, from data.gov.ma. Its rows have a
  * city and no point, so each goes in its city's commune, and a name OpenStreetMap already
  * has in that city is left to OpenStreetMap's entry, which knows the arrondissement.
@@ -33,6 +37,7 @@ const GEOMETRY = "data/v1/geometry";
 const POSTE =
   "https://data.gov.ma/data/ar/dataset/e0093dbf-38f0-440a-91da-ad3f0243f378/resource/7f257007-d512-4a2e-9f7f-ba29ee4ac8b1/download/codes-postaux-quartiers-2018.xlsx";
 const OUT = "api/data/neighbourhoods.json";
+const FEATURES = ".cache/osm/morocco-features.json";
 
 const QUERY = `[out:json][timeout:180];
 area["ISO3166-1"="MA"]["admin_level"="2"]->.ma;
@@ -94,7 +99,7 @@ let outside = 0;
 let sameAsUnit = 0;
 if (keepOsm) {
   for (const p of previous!.places) {
-    if (p[3] === "poste") continue;
+    if (p[3] === "poste" || p[3] === "village") continue;
     if (isStreet(p[0])) {
       streets++;
       continue;
@@ -128,6 +133,29 @@ for (const e of elements) {
   const key = `${unit.code}|${fr}|${ar}`;
   if (!kept.has(key)) kept.set(key, [names.fr, names.ar, unit.code, e.id === 0 ? "hand" : "osm"]);
 }
+
+// The villages and hamlets inside a town, kept where the town has no neighbourhood by the name.
+if (!existsSync(FEATURES)) throw new Error(`no ${FEATURES}: run pnpm api:osm-features first`);
+const features = (JSON.parse(await readFile(FEATURES, "utf8")) as { features: { kind: string; lat: number; lng: number; names: Record<string, string> }[] }).features;
+const urban = new Set(communes.filter((c) => c.type === "urban").map((c) => c.code).concat(arrondissements.map((a) => a.code)));
+const namedIn = new Set([...kept.values()].map(([fr, ar, code]) => `${code}|${normalise(fr)}|${normalise(ar)}`));
+let villages = 0;
+for (const f of features) {
+  if (f.kind !== "place=village" && f.kind !== "place=hamlet") continue;
+  const names = namesOf(f.names);
+  if (!names) continue;
+  const unit = unitAt(f.lng, f.lat);
+  if (!unit || !urban.has(unit.code)) continue;
+  const fr = normalise(names.fr);
+  const ar = normalise(names.ar);
+  if ((fr && fr === normalise(unit.name.fr)) || (ar && ar === normalise(unit.name.ar))) continue;
+  const key = `${unit.code}|${fr}|${ar}`;
+  if (namedIn.has(key) || [...namedIn].some((k) => k.startsWith(`${unit.code}|${fr}|`) && fr)) continue;
+  namedIn.add(key);
+  kept.set(key, [names.fr, names.ar, unit.code, "village"]);
+  villages++;
+}
+console.log(`neighbourhoods: ${villages} villages and hamlets inside towns, from ${FEATURES}`);
 
 // Poste Maroc: each city to its urban commune, and the names already there set aside.
 const response = await fetch(POSTE, { headers: { "user-agent": "morocco-communes (github.com/zkousama/morocco-communes)" } });

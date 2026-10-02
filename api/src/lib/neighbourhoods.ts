@@ -45,8 +45,11 @@ export function inside([x, y]: [number, number], rings: [number, number][][]): b
   return within;
 }
 
-/** Where a neighbourhood's name comes from: OpenStreetMap, Poste Maroc's list, or added by hand. */
-export type NeighbourhoodSource = "osm" | "poste" | "hand";
+/**
+ * Where a neighbourhood's name comes from: OpenStreetMap, Poste Maroc's list, added by hand,
+ * or a village or hamlet OpenStreetMap maps inside a town, which has no douars to list.
+ */
+export type NeighbourhoodSource = "osm" | "poste" | "hand" | "village";
 
 /**
  * A neighbourhood as the list holds it: French name, Arabic name, the code of the unit it's

@@ -126,11 +126,18 @@ describe("the MCP server, through a real client", () => {
   });
 
   it("says when a commune has no neighbourhoods named, and still gives its postcodes", async () => {
-    const r = await client.callTool({ name: "get_neighbourhoods", arguments: { unit: "tafraout" } });
+    const r = await client.callTool({ name: "get_neighbourhoods", arguments: { unit: "jerada" } });
     const out = r.structuredContent as { message?: string; postcodes: string[]; neighbourhoods: unknown[] };
     expect(out.neighbourhoods).toEqual([]);
-    expect(out.postcodes).toEqual(["85450"]);
+    expect(out.postcodes).toEqual(["64550"]);
     expect(out.message).toMatch(/No neighbourhoods/);
+  });
+
+  it("gives a town's villages and hamlets as its neighbourhoods, marked as such", async () => {
+    const r = await client.callTool({ name: "get_neighbourhoods", arguments: { unit: "ajdir-010510109" } });
+    const out = r.structuredContent as { neighbourhoods: { name_fr: string; source: string }[] };
+    expect(out.neighbourhoods.map((n) => n.name_fr)).toContain("Sfiha");
+    expect(new Set(out.neighbourhoods.map((n) => n.source))).toEqual(new Set(["village"]));
   });
 
   it("gives a rural commune's douars in their fractions, without their figures unless asked", async () => {

@@ -22,6 +22,9 @@ change a shape something already reads.
   OpenStreetMap maps the douar, `place` gives its point. Visitors can suggest a spelling on
   the site for a douar none names, and one 2 visitors suggest that the spelling engine
   passes overnight is added as `visitors`.
+- A town's villages and hamlets: the 440 OpenStreetMap maps inside urban communes, as
+  neighbourhoods whose `source` is `village`. Search finds them, and a town's page lists
+  them. A rural commune's are its douars.
 - A fraction's name in Latin letters, `latin`, where a douar of its commune has the same
   name and a source writes it: 711 fractions. The 139 HCP lists as a fraction outside the
   commune or a notional one get `label` instead.

@@ -54,6 +54,7 @@ export const places = {
     postcodes: "Postcodes",
     postcode: "Postcode",
     postcodesMore: "and {n} more",
+    villages: "Villages and hamlets",
     neighbourhoodsData: "Neighbourhoods and postcodes",
     nextDoor: {
       "illiteracy.rate10Plus": "Next door in {place}, {there} of people aged 10 and over can’t read or write. Here, it’s {here}.",
@@ -497,6 +498,7 @@ export const places = {
     postcodes: "Codes postaux",
     postcode: "Code postal",
     postcodesMore: "et {n} autres",
+    villages: "Villages et hameaux",
     neighbourhoodsData: "Quartiers et codes postaux",
     nextDoor: {
       "illiteracy.rate10Plus": "Juste à côté, à {place}, {there} des 10 ans et plus ne savent ni lire ni écrire. Ici, {here}.",

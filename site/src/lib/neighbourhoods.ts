@@ -19,3 +19,10 @@ export const hasNeighbourhoods = (communeCode: string): boolean => named.has(com
 
 /** A commune's postcodes, in order. */
 export const postcodesOf = (communeCode: string): string[] => postcodes.get(communeCode) ?? [];
+
+/** The villages and hamlets OpenStreetMap maps inside a town, by name, in its arrondissements too. */
+export const villagesOf = (communeCode: string): string[] =>
+  places
+    .filter((p) => p[3] === "village" && (arrondissementOf.get(p[2])?.communeCode ?? p[2]) === communeCode)
+    .map((p) => p[0] || p[1])
+    .sort((a, b) => a.localeCompare(b, "fr"));

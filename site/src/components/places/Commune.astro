@@ -20,7 +20,7 @@ import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
 import { path, REPO_URL, t, type Locale } from "../../i18n/ui";
 import { ordinary } from "../../../../api/src/lib/ordinary.ts";
-import { hasNeighbourhoods, postcodesOf } from "../../lib/neighbourhoods";
+import { hasNeighbourhoods, postcodesOf, villagesOf } from "../../lib/neighbourhoods";
 import { douarsOf } from "../../lib/douars";
 import { density, numbers, percent } from "../../lib/format";
 import { densityBreaks } from "../../generated/map";
@@ -112,6 +112,8 @@ const arrondissementClass = (code: string) => {
 // Poste Maroc's postcodes, and whether the API has a neighbourhoods file for this commune.
 const hoods = hasNeighbourhoods(c.code);
 const codes = postcodesOf(c.code);
+// A town's villages and hamlets, where OpenStreetMap maps any; a rural commune lists its douars.
+const villages = c.type === "urban" ? villagesOf(c.code) : [];
 /** Postcodes shown before "and N more". */
 const CODES_SHOWN = 12;
 
@@ -294,6 +296,17 @@ getCommune("${c.slug}");`;
             {codes.slice(0, CODES_SHOWN).join(", ")}{codes.length > CODES_SHOWN && <span class="postcodes-rest">{`, ${codes.slice(CODES_SHOWN).join(", ")}`}</span>}
             {codes.length > CODES_SHOWN && (
               <button type="button" class="postcodes-more" hidden>{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</button>
+            )}
+          </p>
+        </>
+      )}
+      {villages.length > 0 && (
+        <>
+          <h3>{p.villages}</h3>
+          <p class="postcodes">
+            {villages.slice(0, CODES_SHOWN).join(", ")}{villages.length > CODES_SHOWN && <span class="postcodes-rest">{`, ${villages.slice(CODES_SHOWN).join(", ")}`}</span>}
+            {villages.length > CODES_SHOWN && (
+              <button type="button" class="postcodes-more" hidden>{fill(p.postcodesMore, { n: n.format(villages.length - CODES_SHOWN) })}</button>
             )}
           </p>
         </>
