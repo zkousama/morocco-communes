@@ -146,7 +146,8 @@ describe("the MCP server, through a real client", () => {
       households: 32,
       population: 105,
       // GeoNames maps it in the same commune as Taourirt n'Tirst.
-      place: { name_latin: "Taourirt n'Tirst", source: "geonames", lat: 30.10924, lng: -9.18203 },
+      name_latin: { name: "Taourirt n'Tirst", source: "geonames" },
+      place: { source: "geonames", lat: 30.10924, lng: -9.18203 },
     });
   });
 

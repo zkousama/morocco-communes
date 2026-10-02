@@ -64,9 +64,9 @@ export const NEAR_CLOSE = 0.7;
 export const cleanLatin = (name: string) => name.replace(/^douar\s+/i, "").trim();
 
 const LATIN_PREFIX =
-  /^(?:(?:ecole|école|e\.?\s?p\.?|groupe(?:ment)?\s+scolaire|g\.?\s?s\.?|ss|satellite|unit[ée]\s+scolaire|primaire|mosqu[ée]e|masjid|mosque|bureau\s+de\s+poste|poste|dispensaire|centre\s+de\s+sant[ée]|csr?|douar|dr)\b[\s.:-]*)+/i;
+  /^(?:(?:ecole|école|e\.?\s?p\.?|groupe(?:ment)?\s+scolaire|g\.?\s?s\.?|ss|satellite|unit[ée]\s+scolaire|primaire|secteur\s+scolaire|mosqu[ée]e|masjid|mosque|bureau\s+de\s+poste|poste|dispensaire|centre\s+de\s+sant[ée]|csr?|douar|dr)\b[\s.:-]*)+/i;
 const ARABIC_PREFIX =
-  /^(?:(?:مجموعة\s+مدارس|مجموعة\s+مدرسية|م\.?\s?م\.?|مدرسة\s+فرعية|المدرسة|مدرسة|فرعية|الوحدة\s+المدرسية|وحدة|مسجد|جامع|مركز\s+صحي|المستوصف|مستوصف|دوار)\s*)+/;
+  /^(?:(?:مجموعة\s+مدارس|مجموعة\s+مدرسية|م\.?\s?م\.?|مدرسة\s+فرعية|المدرسة|مدرسة|فرعية|الوحدة\s+المدرسية|وحدة|القطاع\s+المدرسي|قطاع\s+مدرسي|مسجد|جامع|مركز\s+صحي|المستوصف|مستوصف|دوار)\s*)+/;
 
 /**
  * The name a feature gives its douar. A school, a mosque or a health post is named after the
@@ -89,10 +89,23 @@ function closeness(a: string, b: string): number {
   return 1 - row[y.length]! / Math.max(x.length, y.length, 1);
 }
 
+/**
+ * The Latin name a place matched by its Arabic gives the douar: the first of its Latin names
+ * that's a spelling of the douar's, or none. A place OSM names in Arabic only still gives
+ * the douar its point.
+ */
+function latinFor(place: Place, keys: string[]): string {
+  for (const latin of place.latin) {
+    const clean = cleanLatin(latin);
+    if (clean && keysMeet(keys, latinKeys(clean))) return clean;
+  }
+  return "";
+}
+
 /** The best way a place names a douar, or null where it doesn't. */
 export function score(douar: Douar, place: Place, keys = arabicKeys(douar.name.ar)): { name: string; score: number } | null {
   const arabic = normalise(douar.name.ar);
-  if (place.arabic.some((a) => normalise(a) === arabic)) return { name: place.latin[0] ?? "", score: 2 };
+  if (place.arabic.some((a) => normalise(a) === arabic)) return { name: latinFor(place, keys), score: 2 };
   const long = keys.filter((k) => k.replace(/l/g, "").length >= MIN_KEY);
   if (long.length === 0) return null;
   let best: { name: string; score: number } | null = null;
@@ -188,7 +201,7 @@ export function matchNearFractions(
         const near = Math.min(...siblings.map((s) => km(s, place)));
         if (near > NEAR_KM) continue;
         let best: { name: string; score: number } | null = null;
-        if (place.arabic.some((a) => normalise(a) === arabic)) best = { name: place.latin[0] ?? "", score: 2 };
+        if (place.arabic.some((a) => normalise(a) === arabic)) best = { name: latinFor(place, keys), score: 2 };
         for (const latin of place.latin) {
           const clean = cleanLatin(latin);
           if (!clean || !keysMeet(keys, latinKeys(clean))) continue;

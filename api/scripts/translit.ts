@@ -8,8 +8,9 @@
  *   pnpm translit --eval                how well each part does on names held back from it
  *
  * The pairs are every unit HCP names in both scripts, the neighbourhoods OpenStreetMap names
- * in both, and the douars matched to a GeoNames or OpenStreetMap place by api:douar-places,
- * the douar's Arabic with the place's Latin. HCP's own pairs count 6 times over: theirs is the
+ * in both, the douars matched to a GeoNames or OpenStreetMap place by api:douar-places, the
+ * douar's Arabic with the place's Latin, and the douars the Ministry of Education's school
+ * lists name (api:douar-names). HCP's own pairs count 6 times over: theirs is the
  * spelling the model is meant to learn, and GeoNames writes some names another way
  * (Akhfniyr for Akhfennir).
  *
@@ -48,9 +49,13 @@ const douars = (): Pair[] => {
       arabic.set(d.code, d.name.ar);
     }
   }
-  return (JSON.parse(readFileSync("api/data/douar-places.json", "utf8")) as { places: [string, string, ...unknown[]][] }).places
+  const placed = (JSON.parse(readFileSync("api/data/douar-places.json", "utf8")) as { places: [string, string, ...unknown[]][] }).places;
+  const named = existsSync("api/data/douar-names.json")
+    ? (JSON.parse(readFileSync("api/data/douar-names.json", "utf8")) as { names: [string, string][] }).names
+    : [];
+  return [...placed, ...named]
     .map(([code, latin]) => ({ fr: latin, ar: arabic.get(code)! }))
-    .filter((p) => p.ar);
+    .filter((p) => p.ar && p.fr);
 };
 
 /** The pairs to learn from: HCP's weighted over the rest. */

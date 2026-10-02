@@ -13,23 +13,53 @@ export interface DouarRecord {
   population: number;
   /** Null where HCP withholds them, for a douar of fewer than 30 households. */
   topics: Topics | null;
-  /** A place GeoNames or OpenStreetMap maps in the same commune under its name, where one does. */
+  /** Where GeoNames or OpenStreetMap maps it, matched by name in the same commune. */
   place?: DouarPlace;
+  /** Its name in Latin letters, where a source writes one. HCP names douars in Arabic only. */
+  latin?: DouarLatin;
 }
 
-/** A douar's Latin name and point, from the place matched to it (api/data/douar-places.json). */
+/** A douar's point, from the place matched to it (api/data/douar-places.json). */
 export interface DouarPlace {
-  name: string;
   source: "osm" | "geonames";
   lat: number;
   lng: number;
 }
 
-/** The matched places by douar code, or none before api:douar-places has run. */
-export function readDouarPlaces(path = "api/data/douar-places.json"): Map<string, DouarPlace> {
-  if (!existsSync(path)) return new Map();
-  const rows = (JSON.parse(readFileSync(path, "utf8")) as { places: [string, string, "osm" | "geonames", number, number, string][] }).places;
-  return new Map(rows.map(([code, name, source, lat, lng]) => [code, { name, source, lat, lng }]));
+/** A douar's Latin name and who writes it so. */
+export interface DouarLatin {
+  name: string;
+  /** The Ministry of National Education's school lists, OpenStreetMap or GeoNames. */
+  source: "education" | "osm" | "geonames";
+}
+
+/**
+ * Each douar's point and Latin name, from api/data/douar-places.json and douar-names.json,
+ * or none before api:douar-places and api:douar-names have run. The Ministry's spelling
+ * comes first, a government's spelling in current use; then the matched place's.
+ */
+export function readDouarSources(dir = "api/data"): Map<string, { place?: DouarPlace; latin?: DouarLatin }> {
+  const out = new Map<string, { place?: DouarPlace; latin?: DouarLatin }>();
+  const places = `${dir}/douar-places.json`;
+  if (existsSync(places)) {
+    const rows = (JSON.parse(readFileSync(places, "utf8")) as { places: [string, string, "osm" | "geonames", number, number, ...unknown[]][] }).places;
+    for (const [code, name, source, lat, lng] of rows) {
+      out.set(code, { place: { source, lat, lng }, ...(name ? { latin: { name, source } } : {}) });
+    }
+  }
+  const names = `${dir}/douar-names.json`;
+  if (existsSync(names)) {
+    for (const [code, name] of (JSON.parse(readFileSync(names, "utf8")) as { names: [string, string][] }).names) {
+      out.set(code, { ...out.get(code), latin: { name, source: "education" } });
+    }
+  }
+  return out;
+}
+
+/** A douar with its point and Latin name, where it has them. */
+export function withSources(d: DouarRecord, sources: Map<string, { place?: DouarPlace; latin?: DouarLatin }>): DouarRecord {
+  const found = sources.get(d.code);
+  return found ? { ...d, ...found } : d;
 }
 
 /** One fraction, the level between a rural commune and its douars. */

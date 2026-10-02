@@ -1005,7 +1005,7 @@ export const reference = {
         "get": {
           "operationId": "listDouars",
           "summary": "A rural commune's fractions and douars",
-          "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; a douar GeoNames or OpenStreetMap maps in the same commune under its name has `place`, that Latin name, its source and its point. A commune with no rural part has no file.",
+          "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where GeoNames or OpenStreetMap maps it. A commune with no rural part has no file.",
           "parameters": [
             {
               "name": "code",
@@ -1652,20 +1652,36 @@ export const reference = {
               ],
               "description": "By topic, then by key: nationality, sex, age, civilRegistration, maritalStatus, dwellingType, distanceKm. Percentages of its people or households, but for maritalStatus.population15Plus, a count, and distanceKm, in km. Null for a douar of fewer than 30 households."
             },
-            "place": {
+            "latin": {
               "type": "object",
               "required": [
                 "name",
+                "source"
+              ],
+              "description": "Its name in Latin letters, where a source writes one: the Ministry of National Education's lists of public schools (ODbL), OpenStreetMap (ODbL) or GeoNames (CC BY 4.0), in that order. Matched by name, not by HCP: a small share may belong to another place of the same name.",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "education",
+                    "osm",
+                    "geonames"
+                  ]
+                }
+              }
+            },
+            "place": {
+              "type": "object",
+              "required": [
                 "source",
                 "lat",
                 "lng"
               ],
-              "description": "The place GeoNames (CC BY 4.0) or OpenStreetMap (ODbL) maps in the same commune under the douar's name, where one does. Matched by name, not by HCP: a small share may be another place of the same name.",
+              "description": "Its point, where GeoNames or OpenStreetMap maps it in the same commune under its name.",
               "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Its Latin name, as the source writes it."
-                },
                 "source": {
                   "type": "string",
                   "enum": [
@@ -3042,7 +3058,7 @@ export const reference = {
       "op": {
         "operationId": "listDouars",
         "summary": "A rural commune's fractions and douars",
-        "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; a douar GeoNames or OpenStreetMap maps in the same commune under its name has `place`, that Latin name, its source and its point. A commune with no rural part has no file.",
+        "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where GeoNames or OpenStreetMap maps it. A commune with no rural part has no file.",
         "parameters": [
           {
             "name": "code",
@@ -6415,10 +6431,13 @@ export const reference = {
                 }
               },
               "place": {
-                "name": "Taourirt n'Tirst",
                 "source": "geonames",
                 "lat": 30.10924,
                 "lng": -9.18203
+              },
+              "latin": {
+                "name": "Taourirt n'Tirst",
+                "source": "geonames"
               }
             },
             {
@@ -6432,10 +6451,13 @@ export const reference = {
               "population": 91,
               "topics": null,
               "place": {
-                "name": "Aït Moussa",
                 "source": "geonames",
                 "lat": 30.10585,
                 "lng": -9.19243
+              },
+              "latin": {
+                "name": "Aït Moussa",
+                "source": "geonames"
               }
             },
             {
@@ -6449,10 +6471,13 @@ export const reference = {
               "population": 58,
               "topics": null,
               "place": {
-                "name": "Aït Ouakrim",
                 "source": "geonames",
                 "lat": 30.10374,
                 "lng": -9.20053
+              },
+              "latin": {
+                "name": "Aït Ouakrim",
+                "source": "geonames"
               }
             }
           ]

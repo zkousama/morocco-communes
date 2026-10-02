@@ -1018,7 +1018,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       description:
         "The douars of a rural commune from HCP's 2024 census, the villages and hamlets it's made of, grouped in its fractions (mashyakha), named in Arabic only. " +
         "Each has its kind (grouped, split into sub-douars, or dispersed), its households and its people. " +
-        "A douar GeoNames or OpenStreetMap maps in the same commune under its name has a place: that Latin name and a point. " +
+        "A douar has its name in Latin where a source writes one, and its point where GeoNames or OpenStreetMap maps it. " +
         "With figures, a douar of 30 households or more also has the nationality, sex, age, civil registration and marital status of its people, " +
         "the kind of dwelling its households live in, and the average distance in km from its dwellings to a paved road, an unpaved road a car can drive on, " +
         "a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, and says null. " +
@@ -1041,10 +1041,14 @@ export function createMcpServer(deps: McpDeps): McpServer {
             households: z.number(),
             population: z.number(),
             figures: z.record(z.string(), z.record(z.string(), z.number().nullable())).nullable().optional().describe("Null where HCP withholds them."),
-            place: z
-              .object({ name_latin: z.string(), source: z.enum(["geonames", "osm"]), lat: z.number(), lng: z.number() })
+            name_latin: z
+              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames"]) })
               .optional()
-              .describe("The place GeoNames or OpenStreetMap maps in the commune under the douar's name, where one does: a Latin name and a point. Matched by name."),
+              .describe("Its name in Latin letters where a source writes one: the Ministry of National Education's school lists, OpenStreetMap or GeoNames. HCP names douars in Arabic only."),
+            place: z
+              .object({ source: z.enum(["geonames", "osm"]), lat: z.number(), lng: z.number() })
+              .optional()
+              .describe("Its point, where GeoNames or OpenStreetMap maps it in the same commune. Matched by name."),
           }),
         ),
         message: z.string().optional().describe("Present when the commune has no douars."),
@@ -1068,7 +1072,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
           households: number;
           population: number;
           topics: Record<string, Record<string, number | null>> | null;
-          place?: { name: string; source: "geonames" | "osm"; lat: number; lng: number };
+          place?: { source: "geonames" | "osm"; lat: number; lng: number };
+          latin?: { name: string; source: "education" | "osm" | "geonames" };
         }[];
       };
       if (fraction && !data.fractions.some((f) => f.code === fraction)) {
@@ -1089,7 +1094,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
           households: d.households,
           population: d.population,
           ...(figures ? { figures: d.topics } : {}),
-          ...(d.place ? { place: { name_latin: d.place.name, source: d.place.source, lat: d.place.lat, lng: d.place.lng } } : {}),
+          ...(d.latin ? { name_latin: d.latin } : {}),
+          ...(d.place ? { place: d.place } : {}),
         })),
       });
     },
