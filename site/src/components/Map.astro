@@ -1,5 +1,5 @@
 ---
-import { changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, roadBreaks, serviceBreaks, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
+import { changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, namedBreaks, roadBreaks, serviceBreaks, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
 import { path, t, type Locale } from "../i18n/ui";
 import { percent } from "../lib/format";
 
@@ -120,6 +120,12 @@ const views = [
   { id: "middleSchool", label: copy.mapMiddleSchool, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "o") },
   { id: "healthCentre", label: copy.mapHealthCentre, unit: copy.legendDistance, swatches: kmBands(serviceBreaks, "h") },
   { id: "pavedRoad", label: copy.mapPavedRoad, unit: copy.legendDistance, swatches: kmBands(roadBreaks, "p") },
+  {
+    id: "named",
+    label: copy.mapNamed,
+    unit: copy.legendNamed,
+    swatches: [...bands(namedBreaks, "l").slice(0, 6), { cls: "ln", text: copy.mapNoNamed }],
+  },
 ];
 const HOME = ["density", "change", "illiteracy", "water", "elderly", "women", "unemployment", "service", "type"];
 const shown = (only ?? HOME).map((id) => {
@@ -133,7 +139,7 @@ const shown = (only ?? HOME).map((id) => {
 // what it can show.
 const ATTRIBUTE: Record<string, string> = {
   density: "d", change: "g", illiteracy: "i", water: "w", elderly: "e", women: "f", unemployment: "u", service: "k", type: "t",
-  highSchool: "y", middleSchool: "o", healthCentre: "h", pavedRoad: "p",
+  highSchool: "y", middleSchool: "o", healthCentre: "h", pavedRoad: "p", named: "l",
 };
 const kept = new Set(shown.map((v) => ATTRIBUTE[v.id]));
 const dropped = Object.values(ATTRIBUTE).filter((a) => !kept.has(a));
@@ -829,6 +835,21 @@ const communesRoute = path(locale, "communes/");
   .swatch.u4 { fill: var(--unemp-4); background: var(--unemp-4); }
   .atlas[data-view="unemployment"] :global([data-u="5"]),
   .swatch.u5 { fill: var(--unemp-5); background: var(--unemp-5); }
+  /* Named douars: the same one-hue ramp, light to dark, few to most. */
+  .atlas[data-view="named"] :global([data-l="0"]),
+  .swatch.l0 { fill: var(--seq-0); background: var(--seq-0); }
+  .atlas[data-view="named"] :global([data-l="1"]),
+  .swatch.l1 { fill: var(--seq-1); background: var(--seq-1); }
+  .atlas[data-view="named"] :global([data-l="2"]),
+  .swatch.l2 { fill: var(--seq-2); background: var(--seq-2); }
+  .atlas[data-view="named"] :global([data-l="3"]),
+  .swatch.l3 { fill: var(--seq-3); background: var(--seq-3); }
+  .atlas[data-view="named"] :global([data-l="4"]),
+  .swatch.l4 { fill: var(--seq-4); background: var(--seq-4); }
+  .atlas[data-view="named"] :global([data-l="5"]),
+  .swatch.l5 { fill: var(--seq-5); background: var(--seq-5); }
+  .atlas[data-view="named"] :global([data-l="n"]),
+  .swatch.ln { fill: var(--map-none); background: var(--map-none); }
   /* How far rural homes are: the one-hue ramp, read light to dark, near to far. A town has no douars, and no shade. */
   .atlas[data-view="highSchool"] :global([data-y="0"]),
   .swatch.y0 { fill: var(--seq-0); background: var(--seq-0); }

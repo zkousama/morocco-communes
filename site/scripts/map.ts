@@ -41,6 +41,8 @@ const TOLERANCE = 0.7;
 export const DENSITY_BREAKS = [10, 50, 150, 500, 2000];
 export const CHANGE_BREAKS = [-10, -2, 2, 10, 25];
 export const ILLITERACY_BREAKS = [10, 20, 30, 40, 50];
+/** The share of a commune's douars a source names in Latin, in percent. */
+export const NAMED_BREAKS = [10, 25, 50, 75, 90];
 
 const classOf = (value: number | null, breaks: number[]) => shadeOf(value, breaks, false);
 
@@ -109,6 +111,7 @@ const services = serviceCounts(serviceRows);
 const douarsOf = new Map<string, typeof allDouars>();
 for (const d of allDouars) douarsOf.set(d.communeCode, [...(douarsOf.get(d.communeCode) ?? []), d]);
 const accessOf = new Map([...douarsOf].map(([code, rows]) => [code, summarise(rows).km]));
+const namedOf = new Map([...douarsOf].map(([code, rows]) => [code, (rows.filter((d) => d.latin).length / rows.length) * 100]));
 const km = (code: string, key: "highSchool" | "middleSchool" | "healthCentre" | "pavedRoad") => {
   const value = accessOf.get(code)?.[key];
   return value === undefined ? null : Math.round(value * 10) / 10;
@@ -194,7 +197,8 @@ for (const { topology, arcs } of decoded) {
         `data-u="${shadeOf(unemploymentOf.get(code) ?? null, UNEMPLOYMENT_BREAKS, false)}" ` +
         `data-k="${serviceOf(tramOf.get(code) ?? null, trainOf.get(code) ?? null, commune.population["2024"].total)}" ` +
         `data-y="${classOf(km(code, "highSchool"), SERVICE_BREAKS)}" data-o="${classOf(km(code, "middleSchool"), SERVICE_BREAKS)}" ` +
-        `data-h="${classOf(km(code, "healthCentre"), SERVICE_BREAKS)}" data-p="${classOf(km(code, "pavedRoad"), ROAD_BREAKS)}"/>`,
+        `data-h="${classOf(km(code, "healthCentre"), SERVICE_BREAKS)}" data-p="${classOf(km(code, "pavedRoad"), ROAD_BREAKS)}" ` +
+        `data-l="${classOf(namedOf.get(code) ?? null, NAMED_BREAKS)}"/>`,
     );
   }
 
@@ -270,6 +274,7 @@ export const womenBreaks = ${JSON.stringify(WOMEN_BREAKS)};
 export const unemploymentBreaks = ${JSON.stringify(UNEMPLOYMENT_BREAKS)};
 export const serviceBreaks = ${JSON.stringify(SERVICE_BREAKS)};
 export const roadBreaks = ${JSON.stringify(ROAD_BREAKS)};
+export const namedBreaks = ${JSON.stringify(NAMED_BREAKS)};
 export const tramCommunes = ${services.tram};
 export const trainCommunes = ${services.train};
 export const shapes = ${shapes.length};

@@ -1,0 +1,361 @@
+---
+/**
+ * How a douar gets its Latin name, as pictures with a line each: where the names come from,
+ * the chance test, the engine reading a name, how close it gets, the fractions and the
+ * visitors. Every number comes from lib/naming.ts, read from the data and the code that
+ * decides it; the words are i18n/names.ts.
+ */
+import Docs from "../../layouts/Docs.astro";
+import Map from "../Map.astro";
+import { names } from "../../i18n/names";
+import { path, type Locale } from "../../i18n/ui";
+import { numbers, percent } from "../../lib/format";
+import { consonantsOf, naming, spell } from "../../lib/naming";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const c = names[locale];
+const n = numbers(locale);
+const count = (v: number) => n.format(v);
+const share = (fraction: number, digits = 0) => percent(locale, fraction * 100, { digits });
+const fill = (text: string, values: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_, k: string) => values[k] ?? `{${k}}`);
+
+const toc = [
+  { id: "found", label: c.found },
+  { id: "chance", label: c.chance },
+  { id: "engine", label: c.engine },
+  { id: "accuracy", label: c.accuracy },
+  { id: "fractions", label: c.fractions },
+  { id: "visitors", label: c.visitors },
+];
+
+// The douars by where their name comes from: the sources in the chart's greens, the
+// engine's spellings in the grey a commune with no figure gets on the map.
+const sources = [
+  { key: "education", value: naming.education, tone: "s5" },
+  { key: "osm", value: naming.osm, tone: "s3" },
+  { key: "geonames", value: naming.geonames, tone: "s1" },
+  { key: "visitors", value: naming.visitors, tone: "brass" },
+  { key: "spelt", value: naming.spelt, tone: "none" },
+].filter((s) => s.value > 0);
+
+const chance = [
+  { key: "schools", value: naming.chance.schools },
+  { key: "places", value: naming.chance.places },
+  { key: "near", value: naming.chance.near },
+];
+// The scale runs past the line, so the line sits inside the chart.
+const chanceTop = naming.chance.most * 1.25;
+
+const accuracy = [
+  { key: "exact", value: naming.rules.exact, tone: "here" },
+  { key: "close", value: naming.rules.withinALetter, tone: "here" },
+  { key: "agree", value: naming.agree.exact, tone: "other" },
+];
+
+const labelled = naming.outside + naming.notional;
+const fractionParts = [
+  { key: "named", value: naming.fractionsNamed, tone: "s5" },
+  { key: "label", value: labelled, tone: "brass" },
+  { key: "spelt", value: naming.fractions - naming.fractionsNamed - labelled, tone: "none" },
+];
+
+const examples = ["تالوين", "توريرت نترست"].map((arabic) => ({ arabic, keys: consonantsOf(arabic), latin: spell(arabic) }));
+const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.typedLink}</a>` });
+---
+
+<Docs
+  locale={locale}
+  route="docs/names/"
+  title={c.title}
+  description={c.description}
+  lede={fill(c.lede, { douars: count(naming.douars) })}
+  toc={toc}
+>
+  <p class="note"><a href={path(locale, "douars/")}>{c.findDouar}</a></p>
+
+  <section id="found">
+    <h2>{c.found}</h2>
+    <p>{fill(c.foundBody, { sourced: count(naming.sourced) })}</p>
+    <div class="stack" aria-hidden="true">
+      {sources.map((s) => <span class={s.tone} style={`flex-grow:${s.value}`}></span>)}
+    </div>
+    <ul class="key">
+      {sources.map((s) => (
+        <li>
+          <span class={`swatch ${s.tone}`}></span>
+          <span>{c.sources[s.key as keyof typeof c.sources]}</span>
+          <span class="num">{count(s.value)}</span>
+        </li>
+      ))}
+    </ul>
+    <div class="map">
+      <Map locale={locale} views={["named"]} />
+    </div>
+  </section>
+
+  <section id="chance">
+    <h2>{c.chance}</h2>
+    <p>{c.chanceBody}</p>
+    <ul class="bars">
+      {chance.map((row) => (
+        <li>
+          <span class="label">{c.chanceRows[row.key as keyof typeof c.chanceRows]}</span>
+          <span class="track">
+            <span class="bar here" style={`width:${(row.value / chanceTop) * 100}%`}></span>
+            <span class="limit" style={`inset-inline-start:${(naming.chance.most / chanceTop) * 100}%`}></span>
+          </span>
+          <span class="num">{share(row.value, 1)}</span>
+        </li>
+      ))}
+      <li class="axis" aria-hidden="true">
+        <span></span>
+        <span class="track">
+          <span class="limit-label" style={`inset-inline-start:${(naming.chance.most / chanceTop) * 100}%`}>
+            {c.chanceLimit}, {share(naming.chance.most)}
+          </span>
+        </span>
+        <span></span>
+      </li>
+    </ul>
+  </section>
+
+  <section id="engine">
+    <h2>{c.engine}</h2>
+    <p>{fill(c.engineBody, { spelt: count(naming.spelt), keysMeet: share(naming.keysMeet, 1) })}</p>
+    <div class="examples">
+      {examples.map((e) => (
+        <figure class="example">
+          <span class="arabic" lang="ar" dir="rtl">{e.arabic}</span>
+          <span class="arrow" aria-hidden="true">↓</span>
+          <span class="keys" aria-label={`${c.consonants}: ${e.keys.join(" ")}`}>
+            {e.keys.map((k) => <span>{k}</span>)}
+          </span>
+          <span class="arrow" aria-hidden="true">↓</span>
+          <span class="latin">{e.latin}</span>
+        </figure>
+      ))}
+    </div>
+    <p class="note" set:html={typed} />
+  </section>
+
+  <section id="accuracy">
+    <h2>{c.accuracy}</h2>
+    <p>{c.accuracyBody}</p>
+    <ul class="bars">
+      {accuracy.map((row) => (
+        <li>
+          <span class="label">{c.accuracyRows[row.key as keyof typeof c.accuracyRows]}</span>
+          <span class="track"><span class={`bar ${row.tone}`} style={`width:${row.value * 100}%`}></span></span>
+          <span class="num">{share(row.value)}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section id="fractions">
+    <h2>{c.fractions}</h2>
+    <p>{c.fractionsBody}</p>
+    <div class="stack" aria-hidden="true">
+      {fractionParts.map((s) => <span class={s.tone} style={`flex-grow:${s.value}`}></span>)}
+    </div>
+    <ul class="key">
+      {fractionParts.map((s) => (
+        <li>
+          <span class={`swatch ${s.tone}`}></span>
+          <span>{c.fractionRows[s.key as keyof typeof c.fractionRows]}</span>
+          <span class="num">{count(s.value)}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section id="visitors">
+    <h2>{c.visitors}</h2>
+    <p>{c.visitorsBody}</p>
+  </section>
+</Docs>
+
+<style>
+  section > p {
+    max-width: var(--measure);
+  }
+
+  /* A whole, split: one bar the width of the column, each part as wide as its share. */
+  .stack {
+    display: flex;
+    gap: 2px;
+    height: 1.6rem;
+    margin-top: 1.25rem;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .stack span {
+    min-width: 2px;
+  }
+
+  .s5 { background: var(--seq-5); }
+  .s3 { background: var(--seq-3); }
+  .s1 { background: var(--seq-1); }
+  .brass { background: var(--brass); }
+  .none { background: var(--map-none); }
+
+  .key {
+    list-style: none;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    font-size: var(--t-sm);
+  }
+
+  .key li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+  }
+
+  .num {
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .map {
+    margin-top: 1.75rem;
+  }
+
+  /* Bars on one scale, a row each, in the 3 columns the rows share. */
+  .bars {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    gap: 0.6rem 1rem;
+    align-items: center;
+    font-size: var(--t-sm);
+  }
+
+  .bars li {
+    display: contents;
+  }
+
+  .bars .num {
+    text-align: end;
+    color: var(--ink);
+  }
+
+  .track {
+    position: relative;
+    display: block;
+    height: 1.1rem;
+    background: var(--well);
+    border-radius: 2px;
+  }
+
+  .axis .track {
+    height: 1rem;
+    background: none;
+  }
+
+  .bar {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  .bar.here { background: var(--chart-up); }
+  .bar.other { background: var(--quiet); }
+
+  .limit {
+    position: absolute;
+    top: -0.25rem;
+    bottom: -0.25rem;
+    width: 2px;
+    background: var(--brass);
+  }
+
+  .limit-label {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: var(--t-xs);
+    color: var(--brass);
+    white-space: nowrap;
+  }
+
+  /* A name read down to its consonants and back up into Latin letters. */
+  .examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1.25rem;
+    margin: 1.5rem 0 0;
+  }
+
+  .example {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1.1rem 1rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+
+  .arabic {
+    font-size: var(--t-lg);
+    line-height: 1.4;
+  }
+
+  .latin {
+    font-family: var(--display);
+    font-size: var(--t-lg);
+  }
+
+  .arrow {
+    color: var(--quiet);
+    font-size: var(--t-sm);
+  }
+
+  .keys {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+
+  .keys span {
+    font-family: var(--mono);
+    font-size: var(--t-sm);
+    color: var(--brass);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.05rem 0.4rem;
+  }
+
+  @media (max-width: 34rem) {
+    .bars {
+      grid-template-columns: minmax(0, 1fr) max-content;
+    }
+
+    .bars .label {
+      grid-column: 1 / -1;
+      margin-bottom: -0.35rem;
+    }
+
+    .axis > span:first-child {
+      display: none;
+    }
+  }
+</style>

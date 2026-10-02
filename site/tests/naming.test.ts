@@ -1,48 +1,42 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { names } from "../src/i18n/names.ts";
 import { PAGES } from "../src/i18n/ui.ts";
-import { naming, spell } from "../src/lib/naming.ts";
+import { consonantsOf, naming, spell } from "../src/lib/naming.ts";
+import { arabicKeys, latinKeys } from "../../api/src/lib/translit.ts";
 
-/**
- * The numbers the page on douar names states, against the data and code they come from: every
- * one is read from `naming`, so once the expressions are out, no digit but the 2 of "the 2
- * scripts" may be left in either page.
- */
+/** Every string in an object, however deep. */
+const strings = (value: unknown): string[] =>
+  typeof value === "string" ? [value] : value && typeof value === "object" ? Object.values(value).flatMap(strings) : [];
+
 describe("the page on douar names", () => {
-  const source = (path: string) => readFileSync(path, "utf8");
-  const pages = { en: source("site/src/pages/docs/names.astro"), fr: source("site/src/pages/fr/docs/names.astro") };
-
-  /** A page's reader-facing text: its markup, with every expression, code span and tag taken out. */
-  const prose = (page: string) => {
-    let body = page.split("---")[2]!.replace(/<code>[\s\S]*?<\/code>/g, " ");
-    while (/\{[^{}<>]*\}/.test(body)) body = body.replace(/\{[^{}<>]*\}/g, " ");
-    return body.replace(/<[^>]*>/g, " ").replace(/[ \t\r\n]+/g, " ");
-  };
-
-  it("leaves no number typed into either page", () => {
+  it("types no number into its words: each one comes from naming, but the 2 of both", () => {
     for (const locale of ["en", "fr"] as const) {
-      const text = prose(pages[locale]).replace(/\b2\b/g, " ");
+      const text = strings(names[locale]).join(" ").replace(/\{\w+\}/g, " ").replace(/\b2\b/g, " ");
       expect(text.match(/.{0,30}\d.{0,30}/g), locale).toBeNull();
     }
   });
 
   it("gives counts that add up", () => {
-    expect(naming.education + naming.osm + naming.geonames).toBeLessThanOrEqual(naming.sourced);
+    expect(naming.education + naming.osm + naming.geonames + naming.visitors).toBe(naming.sourced);
     expect(naming.sourced + naming.spelt).toBe(naming.douars);
-    expect(naming.chance.schools).toBeLessThanOrEqual(naming.chance.most);
-    expect(naming.chance.places).toBeLessThanOrEqual(naming.chance.most);
-    expect(naming.chance.near).toBeLessThanOrEqual(naming.chance.most);
+    expect(naming.fractionsNamed + naming.outside + naming.notional).toBeLessThanOrEqual(naming.fractions);
+    for (const chance of [naming.chance.schools, naming.chance.places, naming.chance.near]) expect(chance).toBeLessThanOrEqual(naming.chance.most);
   });
 
-  it("shows the rules its examples are there for", () => {
-    // A word the table has, as HCP writes the commune, and one it hasn't, by the rules.
+  it("shows the engine reading its examples down to consonants both scripts share", () => {
+    // A word the table has, as HCP writes the commune, and a douar GeoNames names.
     expect(spell("تالوين")).toBe("Taliouine");
-    expect(spell("تيفنوين")).toBe("Tifnouine");
+    expect(spell("توريرت نترست")).toBe("Taourirt n'Tirst");
+    for (const arabic of ["تالوين", "توريرت نترست"]) {
+      expect(consonantsOf(arabic).join("").toLowerCase()).toBe(arabicKeys(arabic)[0]);
+      expect(latinKeys(spell(arabic))).toContain(arabicKeys(arabic)[0]);
+    }
   });
 
   it("is linked from where the names show, and listed for the sitemap", () => {
     expect(PAGES).toContain("docs/names/");
-    expect(source("site/src/components/places/Douars.astro")).toContain('path(locale, "docs/names/")');
-    expect(source("site/src/components/DouarsPage.astro")).toContain('path(locale, "docs/names/")');
+    expect(readFileSync("site/src/components/places/Douars.astro", "utf8")).toContain('path(locale, "docs/names/")');
+    expect(readFileSync("site/src/components/DouarsPage.astro", "utf8")).toContain('path(locale, "docs/names/")');
   });
 });

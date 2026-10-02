@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { MAX_CHANCE } from "../../../api/src/lib/douarPlaces.ts";
 import { normalise } from "../../../api/src/lib/normalise.ts";
 import { toLatin } from "../../../api/src/lib/spell.ts";
-import { lettersApart } from "../../../api/src/lib/translit.ts";
+import { arabicKeys, lettersApart } from "../../../api/src/lib/translit.ts";
 import type { WordTable } from "../../../api/src/lib/translitWords.ts";
 import { VOTES } from "../../../api/src/worker/suggest.ts";
 import { allDouars, allFractions } from "./douars.ts";
@@ -46,6 +46,7 @@ export const naming = {
   education: bySource("education"),
   osm: bySource("osm"),
   geonames: bySource("geonames"),
+  visitors: bySource("visitors"),
   /** The share each pass still finds with every commune swapped for another. */
   chance: { schools: named.chance, places: places.chance, near: places.nearChance, most: MAX_CHANCE },
   /** The douars the Ministry and a map both name, and the share where the 2 spell it alike. */
@@ -63,3 +64,6 @@ export const naming = {
 
 /** An Arabic name as the engine spells it, for the page's examples. */
 export const spell = (arabic: string) => toLatin(arabic, table);
+
+/** The consonants a name comes down to in either script (translit.ts), as the page shows them. */
+export const consonantsOf = (arabic: string) => (arabicKeys(arabic)[0] ?? "").toUpperCase().split("");
