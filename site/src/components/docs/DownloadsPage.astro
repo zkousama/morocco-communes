@@ -1,0 +1,36 @@
+---
+/**
+ * Every file of the dataset to download, in the groups lib/downloads.ts sets out.
+ */
+import Docs from "../../layouts/Docs.astro";
+import Downloads from "../Downloads.astro";
+import { REPO_URL, t, type Locale } from "../../i18n/ui";
+import { escapeHtml } from "../../lib/highlight";
+import { DOWNLOAD_GROUPS } from "../../lib/downloads";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+type Group = keyof typeof DOWNLOAD_GROUPS;
+const labels = copy.downloadGroups as Record<Group, string>;
+const groups = Object.entries(DOWNLOAD_GROUPS) as [Group, readonly string[]][];
+const toc = groups.map(([id]) => ({ id, label: labels[id] }));
+
+/** Copy with a {placeholder} that becomes a link, escaped like any other text. */
+const linked = (text: string, links: Record<string, [href: string, label: string]>) =>
+  escapeHtml(text).replace(/\{(\w+)\}/g, (_, k: string) =>
+    links[k] ? `<a href="${links[k]![0]}">${escapeHtml(links[k]![1])}</a>` : `{${k}}`,
+  );
+---
+
+<Docs locale={locale} route="docs/downloads/" title={copy.dataHeading} description={copy.downloadsDescription} lede={copy.downloadsLede} toc={toc}>
+  <p class="note" set:html={linked(copy.dataBody, { readme: [`${REPO_URL}/blob/main/data/v1/README.md`, copy.linkReadme] })} />
+  {groups.map(([id, keys]) => (
+    <section id={id}>
+      <h2>{labels[id]}</h2>
+      <Downloads locale={locale} keys={keys} />
+    </section>
+  ))}
+</Docs>

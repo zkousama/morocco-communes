@@ -38,6 +38,7 @@ export const build = (copy: Copy): Section[] => [
   { route: "docs/components/", label: copy.navComponents },
   { route: "docs/npm/", label: copy.navNpm },
   { route: "docs/python/", label: copy.navPython },
+  { route: "docs/downloads/", label: copy.navDownloads },
 ];
 
 /** Explore, Data, Build. The bar and the phone menu both render this. */

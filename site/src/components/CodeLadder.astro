@@ -1,0 +1,144 @@
+---
+/**
+ * One commune's code, read down from its région: each row is a level, and the code grows by
+ * a group of digits at each. On the glossary, under the HCP code.
+ */
+import { LEVELS, t, type Locale } from "../i18n/ui";
+import { chain } from "../generated/hierarchy";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = t(locale);
+const levels = LEVELS[locale];
+// French groups thousands with a thin space, English with a comma.
+const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+---
+
+<div class="ladder-scroll">
+<table class="ladder">
+  <thead>
+    <tr>
+      <th scope="col">code</th>
+      <th scope="col"><span class="sr">{copy.codeHeading}</span></th>
+      <th scope="col" class="num">{copy.colPopulation}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {chain.map((entry) => (
+      <tr>
+        <td class="mono code">{entry.code}</td>
+        <td class="name">
+          <span>{entry.fr}</span>
+          <span class="level">{levels[entry.level]}</span>
+        </td>
+        <td class="num">{entry.population === null ? "—" : group.format(entry.population)}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+</div>
+
+<style>
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The code ladder -------------------------------------------------------- */
+
+  /* The codes can't wrap without losing the shape of the column. On a phone the level
+     drops under the name and the header wraps, which leaves them room; on anything
+     narrower the table scrolls inside its own box. */
+  .ladder-scroll {
+    overflow-x: auto;
+    margin-top: 0.75rem;
+  }
+
+  .ladder {
+    width: 100%;
+    min-width: 30rem;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+  }
+
+  .ladder th:first-child,
+  .ladder td:first-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .ladder th {
+    text-align: start;
+    font-weight: 400;
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    padding: 0 0 0.55rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ladder td {
+    padding: 0.62rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  .ladder tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* Flush left, so the shared prefix lines up down the column: 01, then 01.511, then
+     01.511.05. Indenting by depth looked like a tree but pushed those apart, and the
+     code already says how deep it is, since the dots are the depth. */
+  .ladder .code {
+    padding-inline-end: 1.5rem;
+    white-space: nowrap;
+    color: var(--brass);
+    direction: ltr;
+  }
+
+  .ladder .name {
+    width: 100%;
+  }
+
+  .ladder .name .level {
+    color: var(--quiet);
+    font-size: var(--t-xs);
+    margin-inline-start: 0.6rem;
+  }
+
+  .ladder .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 40rem) {
+    .ladder {
+      min-width: 20rem;
+    }
+    .ladder .name {
+      padding-inline-end: 0.75rem;
+    }
+    .ladder .name .level {
+      display: block;
+      margin: 0;
+    }
+    .ladder th.num {
+      white-space: normal;
+    }
+  }
+
+  /* Tiers: a sequence
+
+  @media (max-width: 40rem) {
+    .ladder .code {
+      padding-inline-end: 1rem;
+    }
+  }
+</style>

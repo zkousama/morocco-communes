@@ -1,0 +1,141 @@
+---
+/**
+ * Files to download, each group with its size and licence, from what site/scripts/downloads.ts
+ * reads off data/v1. `keys` picks the groups, in the order given.
+ */
+import { downloads } from "../generated/downloads";
+import { t, type Locale } from "../i18n/ui";
+
+interface Props {
+  locale: Locale;
+  keys: readonly string[];
+}
+const { locale, keys } = Astro.props;
+const copy = t(locale);
+const shown = keys.map((key) => {
+  const found = downloads.find((g) => g.key === key);
+  if (!found) throw new Error(`no download group ${key}`);
+  return found;
+});
+
+// French writes octets; everyone else here writes bytes.
+const units = locale === "fr" ? ["o", "Ko", "Mo"] : ["B", "KB", "MB"];
+const numberIn = locale === "fr" ? "fr-FR" : "en-GB";
+const size = (bytes: number) => {
+  // Decimal units, since KB and MB are what they are labelled; a file manager agrees.
+  if (bytes < 1000) return `${bytes} ${units[0]}`;
+  if (bytes < 1_000_000) {
+    // A decimal under 10 KB, where rounding to whole kilobytes is out by a fifth.
+    const digits = bytes < 10_000 ? 1 : 0;
+    return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: digits }).format(bytes / 1000)} ${units[1]}`;
+  }
+  return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 1 }).format(bytes / 1_000_000)} ${units[2]}`;
+};
+---
+
+<ul class="downloads">
+  {shown.map((group) => (
+    <li class:list={["dl", { wide: group.files.length > 2 }]}>
+      <span class="dl-name">
+        {copy[group.key]}
+        {group.licence === "odbl" && <span class="dl-licence">ODbL</span>}
+      </span>
+      <span class="dl-files">
+        {group.files.map((file) => (
+          <a href={file.href} data-download>
+            <span class="dl-label">{file.label}</span>
+            <span class="dl-size">{size(file.bytes)}</span>
+          </a>
+        ))}
+      </span>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .downloads {
+    list-style: none;
+    padding: 0;
+    margin: 1.75rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 2.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .dl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* A block, not a column flexbox: combined with the wrap on .dl, the flex version spread
+     the région rows a hundred pixels apart. */
+  .dl.wide {
+    grid-column: 1 / -1;
+    display: block;
+  }
+
+  .dl.wide .dl-name {
+    display: block;
+    margin-bottom: 0.55rem;
+  }
+
+  .dl-name {
+    font-size: var(--t-sm);
+  }
+
+  .dl-licence {
+    margin-inline-start: 0.5rem;
+    font-size: var(--t-xs);
+    color: var(--brass);
+  }
+
+  .dl-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    font-size: var(--t-sm);
+  }
+
+  .dl.wide .dl-files {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.3rem 1.5rem;
+  }
+
+  .dl-files a {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: baseline;
+    justify-content: space-between;
+    text-decoration: none;
+  }
+
+  .dl-label {
+    text-decoration: underline;
+    text-decoration-color: var(--brass);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .dl-files a:hover .dl-label {
+    color: var(--brass);
+  }
+
+  .dl-size {
+    font-size: var(--t-xs);
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 40rem) {
+    .downloads {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

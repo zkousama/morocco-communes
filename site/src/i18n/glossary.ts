@@ -74,7 +74,7 @@ export const glossary: Record<Locale, { title: string; description: string; lede
           {
             id: "code",
             term: "HCP code",
-            body: "The identifier of a unit, written 01.511.01.0. The same code is also 001511010 padded to 9 digits. HCP's spreadsheets drop the leading zeros and write 1511010. The API takes any of the three, and a slug.",
+            body: "The identifier of a unit, written 01.511.01.0. The same code is also 001511010 padded to 9 digits. HCP's spreadsheets drop the leading zeros and write 1511010. The API takes any of the three, and a slug. Each group of digits names a level, so a commune’s code holds its province’s and its région’s.",
           },
         ],
       },
@@ -337,7 +337,7 @@ export const glossary: Record<Locale, { title: string; description: string; lede
           {
             id: "code",
             term: "Code HCP",
-            body: "L’identifiant d’une unité, écrit 01.511.01.0. Le même code s’écrit aussi 001511010 sur 9 chiffres et 1511010 sans les zéros de tête, forme sous laquelle il arrive dans les classeurs du HCP. L’API accepte les trois, et un slug.",
+            body: "L’identifiant d’une unité, écrit 01.511.01.0. Le même code s’écrit aussi 001511010 sur 9 chiffres et 1511010 sans les zéros de tête, forme sous laquelle il arrive dans les classeurs du HCP. L’API accepte les trois, et un slug. Chaque groupe de chiffres nomme un niveau : le code d’une commune contient donc celui de sa province et de sa région.",
           },
         ],
       },

@@ -7,6 +7,8 @@
  * census figures page carries HCP's headings; in French it is the entry.
  */
 import Docs from "../../layouts/Docs.astro";
+import CodeLadder from "../CodeLadder.astro";
+import CrosswalkCheck from "../CrosswalkCheck.astro";
 import { glossary } from "../../i18n/glossary";
 import { hcpDefinition } from "../../lib/definitions";
 import { inline } from "../../lib/inline";
@@ -46,6 +48,8 @@ const say = (entry: (typeof g.groups)[number]["entries"][number]) => {
                     {said.under.body}
                   </p>
                 )}
+                {entry.id === "code" && <CodeLadder locale={locale} />}
+                {entry.id === "crosswalk" && <CrosswalkCheck locale={locale} />}
               </dd>
             </div>
           );

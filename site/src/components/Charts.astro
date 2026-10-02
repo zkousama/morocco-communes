@@ -1,8 +1,7 @@
 ---
 import Arrow from "./Arrow.astro";
-import { change, half, shrinking, since, sizes, spread } from "../generated/charts";
-import { REPO_URL, t, type Locale } from "../i18n/ui";
-import { escapeHtml } from "../lib/highlight";
+import { change, half, shrinking, since, sizes } from "../generated/charts";
+import { t, type Locale } from "../i18n/ui";
 import { percent as formatPercent } from "../lib/format";
 
 interface Props {
@@ -30,6 +29,7 @@ const fillIn = (text: string, values: Record<string, string | number>) =>
 // Shares to one decimal, kept even when it's 0, and to 2 under 1%, so 0.45% doesn't round to a half.
 const percent = (v: number) => formatPercent(locale, v, { digits: Math.abs(v) < 1 ? 2 : 1, fixed: true });
 const shrinkMax = Math.max(...shrinking.map((s) => s.shrank + s.grew));
+const signed = (v: number) => formatPercent(locale, v, { signed: true, fixed: true });
 
 /* Chart 6: what the two censuses found, each rate a point in 2014 and a point in 2024,
    on one 0-to-100 scale so the five sit against each other. */
@@ -40,18 +40,6 @@ const sinceRows = since.map((row) => ({
   from: Math.min(row.before, row.after),
   to: Math.max(row.before, row.after),
 }));
-
-/* Chart 3: the two growth distributions, on one shared scale. */
-const lo = Math.min(...spread.map((s) => s.p10));
-const hi = Math.max(...spread.map((s) => s.p90));
-const pad = (hi - lo) * 0.08;
-const scale = (v: number) => ((v - (lo - pad)) / (hi - lo + pad * 2)) * 100;
-const ticks = [-20, -10, 0, 10, 20];
-const signed = (v: number) => formatPercent(locale, v, { signed: true, fixed: true });
-const spoken = (row: (typeof spread)[number]) =>
-  copy.srSpread.replace(/\{(\w+)\}/g, (_, key: string) =>
-    signed((row as unknown as Record<string, number>)[key] ?? 0),
-  );
 ---
 
 <div class="charts">
@@ -185,50 +173,6 @@ const spoken = (row: (typeof spread)[number]) =>
     </p>
   </figure>
 
-  <figure class="chart wide">
-    <figcaption>
-      <h3>{copy.chartSpread}</h3>
-      <p>{copy.chartSpreadBody}</p>
-    </figcaption>
-    <div class="rangegrid">
-      {spread.map((row) => (
-        <>
-          <span class="rangename">
-            {row.basis === "exact_code" ? copy.spreadUnchanged : copy.spreadCrosswalk}
-            <span class="n">{group.format(row.count)}</span>
-            <span class="sr-only">{locale === "fr" ? " : " : ": "}{spoken(row)}</span>
-          </span>
-          <span class="rangetrack" aria-hidden="true">
-            {ticks.map((tick) => (
-              <span class:list={["tick", { zeroline: tick === 0 }]} style={`inset-inline-start:${scale(tick)}%`}></span>
-            ))}
-            <span
-              class="whisker"
-              style={`inset-inline-start:${scale(row.p10)}%;width:${scale(row.p90) - scale(row.p10)}%`}
-            ></span>
-            <span
-              class="box"
-              style={`inset-inline-start:${scale(row.p25)}%;width:${scale(row.p75) - scale(row.p25)}%`}
-            ></span>
-            <span class="median" style={`inset-inline-start:${scale(row.median)}%`}></span>
-          </span>
-        </>
-      ))}
-      <span class="spacer" aria-hidden="true"></span>
-      <span class="scalebar" aria-hidden="true">
-        {ticks.map((tick) => (
-          <span style={`inset-inline-start:${scale(tick)}%`} class="tick-label">{formatPercent(locale, tick, { signed: true, digits: 0 })}</span>
-        ))}
-      </span>
-    </div>
-    <p
-      class="note"
-      set:html={escapeHtml(copy.chartSpreadNote).replace(
-        "{crosswalk}",
-        `<a href="${REPO_URL}/blob/main/data/v1/crosswalk/README.md">${escapeHtml(copy.linkCrosswalk)}</a>`,
-      )}
-    />
-  </figure>
 </div>
 
 <style>
@@ -621,100 +565,11 @@ const spoken = (row: (typeof spread)[number]) =>
     overflow-wrap: anywhere;
   }
 
-  /* Box and whisker --------------------------------------------------------- */
-
-  .rangegrid {
-    display: grid;
-    grid-template-columns: minmax(9rem, 17rem) minmax(0, 1fr);
-    gap: 0.6rem 1rem;
-    align-items: center;
-  }
-
-  .rangename {
-    font-size: var(--t-sm);
-    color: var(--ink);
-    line-height: 1.4;
-  }
-
-  .rangename .n {
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    margin-inline-start: 0.5rem;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .rangetrack {
-    position: relative;
-    display: block;
-    height: 1.5rem;
-  }
-
-  .tick {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: var(--rule);
-  }
-
-  .tick.zeroline {
-    background: var(--quiet);
-  }
-
-  .whisker {
-    position: absolute;
-    top: 50%;
-    height: 1px;
-    background: var(--chart-up);
-    transform: translateY(-50%);
-  }
-
-  .box {
-    position: absolute;
-    top: 0.3rem;
-    bottom: 0.3rem;
-    background: var(--chart-up);
-    opacity: 0.28;
-    border-radius: 3px;
-  }
-
-  /* Reads against the box it sits inside, which the accent colour would not. */
-  .median {
-    position: absolute;
-    top: 0.1rem;
-    bottom: 0.1rem;
-    width: 2px;
-    background: var(--ink);
-  }
-
-  .scalebar {
-    position: relative;
-    display: block;
-    height: 1rem;
-  }
-
-  .scalebar span {
-    position: absolute;
-    transform: translateX(-50%);
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-
   @media (max-width: 62rem) {
     .charts {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .rangegrid {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 0.3rem;
-    }
-
-    .spacer {
-      display: none;
-    }
   }
 
   @media (max-width: 34rem) {

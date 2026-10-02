@@ -4,9 +4,8 @@ import Beacon from "./Beacon.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
 import Atlas from "./Map.astro";
-import { escapeHtml } from "../lib/highlight";
-import { AUTHOR, COUNTED, LEVELS, path, REPO_URL, t, type Locale } from "../i18n/ui";
-import { chain, counts } from "../generated/hierarchy";
+import { AUTHOR, COUNTED, path, REPO_URL, t, type Locale } from "../i18n/ui";
+import { counts } from "../generated/hierarchy";
 import { downloads } from "../generated/downloads";
 import { reference } from "../generated/reference";
 
@@ -15,7 +14,6 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-const levels = LEVELS[locale];
 const counted = COUNTED[locale];
 // The island's props are written into the page, so it gets its own strings, not all of them.
 const playgroundCopy = Object.fromEntries(PLAYGROUND_KEYS.map((key) => [key, copy[key]])) as Record<
@@ -26,41 +24,13 @@ const playgroundCopy = Object.fromEntries(PLAYGROUND_KEYS.map((key) => [key, cop
 // French groups thousands with a thin space, English with a comma.
 const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
 
-const tiers = [
-  // Counted from what the API build writes, so it follows every route added.
-  { name: copy.tierPre, body: copy.tierPreBody.replace("{files}", group.format(reference.apiFiles)), header: copy.tierPreHeader },
-  { name: copy.tierAlias, body: copy.tierAliasBody, header: "X-Api-Tier: alias" },
-  { name: copy.tierComputed, body: copy.tierComputedBody, header: "X-Api-Tier: computed" },
-];
-
-const prerendered = `GET /api/regions.json
-GET /api/regions/01/provinces.json
-GET /api/provinces/01.511/communes/page/1.json
-GET /api/communes/01.511.01.0.json
-GET /api/communes/01.511.01.0/arrondissements.json
-GET /api/communes/type/urban/page/1.json
-GET /api/version.json`;
-
-// French writes octets; everyone else here writes bytes.
-const units = locale === "fr" ? ["o", "Ko", "Mo"] : ["B", "KB", "MB"];
-const numberIn = locale === "fr" ? "fr-FR" : "en-GB";
-const size = (bytes: number) => {
-  // Decimal units, since KB and MB are what they are labelled; a file manager agrees.
-  if (bytes < 1000) return `${bytes} ${units[0]}`;
-  if (bytes < 1_000_000) {
-    // A decimal under 10 KB, where rounding to whole kilobytes is out by a fifth.
-    const digits = bytes < 10_000 ? 1 : 0;
-    return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: digits }).format(bytes / 1000)} ${units[1]}`;
-  }
-  return `${new Intl.NumberFormat(numberIn, { maximumFractionDigits: 1 }).format(bytes / 1_000_000)} ${units[2]}`;
-};
-
 const ways = [
   { route: "docs/api/", name: copy.navApi, text: copy.useApi },
   { route: "docs/mcp/", name: copy.navMcp, text: copy.useMcp },
   { route: "docs/components/", name: copy.navComponents, text: copy.useComponents },
   { route: "docs/npm/", name: copy.navNpm, text: copy.useNpm },
   { route: "docs/python/", name: copy.navPython, text: copy.usePython },
+  { route: "docs/downloads/", name: copy.navDownloads, text: copy.useDownloads },
 ];
 
 // What Google Dataset Search reads. It needs absolute URLs, so it's only written when the
@@ -100,15 +70,6 @@ const dataset =
         ),
       }
     : null;
-
-/** Copy with a {placeholder} that becomes a link, escaped like any other text. */
-const linked = (text: string, links: Record<string, [href: string, label: string]>) =>
-  escapeHtml(text).replace(/\{(\w+)\}/g, (_, k: string) =>
-    links[k] ? `<a href="${links[k]![0]}">${escapeHtml(links[k]![1])}</a>` : `{${k}}`,
-  );
-
-/** The pre-rendered routes, each a link to the file that answers it. */
-const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, ""));
 ---
 
 <Base locale={locale}>
@@ -134,35 +95,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
   </section>
 
   <section class="band">
-    <h2>{copy.codeHeading}</h2>
-    <p>{copy.codeBody}</p>
-
-    <div class="ladder-scroll">
-    <table class="ladder">
-      <thead>
-        <tr>
-          <th scope="col">code</th>
-          <th scope="col"><span class="sr">{copy.codeHeading}</span></th>
-          <th scope="col" class="num">{copy.colPopulation}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {chain.map((entry) => (
-          <tr>
-            <td class="mono code">{entry.code}</td>
-            <td class="name">
-              <span>{entry.fr}</span>
-              <span class="level">{levels[entry.level]}</span>
-            </td>
-            <td class="num">{entry.population === null ? "—" : group.format(entry.population)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    </div>
-  </section>
-
-  <section class="band">
     <h2>{copy.chartsHeading}</h2>
     {copy.chartsBody && <p>{copy.chartsBody}</p>}
     <Charts locale={locale} />
@@ -182,48 +114,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
         <li>
           <a href={path(locale, way.route)}>{way.name}</a>
           <span>{way.text}</span>
-        </li>
-      ))}
-    </ul>
-  </section>
-
-  <section class="band">
-    <h2>{copy.tiersHeading}</h2>
-    <p>{copy.tiersBody}</p>
-    <ol class="tiers">
-      {tiers.map((tier) => (
-        <li>
-          <h3>{tier.name}</h3>
-          <p class="mono header">{tier.header}</p>
-          <p>{tier.body}</p>
-        </li>
-      ))}
-    </ol>
-    <ul class="routes">
-      {routeLines.map((route) => (
-        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
-      ))}
-    </ul>
-  </section>
-
-  <section class="band">
-    <h2>{copy.dataHeading}</h2>
-    <p set:html={linked(copy.dataBody, { readme: [`${REPO_URL}/blob/main/data/v1/README.md`, copy.linkReadme] })} />
-    <ul class="downloads">
-      {downloads.map((group) => (
-        <li class:list={["dl", { wide: group.files.length > 2 }]}>
-          <span class="dl-name">
-            {copy[group.key]}
-            {group.licence === "odbl" && <span class="dl-licence">ODbL</span>}
-          </span>
-          <span class="dl-files">
-            {group.files.map((file) => (
-              <a href={file.href} data-download>
-                <span class="dl-label">{file.label}</span>
-                <span class="dl-size">{size(file.bytes)}</span>
-              </a>
-            ))}
-          </span>
         </li>
       ))}
     </ul>
@@ -347,265 +237,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
     color: var(--quiet);
   }
 
-  /* The code ladder -------------------------------------------------------- */
-
-  /* The codes can't wrap without losing the shape of the column. On a phone the level
-     drops under the name and the header wraps, which leaves them room; on anything
-     narrower the table scrolls inside its own box. */
-  .ladder-scroll {
-    overflow-x: auto;
-    margin-top: 1.75rem;
-  }
-
-  .ladder {
-    width: 100%;
-    min-width: 30rem;
-    border-collapse: collapse;
-    font-size: var(--t-sm);
-  }
-
-  .ladder th:first-child,
-  .ladder td:first-child {
-    width: 1%;
-    white-space: nowrap;
-  }
-
-  .ladder th {
-    text-align: start;
-    font-weight: 400;
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    padding: 0 0 0.55rem;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .ladder td {
-    padding: 0.62rem 0;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: baseline;
-  }
-
-  .ladder tr:last-child td {
-    border-bottom: 0;
-  }
-
-  /* Flush left, so the shared prefix lines up down the column: 01, then 01.511, then
-     01.511.05. Indenting by depth looked like a tree but pushed those apart, and the
-     code already says how deep it is, since the dots are the depth. */
-  .ladder .code {
-    padding-inline-end: 1.5rem;
-    white-space: nowrap;
-    color: var(--brass);
-    direction: ltr;
-  }
-
-  .ladder .name {
-    width: 100%;
-  }
-
-  .ladder .name .level {
-    color: var(--quiet);
-    font-size: var(--t-xs);
-    margin-inline-start: 0.6rem;
-  }
-
-  .ladder .num {
-    text-align: end;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 40rem) {
-    .ladder {
-      min-width: 20rem;
-    }
-    .ladder .name {
-      padding-inline-end: 0.75rem;
-    }
-    .ladder .name .level {
-      display: block;
-      margin: 0;
-    }
-    .ladder th.num {
-      white-space: normal;
-    }
-  }
-
-  /* Tiers: a sequence, because a request really does fall through them in order. */
-  .tiers {
-    list-style: none;
-    counter-reset: tier;
-    padding: 0;
-    margin: 1.75rem 0 0;
-    display: grid;
-    gap: 1px;
-    background: var(--rule);
-    border-block: 1px solid var(--rule);
-  }
-
-  .tiers li {
-    counter-increment: tier;
-    background: var(--paper);
-    padding: 1.1rem 0;
-    display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1.6fr);
-    gap: 0 1rem;
-    align-items: baseline;
-  }
-
-  .tiers li::before {
-    content: counter(tier);
-    font-family: var(--mono);
-    font-size: var(--t-xs);
-    color: var(--quiet);
-  }
-
-  .tiers h3 {
-    margin: 0;
-    font-size: var(--t-base);
-    font-weight: 500;
-  }
-
-  .tiers .header {
-    grid-column: 2;
-    margin: 0.2rem 0 0;
-    font-size: var(--t-xs);
-    color: var(--brass);
-    direction: ltr;
-  }
-
-
-  .tiers li p:last-child {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-    margin: 0;
-    color: var(--quiet);
-    font-size: var(--t-sm);
-  }
-
-  /* Routes and downloads are links now, so a reader can open the real response. */
-  ul.routes {
-    list-style: none;
-    margin: 1.75rem 0 0;
-    padding: 1.1rem 1.25rem;
-    background: var(--well);
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    font-family: var(--mono);
-    font-size: var(--t-xs);
-    line-height: 1.9;
-    overflow-x: auto;
-  }
-
-  ul.routes li {
-    white-space: nowrap;
-  }
-
-  ul.routes .verb {
-    color: var(--quiet);
-  }
-
-  ul.routes a {
-    color: var(--code-string);
-    text-decoration: none;
-  }
-
-  ul.routes a:hover {
-    text-decoration: underline;
-  }
-
-  .downloads {
-    list-style: none;
-    padding: 0;
-    margin: 1.75rem 0 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 2.5rem;
-    border-top: 1px solid var(--rule);
-  }
-
-  .dl {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.35rem 1rem;
-    padding: 0.8rem 0;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  /* A block, not a column flexbox: combined with the wrap on .dl, the flex version spread
-     the région rows a hundred pixels apart. */
-  .dl.wide {
-    grid-column: 1 / -1;
-    display: block;
-  }
-
-  .dl.wide .dl-name {
-    display: block;
-    margin-bottom: 0.55rem;
-  }
-
-  .dl-name {
-    font-size: var(--t-sm);
-  }
-
-  .dl-licence {
-    margin-inline-start: 0.5rem;
-    font-size: var(--t-xs);
-    color: var(--brass);
-  }
-
-  .dl-files {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem 1.1rem;
-    font-size: var(--t-sm);
-  }
-
-  .dl.wide .dl-files {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: 0.3rem 1.5rem;
-  }
-
-  .dl-files a {
-    display: inline-flex;
-    gap: 0.45rem;
-    align-items: baseline;
-    justify-content: space-between;
-    text-decoration: none;
-  }
-
-  .dl-label {
-    text-decoration: underline;
-    text-decoration-color: var(--brass);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
-  }
-
-  .dl-files a:hover .dl-label {
-    color: var(--brass);
-  }
-
-  .dl-size {
-    font-size: var(--t-xs);
-    color: var(--quiet);
-    font-variant-numeric: tabular-nums;
-  }
-
-  @media (max-width: 40rem) {
-    .downloads {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-
-  @media (max-width: 40rem) {
-    .ladder .code {
-      padding-inline-end: 1rem;
-    }
-  }
 
   /* Wide: the words are centred on the map itself. The map's figure hands its parts to the
      grid, so the buttons and the legend below the map sit in the next row and no longer pull
@@ -643,16 +274,6 @@ const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, "
   @media (max-width: 62rem) {
     .hero {
       grid-template-columns: minmax(0, 1fr);
-    }
-
-    .tiers li {
-      grid-template-columns: 2rem minmax(0, 1fr);
-    }
-
-    .tiers li p:last-child {
-      grid-column: 2;
-      grid-row: auto;
-      margin-top: 0.5rem;
     }
   }
 </style>

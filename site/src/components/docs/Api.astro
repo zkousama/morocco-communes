@@ -7,13 +7,34 @@ import { reference } from "../../generated/reference";
 import { docs, SPEC_FR } from "../../i18n/docs";
 import { highlightJson } from "../../lib/highlight";
 import { inline } from "../../lib/inline";
-import type { Locale } from "../../i18n/ui";
+import { t, type Locale } from "../../i18n/ui";
 
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
 const d = docs[locale].api;
+const copy = t(locale);
+// French groups thousands with a thin space, English with a comma.
+const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+
+const tiers = [
+  // Counted from what the API build writes, so it follows every route added.
+  { name: copy.tierPre, body: copy.tierPreBody.replace("{files}", group.format(reference.apiFiles)), header: copy.tierPreHeader },
+  { name: copy.tierAlias, body: copy.tierAliasBody, header: "X-Api-Tier: alias" },
+  { name: copy.tierComputed, body: copy.tierComputedBody, header: "X-Api-Tier: computed" },
+];
+
+const prerendered = `GET /api/regions.json
+GET /api/regions/01/provinces.json
+GET /api/provinces/01.511/communes/page/1.json
+GET /api/communes/01.511.01.0.json
+GET /api/communes/01.511.01.0/arrondissements.json
+GET /api/communes/type/urban/page/1.json
+GET /api/version.json`;
+
+/** The pre-rendered routes, each a link to the file that answers it. */
+const routeLines = prerendered.split("\n").map((line) => line.replace(/^GET /, ""));
 
 interface Param {
   name: string;
@@ -75,6 +96,7 @@ const errors = Object.entries(reference.errors as Record<string, { status: numbe
 
 const toc = [
   { id: "basics", label: d.basics },
+  { id: "tiers", label: copy.tiersHeading },
   { id: "routes", label: d.routes },
   { id: "files", label: d.files },
   { id: "errors", label: d.errors },
@@ -102,12 +124,30 @@ const toc = [
         </dd>
       </div>
       <div><dt>{d.shape}</dt><dd set:html={inline(d.shapeBody)} /></div>
-      <div><dt>{d.cost}</dt><dd set:html={inline(d.costBody)} /></div>
       <div>
         <dt>{d.spec}</dt>
         <dd>{d.specBody} <a href="/api/openapi.json"><code>/api/openapi.json</code></a></dd>
       </div>
     </dl>
+  </section>
+
+  <section id="tiers">
+    <h2>{copy.tiersHeading}</h2>
+    <p class="quiet">{copy.tiersBody}</p>
+    <ol class="tiers">
+      {tiers.map((tier) => (
+        <li>
+          <h3>{tier.name}</h3>
+          <p class="mono header">{tier.header}</p>
+          <p>{tier.body}</p>
+        </li>
+      ))}
+    </ol>
+    <ul class="routes">
+      {routeLines.map((route) => (
+        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
+      ))}
+    </ul>
   </section>
 
   <section id="routes">
@@ -198,6 +238,101 @@ const toc = [
 </Docs>
 
 <style>
+  /* Tiers: a sequence, because a request really does fall through them in order. */
+  .tiers {
+    list-style: none;
+    counter-reset: tier;
+    padding: 0;
+    margin: 1.75rem 0 0;
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border-block: 1px solid var(--rule);
+  }
+
+  .tiers li {
+    counter-increment: tier;
+    background: var(--paper);
+    padding: 1.1rem 0;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 0 1rem;
+    align-items: baseline;
+  }
+
+  .tiers li::before {
+    content: counter(tier);
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--quiet);
+  }
+
+  .tiers h3 {
+    margin: 0;
+    font-size: var(--t-base);
+    font-weight: 500;
+  }
+
+  .tiers .header {
+    grid-column: 2;
+    margin: 0.2rem 0 0;
+    font-size: var(--t-xs);
+    color: var(--brass);
+    direction: ltr;
+  }
+
+
+  .tiers li p:last-child {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    margin: 0;
+    color: var(--quiet);
+    font-size: var(--t-sm);
+  }
+
+  /* Routes and downloads are links now, so a reader can open the real response. */
+  ul.routes {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 1.1rem 1.25rem;
+    background: var(--well);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    line-height: 1.9;
+    overflow-x: auto;
+  }
+
+  ul.routes li {
+    white-space: nowrap;
+  }
+
+  ul.routes .verb {
+    color: var(--quiet);
+  }
+
+  ul.routes a {
+    color: var(--code-string);
+    text-decoration: none;
+  }
+
+  ul.routes a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 62rem) {
+    .tiers li {
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .tiers li p:last-child {
+      grid-column: 2;
+      grid-row: auto;
+      margin-top: 0.5rem;
+    }
+  }
+
   .basics,
   .errors {
     margin: 1rem 0 0;

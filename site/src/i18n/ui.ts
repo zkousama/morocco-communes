@@ -9,7 +9,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Franç
 
 
 /** Every page, by its path after the locale prefix. The sitemap lists these in each language. */
-export const PAGES = ["", "communes/", "insights/", "where/", "compare/", "douars/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/names/", "docs/privacy/"] as const;
+export const PAGES = ["", "communes/", "insights/", "where/", "compare/", "douars/", "docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/downloads/", "docs/indicators/", "docs/glossary/", "docs/insights/", "docs/names/", "docs/privacy/"] as const;
 
 /** `/` for English, `/fr/` for French. */
 export const path = (locale: Locale, rest = "") =>
@@ -59,12 +59,16 @@ export const ui = {
     navComponents: "Components",
     navNpm: "npm",
     navPython: "Python",
+    navDownloads: "Downloads",
+    downloadGroups: { places: "Places", census: "Census", boundaries: "Boundaries", sources: "Sources" },
+    downloadsDescription: "Every file of the dataset to download: the communes, the census figures, the douars and the boundaries, as JSON, CSV, GeoJSON and TopoJSON.",
+    downloadsLede: "The whole dataset, as files.",
     copy: "Copy",
     copied: "Copied",
     onThisPage: "On this page",
     tagline: "Morocco’s 1,503 communes, as open data.",
     intro:
-      "Official HCP codes, names in French and Arabic, population from the 2024 and 2014 censuses, what they found about people and homes, the establishments the last one mapped, and a boundary for every commune but one. Free to use.",
+      "Codes, names, census figures, boundaries and douars. Free to use.",
     mapCaption: "{n} communes, from the boundaries this API serves.",
     mapAlt: "Map of Morocco’s {n} communes",
     mapShade: "Shade the map by",
@@ -131,8 +135,6 @@ export const ui = {
     mapKeys: "Zoom with + and −. Move around with the arrow keys.",
 
     codeHeading: "How a code reads",
-    codeBody:
-      "Each group of digits names a level, so a commune’s code already contains its province and its région. Cercles sit above rural communes only; an urban commune may hold arrondissements instead.",
     colPopulation: "Population, 2024",
 
     tryHeading: "Run a query",
@@ -144,6 +146,7 @@ export const ui = {
     useComponents: "A commune picker for forms",
     useNpm: "The data as a typed package, offline",
     usePython: "Every table as a DataFrame, offline",
+    useDownloads: "Every file, as JSON, CSV or GeoJSON",
 
     tiersHeading: "Where a request is answered",
     tiersBody:
@@ -196,7 +199,7 @@ export const ui = {
     chartSizeBody: "Communes by 2024 population.",
     chartSpread: "Whether the crosswalk holds up",
     chartSpreadBody:
-      "207 communes were renumbered by the 2015 reform, so their 2014 population had to be matched by name and elimination rather than read off an unchanged code. If those matches were wrong, their implied growth would scatter differently.",
+      "Their 2014 population was matched by name and elimination. If those matches were wrong, their growth would scatter apart from the rest.",
     chartHalf: "Half the people, under 1% of the land",
     chartHalfBody: "The {n} densest communes, against the other {rest}.",
     halfPeople: "Share of the population, 2024",
@@ -408,12 +411,16 @@ export const ui = {
     navComponents: "Composants",
     navNpm: "npm",
     navPython: "Python",
+    navDownloads: "Téléchargements",
+    downloadGroups: { places: "Lieux", census: "Recensement", boundaries: "Limites", sources: "Sources" },
+    downloadsDescription: "Chaque fichier du jeu de données à télécharger : les communes, les chiffres des recensements, les douars et les limites, en JSON, CSV, GeoJSON et TopoJSON.",
+    downloadsLede: "Tout le jeu de données, en fichiers.",
     copy: "Copier",
     copied: "Copié",
     onThisPage: "Sur cette page",
     tagline: "Les 1 503 communes du Maroc, en données ouvertes.",
     intro:
-      "Codes officiels du HCP, noms en français et en arabe, population des recensements de 2024 et 2014, ce qu’ils disent des habitants et des logements, les établissements relevés par le dernier, et une limite pour chaque commune sauf une. Libre d’usage.",
+      "Codes, noms, chiffres des recensements, limites et douars. Libre d’usage.",
     mapCaption: "{n} communes, d’après les limites que sert cette API.",
     mapAlt: "Carte des {n} communes du Maroc",
     mapShade: "Colorer la carte selon",
@@ -480,8 +487,6 @@ export const ui = {
     mapKeys: "Zoomez avec + et −. Déplacez-vous avec les flèches.",
 
     codeHeading: "Comment se lit un code",
-    codeBody:
-      "Chaque groupe de chiffres nomme un niveau : le code d’une commune contient donc déjà sa province et sa région. Les cercles ne coiffent que les communes rurales ; une commune urbaine peut à la place contenir des arrondissements.",
     colPopulation: "Population, 2024",
 
     tryHeading: "Lancer une requête",
@@ -493,6 +498,7 @@ export const ui = {
     useComponents: "Un sélecteur de commune pour les formulaires",
     useNpm: "Les données en paquet typé, hors ligne",
     usePython: "Chaque table en DataFrame, hors ligne",
+    useDownloads: "Chaque fichier, en JSON, CSV ou GeoJSON",
 
     tiersHeading: "Où une requête est traitée",
     tiersBody:
@@ -545,7 +551,7 @@ export const ui = {
     chartSizeBody: "Communes selon leur population en 2024.",
     chartSpread: "Ce que vaut la table de correspondance",
     chartSpreadBody:
-      "207 communes ont été renumérotées par la réforme de 2015 : leur population de 2014 a dû être appariée par nom et par élimination, faute d’un code inchangé. Si ces appariements étaient faux, leur croissance se disperserait autrement.",
+      "Leur population de 2014 a été appariée par nom et par élimination. Si ces appariements étaient faux, leur croissance s’écarterait de celle des autres.",
     chartHalf: "La moitié des habitants sur moins de 1 % du territoire",
     chartHalfBody: "Les {n} communes les plus denses, face aux {rest} autres.",
     halfPeople: "Part de la population, 2024",

@@ -10,7 +10,7 @@ describe("the header and the phone menu", () => {
     const links = [
       ["communes/", "insights/", "where/", "compare/", "douars/"],
       ["docs/indicators/", "docs/glossary/", "docs/names/", "docs/insights/"],
-      ["docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/"],
+      ["docs/api/", "docs/mcp/", "docs/components/", "docs/npm/", "docs/python/", "docs/downloads/"],
     ];
     expect(routes("en")).toEqual([
       ["Explore", links[0]],
