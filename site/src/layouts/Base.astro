@@ -35,7 +35,9 @@ const themes = themeList(copy);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title ? `${title} · ${copy.title}` : copy.title}</title>
     <meta name="description" content={description ?? copy.tagline} />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={copy.title} />

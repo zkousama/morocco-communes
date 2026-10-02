@@ -37,6 +37,7 @@ const svg = `<svg class="map" viewBox="${viewBox}" xmlns="http://www.w3.org/2000
   .communes path { fill: #34362e; stroke: #191b16; stroke-width: 0.35; }
   ${DARK_RAMP.map((c, i) => `.communes [data-d="${i}"] { fill: ${c}; }`).join("\n  ")}
   .regions { fill: none; stroke: #191b16; stroke-width: 1.8; stroke-linejoin: round; }
+  .douars { display: none; }
 </style>${markup}</svg>`;
 const copy = ui.en;
 
