@@ -28,6 +28,18 @@ describe("an Arabic name in Latin", () => {
   });
 });
 
+describe("a number in a name", () => {
+  it("stays a number in both directions, whatever the table learned", () => {
+    expect(toLatin("أولاد كثير 1", { ...table, toLatin: { ...table.toLatin, "1": "Hay" } })).toBe("Oulad Ktir 1");
+    expect(toLatin("دوار ٢", none)).toMatch(/ 2$/);
+    expect(toArabic("Hay 3", none)).toMatch(/ 3$/);
+  });
+
+  it("isn't learned as a word", () => {
+    expect(buildWordTable([{ fr: "Hay 1", ar: "حي 1" }]).toLatin).toEqual({ "حي": "Hay" });
+  });
+});
+
 describe("a Latin name in Arabic", () => {
   it("takes HCP's spelling for a word it has seen", () => {
     expect(toArabic("Ouled Youssef", table)).toBe("أولاد يوسف");

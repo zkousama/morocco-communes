@@ -84,6 +84,9 @@ export function wordPairs(pairs: readonly { fr: string; ar: string }[]): [arabic
     const f = latinWords(fr);
     if (a.length !== f.length) continue;
     a.forEach((word, i) => {
+      // A number is written the same in both scripts, so it teaches nothing, and lined up
+      // against a word it teaches something wrong: 1 had become Hay.
+      if (/\d/.test(word) || /\d/.test(f[i]!)) return;
       if (keysMeet(arabicKeys(word), latinKeys(f[i]!))) out.push([word, f[i]!]);
     });
   }

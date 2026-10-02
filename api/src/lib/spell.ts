@@ -89,10 +89,15 @@ function latinWord(word: string, construct: boolean, openings: Record<string, st
 }
 
 /** An Arabic name in Latin: HCP's spelling of each word the table knows, the model's or the rules' for the rest. */
+/** Arabic-Indic digits as the digits Latin writes. */
+const westernDigits = (word: string) => word.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+
 export function toLatin(name: string, table: WordTable, models?: Models): string {
   const words = arabicWords(name);
   return words
     .map((word, i) => {
+      // A number stays a number: أولاد كثير 1 is Oulad Ktir 1.
+      if (/^[0-9٠-٩]+$/.test(word)) return westernDigits(word);
       const known = table.toLatin[normalise(word)];
       if (known) return known;
       const guess = models && spell(models.toLatin, modelArabic(word))[0]?.text;
@@ -138,6 +143,7 @@ function arabicWord(word: string): string {
 export function toArabic(name: string, table: WordTable, models?: Models): string {
   return latinWords(name)
     .map((word) => {
+      if (/^\d+$/.test(word)) return word;
       const known = table.toArabic[normalise(word)];
       if (known) return known;
       const guess = models && spell(models.toArabic, modelLatin(word))[0]?.text;
