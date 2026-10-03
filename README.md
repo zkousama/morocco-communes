@@ -5,7 +5,8 @@ provinces and préfectures, 8 préfectures d'arrondissements, 213 cercles, 1,503
 and 41 arrondissements, with
 official HCP geographic codes, names in French and Arabic, 2024 and 2014 population, HCP's
 census figures on age, education, languages, work and housing from both years, the 2024
-count of economic establishments, and boundaries from OpenStreetMap.
+count of economic establishments, the douars of the rural communes, and boundaries from
+OpenStreetMap.
 
 HCP publishes the census as spreadsheets. This builds a dataset, an API and a site from them
 and from OpenStreetMap, and shows the working.
@@ -23,6 +24,7 @@ with no entry in it.
 | `indicators/` | the census indicators for every unit, 2024 and 2014, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `economy/` | the 2024 count of economic establishments for every unit, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `housing/` | the 2024 urban housing stock, by dwelling, JSON and CSV | HCP, on CC BY 4.0 terms |
+| `douars/` | the 33,189 douars of the rural communes in 2024, each in its fraction, JSON and CSV | HCP, on CC BY 4.0 terms |
 | `crosswalk/` | the 2014 ↔ 2024 reconciliation | HCP, on CC BY 4.0 terms |
 | `insights/` | each commune's 2024 figures that stand out, with its neighbours and 2014 beside each, JSON | the lines this repository's own; the figures HCP, on CC BY 4.0 terms |
 | `sources.json` | each source's digest, licence and vintage | |
@@ -42,7 +44,7 @@ than committed.
 
 Three tiers, and which one served a response is in its `X-Api-Tier` header.
 
-**Pre-rendered.** 11,629 files written at build time and served straight from
+**Pre-rendered.** 12,723 files written at build time and served straight from
 Cloudflare Pages, without running any code. Free and unmetered.
 
 ```
@@ -55,6 +57,8 @@ GET /api/communes/01.511.01.0/arrondissements.json
 GET /api/communes/09.581.01.07/neighbours.json
 GET /api/communes/01.511.01.0/indicators.json
 GET /api/communes/09.581.01.07/economy.json
+GET /api/communes/09.163.07.17/douars.json
+GET /api/communes/01.511.01.0/neighbourhoods.json
 GET /api/arrondissements/01.511.01.05.json   GET /api/indicators.json
 GET /api/economy.json                        GET /api/version.json
 GET /data/v1/**
@@ -92,7 +96,8 @@ maqsura the names actually carry, and the tatweel and vowel marks they never do 
 type anyway. It matches names spelt another way by their consonants, so `titwan` finds
 Tétouan and `jdida` El Jadida. `01.511.01.0`, `001511010`, `1511010` and `tanger` all
 address one commune, and 18 exonyms are listed by hand because no amount of character folding gets from `Fez`
-to Fès or from `Port Lyautey` to Kénitra.
+to Fès or from `Port Lyautey` to Kénitra. A neighbourhood's name finds the commune or
+arrondissement it's in, and so does a 5-digit postcode.
 
 **What's counted.** The alias and computed routes and the MCP server count their own use
 in Workers Analytics Engine: the route with its codes taken out, or an MCP message's tool
@@ -127,9 +132,9 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 10 read-only tools (`search`, `get_commune`, `get_unit`,
+- **`/mcp`**: an MCP server with 12 read-only tools (`search`, `get_commune`, `get_unit`,
   `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`,
-  `get_housing`, `get_insights`), so
+  `get_housing`, `get_insights`, `get_neighbourhoods`, `get_douars`), so
   Claude, Claude Code and other MCP clients can query the data directly, census figures
   included. The site's `/docs/mcp/` page has the setup for each client.
 
@@ -213,6 +218,33 @@ model and no network call. The API serves the same files at
 assistant. [The methods page](https://communes.pages.dev/docs/insights/) says how a figure is
 picked, and `insights/pilot/` holds the study of an earlier design that asked a language
 model for reasons.
+
+## Douars
+
+HCP publishes the 2024 census down to the douar, the villages and hamlets of a rural
+commune: 33,189 of them, in 5,203 fractions across 1,279 communes, named in Arabic only.
+`data/v1/douars/` has each one's households and people, and for a douar of 30 households
+or more its people by nationality, sex, age, civil registration and marital status, the
+kind of dwelling its households live in, and how far its homes are from a paved road, a
+primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which gets null.
+
+A douar's Latin name comes from a source that writes one: the Ministry of National
+Education's lists of public schools, OpenStreetMap or GeoNames, matched to HCP's Arabic
+among the douars of its own commune. 14,710 douars have one. Each matching pass runs a
+second time against the wrong commune, and what it still finds there is how many of its
+matches are chance: 1.0% for the school lists, 1.7% and 4.1% for the 2 map passes. A pass
+over 5% writes nothing.
+
+The site spells the other douars from the Arabic, in `api/src/lib/spell.ts`: a table of
+words learned from names written in both scripts, and rules for the way French writes
+Moroccan names.
+`pnpm translit --eval` scores it on names held back from it. A visitor can suggest a
+spelling for a douar no source names, and the same engine checks the suggestions each
+night before one goes live.
+
+The API serves a commune's douars at `/api/communes/{code}/douars.json`, and the MCP
+server's `get_douars` gives them to an assistant.
+[The names page](https://communes.pages.dev/docs/names/) shows where each name comes from.
 
 ## Running it
 
