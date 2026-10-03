@@ -230,14 +230,14 @@ const toc = [
       {tiers.map((tier) => (
         <li>
           <h3>{tier.name}</h3>
-          <p class="mono header">{tier.header}</p>
+          <p class="mono header"><bdi>{tier.header}</bdi></p>
           <p>{tier.body}</p>
         </li>
       ))}
     </ol>
     <ul class="routes">
       {routeLines.map((route) => (
-        <li><bdi dir="ltr"><span class="verb">GET</span> <a href={route}>{route}</a></bdi></li>
+        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
       ))}
     </ul>
   </section>
@@ -307,7 +307,6 @@ const toc = [
     margin: 0.2rem 0 0;
     font-size: var(--t-xs);
     color: var(--brass);
-    direction: ltr;
   }
 
   .tiers li p:last-child {
@@ -334,6 +333,11 @@ const toc = [
 
   ul.routes li {
     white-space: nowrap;
+  }
+
+  /* A block of requests, which reads left to right like code in every language. */
+  :global([dir="rtl"]) ul.routes {
+    direction: ltr;
   }
 
   ul.routes .verb {
