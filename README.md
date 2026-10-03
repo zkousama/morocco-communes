@@ -155,11 +155,12 @@ Full reference: [`api/README.md`](api/README.md).
 
 ## The docs site
 
-`site/` is an Astro site in English and French, with a light and dark theme and a control
-to pick either or follow the system. It builds to static HTML: the home page, 7 docs pages
-(the API reference, the MCP setup, the components, the npm package, the Python package,
-the census figures and a glossary), and a page for every région, province and commune,
-3,216 pages in all.
+`site/` is an Astro site in English, French and Arabic, with a light and dark theme and a
+control to pick either or follow the system. It builds to static HTML: the home page, the
+standout figures, the compare page, the douars, 11 docs pages (the API reference, the MCP
+setup, the components, the npm package, the Python package, the downloads, the census
+figures, a glossary, how the standout figures are picked, how douars are named, and what
+the site counts), and a page for every région, province and commune, 4,845 pages in all.
 
 The home page opens on a map of every commune, shaded by density, change since 2014, or
 urban and rural. Hovering one shows its figures and clicking opens its page. A commune's
@@ -189,8 +190,8 @@ scripts under `site/scripts/`:
   build on a file that isn't there.
 - `reference.ts` builds the API reference from `buildOpenApi`, with each example a real
   response from the emitted files or the Worker's own functions, and lists the MCP tools
-  by connecting a client to the server. The French page reads a translation of each line
-  of the spec, and the build fails when one is missing or left over.
+  by connecting a client to the server. The French and Arabic pages read a translation of
+  each line of the spec, and the build fails when one is missing or left over.
 
 The région, province and commune pages are built from `site/src/lib/places.ts`, which
 reads `data/v1` once per build: ranks, the communes each one borders, matched on shared
@@ -198,7 +199,12 @@ boundary points, and small maps drawn the same way as the home map.
 
 The charts are inline SVG and CSS, so they need no JavaScript and no charting library.
 
-Arabic names are in the data and Arabic queries work; the interface is English and French.
+The Arabic pages are under `/ar/` and read right to left. They lead with each unit's
+Arabic name and set HCP's Latin spelling beside it, and write numbers the way Morocco does
+in Arabic, 1.503 and 12,8%. Every census field has an Arabic name in
+`site/src/i18n/fields.ts`, in HCP's own terms, with HCP's French wording kept beside it as
+on the English page. Charts with a scale, the histograms and the compare strips, stay left
+to right; lists, bars and the rest of the page turn.
 
 It's static because nothing in it needs a server, so the hand-written Worker stays
 the only Worker and the pages cost nothing to serve.

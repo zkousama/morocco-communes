@@ -332,6 +332,7 @@ console.log("\nnot found, for a person rather than a client");
 for (const [path, marker] of [
   ["/about", "No page here"],
   ["/fr/nulle-part", "Aucune page ici"],
+  ["/ar/nowhere", "لا توجد صفحة هنا"],
 ] as const) {
   const response = await fetch(base + path);
   const text = await response.text();
@@ -344,6 +345,7 @@ console.log("\npages");
 for (const path of [
   "/docs/api/", "/docs/mcp/", "/docs/components/", "/docs/npm/", "/docs/python/", "/docs/glossary/", "/fr/docs/api/", "/fr/docs/mcp/", "/fr/docs/python/", "/fr/docs/glossary/",
   "/communes/", "/communes/tanger/", "/fr/communes/tafraout/", "/provinces/chefchaouen/", "/regions/oriental/",
+  "/ar/", "/ar/communes/tafraout/", "/ar/provinces/chefchaouen/", "/ar/docs/api/", "/ar/docs/glossary/", "/ar/douars/",
 ]) {
   const response = await fetch(base + path);
   check(`${path} is a page`, response.status === 200 && (response.headers.get("content-type") ?? "").includes("text/html"),
