@@ -198,6 +198,19 @@ describe("the nightly run", () => {
   });
 });
 
+describe("the nightly check of suggested spellings", () => {
+  it("can fail without stopping the rollup or the 90-day deletion", async () => {
+    const database = db();
+    insert(database, "2026-09-23", "01.511.01.0", 2);
+    insert(database, "2026-06-01", "01.511.01.0", 1);
+    // The check reads this table first; without it, its query throws.
+    database.exec("DROP TABLE douar_names");
+    await night(database);
+    expect(database.prepare("SELECT n FROM daily WHERE day = '2026-09-23'").get()).toEqual({ n: 2 });
+    expect(database.prepare("SELECT COUNT(*) AS n FROM events WHERE day = '2026-06-01'").get()).toEqual({ n: 0 });
+  });
+});
+
 describe("the ranking the public page reads", () => {
   const ranking = (database: DatabaseSync) => database.prepare("SELECT code, n, since FROM ranking ORDER BY n DESC, code").all();
 

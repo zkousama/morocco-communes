@@ -23,8 +23,13 @@ export default {
   async scheduled(controller: ScheduledController, env: { DEMAND: D1Database }, _ctx: ExecutionContext) {
     const now = controller.scheduledTime;
     const days = Array.from({ length: WINDOW }, (_, i) => dayBefore(now, i + 1));
-    // Before the prune, so a spelling suggested 90 days ago still gets its night.
-    await acceptSuggestions(env.DEMAND as never, dayBefore(now, 0));
+    // Before the prune, so a spelling suggested 90 days ago still gets its night. On its own,
+    // so a check that fails leaves the rollup and the 90-day deletion below to run as promised.
+    try {
+      await acceptSuggestions(env.DEMAND as never, dayBefore(now, 0));
+    } catch (error) {
+      console.error("the spelling check failed; the rollup goes on", error);
+    }
     await env.DEMAND.batch([
       ...days.map((day) => env.DEMAND.prepare(ROLLUP).bind(day)),
       env.DEMAND.prepare(PRUNE).bind(dayBefore(now, KEEP_DAYS)),
