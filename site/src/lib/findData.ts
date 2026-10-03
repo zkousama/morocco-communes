@@ -4,6 +4,7 @@
  */
 import { path, t, type Locale } from "../i18n/ui";
 import { rowOf, type Hit, type Places, type Row } from "./find";
+import { nameIn } from "./names";
 import {
   arrondissementOf,
   arrondissements,
@@ -22,11 +23,11 @@ export const placesFor = (locale: Locale): Places => ({
     province: path(locale, "provinces/"),
     region: path(locale, "regions/"),
   },
-  regions: Object.fromEntries(regions.map((r) => [r.code, r.name.fr])),
+  regions: Object.fromEntries(regions.map((r) => [r.code, nameIn(locale, r.name)])),
   cities: Object.fromEntries(
     [...new Set(arrondissements.map((a) => a.communeCode))].flatMap((code) => {
       const city = communeOf.get(code);
-      return city ? [[code, { slug: city.slug, name: city.name.fr }]] : [];
+      return city ? [[code, { slug: city.slug, name: nameIn(locale, city.name) }]] : [];
     }),
   ),
   prefectures: provinces.filter((p) => p.type !== "province").map((p) => p.code),
@@ -35,9 +36,10 @@ export const placesFor = (locale: Locale): Places => ({
       .filter((c) => sharedNames.has(c.name.fr))
       .flatMap((c) => {
         const province = provinceOf.get(c.parents.province);
-        return province ? [[c.code, province.name.fr]] : [];
+        return province ? [[c.code, nameIn(locale, province.name)]] : [];
       }),
   ),
+  ...(locale === "ar" && { arabic: true }),
 });
 
 /** A code from the ranking as the search would have returned it, or null if it has no page. */

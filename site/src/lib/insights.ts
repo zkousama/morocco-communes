@@ -28,9 +28,10 @@ import { figure as withUnit } from "../../../insights/src/text.ts";
 import { fill, places } from "../i18n/places";
 import type { Locale } from "../i18n/ui";
 import { moroccoLine } from "./context";
-import { numbers, percent } from "./format";
+import { numbers, percent, signedIn } from "./format";
 import { figure as censusFigure, indicatorsOf } from "./indicators";
 import { communeOf, communes } from "./places";
+import { nameIn } from "./names";
 
 const isMissing = (error: unknown): boolean => (error as NodeJS.ErrnoException)?.code === "ENOENT";
 
@@ -164,11 +165,11 @@ const isShare = (path: string) => field(path)?.unit === "percent";
 /** A change as a signed amount: points for a share, the figure's own unit otherwise. */
 function signed(locale: Locale, path: string, change: number): string {
   const sign = change < 0 ? "−" : change > 0 ? "+" : "";
-  if (!isShare(path)) return `${sign}${withUnit(path, Math.abs(change), locale)}`;
+  if (!isShare(path)) return signedIn(locale, `${sign}${withUnit(path, Math.abs(change), locale)}`);
   const body = numbers(locale, 1, true).format(Math.abs(change));
-  // French keeps "point" singular below 2, as it does "enfant".
-  const unit = locale === "fr" && Math.abs(change) < 2 ? "point" : "points";
-  return `${sign}${body} ${unit}`;
+  // French keeps "point" singular below 2, as it does "enfant"; Arabic counts a decimal in the singular.
+  const unit = locale === "ar" ? "نقطة" : locale === "fr" && Math.abs(change) < 2 ? "point" : "points";
+  return signedIn(locale, `${sign}${body} ${unit}`);
 }
 
 /**
@@ -192,7 +193,7 @@ export function nearLine(locale: Locale, f: Published): { before: string; name: 
           value,
         });
   const [before, after] = sentence.split("{place}") as [string, string];
-  return { before, name: near.furthest.name.fr, code: near.furthest.code, after };
+  return { before, name: nameIn(locale, near.furthest.name), code: near.furthest.code, after };
 }
 
 /**

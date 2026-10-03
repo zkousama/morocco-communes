@@ -876,7 +876,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             sampled: z
               .boolean()
               .describe("True when the figure is a census figure in a commune of 2,000 households or more, where the long questionnaire went to a sample. False for an economy or housing figure, and for a smaller commune."),
-            line: z.object({ en: z.string(), fr: z.string() }),
+            line: z.object({ en: z.string(), fr: z.string(), ar: z.string() }).describe("The figure in a sentence, in English, French and Arabic."),
             breakdown: z.unknown().nullable().describe("The parts the figure is made of, where the dataset has them."),
             context: z.object({
               others: z
@@ -930,7 +930,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           value: number;
           reference: number;
           direction: "high" | "low";
-          line: { en: string; fr: string };
+          line: { en: string; fr: string; ar: string };
           breakdown: unknown;
           sampled?: boolean;
           context: { others: unknown[]; neighbours: unknown; since2014: unknown };

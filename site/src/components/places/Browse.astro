@@ -6,6 +6,8 @@
 import Place from "../../layouts/Place.astro";
 import { fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
+import { INTL } from "../../lib/intl";
+import { byNameIn, nameIn } from "../../lib/names";
 import { communes, communesIn, provincesIn, regions } from "../../lib/places";
 import { normalise, skeleton } from "../../../../api/src/lib/normalise";
 
@@ -14,9 +16,9 @@ interface Props {
 }
 const { locale } = Astro.props;
 const p = places[locale];
-const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const n = new Intl.NumberFormat(INTL[locale]);
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ]/g, "").toLowerCase();
-const byName = <T extends { name: { fr: string } }>(a: T, b: T) => a.name.fr.localeCompare(b.name.fr, "fr");
+const byName = byNameIn(locale);
 // The consonants the API's search matches spellings on, so Titwan finds Tétouan here too.
 const bones = (s: string) => skeleton(normalise(s));
 ---
@@ -37,20 +39,20 @@ const bones = (s: string) => skeleton(normalise(s));
 
   <nav class="jump" aria-label={p.jumpLabel}>
     {[...regions].sort((a, b) => a.code.localeCompare(b.code)).map((r) => (
-      <a href={`#region-${r.slug}`}>{r.name.fr}</a>
+      <a href={`#region-${r.slug}`}>{nameIn(locale, r.name)}</a>
     ))}
   </nav>
 
   {[...regions].sort((a, b) => a.code.localeCompare(b.code)).map((r) => (
     <section class="region" data-region id={`region-${r.slug}`}>
-      <h2><a href={path(locale, `regions/${r.slug}/`)}>{r.name.fr}</a></h2>
+      <h2><a href={path(locale, `regions/${r.slug}/`)}>{nameIn(locale, r.name)}</a></h2>
       {provincesIn(r.code).sort(byName).filter((pr) => communesIn(pr.code).length > 0).map((pr) => (
         <div class="province" data-province>
-          <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{pr.name.fr}</a></h3>
+          <h3><a href={path(locale, `provinces/${pr.slug}/`)}>{nameIn(locale, pr.name)}</a></h3>
           <ul>
             {communesIn(pr.code).sort(byName).map((c) => (
               <li data-name={`${fold(c.name.fr)} ${fold(c.name.ar)} ${c.slug} ${c.code} ${c.codeDigits}`} data-bones={bones(c.name.fr)}>
-                <a href={path(locale, `communes/${c.slug}/`)}>{c.name.fr}</a>
+                <a href={path(locale, `communes/${c.slug}/`)}>{nameIn(locale, c.name)}</a>
               </li>
             ))}
           </ul>

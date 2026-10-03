@@ -16,7 +16,7 @@
  */
 import { de, fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
-import { numbers } from "../../lib/format";
+import { counted as countedIn, numbers, type Forms } from "../../lib/format";
 import { fractionLatinOf, latinOf, type Fraction } from "../../lib/douars";
 
 interface Props {
@@ -39,8 +39,7 @@ const total = fractions.reduce((sum, f) => sum + f.rows.length, 0);
 const people = fractions.reduce((sum, f) => sum + f.population, 0);
 const kinds = p.douarKinds as Record<string, string>;
 const labels = p.fractionLabels as Record<string, string>;
-const plural = new Intl.PluralRules(locale === "fr" ? "fr-FR" : "en-GB");
-const counted = (forms: { one: string; other: string }, v: number) => fill(plural.select(v) === "one" ? forms.one : forms.other, { n: n.format(v) });
+const counted = (forms: Forms, v: number) => countedIn(locale, forms, v);
 const distance = (v: number | null | undefined) => (v === null || v === undefined ? "—" : km.format(v));
 const withheld = fractions.some((f) => f.rows.some((d) => d.topics === null));
 // The douars a visitor can name: the ones spelt from the Arabic.

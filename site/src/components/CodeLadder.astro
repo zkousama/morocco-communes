@@ -4,6 +4,7 @@
  * a group of digits at each. On the glossary, under the HCP code.
  */
 import { LEVELS, t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
 import { chain } from "../generated/hierarchy";
 
 interface Props {
@@ -13,7 +14,7 @@ const { locale } = Astro.props;
 const copy = t(locale);
 const levels = LEVELS[locale];
 // French groups thousands with a thin space, English with a comma.
-const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const group = new Intl.NumberFormat(INTL[locale]);
 ---
 
 <div class="ladder-scroll">
@@ -30,7 +31,7 @@ const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
       <tr>
         <td class="mono code">{entry.code}</td>
         <td class="name">
-          <span>{entry.fr}</span>
+          <span>{locale === "ar" ? entry.ar : entry.fr}</span>
           <span class="level">{levels[entry.level]}</span>
         </td>
         <td class="num">{entry.population === null ? "—" : group.format(entry.population)}</td>
@@ -100,6 +101,11 @@ const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
     white-space: nowrap;
     color: var(--brass);
     direction: ltr;
+  }
+
+  /* The code reads left to right in Arabic too, so its gap from the name is on its left. */
+  :global([dir="rtl"]) .ladder .code {
+    padding-inline: 1.5rem 0;
   }
 
   .ladder .name {

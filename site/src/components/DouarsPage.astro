@@ -15,7 +15,9 @@ import { summarise } from "../lib/access";
 import { pageOf } from "../lib/places";
 import { places } from "../i18n/places";
 import { path, t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
 import { numbers } from "../lib/format";
+import { nameIn } from "../lib/names";
 
 interface Props {
   locale: Locale;
@@ -47,7 +49,7 @@ const farthest = [...byCommune]
 
     <section id="find" class="find">
       <h2 class="sr">{copy.douarsFind}</h2>
-      <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale}
+      <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale} data-intl={INTL[locale]}
         data-none={copy.douarsFindNone} data-more={copy.douarsFindMore} data-people={copy.douarsPeople}>
         <label for="douar-query">{copy.douarsFind}</label>
         <input id="douar-query" type="search" dir="auto" autocomplete="off" spellcheck="false" placeholder={copy.douarsFindPlaceholder} aria-describedby="find-hint find-status" />
@@ -84,7 +86,7 @@ const farthest = [...byCommune]
       <ol class="farthest">
         {farthest.map((c) => (
           <li>
-            <a href={path(locale, c.page!.route) + "#douars"}>{c.page!.name.fr}</a>
+            <a href={path(locale, c.page!.route) + "#douars"}>{nameIn(locale, c.page!.name)}</a>
             <span class="bar" aria-hidden="true"><span style={`width:${(c.summary.km!.healthCentre / farthest[0]!.summary.km!.healthCentre) * 100}%`}></span></span>
             <span class="num">{km.format(c.summary.km!.healthCentre)}</span>
           </li>
@@ -109,7 +111,7 @@ const farthest = [...byCommune]
   if (finder && input && status && hits) {
     finder.hidden = false;
     const d = finder.dataset;
-    const count = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB");
+    const count = new Intl.NumberFormat(d.intl);
     const LIMIT = 20;
     let index: PreparedNames | null = null;
     let loading: Promise<void> | null = null;
@@ -138,7 +140,7 @@ const farthest = [...byCommune]
         li.innerHTML =
           `<a href="${d.base}${hit.commune.slug}/#douar-${hit.code}"><span lang="ar" dir="rtl">${escape(hit.name.ar)}</span>` +
           `<span class="${hit.spelt ? "latin spelt" : "latin"}">${escape(hit.name.latin)}</span>` +
-          `<span class="in">${escape(hit.commune.name)} · ${(d.people ?? "{n}").replace("{n}", count.format(hit.people))}</span></a>`;
+          `<span class="in">${escape((d.lang === "ar" && hit.commune.ar) || hit.commune.name)} · ${(d.people ?? "{n}").replace("{n}", count.format(hit.people))}</span></a>`;
         hits.append(li);
       }
     };

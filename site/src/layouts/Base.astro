@@ -1,6 +1,6 @@
 ---
 import Arrow from "../components/Arrow.astro";
-import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, path, t, type Locale } from "../i18n/ui";
+import { AUTHOR, LOCALE_NAMES, LOCALES, REPO_URL, dirOf, path, t, type Locale } from "../i18n/ui";
 import Sheet from "../components/Sheet.astro";
 import { currentOf, menu as menuGroups, themes as themeList } from "../lib/nav";
 
@@ -26,10 +26,17 @@ const absolute = (p: string) => (site ? new URL(p, site).href : null);
 const canonical = current ? absolute(Astro.url.pathname) : null;
 const ogImage = absolute("/og.png");
 const themes = themeList(copy);
+// Arabic running text is set in IBM Plex Sans Arabic, loaded on the Arabic pages only.
+const families = [
+  "Instrument+Serif:ital@0;1",
+  "Instrument+Sans:ital,wght@0,400..600;1,400..500",
+  "JetBrains+Mono:wght@400;500",
+  ...(locale === "ar" ? ["IBM+Plex+Sans+Arabic:wght@400;500;600"] : []),
+];
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} dir={dirOf(locale)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -67,7 +74,7 @@ const themes = themeList(copy);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wght@0,400..600;1,400..500&family=JetBrains+Mono:wght@400;500&display=swap"
+      href={`https://fonts.googleapis.com/css2?${families.map((f) => `family=${f}`).join("&")}&display=swap`}
     />
     <script is:inline>
       // The phone menu only folds away once a script can open it again.
@@ -406,6 +413,8 @@ const themes = themeList(copy);
         /* The same without the site's Arabic face, which a dropdown draws with its letters apart. */
         --sans-field: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
         --mono: "JetBrains Mono", "Communes Maghribi", ui-monospace, Menlo, Consolas, monospace;
+        /* The Arabic pages' text face, which nothing else loads. */
+        --arabic-text: "IBM Plex Sans Arabic";
 
         /* A fourth, per Bringhurst. */
         --t-xs: 0.8125rem;
@@ -580,10 +589,17 @@ const themes = themeList(copy);
         background: var(--paper) var(--chevron) no-repeat right 0.95rem center / 0.65rem auto;
         border: 1px solid var(--rule);
         border-radius: 0.65rem;
-        padding: 0.7rem 2.5rem 0.7rem 0.95rem;
+        padding-block: 0.7rem;
+        padding-inline: 0.95rem 2.5rem;
         line-height: 1.3;
         cursor: pointer;
         transition: border-color 0.15s ease;
+      }
+
+      /* The chevron closes the field, so it changes side with the text. */
+      [dir="rtl"] :where(select),
+      [dir="rtl"] .lb-button {
+        background-position: left 0.95rem center;
       }
 
       .lb-button:hover,
@@ -791,6 +807,42 @@ const themes = themeList(copy);
         font-family: var(--mono);
         font-size: 0.88em;
         font-variant-ligatures: none;
+      }
+
+      /* On the Arabic pages, headings and names keep the Maghribi face and everything set
+         in the text or code stacks takes a plain one: a page of Maghribi is hard to read. */
+      :root[lang="ar"] {
+        --sans: "Instrument Sans", var(--arabic-text), "Communes Maghribi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --sans-field: "Instrument Sans", var(--arabic-text), system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "JetBrains Mono", var(--arabic-text), "Communes Maghribi", ui-monospace, Menlo, Consolas, monospace;
+      }
+
+      /* Arabic letters join, so spacing them apart or together breaks the word. */
+      [dir="rtl"] * {
+        letter-spacing: 0 !important;
+      }
+
+      /* Code, routes and HCP's codes read left to right inside Arabic too. A block of words
+         to copy (Code's `words`) is left to run the way the page does. */
+      [dir="rtl"] :is(code, pre, kbd, samp):not(.words, .words *) {
+        direction: ltr;
+        unicode-bidi: isolate;
+      }
+
+      [dir="rtl"] pre:not(.words) {
+        text-align: left;
+      }
+
+      /* English or French quoted on an Arabic page keeps its own direction, so its full
+         stop stays at its end. */
+      [dir="rtl"] :is([lang="en"], [lang="fr"]) {
+        direction: ltr;
+        unicode-bidi: isolate;
+      }
+
+      /* An arrow that means "onward" points the way the text runs. */
+      [dir="rtl"] .arrow.onward {
+        transform: scaleX(-1);
       }
 
       .sr-only {

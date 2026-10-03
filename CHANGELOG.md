@@ -28,6 +28,10 @@ change a shape something already reads.
 - A fraction's name in Latin letters, `latin`, where a douar of its commune has the same
   name and a source writes it: 711 fractions. The 139 HCP lists as a fraction outside the
   commune or a notional one get `label` instead.
+- The standout figures' sentences in Arabic: `line.ar` beside `line.en` and `line.fr`, and
+  an Arabic `label` on each part of a `breakdown`. A percentage in one has a left-to-right
+  mark (U+200E) on each side of its sign, as `Intl` writes it for `ar-MA`, so it draws in
+  order inside right-to-left text.
 - An API file with nothing in it is no longer written, as a commune with no housing already
   had none: `arrondissements.json` for the 1,497 communes not divided into them, `cercles.json`
   and the commune pages for the préfectures that have neither, and `neighbours.json` for

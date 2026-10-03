@@ -6,6 +6,7 @@
  */
 import { spread } from "../generated/charts";
 import { REPO_URL, t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
 import { escapeHtml } from "../lib/highlight";
 import { percent as formatPercent } from "../lib/format";
 
@@ -14,7 +15,7 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const group = new Intl.NumberFormat(INTL[locale]);
 
 /* Chart 3: the two growth distributions, on one shared scale. */
 const lo = Math.min(...spread.map((s) => s.p10));
@@ -172,6 +173,11 @@ const spoken = (row: (typeof spread)[number]) =>
     position: relative;
     display: block;
     height: 1rem;
+  }
+
+  /* Centred on its tick, which is measured from the right in Arabic. */
+  :global([dir="rtl"]) .scalebar span {
+    transform: translateX(50%);
   }
 
   .scalebar span {

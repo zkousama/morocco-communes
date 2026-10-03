@@ -82,7 +82,7 @@ const shown = (id: (typeof WHEEL_SPOKES)[number], value: number) =>
     content: "";
     display: inline-block;
     width: 1.1rem;
-    margin-right: 0.35rem;
+    margin-inline-end: 0.35rem;
     vertical-align: middle;
     border-top: 2px solid;
   }
@@ -116,13 +116,14 @@ const shown = (id: (typeof WHEEL_SPOKES)[number], value: number) =>
 
   th,
   td {
-    padding: 0.2rem 0.5rem 0.2rem 0;
+    padding-block: 0.2rem;
+    padding-inline: 0 0.5rem;
     font-weight: 400;
-    text-align: left;
+    text-align: start;
   }
 
   td {
-    text-align: right;
+    text-align: end;
     font-variant-numeric: tabular-nums;
   }
 </style>

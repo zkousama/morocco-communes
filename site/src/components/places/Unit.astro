@@ -16,8 +16,10 @@ import { housingOf } from "../../lib/housing";
 import { allDouars } from "../../lib/douars";
 import { summarise } from "../../lib/access";
 import { de, fill, places } from "../../i18n/places";
-import { path, REPO_URL, type Locale } from "../../i18n/ui";
-import { density, percent } from "../../lib/format";
+import { REPO_URL, path, type Locale } from "../../i18n/ui";
+import { INTL } from "../../lib/intl";
+import { density, listComma, percent } from "../../lib/format";
+import { nameBeside, nameIn } from "../../lib/names";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
 import {
@@ -46,7 +48,7 @@ const housing = housingOf.get(unit.code);
 // own, so no list of them and no boundary drawn from them.
 const api = `/api/${province ? "provinces" : "regions"}/${unit.code}`;
 
-const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const n = new Intl.NumberFormat(INTL[locale]);
 const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 
 const communes = province ? communesIn(province.code) : communesInRegion(region.code);
@@ -61,20 +63,20 @@ const after = communes.filter((c) => c.population["2014"]?.total != null).reduce
 const change = before > 0 ? ((after - before) / before) * 100 : null;
 const area = communes.reduce((s, c) => s + (c.areaKm2 ?? 0), 0);
 
-const title = unit.name.fr;
+const title = nameIn(locale, unit.name);
 // Larache is a province and a commune, so the tab says which this is.
 const documentTitle = province
-  ? fill(p.provinceTitle, { name: title, ptype: p.unitTypesLower[province.type], Ptype: p.unitTypes[province.type], ofName: de(title) })
-  : fill(p.regionTitle, { name: title, ofName: de(title) });
+  ? fill(p.provinceTitle, { name: title, ptype: p.unitTypesLower[province.type], Ptype: p.unitTypes[province.type], ofName: de(unit.name.fr) })
+  : fill(p.regionTitle, { name: title, ofName: de(unit.name.fr) });
 const lede = province
   ? locale === "fr"
     ? fill(p.provinceLede, { ptype: p.unitTypes[province.type], ofRegion: de(region.name.fr) })
-    : fill(p.provinceLede, { ptype: p.unitTypes[province.type], region: region.name.fr })
+    : fill(p.provinceLede, { ptype: p.unitTypes[province.type], region: nameIn(locale, region.name) })
   : p.regionLede;
 const route = province ? `provinces/${province.slug}/` : `regions/${region.slug}/`;
 const description =
-  `${title} (${unit.name.ar}): ${n.format(unit.population["2024"].total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}, ` +
-  `${n.format(communes.length)} ${locale === "fr" ? "communes" : "communes"}. ${locale === "fr" ? "Code HCP" : "HCP code"} ${unit.code}.`;
+  `${title} (${nameBeside(locale, unit.name)}): ${n.format(unit.population["2024"].total)} ${p.told.people}${listComma(locale)}` +
+  `${n.format(communes.length)} ${p.told.communes}. ${p.told.code} ${unit.code}.`;
 
 const densityClass = (code: string) => {
   const d = communeOf.get(code)?.density;
@@ -118,15 +120,15 @@ const standouts = [
     href: path(locale, route),
     name: unit.name,
     code: unit.code,
-    parent: province ? { name: region.name.fr, href: path(locale, `regions/${region.slug}/`) } : undefined,
+    parent: province ? { name: nameIn(locale, region.name), href: path(locale, `regions/${region.slug}/`) } : undefined,
   })}
   documentTitle={documentTitle}
   description={description}
-  arabic={unit.name.ar}
+  beside={nameBeside(locale, unit.name)}
   lede={lede}
   trail={[
     { href: path(locale, "communes/"), label: p.browseTitle },
-    ...(province ? [{ href: path(locale, `regions/${region.slug}/`), label: region.name.fr }] : []),
+    ...(province ? [{ href: path(locale, `regions/${region.slug}/`), label: nameIn(locale, region.name) }] : []),
   ]}
 >
   <dl class="figures">
@@ -175,7 +177,7 @@ const standouts = [
           classOf={densityClass}
           linkOf={(code) => {
             const c = communeOf.get(code);
-            return c ? { href: communeHref(c.slug), name: c.name.fr } : null;
+            return c ? { href: communeHref(c.slug), name: nameIn(locale, c.name) } : null;
           }}
         />
         <p class="note map-note">{p.mapNote}</p>
@@ -187,7 +189,7 @@ const standouts = [
             {standouts.map((s) => (
               <div>
                 <dt>{s.label}</dt>
-                <dd><a href={communeHref(s.commune!.slug)}>{s.commune!.name.fr}</a> <span>{s.value}</span></dd>
+                <dd><a href={communeHref(s.commune!.slug)}>{nameIn(locale, s.commune!.name)}</a> <span>{s.value}</span></dd>
               </div>
             ))}
           </dl>
@@ -196,9 +198,9 @@ const standouts = [
     </section>
   )}
 
-  {census && <People locale={locale} record={census} name={unit.name.fr} />}
+  {census && <People locale={locale} record={census} name={title} />}
 
-  {housing && <Housing locale={locale} record={housing} name={unit.name.fr} />}
+  {housing && <Housing locale={locale} record={housing} name={title} />}
 
   {economy && <Economy locale={locale} record={economy} population={unit.population["2024"].total} />}
 
@@ -206,7 +208,7 @@ const standouts = [
     <section id="douars">
       <h2>{p.douars}</h2>
       <p>
-        {fill(p.douarsUnitBody, { name: unit.name.fr, ofName: de(unit.name.fr), n: n.format(douars.douars), people: n.format(douars.people) })}
+        {fill(p.douarsUnitBody, { name: title, ofName: de(unit.name.fr), n: n.format(douars.douars), people: n.format(douars.people) })}
       </p>
       <DouarFigures locale={locale} summary={douars} />
       <p class="map-note"><a href={path(locale, "douars/")}>{p.douarsOnMap}</a></p>
@@ -224,7 +226,7 @@ const standouts = [
           <tbody>
             {subunits.map((s) => (
               <tr>
-                <td><a href={path(locale, `provinces/${s.slug}/`)}>{s.name.fr}</a></td>
+                <td><a href={path(locale, `provinces/${s.slug}/`)}>{nameIn(locale, s.name)}</a></td>
                 <td>{p.unitTypesLower[s.type]}</td>
                 <td class="num">{n.format(s.population["2024"].total)}</td>
                 <td class="num">{s.communeCount}</td>
@@ -244,7 +246,7 @@ const standouts = [
           <thead><tr><th>{p.colArrondissement}</th><th class="num">{p.colPopulation}</th></tr></thead>
           <tbody>
             {arrondissements.map((a) => (
-              <tr><td>{a.name.fr}</td><td class="num">{n.format(a.population["2024"].total)}</td></tr>
+              <tr><td>{nameIn(locale, a.name)}</td><td class="num">{n.format(a.population["2024"].total)}</td></tr>
             ))}
           </tbody>
         </table>
@@ -269,7 +271,7 @@ const standouts = [
           <tbody>
             {communes.map((c) => (
               <tr>
-                <td><a href={communeHref(c.slug)}>{c.name.fr}</a></td>
+                <td><a href={communeHref(c.slug)}>{nameIn(locale, c.name)}</a></td>
                 <td>{c.type === "urban" ? p.urban : p.rural}</td>
                 <td class="num">{n.format(c.population["2024"].total)}</td>
                 <td class:list={["num", c.population.change && (c.population.change.pct >= 0 ? "up" : "down")]}>

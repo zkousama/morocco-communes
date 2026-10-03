@@ -4,7 +4,8 @@ import Beacon from "./Beacon.astro";
 import Playground, { PLAYGROUND_KEYS } from "./Playground.tsx";
 import Charts from "./Charts.astro";
 import Atlas from "./Map.astro";
-import { AUTHOR, COUNTED, path, REPO_URL, t, type Locale } from "../i18n/ui";
+import { AUTHOR, COUNTED, REPO_URL, path, t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
 import { counts } from "../generated/hierarchy";
 import { downloads } from "../generated/downloads";
 import { reference } from "../generated/reference";
@@ -22,7 +23,7 @@ const playgroundCopy = Object.fromEntries(PLAYGROUND_KEYS.map((key) => [key, cop
 >;
 
 // French groups thousands with a thin space, English with a comma.
-const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const group = new Intl.NumberFormat(INTL[locale]);
 
 const ways = [
   { route: "docs/api/", name: copy.navApi, text: copy.useApi },

@@ -50,46 +50,48 @@ describe("the privacy page", () => {
   const pages = [
     "site/src/pages/docs/privacy.astro",
     "site/src/pages/fr/docs/privacy.astro",
+    "site/src/pages/ar/docs/privacy.astro",
   ].map((path) => readFileSync(path, "utf8"));
 
-  it("carries the privacy page in both languages", () => {
+  it("carries the privacy page in every language", () => {
     for (const page of pages) expect(page).toMatch(/90/);
   });
 
-  /** What the pages call each column of a demand row, in English and in French. */
-  const COLUMNS: Record<string, [en: string, fr: string]> = {
-    day: ["the day", "le jour"],
-    kind: ["5 kinds of row", "5 types de ligne"],
-    text: ["what was asked for", "ce qui a été demandé"],
-    code: ["what was asked for", "ce qui a été demandé"],
-    name: ["a tool an assistant calls", "un outil qu’un assistant appelle"],
-    results: ["how many results a search showed", "le nombre de résultats qu’une recherche a affichés"],
-    named: ["a place’s name or code", "le nom ou le code d’un lieu"],
-    locale: ["the page’s language", "la langue de la page"],
-    country: ["the country", "le pays"],
-    via: ["“browser” for the site’s own search box", "« browser » pour la recherche du site"],
-    via_site: ["which class of site sent the visitor", "la classe du site qui a envoyé le visiteur"],
-    client: ["the name an MCP client gives itself", "le nom que se donne un client MCP"],
-    bot: ["looks like a crawler’s", "ressemble à celui d’un robot"],
-    dataset: ["the version of the dataset", "la version du jeu de données"],
+  /** What the pages call each column of a demand row, in English, French and Arabic. */
+  const COLUMNS: Record<string, [en: string, fr: string, ar: string]> = {
+    day: ["the day", "le jour", "باليوم"],
+    kind: ["5 kinds of row", "5 types de ligne", "5 أنواع من الأسطر"],
+    text: ["what was asked for", "ce qui a été demandé", "وبما طلب"],
+    code: ["what was asked for", "ce qui a été demandé", "وبما طلب"],
+    name: ["a tool an assistant calls", "un outil qu’un assistant appelle", "أداة يستدعيها مساعد ذكي"],
+    results: ["how many results a search showed", "le nombre de résultats qu’une recherche a affichés", "وبعدد النتائج التي عرضها البحث"],
+    named: ["a place’s name or code", "le nom ou le code d’un lieu", "اسم مكان أو رمزه"],
+    locale: ["the page’s language", "la langue de la page", "وبلغة الصفحة"],
+    country: ["the country", "le pays", "وبالبلد"],
+    via: ["“browser” for the site’s own search box", "« browser » pour la recherche du site", "«browser» لخانة البحث"],
+    via_site: ["which class of site sent the visitor", "la classe du site qui a envoyé le visiteur", "وصنف الموقع الذي جاء منه الزائر"],
+    client: ["the name an MCP client gives itself", "le nom que se donne un client MCP", "الذي يطلقه عميل MCP على نفسه"],
+    bot: ["looks like a crawler’s", "ressemble à celui d’un robot", "ما يرسله روبوت"],
+    dataset: ["the version of the dataset", "la version du jeu de données", "وبإصدار مجموعة البيانات"],
   };
 
-  it("names every column a demand row holds, in both languages", () => {
+  it("names every column a demand row holds, in every language", () => {
     const table = /CREATE TABLE IF NOT EXISTS events \(([^;]*)\);/.exec(readFileSync("migrations/0001_demand.sql", "utf8"))?.[1] ?? "";
     const columns = table.split("\n").map((line) => line.trim().split(" ")[0]).filter((word) => word !== undefined && word !== "");
     expect(Object.keys(COLUMNS).sort()).toEqual(columns.sort());
-    const [en, fr] = pages.map((page) => page.replace(/\s+/g, " "));
-    for (const [column, [english, french]] of Object.entries(COLUMNS)) {
+    const [en, fr, ar] = pages.map((page) => page.replace(/\s+/g, " "));
+    for (const [column, [english, french, arabic]] of Object.entries(COLUMNS)) {
       expect(en, column).toContain(english);
       expect(fr, column).toContain(french);
+      expect(ar, column).toContain(arabic);
     }
   });
 
-  // Read from the code, so changing a limit there fails here until both pages say the same.
+  // Read from the code, so changing a limit there fails here until every page says the same.
   it("states the limits and the retention the code uses", () => {
     const months = /kept for (\d+) months/.exec(readFileSync("wrangler.toml", "utf8"))?.[1];
     expect(months).toBeDefined();
-    const [en, fr] = pages.map((page) => page.replace(/\s+/g, " "));
+    const [en, fr, ar] = pages.map((page) => page.replace(/\s+/g, " "));
     for (const phrase of [
       `cut to ${MAX_CHARACTERS} characters`,
       `more than ${MAX_WORDS} words`,
@@ -111,6 +113,17 @@ describe("the privacy page", () => {
       `lignes ${months} mois`,
     ]) {
       expect(fr).toContain(phrase);
+    }
+    for (const phrase of [
+      `ويقتطع عند ${MAX_CHARACTERS} حرفا`,
+      `أكثر من ${MAX_WORDS} كلمات`,
+      `${TOO_MANY_DIGITS} أرقام أو أكثر`,
+      `بعد ${KEEP_DAYS} يوما`,
+      `كتبت ${TYPED} مرات أو أكثر`,
+      `المرات الـ${TYPED}`,
+      `بهذه الأسطر ${months} أشهر`,
+    ]) {
+      expect(ar).toContain(phrase);
     }
   });
 });

@@ -11,7 +11,7 @@ const strings = (value: unknown): string[] =>
 
 describe("the page on douar names", () => {
   it("types no number into its words: each one comes from naming, but the 2 of both", () => {
-    for (const locale of ["en", "fr"] as const) {
+    for (const locale of ["en", "fr", "ar"] as const) {
       const text = strings(names[locale]).join(" ").replace(/\{\w+\}/g, " ").replace(/\b2\b/g, " ");
       expect(text.match(/.{0,30}\d.{0,30}/g), locale).toBeNull();
     }

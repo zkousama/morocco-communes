@@ -241,7 +241,7 @@ describe("what moved most since 2014", () => {
 
   it("has a phrase for every figure it can pick, in both languages", () => {
     const paths = SINCE_2014.map((m) => m.path).sort();
-    for (const locale of ["en", "fr"] as const) expect(Object.keys(places[locale].moved).sort(), locale).toEqual(paths);
+    for (const locale of ["en", "fr", "ar"] as const) expect(Object.keys(places[locale].moved).sort(), locale).toEqual(paths);
   });
 });
 

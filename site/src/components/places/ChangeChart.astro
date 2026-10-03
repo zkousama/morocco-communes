@@ -1,6 +1,6 @@
 ---
 import { changeBins, nationalChange } from "../../lib/places";
-import type { Locale } from "../../i18n/ui";
+import { dirOf, type Locale } from "../../i18n/ui";
 import { percent } from "../../lib/format";
 
 interface Props {
@@ -15,6 +15,8 @@ const { locale, value, name, nationalLabel, srText } = Astro.props;
 const { lo, hi, width, bins, max } = changeBins;
 
 // A plain histogram: thin bars on the page, one axis, the commune and the country marked.
+// It reads left to right in every language, falls on the left and rises on the right; in
+// Arabic only the label and the caption run the other way.
 // The bars are SVG and stretch; the labels are HTML placed by percentage, so they stay the
 // page's size on a phone.
 const W = 600;
@@ -37,8 +39,8 @@ const align = (p: number) => (p > 80 ? "end" : p < 20 ? "start" : "middle");
 const chars = name.length + 1 + signed(value).length;
 ---
 
-<figure class="change-chart">
-  <p class="mark-label" style={`--at: ${pct(value)}%; --chars: ${chars}`}>
+<figure class="change-chart" dir="ltr">
+  <p class="mark-label" dir={dirOf(locale)} style={`--at: ${pct(value)}%; --chars: ${chars}`}>
     <strong>{name}</strong> {signed(value)}
   </p>
   <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={srText}>
@@ -57,7 +59,7 @@ const chars = name.length + 1 + signed(value).length;
   <div class="ticks" aria-hidden="true">
     {ticks.map((t) => <span data-align={align(pct(t))} style={`--at: ${pct(t)}%`}>{tick(t)}</span>)}
   </div>
-  <figcaption>
+  <figcaption dir={dirOf(locale)}>
     <span class="key" />{nationalLabel} {signed(nationalChange)}
   </figcaption>
 </figure>

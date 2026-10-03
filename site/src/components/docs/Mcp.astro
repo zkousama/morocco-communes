@@ -9,7 +9,8 @@ import { fill } from "../../i18n/places";
 import { inline } from "../../lib/inline";
 import communes from "../../../../data/v1/attributes/communes.json";
 import { allDouars } from "../../lib/douars";
-import { numbers } from "../../lib/format";
+import { becomes, numbers } from "../../lib/format";
+import { nameIn } from "../../lib/names";
 import type { Locale } from "../../i18n/ui";
 
 interface Props {
@@ -99,10 +100,17 @@ const asni = communes.find((c) => c.slug === "asni")!;
 const furthest = allDouars
   .filter((d) => d.communeCode === asni.code && d.topics?.distanceKm)
   .sort((a, b) => b.topics!.distanceKm!.healthCentre! - a.topics!.distanceKm!.healthCentre!)[0]!;
+// The name in the other script goes in an isolate, so its brackets and the colon after it stay
+// where they belong; the Arabic page leads with the Arabic and puts the Latin in the brackets.
+const beside = (lead: string, other: string | undefined) => (other ? `${lead} (\u2068${other}\u2069)` : lead);
 const answer = fill(d.exampleAnswer, {
-  commune: asni.name.fr,
-  // The Arabic in an isolate, so its brackets and the colon after it stay where they belong.
-  douar: furthest.latin ? `${furthest.latin.name} (\u2068${furthest.name.ar}\u2069)` : `\u2068${furthest.name.ar}\u2069`,
+  commune: nameIn(locale, asni.name),
+  douar:
+    locale === "ar"
+      ? beside(furthest.name.ar, furthest.latin?.name)
+      : furthest.latin
+        ? beside(furthest.latin.name, furthest.name.ar)
+        : `\u2068${furthest.name.ar}\u2069`,
   km: numbers(locale, 1).format(furthest.topics!.distanceKm!.healthCentre!),
 });
 const [first, ...more] = d.questions;
@@ -121,7 +129,7 @@ const toc = [
     <h2>{d.ask}</h2>
     <div class="exchange">
       <p class="you"><span class="who">{d.exampleYou}</span>{first}</p>
-      <p class="calls"><span class="who">{d.exampleCalls}</span><code>search</code> → <code>get_douars</code></p>
+      <p class="calls"><span class="who">{d.exampleCalls}</span><code>search</code> {becomes(locale)} <code>get_douars</code></p>
       <p class="answer">{answer}</p>
     </div>
     <p>{d.askBody}</p>
@@ -144,7 +152,7 @@ const toc = [
         <div class="client" id={c.id} role="tabpanel" aria-labelledby={`tab-${c.id}`}>
           <h3>{c.name}</h3>
           <p class="quiet" set:html={inline(c.body)} />
-          {c.code && <Code locale={locale} label={c.label} code={c.code} lang={c.lang} />}
+          {c.code && <Code locale={locale} label={c.label} code={c.code} lang={c.lang} words={c.id === "prompt"} />}
         </div>
       ))}
     </div>
@@ -250,6 +258,12 @@ const toc = [
     font-family: var(--display);
     font-size: var(--t-md);
     line-height: 1.35;
+  }
+
+  /* A sentence in the Maghribi face is hard going; in Arabic the answer is set as text. */
+  :global([dir="rtl"]) .answer {
+    font-family: var(--sans);
+    line-height: 1.6;
   }
 
   .questions {

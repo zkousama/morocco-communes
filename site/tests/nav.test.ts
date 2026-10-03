@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { t } from "../src/i18n/ui.ts";
 import { menu } from "../src/lib/nav.ts";
 
-const routes = (locale: "en" | "fr") => menu(t(locale)).map((group) => [group.label, group.sections.map((s) => s.route)]);
+const routes = (locale: "en" | "fr" | "ar") => menu(t(locale)).map((group) => [group.label, group.sections.map((s) => s.route)]);
 
 describe("the header and the phone menu", () => {
   it("share one list of groups", () => {
@@ -21,6 +21,11 @@ describe("the header and the phone menu", () => {
       ["Explorer", links[0]],
       ["Données", links[1]],
       ["Développer", links[2]],
+    ]);
+    expect(routes("ar")).toEqual([
+      ["استكشاف", links[0]],
+      ["البيانات", links[1]],
+      ["التطوير", links[2]],
     ]);
     const flat = links.flat();
     expect(new Set(flat).size).toBe(flat.length);

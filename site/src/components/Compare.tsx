@@ -110,30 +110,33 @@ const SUGGESTED = [
 
 const fill = (template: string, vars: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "");
 
-function load(raw: CompareData): Loaded {
+function load(raw: CompareData, locale: Locale): Loaded {
   const count = raw.figures.indexOf("population");
+  // The Arabic site leads with a commune's Arabic name, and keeps the Latin one to search by.
+  const arabic = locale === "ar";
+  const provinces = arabic ? raw.provincesAr : raw.provinces;
   const communes: Commune[] = raw.communes.map((row) => {
     const values = row.slice(VALUES_FROM) as (number | null)[];
     return {
       slug: row[0],
-      name: row[1],
+      name: arabic ? row[2] : row[1],
       ar: row[2],
-      province: raw.provinces[row[3]] ?? "",
+      province: provinces[row[3]] ?? "",
       urban: row[4] === "u",
       people: (values[count] as number | null) ?? 0,
       values,
       ...searchKeys(row[1], row[2]),
     };
   });
-  const excluded: Commune[] = raw.excluded.map(([slug, name, why]) => ({
+  const excluded: Commune[] = raw.excluded.map(([slug, name, why, ar]) => ({
     slug,
-    name,
-    ar: "",
+    name: arabic ? ar : name,
+    ar,
     province: "",
     urban: false,
     people: 0,
     values: [],
-    ...searchKeys(name, ""),
+    ...searchKeys(name, ar),
     excluded: why,
   }));
   const columns = FIGURES.map((_, i) => communes.map((c) => c.values[i] ?? null));
@@ -218,7 +221,7 @@ export default function Compare(props: Props) {
     try {
       const response = await fetch("/compare/data.json");
       if (!response.ok) throw new Error(String(response.status));
-      const data = load((await response.json()) as CompareData);
+      const data = load((await response.json()) as CompareData, props.locale);
       const asked = (new URLSearchParams(location.search).get("c") ?? "").split(",");
       batch(() => {
         setLoaded(data);
@@ -283,7 +286,7 @@ export default function Compare(props: Props) {
                   <For each={SUGGESTED.filter((pair) => pair.every((slug) => data().bySlug.has(slug)))}>
                     {(pair) => (
                       <button type="button" class="cmp-suggest" onClick={() => update({ communes: pair })}>
-                        {pair.map((slug) => data().bySlug.get(slug)!.name).join(` ${copy.compareAnd} `)}
+                        {pair.map((slug) => data().bySlug.get(slug)!.name).join(props.locale === "ar" ? ` ${copy.compareAnd}` : ` ${copy.compareAnd} `)}
                       </button>
                     )}
                   </For>

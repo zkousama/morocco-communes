@@ -12,6 +12,7 @@ import { path, type Locale } from "../../i18n/ui";
 import { numbers, percent } from "../../lib/format";
 import { arrondissementCount, count, nationalEconomy, type EconomyRecord } from "../../lib/economy";
 import { figure as censusFigure, national as nationalCensus } from "../../lib/indicators";
+import { nameIn } from "../../lib/names";
 
 interface Props {
   locale: Locale;
@@ -83,7 +84,7 @@ const right = blocks.slice(2).filter((b) => b.rows.length > 0);
   <h2>{p.work}</h2>
   <p>
     {record.basis === "arrondissement_sum"
-      ? fill(p.workSummed, { name: record.name.fr, n: n.format(arrondissementCount.get(record.code!) ?? 0) })
+      ? fill(p.workSummed, { name: nameIn(locale, record.name), n: n.format(arrondissementCount.get(record.code!) ?? 0) })
       : p.workBody}{" "}
     <a href={path(locale, "docs/indicators/#establishments")}>{p.workMore}</a>{" · "}
     <a href={path(locale, "docs/glossary/#work")}>{p.glossary}</a>

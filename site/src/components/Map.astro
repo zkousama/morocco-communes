@@ -1,7 +1,8 @@
 ---
 import { allDouarCount, changeBreaks, densityBreaks, elderlyBreaks, illiteracyBreaks, markup, namedBreaks, placedDouars, roadBreaks, serviceBreaks, shapes, trainCommunes, tramCommunes, unemploymentBreaks, viewBox, waterBreaks, womenBreaks } from "../generated/map";
 import { path, t, type Locale } from "../i18n/ui";
-import { percent } from "../lib/format";
+import { INTL } from "../lib/intl";
+import { percent, span } from "../lib/format";
 
 interface Props {
   locale: Locale;
@@ -10,11 +11,17 @@ interface Props {
 }
 const { locale, views: only } = Astro.props;
 const copy = t(locale);
-const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const n = new Intl.NumberFormat(INTL[locale]);
 
 // One legend per view. Each swatch names its class the way the map's data attributes do.
-const range = (breaks: number[], i: number, format: (v: number) => string) =>
-  i === 0 ? `< ${format(breaks[0]!)}` : i === breaks.length ? `${format(breaks[i - 1]!)}+` : `${format(breaks[i - 1]!)}–${format(breaks[i]!)}`;
+// "< 10%" and "75%+" in English and French; Arabic says them in words, since a "<" turns
+// round in right-to-left text.
+const range = (breaks: number[], i: number, format: (v: number) => string, unit = "") =>
+  i === 0
+    ? copy.rangeBelow.replace("{v}", format(breaks[0]!) + unit)
+    : i === breaks.length
+      ? copy.rangeFrom.replace("{v}", format(breaks[i - 1]!) + unit)
+      : `${span(locale, format(breaks[i - 1]!), format(breaks[i]!))}${unit}`;
 const bands = (breaks: number[], prefix: string) => [
   ...[0, 1, 2, 3, 4, 5].map((i) => ({
     cls: `${prefix}${i}`,
@@ -22,9 +29,9 @@ const bands = (breaks: number[], prefix: string) => [
   })),
   { cls: `${prefix}n`, text: copy.mapNoValue },
 ];
-const km = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+const km = new Intl.NumberFormat(INTL[locale], { maximumFractionDigits: 1 });
 const kmBands = (breaks: number[], prefix: string) => [
-  ...[0, 1, 2, 3, 4, 5].map((i) => ({ cls: `${prefix}${i}`, text: `${range(breaks, i, (v) => km.format(v))} km` })),
+  ...[0, 1, 2, 3, 4, 5].map((i) => ({ cls: `${prefix}${i}`, text: range(breaks, i, (v) => km.format(v), ` ${copy.unitKm}`) })),
   { cls: `${prefix}n`, text: copy.mapNoDouars },
 ];
 const views = [
@@ -42,14 +49,14 @@ const views = [
     swatches: [
       ...[0, 1, 2, 3, 4, 5].map((i) => {
         const pc = (v: number) => percent(locale, v, { signed: true, digits: 0 });
-        const bare = (v: number) => pc(v).replace(/\s?%$/, "").replace(/\u202f%$/, "");
+        const bare = (v: number) => pc(v).replace(/[\s\u202f\u200e]*%\u200e?$/, "");
         const text =
           i === 2
             ? copy.mapAbout
             : i === 0
-              ? `< ${pc(changeBreaks[0]!)}`
+              ? copy.rangeBelow.replace("{v}", pc(changeBreaks[0]!))
               : i === changeBreaks.length
-                ? `> ${pc(changeBreaks[i - 1]!)}`
+                ? copy.rangeAbove.replace("{v}", pc(changeBreaks[i - 1]!))
                 : `${bare(changeBreaks[i - 1]!)} ${copy.mapTo} ${pc(changeBreaks[i]!)}`;
         return { cls: `g${i}`, text };
       }),
@@ -156,7 +163,7 @@ if (!shown.some((v) => v.id === "douars")) drawn = drawn.replace(/<g class="doua
 const communesRoute = path(locale, "communes/");
 ---
 
-<figure class="atlas" data-view={shown[0]!.id} data-base={communesRoute} data-lang={locale}
+<figure class="atlas" data-view={shown[0]!.id} data-base={communesRoute} data-lang={locale} data-intl={INTL[locale]}
   data-people={copy.tipPeople} data-density={copy.tipDensity} data-change={copy.tipChange}
   data-illiteracy={copy.tipIlliteracy} data-water={copy.tipWater} data-elderly={copy.tipElderly}
   data-women={copy.tipWomen} data-unemployment={copy.tipUnemployment}
@@ -245,6 +252,7 @@ const communesRoute = path(locale, "communes/");
     middleSchool: number | null,
     healthCentre: number | null,
     pavedRoad: number | null,
+    arabic: string,
   ];
 
   const atlas = document.querySelector<HTMLElement>(".atlas");
@@ -253,9 +261,9 @@ const communesRoute = path(locale, "communes/");
   const tip = atlas?.querySelector<HTMLElement>(".tip");
   if (atlas && frame && svg && tip) {
     const d = atlas.dataset;
-    const number = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
-    const rounded = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 0 });
-    const tenths = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const number = new Intl.NumberFormat(d.intl, { maximumFractionDigits: 1 });
+    const rounded = new Intl.NumberFormat(d.intl, { maximumFractionDigits: 0 });
+    const tenths = new Intl.NumberFormat(d.intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     let rows: Record<string, Row> | null = null;
     let loading: Promise<void> | null = null;
     const load = () =>
@@ -314,11 +322,12 @@ const communesRoute = path(locale, "communes/");
       focus.setAttribute("d", shape.getAttribute("d") ?? "");
       const row = rows?.[shape.dataset.c ?? ""];
       if (!row) return;
-      const [slug, name, type, people, density, change, illiteracy, water, elderly, women, unemployment, tram, train, highSchool, middleSchool, healthCentre, pavedRoad] = row;
+      const [slug, latin, type, people, density, change, illiteracy, water, elderly, women, unemployment, tram, train, highSchool, middleSchool, healthCentre, pavedRoad, arabic] = row;
+      const name = d.lang === "ar" ? arabic : latin;
       const signed =
         change === null
           ? ""
-          : `${change > 0 ? "+" : change < 0 ? "−" : ""}${tenths.format(Math.abs(change))}${d.lang === "fr" ? "\u202f%" : "%"}`;
+          : `${d.lang === "ar" && change !== 0 ? "\u200e" : ""}${change > 0 ? "+" : change < 0 ? "−" : ""}${tenths.format(Math.abs(change))}${d.lang === "fr" ? "\u202f%" : "%"}`;
       const pct = d.lang === "fr" ? "\u202f%" : "%";
       const share = (value: number | null, label: string | undefined) =>
         value === null || !label ? "" : `<span>${tenths.format(value)}${pct} ${label}</span>`;

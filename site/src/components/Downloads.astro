@@ -5,6 +5,9 @@
  */
 import { downloads } from "../generated/downloads";
 import { t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
+import { nameIn } from "../lib/names";
+import { regions } from "../lib/places";
 
 interface Props {
   locale: Locale;
@@ -18,9 +21,13 @@ const shown = keys.map((key) => {
   return found;
 });
 
+// A file that holds one région is labelled with its name, in the page's language.
+const regionNamed = new Map(regions.map((r) => [r.name.fr, nameIn(locale, r.name)]));
+const labelOf = (label: string) => regionNamed.get(label) ?? label;
+
 // French writes octets; everyone else here writes bytes.
 const units = locale === "fr" ? ["o", "Ko", "Mo"] : ["B", "KB", "MB"];
-const numberIn = locale === "fr" ? "fr-FR" : "en-GB";
+const numberIn = INTL[locale];
 const size = (bytes: number) => {
   // Decimal units, since KB and MB are what they are labelled; a file manager agrees.
   if (bytes < 1000) return `${bytes} ${units[0]}`;
@@ -43,7 +50,7 @@ const size = (bytes: number) => {
       <span class="dl-files">
         {group.files.map((file) => (
           <a href={file.href} data-download>
-            <span class="dl-label">{file.label}</span>
+            <span class="dl-label">{labelOf(file.label)}</span>
             <span class="dl-size">{size(file.bytes)}</span>
           </a>
         ))}

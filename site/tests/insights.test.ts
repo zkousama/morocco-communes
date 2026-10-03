@@ -31,7 +31,7 @@ const figure = (over: Partial<Published> = {}, context: Partial<Published["conte
   reference: 15,
   score: 4,
   direction: "high",
-  line: { en: "", fr: "" },
+  line: { en: "", fr: "", ar: "" },
   breakdown: null,
   sampled: false,
   ...over,
@@ -161,7 +161,11 @@ describe("the line among communes of its own kind", () => {
  */
 describe("the methods page's numbers", () => {
   const source = (path: string) => readFileSync(path, "utf8");
-  const pages = { en: source("site/src/pages/docs/insights.astro"), fr: source("site/src/pages/fr/docs/insights.astro") };
+  const pages = {
+    en: source("site/src/pages/docs/insights.astro"),
+    fr: source("site/src/pages/fr/docs/insights.astro"),
+    ar: source("site/src/pages/ar/docs/insights.astro"),
+  };
 
   /** A page's reader-facing text: its markup, with every expression, code span and tag taken out. */
   const prose = (page: string) => {
@@ -172,8 +176,7 @@ describe("the methods page's numbers", () => {
 
   it("takes each threshold from the code that applies it", () => {
     for (const key of ["swing", "fall", "neighbourFloor", "extremeFloor", "changeGapFloor", "kept", "perPlace", "smallBase", "sampleHouseholds", "peerGroup", "peerSmall", "peerMid", "peerTop", "peerHigh", "peerWide"] as const) {
-      expect(pages.en, key).toContain(`method.${key}`);
-      expect(pages.fr, key).toContain(`method.${key}`);
+      for (const locale of ["en", "fr", "ar"] as const) expect(pages[locale], `${locale} ${key}`).toContain(`method.${key}`);
     }
     expect(method.neighbourFloor).toBe(method.changeGapFloor);
   });
@@ -181,13 +184,14 @@ describe("the methods page's numbers", () => {
   it("links the methods page at the figures, and lists that page for the sitemap", () => {
     expect(pages.en).toContain('href="/insights/"');
     expect(pages.fr).toContain('href="/fr/insights/"');
+    expect(pages.ar).toContain('href="/ar/insights/"');
     expect(PAGES).toContain("insights/");
     expect(explore(t("en")).find((section) => section.label === "Insights")?.route).toBe("insights/");
     expect(explore(t("fr")).find((section) => section.label === "Constats")?.route).toBe("insights/");
   });
 
-  it("leaves no other number typed into either page", () => {
-    for (const locale of ["en", "fr"] as const) {
+  it("leaves no other number typed into any page", () => {
+    for (const locale of ["en", "fr", "ar"] as const) {
       // The census years, and the year of the pilot.
       const text = prose(pages[locale]).replace(/\b(2014|2024|2026)\b/g, " ");
       expect(text.match(/.{0,30}\d.{0,30}/g), locale).toBeNull();
@@ -209,10 +213,10 @@ describe("the insights page's list", () => {
   it("keeps one finding per commune, the higher score, in score order", () => {
     const files = [
       commune("a", [
-        { score: 5, line: { en: "lower", fr: "bas" } },
-        { score: 9, line: { en: "higher", fr: "haut" } },
+        { score: 5, line: { en: "lower", fr: "bas", ar: "أدنى" } },
+        { score: 9, line: { en: "higher", fr: "haut", ar: "أعلى" } },
       ]),
-      commune("b", [{ score: 7, line: { en: "middle", fr: "milieu" } }]),
+      commune("b", [{ score: 7, line: { en: "middle", fr: "milieu", ar: "وسط" } }]),
     ];
     const rows = standouts(files, page).flatMap((group) => group.rows);
     expect(rows.map((row) => [row.code, row.score, row.line.en, row.name, row.route])).toEqual([
@@ -286,7 +290,7 @@ describe("a standout's plot", () => {
       score: 7,
       direction: "high",
       sampled: false,
-      line: { en: "", fr: "" },
+      line: { en: "", fr: "", ar: "" },
       breakdown: null,
       context: { others: [], neighbours: null, since2014: null },
       ...over,

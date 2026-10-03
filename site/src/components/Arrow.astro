@@ -8,4 +8,4 @@ interface Props {
 const { dir = "right" } = Astro.props;
 ---
 
-<svg class="arrow" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path d={ARROW[dir]}></path></svg>
+<svg class:list={["arrow", { onward: dir === "right" || dir === "left" }]} viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path d={ARROW[dir]}></path></svg>

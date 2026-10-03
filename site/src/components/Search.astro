@@ -188,7 +188,7 @@ const copy = t(locale);
         kind: "search",
         text: shown.text,
         results: shown.results,
-        locale: document.documentElement.lang === "fr" ? "fr" : "en",
+        locale: document.documentElement.lang,
         from: document.referrer ? new URL(document.referrer).hostname : "",
       };
       navigator.sendBeacon("/api/beacon", new Blob([JSON.stringify(body)], { type: "application/json" }));

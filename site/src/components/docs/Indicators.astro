@@ -8,6 +8,7 @@
 import { readFileSync } from "node:fs";
 import Docs from "../../layouts/Docs.astro";
 import { docs } from "../../i18n/docs";
+import { FIELDS_AR } from "../../i18n/fields";
 import { inline } from "../../lib/inline";
 import { path, type Locale } from "../../i18n/ui";
 import { indicatorsOf } from "../../lib/indicators";
@@ -16,6 +17,7 @@ import { pageOf } from "../../lib/places";
 import { percent } from "../../lib/format";
 import { fill } from "../../i18n/places";
 import { AMENITIES, LANGUAGES, mismatches } from "../../../../api/src/lib/mismatch.ts";
+import { nameIn } from "../../lib/names";
 
 interface Props {
   locale: Locale;
@@ -69,8 +71,10 @@ const topicsOf = (fields: Field[]) => {
 };
 
 // HCP's headings are French. The French page reads them as they are; the English one
-// leads with an English label and keeps HCP's wording beside it, marked as French.
-const english = locale === "en";
+// leads with an English label and keeps HCP's wording beside it, marked as French, and the
+// Arabic one does the same with the field's name in Arabic (i18n/fields.ts).
+const own = locale !== "fr";
+const labelOf = (f: Field, set: keyof typeof FIELDS_AR) => (locale === "ar" ? (FIELDS_AR[set][f.path] ?? f.label) : f.label);
 // A column that opens a block has no heading above it, only a category, so the separator
 // would lead. HCP's own wording is whichever of the two the workbook prints.
 const source = (f: Field) => [f.heading, f.category].filter(Boolean).join(" · ");
@@ -88,7 +92,7 @@ const flagged = [...indicatorsOf.values()]
     const before = r["2014"]?.people.total?.all?.population?.legal;
     const after = r.people.total?.all?.population?.legal;
     const moved = before && after ? ((after - before) / before) * 100 : null;
-    return mismatches(r, r["2014"]).map((m) => ({ ...m, code: r.code!, name: page.name.fr, href: path(locale, page.route), moved }));
+    return mismatches(r, r["2014"]).map((m) => ({ ...m, code: r.code!, name: nameIn(locale, page.name), href: path(locale, page.route), moved }));
   })
   .sort((a, b) => Math.abs(b.now - b.then) - Math.abs(a.now - a.then));
 const falls = flagged.filter((m) => AMENITIES.includes(m.path));
@@ -135,7 +139,7 @@ const toc = [
           <h3>{d.topics[topic as keyof typeof d.topics] ?? topic}</h3>
           {groups.map((g) => (
             <>
-              {g.grouped && !english && <p class="heading">{g.heading}</p>}
+              {g.grouped && !own && <p class="heading">{g.heading}</p>}
               <dl class="fields">
                 {g.fields.map((f) => (
                   <div>
@@ -144,10 +148,10 @@ const toc = [
                       <span class="column">{d.column} <code>{f.column}</code></span>
                     </dt>
                     <dd>
-                      <span>{english ? f.label : f.category ?? f.heading}</span>
+                      <span>{own ? labelOf(f, "indicators") : f.category ?? f.heading}</span>
                       <span class="meta">{meta(f)}</span>
                       {alsoIn2014.has(f.path) && <span class="meta also">{d.also}</span>}
-                      {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
+                      {own && <span class="source" lang="fr">HCP: {source(f)}</span>}
                     </dd>
                   </div>
                 ))}
@@ -169,7 +173,7 @@ const toc = [
         <h3>{d.establishmentTopics[topic as keyof typeof d.establishmentTopics] ?? topic}</h3>
         {groups.map((g) => (
           <>
-            {g.grouped && !english && <p class="heading">{g.heading}</p>}
+            {g.grouped && !own && <p class="heading">{g.heading}</p>}
             <dl class="fields">
               {g.fields.map((f) => (
                 <div>
@@ -178,9 +182,9 @@ const toc = [
                     <span class="column">{d.column} <code>{f.column}</code></span>
                   </dt>
                   <dd>
-                    <span>{english ? f.label : f.category ?? f.heading}</span>
+                    <span>{own ? labelOf(f, "economy") : f.category ?? f.heading}</span>
                     <span class="meta">{meta(f)}</span>
-                    {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
+                    {own && <span class="source" lang="fr">HCP: {source(f)}</span>}
                   </dd>
                 </div>
               ))}
@@ -210,9 +214,9 @@ const toc = [
                   <span class="column">{d.column} <code>{f.column}</code></span>
                 </dt>
                 <dd>
-                  <span>{english ? f.label : f.heading.split(" · ").at(-1)}</span>
+                  <span>{own ? labelOf(f, "housing") : f.heading.split(" · ").at(-1)}</span>
                   <span class="meta">{d.units[f.unit]}</span>
-                  {english && <span class="source" lang="fr">HCP: {f.heading}</span>}
+                  {own && <span class="source" lang="fr">HCP: {f.heading}</span>}
                 </dd>
               </div>
             ))}
@@ -239,9 +243,9 @@ const toc = [
                   <span class="column">{d.column} <code>{f.column}</code></span>
                 </dt>
                 <dd>
-                  <span>{english ? f.label : f.heading.split(" · ").at(-1)}</span>
+                  <span>{own ? labelOf(f, "douars") : f.heading.split(" · ").at(-1)}</span>
                   <span class="meta">{d.units[f.unit]}</span>
-                  {english && <span class="source" lang="fr">HCP: {f.heading}</span>}
+                  {own && <span class="source" lang="fr">HCP: {f.heading}</span>}
                 </dd>
               </div>
             ))}
@@ -264,9 +268,9 @@ const toc = [
             <span class="column">{d.column} <code>{f.column}</code></span>
           </dt>
           <dd>
-            <span>{english ? f.label : f.category ?? f.heading}</span>
+            <span>{own ? labelOf(f, "indicators2014") : f.category ?? f.heading}</span>
             <span class="meta">{meta(f)}</span>
-            {english && <span class="source" lang="fr">HCP: {source(f)}</span>}
+            {own && <span class="source" lang="fr">HCP: {source(f)}</span>}
           </dd>
         </div>
       ))}

@@ -11,13 +11,14 @@ import { readFileSync } from "node:fs";
 import { COMPARABLE_2014, INDICATOR_PATHS } from "../../api/src/lib/indicators.ts";
 import { ECONOMY_RATIOS, type EconomyRatio } from "../../api/src/lib/economy.ts";
 import { ECONOMY_FIELDS, type EconomyField } from "../../pipeline/src/sources/economyFields.ts";
+import { FIELDS_AR } from "../../site/src/i18n/fields.ts";
 
 export type Level = "region" | "province" | "commune" | "arrondissement";
 
 export interface Field {
   path: string; // the API's own names: "labour.unemploymentRate", "occupancy.tenant",
   // "housing.occupancy.unoccupied", "economy.per1000.jobs", "economy.share.sector.industry"
-  label: { en: string; fr: string };
+  label: { en: string; fr: string; ar: string };
   unit: string; // "percent", "years", "births per woman", "per 1,000 people", ...
   topic: string; // "labour", "occupancy", ...
   source: "census" | "housing" | "economy";
@@ -31,6 +32,9 @@ const SLOW_TOPICS = new Set(["localLanguages", "education", "illiteracy", "langu
 /** English first, then whichever of category, definedAs or the English label gives the French one. */
 const frLabel = (entry: { label: string; category?: string; definedAs?: string }): string =>
   entry.category ?? entry.definedAs ?? entry.label;
+
+/** The field's name in Arabic (site/src/i18n/fields.ts), which a test holds to every field of the dataset. */
+const arLabel = (set: keyof typeof FIELDS_AR, path: string, fallback: string): string => FIELDS_AR[set][path] ?? fallback;
 
 /** One entry of a `fields.json` field list, census or housing. */
 interface FieldEntry {
@@ -57,7 +61,7 @@ const censusFields: Field[] = INDICATOR_PATHS.flatMap((path) => {
   return [
     {
       path,
-      label: { en: entry.label, fr: frLabel(entry) },
+      label: { en: entry.label, fr: frLabel(entry), ar: arLabel("indicators", path, entry.label) },
       unit: entry.unit,
       topic: entry.topic,
       source: "census" as const,
@@ -76,7 +80,7 @@ const housingFields: Field[] = housingFieldsFile.fields
   .filter((f) => f.path !== "dwellings.total")
   .map((f) => ({
     path: `housing.${f.path}`,
-    label: { en: f.label, fr: frLabel(f) },
+    label: { en: f.label, fr: frLabel(f), ar: arLabel("housing", f.path, f.label) },
     unit: f.unit,
     topic: f.topic,
     source: "housing" as const,
@@ -96,9 +100,10 @@ const economyRatioFields: Field[] = ECONOMY_RATIOS.map((ratio) => {
   const of = economyFieldByPath.get(ratio.of);
   if (!of) throw new Error(`economy ratio ${ratio.path} points at an unknown field ${ratio.of}`);
   const label = ratioLabel(ratio, of);
+  const counted = arLabel("economy", `${of.topic}.${of.key}`, of.label);
   return {
     path: ratio.path,
-    label: { en: label, fr: label },
+    label: { en: label, fr: label, ar: ratio.per === "population" ? `${counted} لكل 1.000 نسمة` : `${counted} لكل مقاولة` },
     unit: ratioUnit(ratio),
     topic: ratio.path.split(".")[1]!,
     source: "economy" as const,
@@ -112,7 +117,7 @@ const SHARE_TOPICS = new Set(["sector", "size", "founded"]);
 /** The sector, size and founded-date splits, each as a share of the businesses. */
 const economyShareFields: Field[] = ECONOMY_FIELDS.filter((f) => SHARE_TOPICS.has(f.topic)).map((f) => ({
   path: `economy.share.${f.topic}.${f.key}`,
-  label: { en: f.label, fr: frLabel(f) },
+  label: { en: f.label, fr: frLabel(f), ar: arLabel("economy", `${f.topic}.${f.key}`, f.label) },
   unit: "percent",
   topic: f.topic,
   source: "economy" as const,

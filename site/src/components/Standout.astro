@@ -7,8 +7,10 @@
  */
 import { places } from "../i18n/places";
 import { path, t, type Locale } from "../i18n/ui";
-import { numbers, percent } from "../lib/format";
+import { becomes, numbers, percent } from "../lib/format";
 import { standoutPlot, type StandoutRow } from "../lib/insights";
+import { nameIn } from "../lib/names";
+import { pageOf } from "../lib/places";
 import { figure, opening } from "../../../insights/src/text.ts";
 
 interface Props {
@@ -25,6 +27,7 @@ const sample = places[locale].insightsSample;
 const f = row.finding;
 const plot = standoutPlot(f);
 const here = plot.rows.find((r) => r.key === "here");
+const page = pageOf(row.code);
 
 const short = (v: number, digits = 1) =>
   plot.unit === "percent" ? percent(locale, v, { digits, fixed: true }) : numbers(locale, digits, true).format(v);
@@ -32,13 +35,13 @@ const whole = (v: number) => short(v, Number.isInteger(v) ? 0 : 1);
 const at = (v: number) => `${(Math.max(0, v) / plot.top) * 100}%`;
 const big =
   here?.from !== undefined
-    ? `${figure(f.measure, here.from, locale)} → ${figure(f.measure, here.value, locale)}`
+    ? `${figure(f.measure, here.from, locale)} ${becomes(locale)} ${figure(f.measure, here.value, locale)}`
     : figure(f.measure, f.value, locale);
 ---
 
 <article class="finding" id={id}>
   <p class="topic">{topic}</p>
-  <p class="who"><a href={path(locale, row.route)}>{row.name}</a></p>
+  <p class="who"><a href={path(locale, row.route)}>{page ? nameIn(locale, page.name) : row.name}</a></p>
   {here && <p class="big">{big}</p>}
   <p class="line">{opening(f.measure)[locale]}</p>
   {plot.rows.length > 1 && (
@@ -57,7 +60,7 @@ const big =
             <span class="dot" style={`inset-inline-start:${at(r.value)}`}></span>
           </span>
           <span class="value">
-            {r.from !== undefined && <span class="was">{short(r.from)} →</span>} {short(r.value)}
+            {r.from !== undefined && <span class="was">{short(r.from)} {becomes(locale)}</span>} {short(r.value)}
           </span>
         </li>
       ))}
@@ -177,6 +180,11 @@ const big =
     border-radius: 50%;
     background: var(--quiet);
     transform: translate(-50%, -50%);
+  }
+
+  /* Centred on its value, which is measured from the right in Arabic. */
+  :global([dir="rtl"]) .dot {
+    transform: translate(50%, -50%);
   }
 
   .here .dot {

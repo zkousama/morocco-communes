@@ -5,7 +5,7 @@ import { glossary } from "../src/i18n/glossary.ts";
 import { hcpDefinition } from "../src/lib/definitions.ts";
 import { PAGES } from "../src/i18n/ui.ts";
 
-const locales = ["en", "fr"] as const;
+const locales = ["en", "fr", "ar"] as const;
 const ids = (locale: (typeof locales)[number]) => glossary[locale].groups.flatMap((g) => g.entries.map((e) => e.id));
 
 const sources = (dir: string): string[] =>
@@ -26,9 +26,11 @@ describe("the glossary", () => {
     }
   });
 
-  it("covers the same terms in both languages, in the same order", () => {
-    expect(ids("fr")).toEqual(ids("en"));
-    expect(glossary.fr.groups.map((g) => g.id)).toEqual(glossary.en.groups.map((g) => g.id));
+  it("covers the same terms in every language, in the same order", () => {
+    for (const locale of ["fr", "ar"] as const) {
+      expect(ids(locale), locale).toEqual(ids("en"));
+      expect(glossary[locale].groups.map((g) => g.id), locale).toEqual(glossary.en.groups.map((g) => g.id));
+    }
   });
 
   it("says something about every term", () => {
@@ -43,10 +45,10 @@ describe("the glossary", () => {
     }
   });
 
-  it("writes its own English for a term HCP defines, and none of its own French", () => {
+  it("writes its own English and Arabic for a term HCP defines, and none of its own French", () => {
     for (const locale of locales) {
       for (const entry of glossary[locale].groups.flatMap((g) => g.entries)) {
-        if (locale === "en") expect(entry.body, entry.id).toBeTruthy();
+        if (locale !== "fr") expect(entry.body, `${locale} ${entry.id}`).toBeTruthy();
         else if (entry.hcpTerm === undefined) expect(entry.body, entry.id).toBeTruthy();
       }
     }

@@ -13,18 +13,20 @@ import Base from "../layouts/Base.astro";
 import { attention, since } from "../generated/attention.ts";
 import { pageOf } from "../lib/places";
 import { path, t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
+import { nameIn } from "../lib/names";
 
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
 const copy = t(locale);
-const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const n = new Intl.NumberFormat(INTL[locale]);
 
 const rows = attention
   .map((row) => {
     const unit = pageOf(row.code);
-    return unit ? { n: row.n, name: unit.name.fr, href: path(locale, unit.route) } : null;
+    return unit ? { n: row.n, name: nameIn(locale, unit.name), href: path(locale, unit.route) } : null;
   })
   .filter((row) => row !== null);
 ---
@@ -32,7 +34,7 @@ const rows = attention
 {/* Off the menus and out of the sitemap: its address still works, and search engines are asked
     not to list it. Its ranking still gives the search box its suggestions. */}
 <Base locale={locale} route="most-looked-up/" title={copy.attention} description={copy.attentionBody} current={false}>
-  <article class="page" data-base={path(locale)} data-locale={locale}>
+  <article class="page" data-base={path(locale)} data-locale={locale} data-intl={INTL[locale]}>
     <h1>{copy.attention}</h1>
     <p class="lede">{copy.attentionBody}</p>
     <p class="empty" hidden={rows.length > 0}>{copy.attentionEmpty}</p>
@@ -51,6 +53,7 @@ const rows = attention
 <script>
   interface Place {
     name: string;
+    ar?: string;
     route: string;
     n: number;
   }
@@ -66,13 +69,13 @@ const rows = attention
       .then((body: { data?: { since?: string; places?: Place[] } } | null) => {
         const places = body?.data?.places;
         if (!Array.isArray(places)) return;
-        const n = new Intl.NumberFormat(page.dataset.locale === "fr" ? "fr-FR" : "en-GB");
+        const n = new Intl.NumberFormat(page.dataset.intl);
         list.replaceChildren(
           ...places.map((place) => {
             const item = document.createElement("li");
             const link = document.createElement("a");
             link.href = `${page.dataset.base}${place.route}`;
-            link.textContent = place.name;
+            link.textContent = (page.dataset.locale === "ar" && place.ar) || place.name;
             const count = document.createElement("span");
             count.className = "num";
             count.textContent = n.format(place.n);

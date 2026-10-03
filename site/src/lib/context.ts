@@ -10,7 +10,7 @@ import { mismatches } from "../../../api/src/lib/mismatch.ts";
 import { HOUSEHOLD_FIELDS_ALL, PEOPLE_FIELDS_ALL } from "../../../pipeline/src/sources/censusFields.ts";
 import { fill, places } from "../i18n/places.ts";
 import type { Locale } from "../i18n/ui.ts";
-import { percent } from "./format.ts";
+import { counted, percent } from "./format.ts";
 import { figure, indicatorsOf, national, type Census, type IndicatorRecord } from "./indicators.ts";
 import { communeOf, communes, neighbours } from "./places.ts";
 
@@ -200,7 +200,7 @@ export function moroccoLine(locale: Locale, then: number, now: number): string {
   const p = places[locale];
   // Rounded to the published decimal first, so 82.9 − 73 is 9.9 before it's 10.
   const change = Math.round(Math.round((now - then) * 10) / 10);
-  const points = Math.abs(change) === 1 ? p.movedPoint : fill(p.movedPoints, { n: Math.abs(change) });
+  const points = counted(locale, p.movedPoints, Math.abs(change));
   return change === 0 ? p.movedFlat : fill(change > 0 ? p.movedRise : p.movedFall, { points });
 }
 

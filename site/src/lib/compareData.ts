@@ -53,7 +53,7 @@ export function compareData(): CompareData {
     if (!ordinary(people, households)) {
       // Tifariti has both, 38 households for 5,728 people; the people outside households is what matters there.
       const special = !households || people / households > MAX_PER_HOUSEHOLD;
-      excluded.push([c.slug, c.name.fr, special ? "special" : "few"]);
+      excluded.push([c.slug, c.name.fr, special ? "special" : "few", c.name.ar]);
       continue;
     }
     const flagged = blanks(record);
@@ -69,5 +69,12 @@ export function compareData(): CompareData {
   const total = communes.reduce((s, c) => s + c.population["2024"].total, 0);
   // Morocco's figures, from HCP's national record. Its population is no commune's, so it has no mark there.
   const morocco = FIGURES.map((f) => (f.unit === "count" ? null : tenth(read(f, national, total, area))));
-  return { figures: FIGURES.map((f) => f.id), provinces: provinces.map((p) => p.name.fr), morocco, communes: rows, excluded };
+  return {
+    figures: FIGURES.map((f) => f.id),
+    provinces: provinces.map((p) => p.name.fr),
+    provincesAr: provinces.map((p) => p.name.ar),
+    morocco,
+    communes: rows,
+    excluded,
+  };
 }

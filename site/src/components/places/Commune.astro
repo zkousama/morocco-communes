@@ -18,11 +18,13 @@ import { economyOf } from "../../lib/economy";
 import { housingOf } from "../../lib/housing";
 import { insightsOf } from "../../lib/insights";
 import { de, fill, ordinal, places } from "../../i18n/places";
-import { path, REPO_URL, t, type Locale } from "../../i18n/ui";
+import { REPO_URL, path, t, type Locale } from "../../i18n/ui";
+import { INTL } from "../../lib/intl";
 import { ordinary } from "../../../../api/src/lib/ordinary.ts";
 import { hasNeighbourhoods, postcodesOf, villagesOf } from "../../lib/neighbourhoods";
 import { douarsOf } from "../../lib/douars";
-import { density, numbers, percent } from "../../lib/format";
+import { density, listComma, numbers, percent } from "../../lib/format";
+import { besideIn, byNameIn, nameBeside, nameIn } from "../../lib/names";
 import { densityBreaks } from "../../generated/map";
 import { placeData } from "../../lib/placeData";
 import {
@@ -49,12 +51,14 @@ interface Props {
 }
 const { locale, commune: c } = Astro.props;
 const p = places[locale];
+const name = nameIn(locale, c.name);
+const comma = listComma(locale);
 const province = provinceOf.get(c.parents.province)!;
 const region = regionOf.get(c.parents.region)!;
 const cercle = c.parents.cercle ? cercleOf.get(c.parents.cercle) : undefined;
 
-const n = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
-const n1 = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 1 });
+const n = new Intl.NumberFormat(INTL[locale]);
+const n1 = new Intl.NumberFormat(INTL[locale], { maximumFractionDigits: 1 });
 const signed = (v: number) => percent(locale, v, { signed: true, fixed: true });
 const people = c.population["2024"];
 const change = c.population.change;
@@ -74,9 +78,9 @@ const lede =
     : fill(c.type === "rural" && cercle ? p.communeLedeRural : p.communeLede, {
         type: c.type === "urban" ? p.urbanCommune : p.ruralCommune,
         ptype,
-        province: province.name.fr,
-        region: region.name.fr,
-        cercle: cercle?.name.fr ?? "",
+        province: nameIn(locale, province.name),
+        region: nameIn(locale, region.name),
+        cercle: cercle ? nameIn(locale, cercle.name) : "",
       });
 
 const rank = nationalRank.get(c.code)!;
@@ -94,7 +98,7 @@ const drawing = drawProvince(province.code);
 const where = inset({ region: region.code, province: province.code });
 const bordering = (neighbours.get(c.code) ?? [])
   .map((n) => communeOf.get(n.code)!)
-  .sort((a, b) => a.name.fr.localeCompare(b.name.fr, "fr"));
+  .sort(byNameIn(locale));
 const census = indicatorsOf.get(c.code);
 const economy = economyOf.get(c.code);
 const housing = housingOf.get(c.code);
@@ -152,12 +156,12 @@ const ui = t(locale);
 const comparable = indicatorsOf.has(c.code) && ordinary(people.total, people.households);
 const twinSlug = twin ? communeOf.get(twin.code)?.slug : undefined;
 const compareHref = comparable ? path(locale, `compare/?c=${[c.slug, twinSlug].filter(Boolean).join(",")}`) : null;
-const compareText = twinPage ? fill(ui.compareWith, { name: twinPage.name.fr }) : ui.compareAnother;
+const compareText = twinPage ? fill(ui.compareWith, { name: nameIn(locale, twinPage.name) }) : ui.compareAnother;
 
 const description =
-  `${c.name.fr} (${c.name.ar}): ${n.format(people.total)} ${locale === "fr" ? "habitants en 2024" : "people in 2024"}` +
-  (rate ? `, ${signed(rate.pct)} ${locale === "fr" ? "depuis 2014" : "since 2014"}` : "") +
-  `. ${locale === "fr" ? "Code HCP" : "HCP code"} ${c.code}.`;
+  `${name} (${nameBeside(locale, c.name)}): ${n.format(people.total)} ${p.told.people}` +
+  (rate ? `${comma}${signed(rate.pct)} ${p.told.since}` : "") +
+  `. ${p.told.code} ${c.code}.`;
 
 const snippet = `import { getCommune } from "morocco-communes";
 
@@ -167,7 +171,7 @@ getCommune("${c.slug}");`;
 <Place
   locale={locale}
   route={`communes/${c.slug}/`}
-  title={c.name.fr}
+  title={name}
   code={c.code}
   data={placeData({
     site: Astro.site,
@@ -178,14 +182,14 @@ getCommune("${c.slug}");`;
     osm: c.osm,
     centroid: c.centroid,
   })}
-  documentTitle={sharedNames.has(c.name.fr) ? `${c.name.fr}, ${province.name.fr}` : undefined}
+  documentTitle={sharedNames.has(c.name.fr) ? `${name}${comma}${nameIn(locale, province.name)}` : undefined}
   description={description}
-  arabic={c.name.ar}
+  beside={nameBeside(locale, c.name)}
   lede={lede}
   trail={[
     { href: path(locale, "communes/"), label: p.browseTitle },
-    { href: path(locale, `regions/${region.slug}/`), label: region.name.fr },
-    { href: path(locale, `provinces/${province.slug}/`), label: province.name.fr },
+    { href: path(locale, `regions/${region.slug}/`), label: nameIn(locale, region.name) },
+    { href: path(locale, `provinces/${province.slug}/`), label: nameIn(locale, province.name) },
   ]}
 >
   <dl class="figures">
@@ -216,7 +220,7 @@ getCommune("${c.slug}");`;
       <dt>{p.density}</dt>
       <dd>
         {c.density === null ? "—" : density(locale, c.density)}
-        <small>{c.density === null ? p.noBoundary : `${p.perKm2}, ${n1.format(c.areaKm2!)} km²`}</small>
+        <small>{c.density === null ? p.noBoundary : `${p.perKm2}${comma}${n1.format(c.areaKm2!)} ${p.told.km2}`}</small>
       </dd>
     </div>
     {people.households !== null && (
@@ -245,9 +249,9 @@ getCommune("${c.slug}");`;
 
   {(gapPage || moved || twinPage || rare.length > 0 || compareHref) && (
     <div class="context">
-      {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{gapPage.name.fr}</a>{gapAfter}</p>}
+      {gapPage && <p>{gapBefore}<a href={path(locale, gapPage.route)}>{nameIn(locale, gapPage.name)}</a>{gapAfter}</p>}
       {moved && <p>{moved}</p>}
-      {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{twinPage.name.fr}</a>{twinAfter}</p>}
+      {twinPage && <p>{twinBefore}<a href={path(locale, twinPage.route)}>{nameIn(locale, twinPage.name)}</a>{twinAfter}</p>}
       {compareHref && <p class="compare"><a href={compareHref}>{compareText} <Arrow /></a></p>}
       {rare.map((line) => <p>{line}</p>)}
     </div>
@@ -268,11 +272,11 @@ getCommune("${c.slug}");`;
           locale={locale}
           drawing={drawing}
           gapLabel={p.gapLabel}
-          label={fill(p.mapLabel, { name: province.name.fr })}
+          label={fill(p.mapLabel, { name: nameIn(locale, province.name) })}
           classOf={densityClass}
           linkOf={(code) => {
             const x = communeOf.get(code);
-            return x && x.code !== c.code ? { href: href(x.slug), name: x.name.fr } : null;
+            return x && x.code !== c.code ? { href: href(x.slug), name: nameIn(locale, x.name) } : null;
           }}
           highlight={c.code}
           borders={new Set(bordering.map((b) => b.code))}
@@ -280,12 +284,12 @@ getCommune("${c.slug}");`;
       )}
     </div>
     <div class="side">
-      <Inset {...where} label={fill(p.insetLabel, { name: province.name.fr })} />
+      <Inset {...where} label={fill(p.insetLabel, { name: nameIn(locale, province.name) })} />
       {bordering.length > 0 && (
         <>
           <h3>{p.bordering}</h3>
           <ul class="links">
-            {bordering.map((b) => <li><a href={href(b.slug)}>{b.name.fr}</a></li>)}
+            {bordering.map((b) => <li><a href={href(b.slug)}>{nameIn(locale, b.name)}</a></li>)}
           </ul>
         </>
       )}
@@ -293,7 +297,7 @@ getCommune("${c.slug}");`;
         <>
           <h3>{codes.length === 1 ? p.postcode : p.postcodes}</h3>
           <p class="postcodes">
-            {codes.slice(0, CODES_SHOWN).join(", ")}{codes.length > CODES_SHOWN && <span class="postcodes-rest">{`, ${codes.slice(CODES_SHOWN).join(", ")}`}</span>}
+            {codes.slice(0, CODES_SHOWN).join(comma)}{codes.length > CODES_SHOWN && <span class="postcodes-rest">{`${comma}${codes.slice(CODES_SHOWN).join(comma)}`}</span>}
             {codes.length > CODES_SHOWN && (
               <button type="button" class="postcodes-more" hidden>{fill(p.postcodesMore, { n: n.format(codes.length - CODES_SHOWN) })}</button>
             )}
@@ -304,7 +308,7 @@ getCommune("${c.slug}");`;
         <>
           <h3>{p.villages}</h3>
           <p class="postcodes">
-            {villages.slice(0, CODES_SHOWN).join(", ")}{villages.length > CODES_SHOWN && <span class="postcodes-rest">{`, ${villages.slice(CODES_SHOWN).join(", ")}`}</span>}
+            {villages.slice(0, CODES_SHOWN).join(comma)}{villages.length > CODES_SHOWN && <span class="postcodes-rest">{`${comma}${villages.slice(CODES_SHOWN).join(comma)}`}</span>}
             {villages.length > CODES_SHOWN && (
               <button type="button" class="postcodes-more" hidden>{fill(p.postcodesMore, { n: n.format(villages.length - CODES_SHOWN) })}</button>
             )}
@@ -317,20 +321,20 @@ getCommune("${c.slug}");`;
   {rate && (
     <section id="change">
       <h2>{p.howItChanged}</h2>
-      <p>{fill(p.chartBody, { name: c.name.fr })}</p>
+      <p>{fill(p.chartBody, { name })}</p>
       <ChangeChart
         locale={locale}
         value={rate.pct}
-        name={c.name.fr}
+        name={name}
         nationalLabel={p.chartNational}
-        srText={`${c.name.fr} ${signed(rate.pct)}`}
+        srText={`${name} ${signed(rate.pct)}`}
       />
     </section>
   )}
 
-  {census && <People locale={locale} record={census} name={c.name.fr} />}
+  {census && <People locale={locale} record={census} name={name} />}
 
-  {housing && <Housing locale={locale} record={housing} name={c.name.fr} />}
+  {housing && <Housing locale={locale} record={housing} name={name} />}
 
   {economy && <Economy locale={locale} record={economy} population={people.total} />}
 
@@ -352,7 +356,7 @@ getCommune("${c.slug}");`;
     </section>
   )}
 
-  {fractions.length > 0 && <Douars locale={locale} code={c.code} fractions={fractions} name={c.name.fr} urban={c.type === "urban"} />}
+  {fractions.length > 0 && <Douars locale={locale} code={c.code} fractions={fractions} name={name} urban={c.type === "urban"} />}
 
   {arrondissements.length > 0 && (
     <section id="arrondissements">
@@ -363,11 +367,11 @@ getCommune("${c.slug}");`;
           <PlaceMap
             locale={locale}
             drawing={cityDrawing}
-            label={fill(p.mapLabel, { name: c.name.fr })}
+            label={fill(p.mapLabel, { name })}
             classOf={arrondissementClass}
             linkOf={(code) => {
               const a = arrondissements.find((x) => x.code === code);
-              return a ? { name: a.name.fr } : null;
+              return a ? { name: nameIn(locale, a.name) } : null;
             }}
           />
         )}
@@ -383,7 +387,7 @@ getCommune("${c.slug}");`;
             <tbody>
               {arrondissements.map((a) => (
                 <tr>
-                  <td>{a.name.fr} <span lang="ar" dir="rtl" class="ar">{a.name.ar}</span></td>
+                  <td>{nameIn(locale, a.name)} <span {...besideIn(locale)} class="ar">{nameBeside(locale, a.name)}</span></td>
                   <td class="num">{n.format(a.population["2024"].total)}</td>
                   <td class="num">{a.density === null ? "—" : density(locale, a.density)}</td>
                 </tr>

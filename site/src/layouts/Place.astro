@@ -2,6 +2,7 @@
 import Base from "./Base.astro";
 import Beacon from "../components/Beacon.astro";
 import type { Locale } from "../i18n/ui";
+import { besideIn } from "../lib/names";
 
 interface Props {
   locale: Locale;
@@ -12,15 +13,15 @@ interface Props {
   description: string;
   /** Links above the title, from the list of all communes down to the parent. */
   trail: { href: string; label: string }[];
-  /** The name in Arabic, shown beside the French one. */
-  arabic?: string;
+  /** The unit's other name, shown beside the title: Arabic beside a Latin title, Latin beside an Arabic one. */
+  beside?: string;
   lede: string;
   /** The page's schema.org description, from placeData(). */
   data?: Record<string, unknown> | null;
   /** The unit's own code, for the beacon. Left out on a page that is no one unit, such as the browse list. */
   code?: string;
 }
-const { locale, route, title, documentTitle, description, trail, arabic, lede, data, code } = Astro.props;
+const { locale, route, title, documentTitle, description, trail, beside, lede, data, code } = Astro.props;
 ---
 
 <Base locale={locale} route={route} title={documentTitle ?? title} description={description}>
@@ -37,7 +38,7 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede, d
       )}
       <div class="names">
         <h1>{title}</h1>
-        {arabic && <p class="arabic" lang="ar" dir="rtl">{arabic}</p>}
+        {beside && <p class="beside" {...besideIn(locale)}>{beside}</p>}
       </div>
       <p class="lede">{lede}</p>
     </header>
@@ -76,6 +77,11 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede, d
     color: var(--quiet);
   }
 
+  /* The crumbs run the other way in Arabic, so the mark between them turns. */
+  :global([dir="rtl"]) .trail li + li::before {
+    content: "‹";
+  }
+
   .trail a {
     color: var(--quiet);
     text-decoration: none;
@@ -101,7 +107,7 @@ const { locale, route, title, documentTitle, description, trail, arabic, lede, d
     margin: 0;
   }
 
-  .arabic {
+  .beside {
     margin: 0;
     font-size: clamp(var(--t-lg), 4vw, var(--t-xl));
     color: var(--quiet);

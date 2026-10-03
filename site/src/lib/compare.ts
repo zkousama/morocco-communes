@@ -62,13 +62,15 @@ export const VALUES_FROM = 5;
 export interface CompareData {
   figures: string[];
   provinces: string[];
+  /** The same provinces by their Arabic names, for the Arabic site. */
+  provincesAr: string[];
   morocco: (number | null)[];
   communes: Row[];
   /**
-   * Communes the page doesn't compare, by slug and name, and why: "few" under 300 households,
-   * "special" where most people aren't counted in households at all.
+   * Communes the page doesn't compare, by slug and name, why, and the name in Arabic: "few"
+   * under 300 households, "special" where most people aren't counted in households at all.
    */
-  excluded: [string, string, "few" | "special"][];
+  excluded: [string, string, "few" | "special", string][];
 }
 
 // The link -------------------------------------------------------------------

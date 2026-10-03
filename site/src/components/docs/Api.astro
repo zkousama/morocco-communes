@@ -4,10 +4,11 @@ import Code from "../Code.astro";
 import Params from "./Params.astro";
 import { typeOf, type Schema } from "../../lib/schema";
 import { reference } from "../../generated/reference";
-import { docs, SPEC_FR } from "../../i18n/docs";
+import { docs, SPEC_AR, SPEC_FR } from "../../i18n/docs";
 import { highlightJson } from "../../lib/highlight";
 import { inline } from "../../lib/inline";
 import { t, type Locale } from "../../i18n/ui";
+import { INTL } from "../../lib/intl";
 
 interface Props {
   locale: Locale;
@@ -16,7 +17,7 @@ const { locale } = Astro.props;
 const d = docs[locale].api;
 const copy = t(locale);
 // French groups thousands with a thin space, English with a comma.
-const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const group = new Intl.NumberFormat(INTL[locale]);
 
 const tiers = [
   // Counted from what the API build writes, so it follows every route added.
@@ -51,15 +52,17 @@ interface Operation {
   responses: Record<string, { description: string }>;
 }
 
-// The English page speaks the spec's own words. The French one reads each line from the
-// translation map, and every key the spec implies has to be there, with none left over.
+// The English page speaks the spec's own words. The French and Arabic ones read each line
+// from their translation map, and every key the spec implies has to be there, with none left over.
+const spec = locale === "en" ? null : { fr: SPEC_FR, ar: SPEC_AR }[locale];
+const specName = `SPEC_${locale.toUpperCase()}`;
 const used = new Set<string>();
 const say = (key: string, english: string) => {
-  if (locale === "en") return english;
+  if (!spec) return english;
   used.add(key);
-  const french = SPEC_FR[key];
-  if (!french) throw new Error(`SPEC_FR has no ${key}; the spec says "${english}"`);
-  return french;
+  const own = spec[key];
+  if (!own) throw new Error(`${specName} has no ${key}; the spec says "${english}"`);
+  return own;
 };
 
 const operations = reference.operations.map(({ path, method, op }) => {
@@ -83,9 +86,9 @@ const operations = reference.operations.map(({ path, method, op }) => {
   };
 });
 
-if (locale === "fr") {
-  const stale = Object.keys(SPEC_FR).filter((key) => !used.has(key));
-  if (stale.length > 0) throw new Error(`SPEC_FR names what the spec no longer has: ${stale.join(", ")}`);
+if (spec) {
+  const stale = Object.keys(spec).filter((key) => !used.has(key));
+  if (stale.length > 0) throw new Error(`${specName} names what the spec no longer has: ${stale.join(", ")}`);
 }
 
 const origin = Astro.site?.origin ?? null;
@@ -135,13 +138,13 @@ const toc = [
     <h2>{d.routes}</h2>
     <ul class="index">
       {operations.map((op) => (
-        <li><a href={`#${op.id}`}><span class="verb">{op.method}</span> <code>{op.path}</code></a></li>
+        <li><a href={`#${op.id}`} dir="ltr"><span class="verb">{op.method}</span> <code>{op.path}</code></a></li>
       ))}
     </ul>
 
     {operations.map((op) => (
       <article class="route" id={op.id}>
-        <h3><span class="verb">{op.method}</span> <code>{op.path}</code></h3>
+        <h3><bdi dir="ltr"><span class="verb">{op.method}</span> <code>{op.path}</code></bdi></h3>
         <p class="summary">{op.summary}</p>
         {op.description && <p class="quiet" set:html={inline(op.description)} />}
 
@@ -234,7 +237,7 @@ const toc = [
     </ol>
     <ul class="routes">
       {routeLines.map((route) => (
-        <li><span class="verb">GET</span> <a href={route}>{route}</a></li>
+        <li><bdi dir="ltr"><span class="verb">GET</span> <a href={route}>{route}</a></bdi></li>
       ))}
     </ul>
   </section>

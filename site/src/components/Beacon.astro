@@ -2,7 +2,7 @@
 // Tells the site what a static page can't: which place was opened, which file was taken.
 // It sends a code and the host the reader came from, never the address they were on, and
 // it stays quiet when the reader asks not to be tracked.
-interface Props { code?: string; locale: "en" | "fr" }
+interface Props { code?: string; locale: "en" | "fr" | "ar" }
 const { code, locale } = Astro.props;
 ---
 <script is:inline define:vars={{ code, locale }}>

@@ -264,8 +264,8 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
   .cmp-note {
     font-size: var(--t-sm);
     color: var(--quiet);
-    border-left: 2px solid var(--brass);
-    padding-left: 0.75rem;
+    border-inline-start: 2px solid var(--brass);
+    padding-inline-start: 0.75rem;
     margin: 0 0 1rem;
   }
 
@@ -287,7 +287,7 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
   }
 
   .cmp-suggestions span {
-    margin-right: 0.2rem;
+    margin-inline-end: 0.2rem;
   }
 
   .cmp-suggest {
@@ -392,6 +392,13 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
 
   .cmp-values .mo {
     color: var(--quiet);
+  }
+
+  /* The strip is a scale drawn left to right, low to high, in every language: its bars, its
+     marks and where a click lands are all measured from the left. */
+  .cmp-strip,
+  .cmp-ends {
+    direction: ltr;
   }
 
   .cmp-strip {

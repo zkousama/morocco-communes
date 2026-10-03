@@ -11,10 +11,11 @@ describe("the census notes", () => {
   const kitchen = { path: "amenities.kitchen", then: 96, now: 56 };
   const darija = { path: "localLanguages.darija", then: 5, now: 60 };
 
-  it("names every figure the check covers, in both languages", () => {
+  it("names every figure the check covers, in every language", () => {
     for (const locale of ["en", "fr"] as const) {
       for (const path of CHECKED) expect(figureName(locale, path), `${locale} ${path}`).toMatch(/^\p{Lu}/u);
     }
+    for (const path of CHECKED) expect(figureName("ar", path), `ar ${path}`).toMatch(/^\p{Script=Arabic}/u);
     expect(figureName("en", "wastewater.publicSewer")).toBe("Public sewer");
     expect(figureName("fr", "localLanguages.tarifit")).toBe("Tarifit");
   });

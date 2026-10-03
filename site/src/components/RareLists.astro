@@ -7,6 +7,8 @@
  */
 import { path, t, type Locale } from "../i18n/ui";
 import { numbers, percent } from "../lib/format";
+import { nameIn } from "../lib/names";
+import { pageOf } from "../lib/places";
 import { WHERE_FOLD, WHERE_SHOWN, whereLists, type WhereRow } from "../lib/where";
 
 interface Props {
@@ -16,6 +18,10 @@ const { locale } = Astro.props;
 const copy = t(locale);
 const sections = whereLists();
 const figures = copy.whereFigures;
+const named = (r: WhereRow) => {
+  const page = pageOf(r.code);
+  return page ? nameIn(locale, page.name) : r.name;
+};
 const amount = (id: string, value: number) =>
   id === "souk" ? numbers(locale).format(value) : percent(locale, value, { fixed: true });
 ---
@@ -29,7 +35,7 @@ const amount = (id: string, value: number) =>
     const most = section.rows[0]?.value || 1;
     const row = (r: WhereRow) => (
       <li>
-        <a href={path(locale, r.route)} title={r.name}>{r.name}</a>
+        <a href={path(locale, r.route)} title={named(r)}>{named(r)}</a>
         <span class="bar" aria-hidden="true"><span style={`width:${(r.value / most) * 100}%`}></span></span>
         <span class="value">{amount(section.id, r.value)}</span>
       </li>

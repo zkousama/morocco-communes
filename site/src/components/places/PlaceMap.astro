@@ -7,6 +7,7 @@
 import type { Locale } from "../../i18n/ui";
 import { arrondissements, communeOf, type Drawing } from "../../lib/places";
 import { shapeLines } from "../../lib/shapeTip";
+import { nameIn } from "../../lib/names";
 
 interface Props {
   locale: Locale;
@@ -42,7 +43,7 @@ const touching = borders ? drawing.shapes.filter((s) => borders.has(s.code)) : [
     const place = communeOf.get(shape.code) ?? arrondissements.find((a) => a.code === shape.code);
     const path = <path d={shape.d} data-d={classOf(shape.code)} />;
     // The page's own commune has no link, and still gets its card.
-    const name = link?.name ?? place?.name.fr;
+    const name = link?.name ?? (place && nameIn(locale, place.name));
     if (!name) return path;
     const lines = place ? shapeLines(locale, place).join("\n") : "";
     return link?.href ? (

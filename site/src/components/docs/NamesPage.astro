@@ -8,7 +8,7 @@
 import Docs from "../../layouts/Docs.astro";
 import { names } from "../../i18n/names";
 import { path, type Locale } from "../../i18n/ui";
-import { numbers, percent } from "../../lib/format";
+import { listComma, numbers, percent } from "../../lib/format";
 import { consonantsOf, naming, spell } from "../../lib/naming";
 
 interface Props {
@@ -110,7 +110,7 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
         <span></span>
         <span class="track">
           <span class="limit-label" style={`inset-inline-start:${(naming.chance.most / chanceTop) * 100}%`}>
-            {c.chanceLimit}, {share(naming.chance.most)}
+            {c.chanceLimit}{listComma(locale)}{share(naming.chance.most)}
           </span>
         </span>
         <span></span>
@@ -286,6 +286,10 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
     white-space: nowrap;
   }
 
+  :global([dir="rtl"]) .limit-label {
+    transform: translateX(50%);
+  }
+
   /* A name read down to its consonants and back up into Latin letters. */
   .examples {
     display: grid;
@@ -325,11 +329,13 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
     margin-top: 1rem;
   }
 
+  /* Latin consonants, in the order the Latin name below spells them. */
   .keys {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.3rem;
+    direction: ltr;
   }
 
   .keys span {

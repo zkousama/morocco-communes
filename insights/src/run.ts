@@ -13,7 +13,7 @@ import { detect, type Finding, type Kind } from "./detect.ts";
 import { dropped, isSampled, type Dropped } from "./filter.ts";
 import { readLocal } from "./model.ts";
 import { localWarning, refusal, termsPattern } from "./safety.ts";
-import { breakdown, findingLine } from "./text.ts";
+import { breakdown, findingLine, type Words } from "./text.ts";
 
 /** One standout figure, as a commune's file publishes it. */
 export interface Published {
@@ -26,7 +26,7 @@ export interface Published {
   direction: "high" | "low";
   /** True when the figure comes from the long questionnaire's sample, in a commune of 2,000 households or more. */
   sampled: boolean;
-  line: { en: string; fr: string };
+  line: Words;
   breakdown: ReturnType<typeof breakdown>;
   context: Context;
 }
@@ -48,7 +48,7 @@ export interface Counts {
 
 /** Whether anything a figure's record says in words breaks the policy: its line, and the labels of the parts it's made of. */
 function refused(line: Published["line"], parts: Published["breakdown"], terms: RegExp | null): boolean {
-  const texts = [line.en, line.fr, ...(parts ?? []).flatMap((p) => [p.label.en, p.label.fr])];
+  const texts = [line.en, line.fr, line.ar, ...(parts ?? []).flatMap((p) => [p.label.en, p.label.fr, p.label.ar])];
   return texts.some((text) => refusal(text, terms) !== null);
 }
 

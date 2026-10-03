@@ -18,12 +18,17 @@ export interface Hit {
   matched?: string;
 }
 
-/** One row of the list: a link, the name, the quiet line and the Arabic. */
+/**
+ * One row of the list: a link, the name, the quiet line and the name in the other script.
+ * That's the Arabic beside a Latin name, and on the Arabic site the Latin beside an Arabic
+ * one, which `latin` says.
+ */
 export interface Row {
   href: string;
   name: string;
   meta: string;
   ar: string;
+  latin?: true;
 }
 
 /** The little the browser needs to know about the dataset to place a hit. */
@@ -38,7 +43,16 @@ export interface Places {
   prefectures: string[];
   /** A commune's code to its province, for the communes whose name another one shares. */
   shared: Record<string, string>;
+  /** True on the Arabic site, where a row leads with the Arabic name and sets the Latin one beside it. */
+  arabic?: boolean;
 }
+
+/** A name's 2 spellings in the order the page's language leads with, the second empty where there's only one. */
+const lead = (places: Places, latin: string, arabic: string): Pick<Row, "name" | "ar" | "latin"> =>
+  places.arabic && arabic ? { name: arabic, ar: latin, latin: true } : { name: latin || arabic, ar: latin ? arabic : "" };
+
+/** The comma a list in the quiet line is joined with. */
+const comma = (places: Places) => (places.arabic ? "، " : ", ");
 
 /** The city an arrondissement belongs to: 01.511.01.05 is in 01.511.01.0, Tanger. */
 export const cityCode = (code: string) => `${code.split(".").slice(0, 3).join(".")}.0`;
@@ -82,15 +96,14 @@ export const metaOf = (hit: Hit, places: Places, levels: Record<string, string>)
 export interface DouarHit {
   code: string;
   name: { ar: string; latin: string };
-  commune: { slug: string; name: string };
+  commune: { slug: string; name: string; ar?: string };
 }
 
-/** A douar's row: its Latin name, "Douar · its commune", its Arabic, and a link to its row on the commune's page. */
+/** A douar's row: its name, "Douar · its commune", its name in the other script, and a link to its row on the commune's page. */
 export const douarRowOf = (hit: DouarHit, places: Places, levels: Record<string, string>): Row => ({
   href: `${places.base.commune}${hit.commune.slug}/#douar-${hit.code}`,
-  name: hit.name.latin || hit.name.ar,
-  meta: `${capital(levels.douar ?? "douar")} · ${hit.commune.name}`,
-  ar: hit.name.latin ? hit.name.ar : "",
+  ...lead(places, hit.name.latin, hit.name.ar),
+  meta: `${capital(levels.douar ?? "douar")} · ${(places.arabic && hit.commune.ar) || hit.commune.name}`,
 });
 
 export const rowOf = (hit: Hit, places: Places, levels: Record<string, string>): Row | null => {
@@ -98,19 +111,20 @@ export const rowOf = (hit: Hit, places: Places, levels: Record<string, string>):
   if (href === null) return null;
   if (hit.postcode) {
     // The postcode is what was typed; the commune, and the start of the neighbourhoods it covers, say where it is.
-    const where = [hit.name.fr, ...hit.postcode.neighbourhoods].join(", ");
-    return { href, name: hit.postcode.code, meta: `${capital(levels.postcode ?? "postcode")} · ${where}`, ar: hit.name.ar };
+    const own = lead(places, hit.name.fr, hit.name.ar);
+    const where = [own.name, ...hit.postcode.neighbourhoods].join(comma(places));
+    return { ...own, href, name: hit.postcode.code, meta: `${capital(levels.postcode ?? "postcode")} · ${where}` };
   }
   const hood = hit.neighbourhood;
-  if (!hood) return { href, name: hit.name.fr, meta: metaOf(hit, places, levels), ar: hit.name.ar };
+  if (!hood) return { href, ...lead(places, hit.name.fr, hit.name.ar), meta: metaOf(hit, places, levels) };
   // The neighbourhood is the name the reader typed, and the unit holding it goes on the quiet line.
   const city = hit.level === "arrondissement" ? places.cities[cityCode(hit.code)]?.name : undefined;
   const label = capital(levels.neighbourhood ?? "neighbourhood");
+  const unit = lead(places, hit.name.fr, hit.name.ar).name;
   return {
     href,
-    name: hood.fr || hood.ar,
-    meta: `${label} · ${city ? `${hit.name.fr}, ${city}` : hit.name.fr}`,
-    ar: hood.fr ? hood.ar : "",
+    ...lead(places, hood.fr, hood.ar),
+    meta: `${label} · ${city ? `${unit}${comma(places)}${city}` : unit}`,
   };
 };
 
@@ -138,4 +152,4 @@ export const rowHtml = (row: Row, id: string) =>
   `<a class="hit" role="option" tabindex="-1" aria-selected="false" id="${escape(id)}" href="${escape(row.href)}">` +
   `<span class="hit-text"><span class="hit-name">${escape(row.name)}</span> ` +
   `<span class="hit-meta">${escape(row.meta).replace(" · ", ' <span class="hit-sep">·</span> ')}</span></span> ` +
-  `<span class="hit-ar" lang="ar" dir="rtl">${escape(row.ar)}</span></a>`;
+  `<span class="hit-ar" ${row.latin ? 'lang="fr" dir="ltr"' : 'lang="ar" dir="rtl"'}>${escape(row.ar)}</span></a>`;

@@ -19,13 +19,14 @@ interface Props {
 }
 const { locale } = Astro.props;
 const g = glossary[locale];
-const english = locale === "en";
+// The French page gives HCP's wording as it is; the others say it in their own words, then quote HCP beneath.
+const quoted = locale !== "fr";
 const toc = g.groups.map((group) => ({ id: group.id, label: group.label }));
 
 /** What to show for an entry: its own words, HCP's, or HCP's and then its own. */
 const say = (entry: (typeof g.groups)[number]["entries"][number]) => {
   const hcp = entry.hcpTerm ? hcpDefinition(entry.hcpTerm) : null;
-  return { body: entry.body ?? null, hcp: hcp && !english ? hcp : null, under: hcp && english ? hcp : null };
+  return { body: entry.body ?? null, hcp: hcp && !quoted ? hcp : null, under: hcp && quoted ? hcp : null };
 };
 ---
 

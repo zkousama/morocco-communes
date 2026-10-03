@@ -223,8 +223,8 @@ describe("the breakdown", () => {
     const empty: Finding = { ...finding, measure: "housing.occupancy.unoccupied", value: 30, reference: 10 };
     const unit = data.units.get(empty.code)!;
     expect(breakdown(empty, data)).toEqual([
-      { field: "housing.occupancy.vacant", label: { en: "Vacant", fr: "Logement vacant" }, value: unit.figures.y2024["housing.occupancy.vacant"] },
-      { field: "housing.occupancy.seasonal", label: { en: "Second or seasonal home", fr: "Logement secondaire ou saisonnier" }, value: unit.figures.y2024["housing.occupancy.seasonal"] },
+      { field: "housing.occupancy.vacant", label: { en: "Vacant", fr: "Logement vacant", ar: "شاغر" }, value: unit.figures.y2024["housing.occupancy.vacant"] },
+      { field: "housing.occupancy.seasonal", label: { en: "Second or seasonal home", fr: "Logement secondaire ou saisonnier", ar: "سكن ثانوي أو موسمي" }, value: unit.figures.y2024["housing.occupancy.seasonal"] },
     ]);
   });
 

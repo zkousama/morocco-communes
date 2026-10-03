@@ -53,7 +53,7 @@ emitInsights(tree as never, {
     code: "04.421.01.0", level: "commune", name: { fr: "Rabat", ar: "الرباط" }, datasetVersion: "1.9.0",
     findings: [{ id: "abc123def456", kind: "extreme", measure: "fertility.totalFertilityRate",
       value: 1.19, reference: 2.2, score: 3.4, direction: "low", sampled: true,
-      line: { en: "Fertility is 1.19 children per woman", fr: "La fécondité est de 1,19 enfant par femme" },
+      line: { en: "Fertility is 1.19 children per woman", fr: "La fécondité est de 1,19 enfant par femme", ar: "يبلغ المؤشر التركيبي للخصوبة 1,19 طفل لكل امرأة" },
       breakdown: null,
       context: {
         others: [],

@@ -23,7 +23,7 @@ export default defineConfig({
   integrations: [solid()],
   i18n: {
     defaultLocale: "en",
-    locales: ["en", "fr"],
+    locales: ["en", "fr", "ar"],
     routing: { prefixDefaultLocale: false },
   },
   devToolbar: { enabled: false },
@@ -31,5 +31,6 @@ export default defineConfig({
   redirects: {
     "/where": "/insights/#rare",
     "/fr/where": "/fr/insights/#rare",
+    "/ar/where": "/ar/insights/#rare",
   },
 });

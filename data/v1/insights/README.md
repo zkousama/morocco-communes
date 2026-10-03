@@ -52,7 +52,7 @@ The same dataset always gives the same files, so a re-run with nothing changed l
     more, where the long questionnaire went to a sample of households. Economy and housing
     figures are full counts, so `sampled` is false for them. Under 2,000 households the
     questionnaire went to every household, and `sampled` is false;
-  - `line`, the sentence stating the figure, in English and French;
+  - `line`, the sentence stating the figure, in English, French and Arabic;
   - `breakdown`, the parts the figure is made of where the dataset has them, or `null`;
   - `context`, set out below.
 

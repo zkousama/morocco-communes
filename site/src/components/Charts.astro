@@ -2,7 +2,10 @@
 import Arrow from "./Arrow.astro";
 import { change, half, shrinking, since, sizes } from "../generated/charts";
 import { t, type Locale } from "../i18n/ui";
+import { INTL } from "../lib/intl";
 import { percent as formatPercent } from "../lib/format";
+import { nameIn } from "../lib/names";
+import { regionOf } from "../lib/places";
 
 interface Props {
   locale: Locale;
@@ -10,7 +13,7 @@ interface Props {
 const { locale } = Astro.props;
 const copy = t(locale);
 // French groups thousands with a thin space, English with a comma.
-const group = new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB");
+const group = new Intl.NumberFormat(INTL[locale]);
 
 /* Chart 1: percent change per région, diverging from a zero axis. The axis sits where
    the data puts it: one région shrank, and barely, so the gutter left of zero is thin. */
@@ -51,7 +54,7 @@ const sinceRows = since.map((row) => ({
     <ul class="diverge">
       {change.map((region) => (
         <li>
-          <span class="rname">{region.name}</span>
+          <span class="rname">{nameIn(locale, regionOf.get(region.code)?.name ?? { fr: region.name })}</span>
           <span class="track" aria-hidden="true">
             <span class="axis" style={`inset-inline-start:${zero}%`}></span>
             <span
@@ -83,7 +86,7 @@ const sinceRows = since.map((row) => ({
             <span class="hcount">{group.format(bucket.count)}</span>
             <span class="hbar" style={`height:${(bucket.count / maxCount) * 100}%`}></span>
           </span>
-          <span class="hlabel" aria-hidden="true">{bucket.label}</span>
+          <span class="hlabel" dir="ltr" aria-hidden="true">{bucket.label}</span>
         </li>
       ))}
     </ul>
