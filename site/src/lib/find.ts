@@ -14,6 +14,8 @@ export interface Hit {
   neighbourhood?: { fr: string; ar: string };
   /** The postcode a search was, when it found this commune by it. */
   postcode?: { code: string; neighbourhoods: string[] };
+  /** How the search found it: by code, name or spelling, or only by letters in common ("trigram"). */
+  matched?: string;
 }
 
 /** One row of the list: a link, the name, the quiet line and the Arabic. */
@@ -75,6 +77,21 @@ export const metaOf = (hit: Hit, places: Places, levels: Record<string, string>)
           : region;
   return where ? `${label} · ${where}` : label;
 };
+
+/** A douar the douar search found, as the API's /api/douars/search gives it. */
+export interface DouarHit {
+  code: string;
+  name: { ar: string; latin: string };
+  commune: { slug: string; name: string };
+}
+
+/** A douar's row: its Latin name, "Douar · its commune", its Arabic, and a link to its row on the commune's page. */
+export const douarRowOf = (hit: DouarHit, places: Places, levels: Record<string, string>): Row => ({
+  href: `${places.base.commune}${hit.commune.slug}/#douar-${hit.code}`,
+  name: hit.name.latin || hit.name.ar,
+  meta: `${capital(levels.douar ?? "douar")} · ${hit.commune.name}`,
+  ar: hit.name.latin ? hit.name.ar : "",
+});
 
 export const rowOf = (hit: Hit, places: Places, levels: Record<string, string>): Row | null => {
   const href = hrefOf(hit, places);

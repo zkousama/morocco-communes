@@ -100,13 +100,7 @@ const farthest = [...byCommune]
 </Base>
 
 <script>
-  import { normalise } from "../../../api/src/lib/normalise";
-  import { latinKeys, lookupKey } from "../../../api/src/lib/translit";
-
-  type Names = {
-    communes: [slug: string, name: string, prefix: string][];
-    douars: [name: string, commune: number, rest: string, people: number, latin: string, spelt: 0 | 1, keys: string][];
-  };
+  import { findDouars, prepare, type DouarNames, type PreparedNames } from "../../../api/src/lib/douarSearch";
 
   const finder = document.querySelector<HTMLElement>(".finder");
   const input = finder?.querySelector<HTMLInputElement>("input");
@@ -117,85 +111,40 @@ const farthest = [...byCommune]
     const d = finder.dataset;
     const count = new Intl.NumberFormat(d.lang === "fr" ? "fr-FR" : "en-GB");
     const LIMIT = 20;
-    let names: Names | null = null;
-    let arabic: string[] = [];
-    let latin: string[] = [];
-    let keyed: string[][] = [];
+    let index: PreparedNames | null = null;
     let loading: Promise<void> | null = null;
     const load = () =>
       (loading ??= fetch("/douars/names.json")
         .then((r) => r.json())
-        .then((json: Names) => {
-          names = json;
-          arabic = json.douars.map(([name]) => normalise(name));
-          latin = json.douars.map((d) => normalise(d[4]));
-          keyed = json.douars.map((d) => d[6].split("|"));
+        .then((json: DouarNames) => {
+          index = prepare(json);
         })
         .catch(() => undefined));
 
     const escape = (s: string) => s.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
-    /** Letters to change to turn one spelling into the other, over the longer's length. */
-    const apart = (a: string, b: string) => {
-      let row = Array.from({ length: b.length + 1 }, (_, j) => j);
-      for (let i = 1; i <= a.length; i++) {
-        const next = [i];
-        for (let j = 1; j <= b.length; j++) next[j] = Math.min(row[j]! + 1, next[j - 1]! + 1, row[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
-        row = next;
-      }
-      return row[b.length]! / Math.max(a.length, b.length, 1);
-    };
+    // The matching is the one the site's search box asks the server for (lib/douarSearch.ts).
     const render = () => {
-      const query = normalise(input.value);
       hits.replaceChildren();
       status.textContent = "";
-      if (!query) return;
-      if (!names) return;
-      // In Arabic, a name that starts with the query comes first, then one with a word that
-      // does, then any that holds it. In Latin, a name whose keys are the query's comes first,
-      // then one whose keys start with them, then one whose Latin spelling holds the query.
-      // The bigger douar first within each.
-      const found: { i: number; rank: number; near?: number }[] = [];
-      if (/\p{Script=Arabic}/u.test(query)) {
-        arabic.forEach((name, i) => {
-          const at = name.indexOf(query);
-          if (at >= 0) found.push({ i, rank: at === 0 ? 0 : name[at - 1] === " " ? 1 : 2 });
-        });
-      } else {
-        // Keys meet for spellings far apart (Tigraw and Ait Ettajr both come to tkr), so a
-        // match is ranked by how close its Latin spelling is to what was typed.
-        const wanted = latinKeys(query).map(lookupKey).filter(Boolean);
-        // French writes w as ou, so the 2 are one letter here: Tigraw is Tigraou, not Tigrar.
-        const sound = (s: string) => s.replace(/ /g, "").replace(/ou/g, "w");
-        const typed = sound(query);
-        keyed.forEach((own, i) => {
-          const near = apart(typed, sound(latin[i]!));
-          if (own.some((k) => wanted.includes(k))) found.push({ i, rank: 0, near });
-          else if (wanted.some((w) => w.length >= 2 && own.some((k) => k.startsWith(w)))) found.push({ i, rank: 1, near });
-          else if (query.length >= 3 && latin[i]!.includes(query)) found.push({ i, rank: 2, near });
-        });
-        // A close spelling beats a key match that reads nothing like it.
-        for (const f of found) if (f.near! <= 0.34) f.rank = Math.min(f.rank, 0) - 1;
-      }
-      found.sort((a, b) => a.rank - b.rank || (a.near ?? 0) - (b.near ?? 0) || names!.douars[b.i]![3] - names!.douars[a.i]![3]);
-      if (found.length === 0) {
+      if (!input.value.trim() || !index) return;
+      const { total, hits: found } = findDouars(index, input.value, LIMIT);
+      if (total === 0) {
         status.textContent = d.none ?? "";
         return;
       }
-      if (found.length > LIMIT) status.textContent = (d.more ?? "").replace("{n}", count.format(found.length)).replace("{shown}", String(LIMIT));
-      for (const { i } of found.slice(0, LIMIT)) {
-        const [name, commune, rest, people, written, spelt] = names.douars[i]!;
-        const [slug, communeName, prefix] = names.communes[commune]!;
+      if (total > LIMIT) status.textContent = (d.more ?? "").replace("{n}", count.format(total)).replace("{shown}", String(LIMIT));
+      for (const hit of found) {
         const li = document.createElement("li");
         li.innerHTML =
-          `<a href="${d.base}${slug}/#douar-${prefix}${rest}"><span lang="ar" dir="rtl">${escape(name)}</span>` +
-          `<span class="${spelt ? "latin spelt" : "latin"}">${escape(written)}</span>` +
-          `<span class="in">${escape(communeName)} · ${(d.people ?? "{n}").replace("{n}", count.format(people))}</span></a>`;
+          `<a href="${d.base}${hit.commune.slug}/#douar-${hit.code}"><span lang="ar" dir="rtl">${escape(hit.name.ar)}</span>` +
+          `<span class="${hit.spelt ? "latin spelt" : "latin"}">${escape(hit.name.latin)}</span>` +
+          `<span class="in">${escape(hit.commune.name)} · ${(d.people ?? "{n}").replace("{n}", count.format(hit.people))}</span></a>`;
         hits.append(li);
       }
     };
     input.addEventListener("focus", load, { once: true });
     input.addEventListener("input", () => {
-      if (names) render();
+      if (index) render();
       else load().then(render);
     });
   }

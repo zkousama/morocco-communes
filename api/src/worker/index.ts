@@ -1,3 +1,4 @@
+import { closeDouars, prepare, type DouarNames, type PreparedNames } from "../lib/douarSearch.ts";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import rawIndex from "../../generated/search-index.json";
@@ -208,6 +209,37 @@ app.get("/api/search", (c) => {
   const hits = search(index, q, { levels, limit });
   c.set("demandText", q);
   c.set("demandResults", hits.length);
+  return json(envelope(hits, { self: url.pathname + url.search }, { total: hits.length }), "computed");
+});
+
+/**
+ * Douars by name, for the site's search box: only the close ones, so a name typed one way
+ * doesn't offer a douar it merely shares consonants with. The index is the douars page's own,
+ * /douars/names.json, read through the asset binding once in a worker's life and kept.
+ */
+let douarIndex: Promise<PreparedNames | null> | null = null;
+app.get("/api/douars/search", async (c) => {
+  const url = new URL(c.req.url);
+  const q = url.searchParams.get("q");
+  if (q === null || q.trim() === "") {
+    return fail(url, "invalid-query", "q is required and cannot be empty", url.pathname + url.search);
+  }
+  if (q.length > QUERY.maxLength) {
+    return fail(url, "invalid-query", `q is at most ${QUERY.maxLength} characters`, url.pathname + url.search);
+  }
+  const limit = intParam(url.searchParams.get("limit") ?? undefined, 5, LIMIT.max);
+  if (limit === null) {
+    return fail(url, "invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, url.pathname + url.search);
+  }
+  douarIndex ??= c.env.ASSETS.fetch(new Request(new URL("/douars/names.json", url)))
+    .then(async (r) => (r.ok ? prepare((await r.json()) as DouarNames) : null))
+    .catch(() => null);
+  const index = await douarIndex;
+  if (!index) {
+    douarIndex = null;
+    return new Response(null, { status: 503 });
+  }
+  const hits = closeDouars(index, q, limit);
   return json(envelope(hits, { self: url.pathname + url.search }, { total: hits.length }), "computed");
 });
 

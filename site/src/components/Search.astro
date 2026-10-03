@@ -72,7 +72,7 @@ const copy = t(locale);
 </div>
 
 <script>
-  import { escape, rowHtml, rowOf, type Hit, type Places, type Row } from "../lib/find";
+  import { douarRowOf, escape, rowHtml, rowOf, type DouarHit, type Hit, type Places, type Row } from "../lib/find";
   import { slugify } from "../lib/slug";
 
   const find = document.querySelector<HTMLElement>(".find");
@@ -202,6 +202,13 @@ const copy = t(locale);
       const q = text.trim();
       shown = null;
       let hits: Hit[];
+      // Douars, asked for beside the places and listed after them; a douar search that fails
+      // leaves the places as they are.
+      const douars = /^[\d.\s]+$/.test(q)
+        ? Promise.resolve([] as DouarHit[])
+        : fetch(`/api/douars/search?q=${encodeURIComponent(q)}&limit=4`)
+            .then(async (r) => (r.ok ? ((await r.json()).data as DouarHit[]) : []))
+            .catch(() => [] as DouarHit[]);
       try {
         // Five digits are a postcode, which the search finds; any other run of digits is a code.
         if (/^[\d.\s]+$/.test(q) && !/^\d{5}$/.test(q)) {
@@ -219,7 +226,22 @@ const copy = t(locale);
         return;
       }
       if (mine !== latest) return;
-      const rows = hits.map((hit) => rowOf(hit, places, levels)).filter((row) => row !== null);
+      // A place found by its name comes first. A douar found by its name beats a place found
+      // only by letters in common, and with a douar there, only the closest 3 of those stay.
+      // The places show at once and the douars join them when they come, since the first
+      // douar search of a visit waits for the douars' index.
+      const loose = (hit: Hit) => hit.matched === "trigram";
+      const place = (list: Hit[]) => list.map((hit) => rowOf(hit, places, levels)).filter((row) => row !== null);
+      const rowsWith = (found: DouarHit[]) => [
+        ...place(hits.filter((hit) => !loose(hit))),
+        ...found.map((hit) => douarRowOf(hit, places, levels)),
+        ...place(hits.filter(loose).slice(0, found.length > 0 ? 3 : undefined)),
+      ];
+      const first = rowsWith([]);
+      if (first.length > 0) show("results", first);
+      const found = await douars;
+      if (mine !== latest) return;
+      const rows = rowsWith(found);
       show(rows.length > 0 ? "results" : "none", rows);
       shown = { text: q, results: rows.length };
       clearTimeout(settle);
