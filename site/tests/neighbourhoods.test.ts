@@ -26,4 +26,12 @@ describe("a town's villages and hamlets", () => {
     expect(villagesOf(codeOf("ajdir-010510109"))).toEqual(expect.arrayContaining(["Sfiha", "Aït Amar", "Dhar Essaloum"]));
     expect(villagesOf(codeOf("jerada"))).toEqual([]);
   });
+
+  it("take their Arabic name on the Arabic site where OpenStreetMap has one, those first, and keep the Latin one otherwise", () => {
+    const ajdir = villagesOf(codeOf("ajdir-010510109"), "ar");
+    expect(ajdir).toHaveLength(villagesOf(codeOf("ajdir-010510109")).length);
+    expect(ajdir).toEqual(expect.arrayContaining(["الصفيحة", "آيت القاضي", "Aït Amar"]));
+    const firstLatin = ajdir.findIndex((name) => !/\p{Script=Arabic}/u.test(name));
+    expect(ajdir.slice(firstLatin).some((name) => /\p{Script=Arabic}/u.test(name))).toBe(false);
+  });
 });

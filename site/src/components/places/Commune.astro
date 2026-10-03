@@ -117,7 +117,14 @@ const arrondissementClass = (code: string) => {
 const hoods = hasNeighbourhoods(c.code);
 const codes = postcodesOf(c.code);
 // A town's villages and hamlets, where OpenStreetMap maps any; a rural commune lists its douars.
-const villages = c.type === "urban" ? villagesOf(c.code) : [];
+const villages = c.type === "urban" ? villagesOf(c.code, locale) : [];
+// The list reads as one sentence: an Arabic comma after an Arabic name, a Latin one between 2 Latin names.
+const arabicName = (v: string) => /\p{Script=Arabic}/u.test(v);
+const villageList = (from: number, to?: number) =>
+  villages
+    .slice(from, to)
+    .map((v, i) => (from + i === 0 ? v : `${arabicName(v) || arabicName(villages[from + i - 1]!) ? comma : ", "}${v}`))
+    .join("");
 /** Postcodes shown before "and N more". */
 const CODES_SHOWN = 12;
 
@@ -308,7 +315,7 @@ getCommune("${c.slug}");`;
         <>
           <h3>{p.villages}</h3>
           <p class="postcodes">
-            {villages.slice(0, CODES_SHOWN).join(comma)}{villages.length > CODES_SHOWN && <span class="postcodes-rest">{`${comma}${villages.slice(CODES_SHOWN).join(comma)}`}</span>}
+            {villageList(0, CODES_SHOWN)}{villages.length > CODES_SHOWN && <span class="postcodes-rest">{villageList(CODES_SHOWN)}</span>}
             {villages.length > CODES_SHOWN && (
               <button type="button" class="postcodes-more" hidden>{fill(p.postcodesMore, { n: n.format(villages.length - CODES_SHOWN) })}</button>
             )}
