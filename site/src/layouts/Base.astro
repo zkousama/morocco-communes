@@ -639,6 +639,18 @@ const themes = themeList(copy);
         background: var(--well);
       }
 
+      /* A heading over a group of options, as an <optgroup> label is. */
+      .lb-group {
+        padding: 0.65rem 0.7rem 0.3rem;
+        font-size: var(--t-xs);
+        color: var(--quiet);
+        pointer-events: none;
+      }
+
+      .lb-group:first-child {
+        padding-top: 0.35rem;
+      }
+
       /* The chosen one carries the brass check, on the side text starts from. */
       .lb-list [role="option"]::before {
         content: "";

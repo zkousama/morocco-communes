@@ -78,8 +78,7 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
     cursor: pointer;
   }
 
-  .cmp button:focus-visible,
-  .cmp select:focus-visible,
+  .cmp button:not(.lb-button):focus-visible,
   .cmp a:focus-visible {
     outline: 2px solid var(--ink);
     outline-offset: 2px;
@@ -485,9 +484,13 @@ const appCopy = Object.fromEntries(COMPARE_KEYS.map((key) => [key, copy[key]])) 
     color: var(--quiet);
   }
 
-  .cmp-axis select {
-    min-height: 2.5rem;
+  .cmp-axis :global(.lb) {
+    min-width: 0;
     font-size: var(--t-sm);
+  }
+
+  .cmp-axis :global(.lb-button) {
+    min-height: 2.5rem;
   }
 
   .cmp-swap {

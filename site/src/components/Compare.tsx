@@ -1,4 +1,4 @@
-import { batch, createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from "solid-js";
+import { batch, createEffect, createMemo, createSignal, createUniqueId, For, on, onCleanup, onMount, Show } from "solid-js";
 import type { Locale } from "../i18n/ui";
 import {
   axisOf,
@@ -615,26 +615,137 @@ const MARGIN = { l: 46, r: 16, t: 30, b: 44 };
 /** The arrow beside an axis title: 0.75em of its 12.5px, as everywhere on the site. */
 const TITLE_ARROW = 9.4;
 
+/**
+ * A figure to put on an axis, picked from the page's own list (the douar form's, in
+ * lib/listbox.ts, drawn the same way here): the figures under their topic, the arrows to move,
+ * Enter or Space to choose, Escape or Tab to close, a letter to jump.
+ */
 function FigureSelect(props: { label: string; value: string; onChange: (id: string) => void; figures: Record<string, string>; groups: Record<Group, string> }) {
+  const id = createUniqueId();
+  const order = GROUPS.flatMap((group) => FIGURES.filter((f) => f.group === group).map((f) => f.id));
+  const [open, setOpen] = createSignal(false);
+  const [active, setActive] = createSignal(props.value);
+  let wrap!: HTMLDivElement;
+  let button!: HTMLButtonElement;
+  let list: HTMLUListElement | undefined;
+  const optionId = (figure: string) => `${id}-${figure}`;
+  const reveal = () => list?.querySelector(`#${CSS.escape(optionId(active()))}`)?.scrollIntoView({ block: "nearest" });
+  const show = () => {
+    setActive(props.value);
+    setOpen(true);
+    queueMicrotask(() => {
+      list?.focus();
+      reveal();
+    });
+  };
+  const close = (refocus = true) => {
+    setOpen(false);
+    if (refocus) button.focus();
+  };
+  const choose = (figure: string) => {
+    if (figure !== props.value) props.onChange(figure);
+    close();
+  };
+  const move = (to: number) => {
+    setActive(order[Math.min(Math.max(to, 0), order.length - 1)]!);
+    reveal();
+  };
+  const onListKey = (event: KeyboardEvent) => {
+    const at = order.indexOf(active());
+    const keys: Record<string, () => void> = {
+      ArrowDown: () => move(at + 1),
+      ArrowUp: () => move(at - 1),
+      Home: () => move(0),
+      End: () => move(order.length - 1),
+      Enter: () => choose(active()),
+      " ": () => choose(active()),
+      Escape: () => close(),
+      Tab: () => close(false),
+    };
+    const run = keys[event.key];
+    if (run) {
+      if (event.key !== "Tab") event.preventDefault();
+      run();
+      return;
+    }
+    if (event.key.length === 1) {
+      const letter = event.key.toLowerCase();
+      for (let step = 1; step <= order.length; step++) {
+        const figure = order[(at + step) % order.length]!;
+        if (props.figures[figure]!.toLowerCase().startsWith(letter)) {
+          setActive(figure);
+          reveal();
+          break;
+        }
+      }
+    }
+  };
+  onMount(() => {
+    const outside = (event: PointerEvent) => {
+      if (open() && !wrap.contains(event.target as Node)) close(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    onCleanup(() => document.removeEventListener("pointerdown", outside));
+  });
   return (
-    <label class="cmp-axis">
-      <span>{props.label}</span>
-      <select value={props.value} onChange={(e) => props.onChange(e.currentTarget.value)}>
-        <For each={GROUPS}>
-          {(group) => (
-            <optgroup label={props.groups[group]}>
-              <For each={FIGURES.filter((f) => f.group === group)}>
-                {(f) => (
-                  <option value={f.id} selected={f.id === props.value}>
-                    {props.figures[f.id]}
-                  </option>
-                )}
-              </For>
-            </optgroup>
-          )}
-        </For>
-      </select>
-    </label>
+    <div class="cmp-axis">
+      <span id={`${id}-label`}>{props.label}</span>
+      <div class="lb" classList={{ open: open() }} ref={wrap}>
+        <button
+          ref={button}
+          type="button"
+          class="lb-button"
+          id={`${id}-button`}
+          aria-haspopup="listbox"
+          aria-expanded={open()}
+          aria-labelledby={`${id}-label ${id}-button`}
+          onClick={() => (open() ? close() : show())}
+          onKeyDown={(event) => {
+            if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+              event.preventDefault();
+              show();
+            }
+          }}
+        >
+          {props.figures[props.value]}
+        </button>
+        <Show when={open()}>
+          <ul
+            ref={list}
+            class="lb-list"
+            role="listbox"
+            tabIndex={-1}
+            aria-labelledby={`${id}-label`}
+            aria-activedescendant={optionId(active())}
+            onKeyDown={onListKey}
+          >
+            <For each={GROUPS}>
+              {(group) => (
+                <>
+                  <li class="lb-group" role="presentation">
+                    {props.groups[group]}
+                  </li>
+                  <For each={FIGURES.filter((f) => f.group === group)}>
+                    {(f) => (
+                      <li
+                        role="option"
+                        id={optionId(f.id)}
+                        aria-selected={f.id === props.value}
+                        classList={{ active: f.id === active() }}
+                        onPointerMove={() => setActive(f.id)}
+                        onClick={() => choose(f.id)}
+                      >
+                        {props.figures[f.id]}
+                      </li>
+                    )}
+                  </For>
+                </>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </div>
+    </div>
   );
 }
 
