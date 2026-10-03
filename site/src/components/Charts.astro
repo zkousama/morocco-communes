@@ -426,8 +426,11 @@ const sinceRows = since.map((row) => ({
     background: var(--chart-up);
   }
 
+  /* On the figures' baseline, so the arrow between them sits level with the digits and not
+     at the top of the line. */
   .dval {
     display: flex;
+    align-items: baseline;
     gap: 0.3rem;
     justify-content: flex-end;
     font-size: var(--t-xs);
