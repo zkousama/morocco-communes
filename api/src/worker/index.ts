@@ -427,7 +427,7 @@ app.get("/api/most-looked-up", async (c) => {
   }
   const places = rows.flatMap(({ code, n }) => {
     const page = pages.get(code);
-    return page && n >= SHOWN_FROM ? [{ code, name: page.name, route: page.route, n }] : [];
+    return page && n >= SHOWN_FROM ? [{ code, name: page.name, ar: page.ar, route: page.route, n }] : [];
   });
   const since = rows[0]?.since ?? "";
   return new Response(JSON.stringify(envelope({ since, places }, { self: url.pathname })), {
@@ -760,7 +760,7 @@ app.post("/api/beacon", async (c) => {
         ? viaSiteOf(`https://${from}`, url.hostname)
         : "other";
   const shared = {
-    locale: body.locale === "fr" ? ("fr" as const) : ("en" as const),
+    locale: body.locale === "fr" || body.locale === "ar" ? (body.locale as "fr" | "ar") : ("en" as const),
     country: countryOf(c.req.raw),
     via: "browser",
     viaSite: cameFrom,
@@ -803,6 +803,7 @@ app.post("/api/beacon", async (c) => {
  */
 const NOT_FOUND_PAGES: [prefix: string, page: string][] = [
   ["/fr/", "/fr/404/"],
+  ["/ar/", "/ar/404/"],
 ];
 
 app.notFound(async (c) => {

@@ -31,25 +31,25 @@ const ctx = { waitUntil: (p: Promise<unknown>) => p, passThroughOnException: () 
 const get = (env: object) => app.fetch(new Request("https://communes.pages.dev/api/most-looked-up"), env as never, ctx as never);
 const withRanking = (database: DatabaseSync) => ({ ASSETS: { fetch: async () => new Response("{}") }, DEMAND: d1(database) });
 
-type Body = { data: { since: string; places: { code: string; name: string; route: string; n: number }[] } };
+type Body = { data: { since: string; places: { code: string; name: string; ar: string; route: string; n: number }[] } };
 
 describe("the most looked-up places, live", () => {
-  it("gives last night's ranking, most opened first, with each place's name and page", async () => {
+  it("gives last night's ranking, most opened first, with each place's names and page", async () => {
     const response = await get(withRanking(ranked([["01.511.01.0", 89], ["06.141.01.0", 183]])));
     expect(response.status).toBe(200);
     const body = (await response.json()) as Body;
     expect(body.data).toEqual({
       since: "2026-08-28",
       places: [
-        { code: "06.141.01.0", name: "Casablanca", route: "communes/casablanca/", n: 183 },
-        { code: "01.511.01.0", name: "Tanger", route: "communes/tanger/", n: 89 },
+        { code: "06.141.01.0", name: "Casablanca", ar: "الدار البيضاء", route: "communes/casablanca/", n: 183 },
+        { code: "01.511.01.0", name: "Tanger", ar: "طنجة", route: "communes/tanger/", n: 89 },
       ],
     });
   });
 
   it("sends an arrondissement to its city's page, as the search box does", async () => {
     const body = (await (await get(withRanking(ranked([["01.511.01.05", 12]])))).json()) as Body;
-    expect(body.data.places).toEqual([{ code: "01.511.01.05", name: "Mghogha", route: "communes/tanger/", n: 12 }]);
+    expect(body.data.places).toEqual([{ code: "01.511.01.05", name: "Mghogha", ar: "مغوغة", route: "communes/tanger/", n: 12 }]);
   });
 
   it("drops a place the site has no page for, rather than linking nowhere", async () => {
@@ -88,7 +88,7 @@ describe("the page each place links to", () => {
   it("is the same page the site builds for it, for every place in the index", () => {
     for (const [code] of (rawIndex as unknown as SearchIndex).entries) {
       const site = pageOf(code);
-      expect(pages.get(code), code).toEqual(site ? { name: site.name.fr, route: site.route } : undefined);
+      expect(pages.get(code), code).toEqual(site ? { name: site.name.fr, ar: site.name.ar, route: site.route } : undefined);
     }
   });
 });

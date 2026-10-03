@@ -240,7 +240,8 @@ const markup =
 
 // What the tooltip shows, fetched once on first hover. After illiteracy come running
 // water, people aged 65 and over, women's illiteracy, unemployment, tram and train, then how
-// far the rural homes are from a lycée, a collège, a health centre and a paved road.
+// far the rural homes are from a lycée, a collège, a health centre and a paved road, and
+// last the name in Arabic, which the Arabic site shows in place of the French one.
 const tooltip = Object.fromEntries(
   communes.map((c) => [
     c.code,
@@ -262,6 +263,7 @@ const tooltip = Object.fromEntries(
       km(c.code, "middleSchool"),
       km(c.code, "healthCentre"),
       km(c.code, "pavedRoad"),
+      c.name.ar,
     ],
   ]),
 );

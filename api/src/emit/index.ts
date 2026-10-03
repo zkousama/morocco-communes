@@ -47,10 +47,12 @@ export async function writeTree(tree: Tree, outDir: string): Promise<void> {
   }
   await writeFile(join(outDir, "_headers"), HEADERS_FILE);
   await writeFile(join(outDir, "_routes.json"), ROUTES_FILE);
-  // Pages answers a missing page with the nearest 404.html up the path, so the French
-  // section needs one of its own under that name to get its 404 in French.
-  const french = join(outDir, "fr", "404", "index.html");
-  if (existsSync(french)) await copyFile(french, join(outDir, "fr", "404.html"));
+  // Pages answers a missing page with the nearest 404.html up the path, so the French and
+  // Arabic sections each need one of their own under that name to get a 404 in their language.
+  for (const section of ["fr", "ar"]) {
+    const own = join(outDir, section, "404", "index.html");
+    if (existsSync(own)) await copyFile(own, join(outDir, section, "404.html"));
+  }
 }
 
 const dataset = await readDataset();

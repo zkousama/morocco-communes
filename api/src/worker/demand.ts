@@ -23,7 +23,7 @@ export interface DemandRow {
    * Worked out by the Worker from its own search, never taken from the client.
    */
   named: 0 | 1;
-  locale: "en" | "fr";
+  locale: SiteLocale;
   country: string;
   /** "browser" on a beacon's row, and otherwise the first product of the User-Agent, as usage.ts reads it. */
   via: string;
@@ -107,9 +107,13 @@ export function isBot(userAgent: string | null | undefined): 0 | 1 {
   return CRAWLER.test((userAgent ?? "").toLowerCase()) ? 1 : 0;
 }
 
+/** The languages the site is written in. English has no prefix; the others sit under their own. */
+export type SiteLocale = "en" | "fr" | "ar";
+const PREFIXED: Exclude<SiteLocale, "en">[] = ["fr", "ar"];
+
 /** The language a path belongs to. */
-export function localeOf(pathname: string): "en" | "fr" {
-  return pathname === "/fr" || pathname.startsWith("/fr/") ? "fr" : "en";
+export function localeOf(pathname: string): SiteLocale {
+  return PREFIXED.find((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)) ?? "en";
 }
 
 const INSERT =

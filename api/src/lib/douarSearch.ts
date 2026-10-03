@@ -11,8 +11,8 @@ import { normalise } from "./normalise.ts";
 import { latinKeys, lookupKey, shareApart } from "./translit.ts";
 
 export interface DouarNames {
-  /** Slug, French name, and the start of its douars' codes, for each commune with douars. */
-  communes: [slug: string, name: string, prefix: string][];
+  /** Slug, French name, the start of its douars' codes, and Arabic name, for each commune with douars. */
+  communes: [slug: string, name: string, prefix: string, ar?: string][];
   /** Arabic name, its commune's place above, the rest of its code, people, Latin name, 1 where spelt, keys. */
   douars: [name: string, commune: number, rest: string, people: number, latin: string, spelt: 0 | 1, keys: string][];
 }
@@ -22,7 +22,7 @@ export interface DouarHit {
   name: { ar: string; latin: string };
   spelt: boolean;
   people: number;
-  commune: { slug: string; name: string };
+  commune: { slug: string; name: string; ar?: string };
 }
 
 /** How close a Latin spelling must be to what was typed to beat a match on keys alone. */
@@ -67,8 +67,14 @@ export function findDouars(index: PreparedNames, raw: string, limit: number): { 
   found.sort((a, b) => a.rank - b.rank || (a.near ?? 0) - (b.near ?? 0) || douars[b.i]![3] - douars[a.i]![3]);
   const hits = found.slice(0, limit).map(({ i }) => {
     const [name, commune, rest, people, latin, spelt] = douars[i]!;
-    const [slug, communeName, prefix] = index.names.communes[commune]!;
-    return { code: `${prefix}${rest}`, name: { ar: name, latin }, spelt: spelt === 1, people, commune: { slug, name: communeName } };
+    const [slug, communeName, prefix, communeArabic] = index.names.communes[commune]!;
+    return {
+      code: `${prefix}${rest}`,
+      name: { ar: name, latin },
+      spelt: spelt === 1,
+      people,
+      commune: { slug, name: communeName, ...(communeArabic && { ar: communeArabic }) },
+    };
   });
   return { total: found.length, hits };
 }
