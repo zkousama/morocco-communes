@@ -120,7 +120,7 @@ const chars = name.length + 1 + signed(value).length;
     position: relative;
     display: block;
     width: max-content;
-    left: clamp(0%, calc(var(--at) * 1% - (var(--chars) * 1ch) / 2), calc(100% - var(--chars) * 1ch));
+    left: clamp(0%, calc(var(--at) - (var(--chars) * 1ch) / 2), calc(100% - var(--chars) * 1ch));
     margin: 0 0 0.3rem;
     font-size: var(--t-xs);
     font-variant-numeric: tabular-nums;
