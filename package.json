@@ -67,6 +67,10 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "workerd"
-    ]
+    ],
+    "overrides": {
+      "devalue@<5.9.3": "^5.9.3",
+      "undici@>=7.0.0 <7.29.1": "^7.29.1"
+    }
   }
 }
