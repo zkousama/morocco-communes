@@ -42,6 +42,26 @@ describe("a word that's translated, not spelt", () => {
     expect(toLatin("المركز", none)).toBe("Centre");
     expect(toLatin("مركز اكاون", none)).toBe("Centre Akaoune");
   });
+
+  it("is the French for what a douar is, where it's named for that", () => {
+    expect(toLatin("قرية الصيد لمهيريز", none)).toBe("Village de pêche Lmhiriz");
+    expect(toLatin("معبر الحدود الكركرات", none)).toMatch(/^Poste frontière /);
+    expect(toLatin("تعاونية التحرير", none)).toBe("Coopérative Ettahrir");
+    expect(toLatin("التعاونية الفلاحية مبروكة", none)).toMatch(/^Coopérative agricole /);
+    expect(toLatin("تجزئة العمران", none)).toMatch(/^Lotissement /);
+    expect(toLatin("إقامة لوازيس", none)).toMatch(/^Résidence /);
+    expect(toLatin("ضيعة ضبوع", none)).toMatch(/^Ferme /);
+    expect(toLatin("الضيعة الفلاحية التازي", none)).toBe("Ferme Ettazi");
+    expect(toLatin("ثكنة الشمارخ", none)).toMatch(/^Caserne /);
+    expect(toLatin("ميناء الداخلة الاطلسي", none)).toMatch(/^Port /);
+    expect(toLatin("المينا امسوان", none)).toMatch(/^Port /);
+    expect(toLatin("محطة القطار", none)).toBe("Gare");
+  });
+
+  it("is spelt where it's part of a name", () => {
+    expect(toLatin("أولاد بن الصيد", table)).toBe("Oulad Ben Saïd");
+    expect(toLatin("قرية الحمراء", table)).toBe("Karia El Hamra");
+  });
 });
 
 describe("a name with another in brackets", () => {

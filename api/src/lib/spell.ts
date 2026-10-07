@@ -93,8 +93,38 @@ function latinWord(word: string, construct: boolean, openings: Record<string, st
  * Words a name holds as an ordinary noun rather than a name, which French translates rather
  * than spells: المركز, a village's centre, is the Centre HCP writes in French, so تمروت
  * المركز is Tamrout Centre and not Tamrout El Markz.
+ *
+ * A douar can be named for what it is, a housing estate, a cooperative, a farm or a fishing
+ * village, and French names those as OpenStreetMap's names in both scripts do: Lotissement,
+ * Coopérative, Ferme. Spelt, they read as names they aren't: قرية الصيد, a fishing village,
+ * came out as Karia Saïd, and ثكنة, barracks, as Tekna.
  */
-const TRANSLATED: Record<string, string> = { "المركز": "Centre", "مركز": "Centre", "سابقا": "ex", "كلم": "Km", "دوار": "Douar" };
+const TRANSLATED: Record<string, string> = Object.fromEntries(
+  Object.entries({
+    "المركز": "Centre", "مركز": "Centre", "سابقا": "ex", "كلم": "Km", "دوار": "Douar",
+    "قرية الصيد": "Village de pêche", "معبر الحدود": "Poste frontière", "محطة القطار": "Gare",
+    "تعاونية": "Coopérative", "التعاونية": "Coopérative", "تعاونيات": "Coopératives", "التعاونية الفلاحية": "Coopérative agricole",
+    "ضيعة": "Ferme", "الضيعة": "Ferme", "الضيعة الفلاحية": "Ferme",
+    "تجزئة": "Lotissement", "إقامة": "Résidence", "ميناء": "Port", "الميناء": "Port",
+    "ثكنة": "Caserne", "الثكنة": "Caserne", "الثكنة العسكرية": "Caserne",
+  }).map(([arabic, french]) => [normalise(arabic), french]),
+);
+
+/**
+ * A name's words, with 2 that are translated together taken as one: قرية الصيد is a
+ * fishing village, while الصيد on its own, in أولاد بن الصيد, is a name and spelt.
+ */
+function phrases(words: readonly string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < words.length; i++) {
+    const two = `${words[i]} ${words[i + 1]}`;
+    if (i < words.length - 1 && TRANSLATED[normalise(two)]) {
+      out.push(two);
+      i++;
+    } else out.push(words[i]!);
+  }
+  return out;
+}
 
 /** "Formerly", which an Arabic name puts after the old name and Latin puts before it, as ex. */
 const FORMERLY = /(?:^|\s)سابقاً?(?=\s|$)/;
@@ -120,7 +150,7 @@ export function toLatin(name: string, table: WordTable, models?: Models): string
 }
 
 function spellWords(name: string, table: WordTable, models?: Models): string {
-  const words = arabicWords(name);
+  const words = phrases(arabicWords(name));
   return words
     .map((word, i) => {
       // A number stays a number: أولاد كثير 1 is Oulad Ktir 1.
