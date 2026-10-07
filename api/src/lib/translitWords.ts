@@ -1,6 +1,6 @@
 /**
  * The word table the spellings start from: each Arabic word in a name HCP writes in both
- * scripts, with the Latin HCP writes it as, and the other way. Built by
+ * scripts, or the عبد name it writes as one Latin word, with the Latin HCP writes it as, and the other way. Built by
  * api/scripts/translit.ts from the dataset's pairs, so a name like سيدي or Oulad comes out
  * as HCP writes it, and only a word the table lacks is spelt by rule.
  */
@@ -74,15 +74,32 @@ export function latinWords(name: string): string[] {
 export const arabicWords = (name: string) => name.split(/[\s\-–]+/).filter(Boolean);
 
 /**
- * Pairs of names as pairs of words: only where both have as many words and each word's keys
- * meet its partner's, so a translated name (Banlieue Nord for أحواز ... الشمالية) gives none.
+ * A name's Arabic words lined up with its Latin ones: as they are where both have as many,
+ * and with عبد and the word after it taken as one where the Latin has one fewer and the keys
+ * meet, since HCP writes عبد القادر as Abdelkader. No other 2 words are: what lines up as a
+ * join elsewhere is mostly a word the source left out, as حي, which has no letter the keys
+ * keep, makes Hay Safi written Safi look like one word. Null where the words don't line up.
+ */
+function lineUp(arabic: string[], latin: string[]): string[] | null {
+  if (arabic.length === latin.length) return arabic;
+  if (arabic.length !== latin.length + 1) return null;
+  const ways = arabic
+    .slice(0, -1)
+    .flatMap((word, j) => (normalise(word) === "عبد" ? [[...arabic.slice(0, j), `${word} ${arabic[j + 1]}`, ...arabic.slice(j + 2)]] : []))
+    .filter((words) => words.every((w, i) => keysMeet(arabicKeys(w), latinKeys(latin[i]!))));
+  return ways.length === 1 ? ways[0]! : null;
+}
+
+/**
+ * Pairs of names as pairs of words: only where the words line up and each word's keys meet
+ * its partner's, so a translated name (Banlieue Nord for أحواز ... الشمالية) gives none.
  */
 export function wordPairs(pairs: readonly { fr: string; ar: string }[]): [arabic: string, latin: string][] {
   const out: [string, string][] = [];
   for (const { fr, ar } of pairs) {
-    const a = arabicWords(ar);
     const f = latinWords(fr);
-    if (a.length !== f.length) continue;
+    const a = lineUp(arabicWords(ar), f);
+    if (!a) continue;
     a.forEach((word, i) => {
       // A number is written the same in both scripts, so it teaches nothing, and lined up
       // against a word it teaches something wrong: 1 had become Hay.

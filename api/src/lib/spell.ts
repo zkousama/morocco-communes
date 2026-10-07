@@ -112,14 +112,17 @@ const TRANSLATED: Record<string, string> = Object.fromEntries(
 );
 
 /**
- * A name's words, with 2 that are translated together taken as one: قرية الصيد is a
- * fishing village, while الصيد on its own, in أولاد بن الصيد, is a name and spelt.
+ * A name's words, with 2 that are translated together or that the table has as one Latin
+ * word taken as one: قرية الصيد is a fishing village, while الصيد on its own, in أولاد بن
+ * الصيد, is a name and spelt; and عبد القادر is Abdelkader, as HCP writes it.
  */
-function phrases(words: readonly string[]): string[] {
+function phrases(words: readonly string[], table: WordTable): string[] {
   const out: string[] = [];
   for (let i = 0; i < words.length; i++) {
     const two = `${words[i]} ${words[i + 1]}`;
-    if (i < words.length - 1 && TRANSLATED[normalise(two)]) {
+    // A mark such as / normalises to nothing, so the 2 have to be 2 words still.
+    const key = normalise(two);
+    if (i < words.length - 1 && key.includes(" ") && (TRANSLATED[key] || table.toLatin[key])) {
       out.push(two);
       i++;
     } else out.push(words[i]!);
@@ -151,7 +154,7 @@ export function toLatin(name: string, table: WordTable, models?: Models): string
 }
 
 function spellWords(name: string, table: WordTable, models?: Models): string {
-  const words = phrases(arabicWords(name));
+  const words = phrases(arabicWords(name), table);
   return words
     .map((word, i) => {
       // A number stays a number: أولاد كثير 1 is Oulad Ktir 1.

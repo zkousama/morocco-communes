@@ -125,4 +125,19 @@ describe("the word table", () => {
     expect(built.openings).toEqual({});
     expect(built.toArabic).toEqual({ sidi: "سيدي", kacem: "قاسم" });
   });
+
+  it("learns 2 words HCP writes as one, where that's the only way the words line up", () => {
+    const built = buildWordTable([
+      { fr: "Moulay Abdelkader", ar: "مولاي عبد القادر" },
+      { fr: "Banlieue Nord", ar: "أحواز سلا الشمالية" },
+    ]);
+    expect(built.toLatin).toEqual({ "مولاي": "Moulay", "عبد القادر": "Abdelkader" });
+    expect(toLatin("مولاي عبد القادر", built)).toBe("Moulay Abdelkader");
+    expect(toArabic("Abdelkader", built)).toBe("عبد القادر");
+  });
+
+  it("takes no other 2 words as one, since a source that leaves a word out lines up the same way", () => {
+    expect(buildWordTable([{ fr: "Safi", ar: "حي اسفي" }]).toLatin).toEqual({});
+    expect(buildWordTable([{ fr: "Ouladben Ali", ar: "اولاد بن علي" }]).toLatin).toEqual({});
+  });
 });
