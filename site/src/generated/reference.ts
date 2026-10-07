@@ -1604,7 +1604,7 @@ export const reference = {
                 "name",
                 "source"
               ],
-              "description": "Its name in Latin letters, where one of its commune's douars has the same name and a source spells it; the douar's source carries over.",
+              "description": "Its name in Latin letters, where one of its commune's douars has the same name and a source spells it, the douar's source carrying over; or hcp, where it's named like its commune: HCP's Latin name for the commune.",
               "properties": {
                 "name": {
                   "type": "string"
@@ -1615,7 +1615,8 @@ export const reference = {
                     "education",
                     "osm",
                     "geonames",
-                    "visitors"
+                    "visitors",
+                    "hcp"
                   ]
                 }
               }
@@ -1689,7 +1690,7 @@ export const reference = {
                 "name",
                 "source"
               ],
-              "description": "Its name in Latin letters, where a source writes one: the Ministry of National Education's lists of public schools (ODbL), OpenStreetMap (ODbL) or GeoNames (CC BY 4.0), in that order, or visitors, for a douar none names: a spelling 2 visitors suggested on the site that the spelling engine passed overnight. Matched by name, not by HCP: a small share may belong to another place of the same name.",
+              "description": "Its name in Latin letters, where a source writes one: the Ministry of National Education's lists of public schools (ODbL), OpenStreetMap (ODbL) or GeoNames (CC BY 4.0), in that order, or visitors, for a douar none names: a spelling 2 visitors suggested on the site that the spelling engine passed overnight. Matched by name, not by HCP: a small share may belong to another place of the same name. Last, hcp, for a douar named like its commune: HCP's Latin name for the commune.",
               "properties": {
                 "name": {
                   "type": "string"
@@ -1700,7 +1701,8 @@ export const reference = {
                     "education",
                     "osm",
                     "geonames",
-                    "visitors"
+                    "visitors",
+                    "hcp"
                   ]
                 }
               }

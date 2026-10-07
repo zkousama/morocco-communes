@@ -30,8 +30,11 @@ export interface DouarPlace {
 /** A douar's Latin name and who writes it so. */
 export interface DouarLatin {
   name: string;
-  /** The Ministry of National Education's school lists, OpenStreetMap, GeoNames, or 2 visitors who suggested it. */
-  source: "education" | "osm" | "geonames" | "visitors";
+  /**
+   * The Ministry of National Education's school lists, OpenStreetMap, GeoNames, 2 visitors
+   * who suggested it, or HCP, which writes the commune it's named like in Latin.
+   */
+  source: "education" | "osm" | "geonames" | "visitors" | "hcp";
 }
 
 /**
@@ -113,6 +116,24 @@ export function withFractionNames(fractions: readonly FractionRecord[], douars: 
     if (label) return { ...f, label };
     const latin = named.get(`${f.communeCode}|${bare(f.name.ar)}`);
     return latin ? { ...f, latin } : f;
+  });
+}
+
+/**
+ * Douars or fractions with HCP's Latin name for their commune where they're named like it,
+ * spaces and article aside, and nothing else names them: HCP writes بئر كندوز as Bir Gandouz,
+ * which beats spelling its fraction بئركندوز letter by letter. A source's name stays, as the
+ * douar's own.
+ */
+export function withCommuneNames<T extends { communeCode: string; name: { ar: string }; latin?: DouarLatin; label?: FractionLabel }>(
+  records: readonly T[],
+  communes: readonly { code: string; name: { fr: string; ar: string | null } }[],
+): T[] {
+  const byCode = new Map(communes.map((c) => [c.code, c.name]));
+  return records.map((r) => {
+    const commune = byCode.get(r.communeCode);
+    if (r.latin || r.label || !commune?.ar || bare(commune.ar) !== bare(r.name.ar)) return r;
+    return { ...r, latin: { name: commune.fr, source: "hcp" } };
   });
 }
 

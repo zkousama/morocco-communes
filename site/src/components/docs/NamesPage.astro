@@ -37,6 +37,7 @@ const sources = [
   { key: "osm", value: naming.osm, tone: "s3" },
   { key: "geonames", value: naming.geonames, tone: "s1" },
   { key: "visitors", value: naming.visitors, tone: "brass" },
+  { key: "hcp", value: naming.hcp, tone: "s0" },
   { key: "spelt", value: naming.spelt, tone: "none" },
 ].filter((s) => s.value > 0);
 
@@ -57,8 +58,9 @@ const accuracy = [
 const labelled = naming.outside + naming.notional;
 const fractionParts = [
   { key: "named", value: naming.fractionsNamed, tone: "s5" },
+  { key: "commune", value: naming.fractionsCommune, tone: "s0" },
   { key: "label", value: labelled, tone: "brass" },
-  { key: "spelt", value: naming.fractions - naming.fractionsNamed - labelled, tone: "none" },
+  { key: "spelt", value: naming.fractions - naming.fractionsNamed - naming.fractionsCommune - labelled, tone: "none" },
 ];
 
 const examples = ["تالوين", "توريرت نترست"].map((arabic) => ({ arabic, keys: consonantsOf(arabic), latin: spell(arabic) }));
@@ -196,6 +198,7 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
   .s5 { background: var(--seq-5); }
   .s3 { background: var(--seq-3); }
   .s1 { background: var(--seq-1); }
+  .s0 { background: var(--seq-0); }
   .brass { background: var(--brass); }
   .none { background: var(--map-none); }
 

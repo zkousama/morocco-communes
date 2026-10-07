@@ -3,7 +3,7 @@
  * fractions in code order, each with its douars in code order.
  */
 import { readFileSync } from "node:fs";
-import { readDouarSources, withFractionNames, withSources, type DouarRecord, type FractionRecord } from "../../../api/src/lib/douars.ts";
+import { readDouarSources, withCommuneNames, withFractionNames, withSources, type DouarRecord, type FractionRecord } from "../../../api/src/lib/douars.ts";
 import { toLatin } from "../../../api/src/lib/spell.ts";
 import type { WordTable } from "../../../api/src/lib/translitWords.ts";
 
@@ -18,7 +18,11 @@ const REGIONS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "
 
 /** Every douar, in HCP's code order, with its point and Latin name where it has them. */
 const sources = readDouarSources();
-export const allDouars: DouarRecord[] = REGIONS.flatMap((region) => read<DouarRecord[]>(region)).map((d) => withSources(d, sources));
+const communes = JSON.parse(readFileSync("data/v1/attributes/communes.json", "utf8")) as { code: string; name: { fr: string; ar: string | null } }[];
+export const allDouars: DouarRecord[] = withCommuneNames(
+  REGIONS.flatMap((region) => read<DouarRecord[]>(region)).map((d) => withSources(d, sources)),
+  communes,
+);
 
 const byFraction = new Map<string, DouarRecord[]>();
 for (const d of allDouars) {
@@ -26,7 +30,7 @@ for (const d of allDouars) {
   byFraction.get(d.fraction)!.push(d);
 }
 /** Every fraction, with its Latin name or its label where it has one. */
-export const allFractions: FractionRecord[] = withFractionNames(read<FractionRecord[]>("fractions"), allDouars);
+export const allFractions: FractionRecord[] = withCommuneNames(withFractionNames(read<FractionRecord[]>("fractions"), allDouars), communes);
 
 const byCommune = new Map<string, Fraction[]>();
 for (const f of allFractions) {

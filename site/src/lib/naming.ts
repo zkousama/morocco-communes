@@ -47,6 +47,7 @@ export const naming = {
   osm: bySource("osm"),
   geonames: bySource("geonames"),
   visitors: bySource("visitors"),
+  hcp: bySource("hcp"),
   /** The share each pass still finds with every commune swapped for another. */
   chance: { schools: named.chance, places: places.chance, near: places.nearChance, most: MAX_CHANCE },
   /** The douars the Ministry and a map both name, and the share where the 2 spell it alike. */
@@ -56,7 +57,9 @@ export const naming = {
   words: Object.keys(table.toLatin).length,
   rules: score("Douars to Latin, table and rules"),
   fractions: allFractions.length,
-  fractionsNamed: allFractions.filter((f) => f.latin).length,
+  /** Fractions named after one of their commune's douars, and after their commune, as HCP writes it. */
+  fractionsNamed: allFractions.filter((f) => f.latin && f.latin.source !== "hcp").length,
+  fractionsCommune: allFractions.filter((f) => f.latin?.source === "hcp").length,
   outside: allFractions.filter((f) => f.label === "outside").length,
   notional: allFractions.filter((f) => f.label === "notional").length,
   votes: VOTES,

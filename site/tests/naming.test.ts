@@ -18,9 +18,10 @@ describe("the page on douar names", () => {
   });
 
   it("gives counts that add up", () => {
-    expect(naming.education + naming.osm + naming.geonames + naming.visitors).toBe(naming.sourced);
+    expect(naming.education + naming.osm + naming.geonames + naming.visitors + naming.hcp).toBe(naming.sourced);
     expect(naming.sourced + naming.spelt).toBe(naming.douars);
-    expect(naming.fractionsNamed + naming.outside + naming.notional).toBeLessThanOrEqual(naming.fractions);
+    expect(naming.fractionsNamed + naming.fractionsCommune + naming.outside + naming.notional).toBeLessThanOrEqual(naming.fractions);
+    expect(naming.fractionsCommune).toBeGreaterThan(0);
     for (const chance of [naming.chance.schools, naming.chance.places, naming.chance.near]) expect(chance).toBeLessThanOrEqual(naming.chance.most);
   });
 
