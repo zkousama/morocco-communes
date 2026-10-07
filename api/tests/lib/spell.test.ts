@@ -52,7 +52,8 @@ describe("a word that's translated, not spelt", () => {
     expect(toLatin("إقامة لوازيس", none)).toMatch(/^Résidence /);
     expect(toLatin("ضيعة ضبوع", none)).toMatch(/^Ferme /);
     expect(toLatin("الضيعة الفلاحية التازي", none)).toBe("Ferme Ettazi");
-    expect(toLatin("ثكنة الشمارخ", none)).toMatch(/^Caserne /);
+    expect(toLatin("الثكنة العسكرية", none)).toBe("Caserne");
+    expect(toLatin("مركز لڭفاف الثكنة", none)).toMatch(/ Caserne$/);
     expect(toLatin("ميناء الداخلة الاطلسي", none)).toMatch(/^Port /);
     expect(toLatin("المينا امسوان", none)).toMatch(/^Port /);
     expect(toLatin("محطة القطار", none)).toBe("Gare");
@@ -61,6 +62,9 @@ describe("a word that's translated, not spelt", () => {
   it("is spelt where it's part of a name", () => {
     expect(toLatin("أولاد بن الصيد", table)).toBe("Oulad Ben Saïd");
     expect(toLatin("قرية الحمراء", table)).toBe("Karia El Hamra");
+    // ثكنة is barracks, but HCP writes the commune Tekna so, and its fractions after it.
+    expect(toLatin("ثكنة", table)).toBe("Tekna");
+    expect(toLatin("ثكنة الشمارخ", table)).toMatch(/^Tekna /);
   });
 });
 

@@ -97,7 +97,8 @@ function latinWord(word: string, construct: boolean, openings: Record<string, st
  * A douar can be named for what it is, a housing estate, a cooperative, a farm or a fishing
  * village, and French names those as OpenStreetMap's names in both scripts do: Lotissement,
  * Coopérative, Ferme. Spelt, they read as names they aren't: قرية الصيد, a fishing village,
- * came out as Karia Saïd, and ثكنة, barracks, as Tekna.
+ * came out as Karia Saïd. ثكنة, barracks, is only translated with its article, since HCP
+ * writes the commune Tekna as ثكنة.
  */
 const TRANSLATED: Record<string, string> = Object.fromEntries(
   Object.entries({
@@ -106,7 +107,7 @@ const TRANSLATED: Record<string, string> = Object.fromEntries(
     "تعاونية": "Coopérative", "التعاونية": "Coopérative", "تعاونيات": "Coopératives", "التعاونية الفلاحية": "Coopérative agricole",
     "ضيعة": "Ferme", "الضيعة": "Ferme", "الضيعة الفلاحية": "Ferme",
     "تجزئة": "Lotissement", "إقامة": "Résidence", "ميناء": "Port", "الميناء": "Port",
-    "ثكنة": "Caserne", "الثكنة": "Caserne", "الثكنة العسكرية": "Caserne",
+    "الثكنة": "Caserne", "الثكنة العسكرية": "Caserne",
   }).map(([arabic, french]) => [normalise(arabic), french]),
 );
 
