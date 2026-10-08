@@ -57,6 +57,22 @@ describe("a word that's translated, not spelt", () => {
     expect(toLatin("ميناء الداخلة الاطلسي", none)).toMatch(/^Port /);
     expect(toLatin("المينا امسوان", none)).toMatch(/^Port /);
     expect(toLatin("محطة القطار", none)).toBe("Gare");
+    expect(toLatin("سد المسيرة", none)).toMatch(/^Barrage /);
+    expect(toLatin("سد محمد الخامس", none)).toBe("Barrage Mohammed V");
+    expect(toLatin("المنجم", none)).toBe("Mine");
+    expect(toLatin("مزرعة ديبوا", none)).toMatch(/^Ferme /);
+    expect(toLatin("منطقة المرداني", none)).toMatch(/^Zone /);
+    expect(toLatin("مدرسة تالمست", none)).toMatch(/^École /);
+    expect(toLatin("ألاثنين المدرسة العتيقة", none)).toMatch(/ École traditionnelle$/);
+    expect(toLatin("قرية معمل السكر", none)).toBe("Village de la sucrerie");
+    expect(toLatin("ثكنة مخزن موبيل الثامنة", none)).toMatch(/^Caserne Makhzen Mobile /);
+    expect(toLatin("أيت عيسى (موبيل)", none)).toMatch(/ \(Mobile\)$/);
+  });
+
+  it("is translated together where a phrase runs to more words than 2", () => {
+    expect(toLatin("المدرسة الوطنية الفلاحية", none)).toBe("École nationale d'agriculture");
+    expect(toLatin("المجمع السكني للمدرسة الوطنية الفلاحية", none)).toBe("Complexe résidentiel de l'École nationale d'agriculture");
+    expect(toLatin("اوراش تحلية مياه البحر", none)).toBe("Chantier de dessalement d'eau de mer");
   });
 
   it("is spelt where it's part of a name", () => {
@@ -65,6 +81,11 @@ describe("a word that's translated, not spelt", () => {
     // ثكنة is barracks, but HCP writes the commune Tekna so, and its fractions after it.
     expect(toLatin("ثكنة", table)).toBe("Tekna");
     expect(toLatin("ثكنة الشمارخ", table)).toMatch(/^Tekna /);
+    // HCP writes the commune مجمع الطلبة so; only المجمع السكني, a housing estate, is translated.
+    expect(toLatin("مجمع الطلبة", table)).toBe("Majmaa Tolba");
+    // Sources spell a forest and an airport as names: El Ghaba, and OpenStreetMap's Hay al Matar.
+    expect(toLatin("دار الغابة", table)).toBe("Dar El Ghaba");
+    expect(toLatin("المطار", table)).toMatch(/Matar$/);
   });
 });
 

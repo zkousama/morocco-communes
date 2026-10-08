@@ -183,35 +183,50 @@ export function learnGaps(words: readonly [arabic: string, latin: string][]): Re
  * A douar can be named for what it is, a housing estate, a cooperative, a farm or a fishing
  * village, and French names those as OpenStreetMap's names in both scripts do: Lotissement,
  * Coopérative, Ferme. Spelt, they read as names they aren't: قرية الصيد, a fishing village,
- * came out as Karia Saïd. ثكنة, barracks, is only translated with its article, since HCP
- * writes the commune Tekna as ثكنة.
+ * came out as Karia Saïd. ثكنة, barracks, is only translated with its article or as the
+ * Makhzen's, since HCP writes the commune Tekna and its fractions as ثكنة. مجمع is only
+ * translated as a housing estate, since HCP writes the commune مجمع الطلبة as Majmaa Tolba.
+ * A forest, a market and an airport stay spelt, as sources write them: El Ghaba, Souk, and
+ * OpenStreetMap's Hay al Matar.
  */
 const TRANSLATED: Record<string, string> = Object.fromEntries(
   Object.entries({
     "المركز": "Centre", "مركز": "Centre", "سابقا": "ex", "كلم": "Km", "دوار": "Douar",
     "قرية الصيد": "Village de pêche", "معبر الحدود": "Poste frontière", "محطة القطار": "Gare",
     "تعاونية": "Coopérative", "التعاونية": "Coopérative", "تعاونيات": "Coopératives", "التعاونية الفلاحية": "Coopérative agricole",
-    "ضيعة": "Ferme", "الضيعة": "Ferme", "الضيعة الفلاحية": "Ferme",
+    "ضيعة": "Ferme", "الضيعة": "Ferme", "الضيعة الفلاحية": "Ferme", "مزرعة": "Ferme", "المزرعة": "Ferme",
     "تجزئة": "Lotissement", "إقامة": "Résidence", "ميناء": "Port", "الميناء": "Port",
-    "الثكنة": "Caserne", "الثكنة العسكرية": "Caserne",
+    "الثكنة": "Caserne", "الثكنة العسكرية": "Caserne", "ثكنة مخزن": "Caserne Makhzen", "موبيل": "Mobile",
+    "سد": "Barrage", "السد": "Barrage", "محمد الخامس": "Mohammed V", "منجم": "Mine", "المنجم": "Mine",
+    "منطقة": "Zone", "المنطقة": "Zone", "المنطقة الصناعية": "Zone industrielle",
+    "مدرسة": "École", "المدرسة": "École", "المدرسة العتيقة": "École traditionnelle", "المدرسة الفلاحية": "École d'agriculture",
+    "المدرسة الوطنية الفلاحية": "École nationale d'agriculture", "للمدرسة الوطنية الفلاحية": "de l'École nationale d'agriculture",
+    "المجمع السكني": "Complexe résidentiel", "معمل السكر": "Sucrerie", "قرية معمل السكر": "Village de la sucrerie",
+    "اوراش تحلية مياه البحر": "Chantier de dessalement d'eau de mer",
   }).map(([arabic, french]) => [normalise(arabic), french]),
 );
 
+/** The most words TRANSLATED takes together. */
+const LONGEST = Math.max(...Object.keys(TRANSLATED).map((key) => key.split(" ").length));
+
 /**
- * A name's words, with 2 that are translated together or that the table has as one Latin
- * word taken as one: قرية الصيد is a fishing village, while الصيد on its own, in أولاد بن
- * الصيد, is a name and spelt; and عبد القادر is Abdelkader, as HCP writes it.
+ * A name's words, with the longest run that's translated together, or 2 the table has as
+ * one Latin word, taken as one: قرية الصيد is a fishing village, while الصيد on its own, in
+ * أولاد بن الصيد, is a name and spelt; and عبد القادر is Abdelkader, as HCP writes it.
  */
 function phrases(words: readonly string[], table: WordTable): string[] {
   const out: string[] = [];
-  for (let i = 0; i < words.length; i++) {
-    const two = `${words[i]} ${words[i + 1]}`;
-    // A mark such as / normalises to nothing, so the 2 have to be 2 words still.
-    const key = normalise(two);
-    if (i < words.length - 1 && key.includes(" ") && (TRANSLATED[key] || table.toLatin[key])) {
-      out.push(two);
-      i++;
-    } else out.push(words[i]!);
+  for (let i = 0; i < words.length; ) {
+    const together = (n: number) => {
+      if (i + n > words.length) return false;
+      const key = normalise(words.slice(i, i + n).join(" "));
+      // A mark such as / normalises to nothing, so the words have to be as many still.
+      return key.split(" ").length === n && (!!TRANSLATED[key] || (n === 2 && !!table.toLatin[key]));
+    };
+    let n = Math.max(LONGEST, 2);
+    while (n > 1 && !together(n)) n--;
+    out.push(words.slice(i, i + n).join(" "));
+    i += n;
   }
   return out;
 }
