@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { douarsOf } from "../src/lib/douars.ts";
+import { douarsOf, outsideDouars } from "../src/lib/douars.ts";
 import { communes } from "../src/lib/places.ts";
 
 const codeOf = (slug: string) => communes.find((c) => c.slug === slug)!.code;
@@ -22,5 +22,16 @@ describe("a commune's douars", () => {
 
   it("are none for a city", () => {
     expect(douarsOf(codeOf("tanger"))).toEqual([]);
+  });
+});
+
+describe("a commune's people outside its douars", () => {
+  it("are the ones in its urban centres, and the rest, whom no douar holds", () => {
+    expect(outsideDouars(9183, [{ population: 8246 }], 855)).toEqual({ centres: 8246, rest: 82 });
+    expect(outsideDouars(20000, [{ population: 1200 }, { population: 800 }], 18000)).toEqual({ centres: 2000, rest: 0 });
+  });
+
+  it("are none where its douars hold all its people", () => {
+    expect(outsideDouars(105, [], 105)).toBeNull();
   });
 });

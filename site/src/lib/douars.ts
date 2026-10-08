@@ -42,6 +42,18 @@ for (const fractions of byCommune.values()) fractions.sort((a, b) => a.code.loca
 /** A commune's fractions, each holding its douars; empty for a commune with none. */
 export const douarsOf = (communeCode: string): Fraction[] => byCommune.get(communeCode) ?? [];
 
+/**
+ * A rural commune's people its douars don't hold: the ones in its urban centres, which have
+ * no douars, and the rest, nomads or people HCP counts apart, such as soldiers in barracks.
+ * Null where the douars hold them all. The douars never hold more than the commune less its
+ * centres (data/v1/douars/README.md).
+ */
+export function outsideDouars(population: number, centres: readonly { population: number | null }[], held: number): { centres: number; rest: number } | null {
+  const inCentres = centres.reduce((sum, c) => sum + (c.population ?? 0), 0);
+  const rest = population - inCentres - held;
+  return inCentres + rest > 0 ? { centres: inCentres, rest } : null;
+}
+
 const table = JSON.parse(readFileSync("api/generated/translit-words.json", "utf8")) as WordTable;
 
 /**

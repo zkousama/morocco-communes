@@ -17,7 +17,8 @@
 import { de, fill, places } from "../../i18n/places";
 import { path, type Locale } from "../../i18n/ui";
 import { counted as countedIn, numbers, type Forms } from "../../lib/format";
-import { fractionLatinOf, latinOf, type Fraction } from "../../lib/douars";
+import { fractionLatinOf, latinOf, outsideDouars, type Fraction } from "../../lib/douars";
+import { INTL } from "../../lib/intl";
 
 interface Props {
   locale: Locale;
@@ -27,8 +28,11 @@ interface Props {
   name: string;
   /** A commune the census counts as urban, whose douars are its rural part. */
   urban: boolean;
+  /** The commune's people in 2024, and its urban centres, for the ones no douar holds. */
+  population: number;
+  centres: readonly { name: string; population: number | null }[];
 }
-const { locale, code, fractions, name, urban } = Astro.props;
+const { locale, code, fractions, name, urban, population, centres } = Astro.props;
 const p = places[locale];
 const n = numbers(locale);
 const km = numbers(locale, 1, true);
@@ -42,6 +46,9 @@ const labels = p.fractionLabels as Record<string, string>;
 const counted = (forms: Forms, v: number) => countedIn(locale, forms, v);
 const distance = (v: number | null | undefined) => (v === null || v === undefined ? "—" : km.format(v));
 const withheld = fractions.some((f) => f.rows.some((d) => d.topics === null));
+// An urban commune's douars are its rural part, which douarsBodyUrban already says.
+const outside = urban ? null : outsideDouars(population, centres, people);
+const centreNames = new Intl.ListFormat(INTL[locale], { type: "conjunction" }).format(centres.map((c) => c.name));
 // The douars a visitor can name: the ones spelt from the Arabic.
 const open = fractions.flatMap((f) => f.rows).filter((d) => latinOf(d).spelt);
 
@@ -64,6 +71,8 @@ const groups = fractions.map((f) => {
       fractions: counted(p.fractionCount, fractions.length),
       people: n.format(people),
     })}
+    {outside && outside.centres > 0 && <>{" "}{fill(counted(centres.length > 1 ? p.douarsCentres : p.douarsCentre, outside.centres), { centres: centreNames })}</>}
+    {outside && outside.rest > 0 && <>{" "}{counted(p.douarsUncounted, outside.rest)}</>}
     {" "}<a href={path(locale, "docs/indicators/#douars")}>{p.douarsMore}</a>
   </p>
   <div class="scroll" tabindex="0">
