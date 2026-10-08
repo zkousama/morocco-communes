@@ -138,7 +138,13 @@ describe("the vowel between 2 consonants", () => {
     const gaps = learnGaps([...times(4, ["إسافن", "Issafen"]), ...times(4, ["بلقاضي", "Belkadi"])]);
     expect(gaps).toMatchObject({ "فن#": "e", "^بلC": "e" });
     expect(toLatin("أزافن", { ...none, gaps })).toBe("Azafen");
-    expect(toLatin("بلحسن", { ...none, gaps })).toBe("Belhsn");
+    expect(toLatin("بلحسن", { ...none, gaps })).toBe("Belhsen");
+  });
+
+  it("is, where its 2 letters were never learned, the one sources mostly put in that place in a word", () => {
+    const gaps = learnGaps([["زقليت", "Zaklit"], ["دندانة", "Dandana"], ["لسناد", "Lasnad"], ["رندة", "Randa"]]);
+    expect(gaps["^__C"]).toBe("a");
+    expect(toLatin("لبخاتي", { ...none, gaps })).toBe("Labkhati");
   });
 
   it("is none where sources mostly put none, which stands over what the 2 letters alone take", () => {

@@ -79,7 +79,8 @@ function lettersOf(word: string, construct: boolean): { article: string; letters
  * The keys of the gap after letter i, where it and the next are consonants the rules spell
  * side by side, the closer first: the 2 letters, with ^ before them at the start of a word,
  * and C, V or # after them for the consonant, vowel or end of the word that follows; then
- * the 2 letters alone. Null for any other gap, and for the start of a word of under 4
+ * the 2 letters alone; then the place alone, __ for any 2 letters, for a pair sources never
+ * wrote enough to learn. Null for any other gap, and for the start of a word of under 4
  * letters, or one starting with ت, which the Ta- rule spells.
  */
 function gapKeys(letters: readonly string[], spelt: readonly string[], i: number): string[] | null {
@@ -87,8 +88,9 @@ function gapKeys(letters: readonly string[], spelt: readonly string[], i: number
   if (!consonant(i) || !consonant(i + 1)) return null;
   if (i === 0 && (letters[0] === "ت" || letters.length < 4)) return null;
   const after = i + 2 === letters.length ? "#" : consonant(i + 2) ? "C" : "V";
-  const pair = `${i === 0 ? "^" : ""}${normalise(letters[i]!)}${normalise(letters[i + 1]!)}`;
-  return [pair + after, pair];
+  const start = i === 0 ? "^" : "";
+  const pair = `${start}${normalise(letters[i]!)}${normalise(letters[i + 1]!)}`;
+  return [pair + after, pair, `${start}__${after}`];
 }
 
 /** One Arabic word, letter by letter. `construct` is a ta marbuta said as t, before another word. */

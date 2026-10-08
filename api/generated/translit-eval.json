@@ -5,9 +5,9 @@
   "scores": {
     "Arabic to Latin, table and rules": {
       "names": 370,
-      "exact": 0.486,
+      "exact": 0.492,
       "withinALetter": 0.708,
-      "lettersOff": 0.116,
+      "lettersOff": 0.115,
       "apart90": 0.286
     },
     "Arabic to Latin, table and model": {
@@ -33,9 +33,9 @@
     },
     "Douars to Latin, table and rules": {
       "names": 3102,
-      "exact": 0.336,
-      "withinALetter": 0.607,
-      "lettersOff": 0.146,
+      "exact": 0.337,
+      "withinALetter": 0.608,
+      "lettersOff": 0.145,
       "apart90": 0.333
     },
     "Douars to Latin, table and model": {

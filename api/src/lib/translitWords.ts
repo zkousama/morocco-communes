@@ -16,6 +16,8 @@ export interface WordTable {
    * The vowel sources put between 2 consonants Arabic writes side by side, or "" where they
    * mostly put none, learned by learnGaps (spell.ts): e for مد at the end of a word (مد#), so
    * حمد is Hmed, and for بل at the start before a consonant (^بلC), so بلقاضي is Belkadi.
+   * Any 2 letters there take a (^__C), so زقليت, whose زق sources wrote too seldom to learn,
+   * is Zaklit.
    */
   gaps?: Record<string, string>;
 }
