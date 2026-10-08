@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withCommuneNames, withFractionNames, type DouarRecord, type FractionRecord } from "../../src/lib/douars.ts";
+import { withCommuneNames, withFractionNames, withSources, type DouarRecord, type FractionRecord } from "../../src/lib/douars.ts";
 
 const fraction = (code: string, ar: string): FractionRecord => ({
   code,
@@ -11,6 +11,14 @@ const fraction = (code: string, ar: string): FractionRecord => ({
 });
 const douar = (code: string, communeCode: string, ar: string, latin?: DouarRecord["latin"]) =>
   ({ code, communeCode, fraction: code.slice(0, 10), name: { ar }, ...(latin ? { latin } : {}) }) as DouarRecord;
+
+describe("a douar's name from a source", () => {
+  it("is the source's, without the mark GeoNames writes for ع", () => {
+    const d = douar("5710311202001", "01.571.03.11", "أولاد علي");
+    const sources = new Map([[d.code, { latin: { name: "Oulad ’Ali", source: "geonames" as const } }]]);
+    expect(withSources(d, sources).latin).toEqual({ name: "Oulad Ali", source: "geonames" });
+  });
+});
 
 describe("a fraction's Latin name", () => {
   it("is its commune's douar of the same name's, with that douar's source", () => {

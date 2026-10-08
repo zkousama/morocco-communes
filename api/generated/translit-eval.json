@@ -33,14 +33,14 @@
     },
     "Douars to Latin, table and rules": {
       "names": 3102,
-      "exact": 0.337,
+      "exact": 0.336,
       "withinALetter": 0.607,
       "lettersOff": 0.146,
       "apart90": 0.333
     },
     "Douars to Latin, table and model": {
       "names": 3102,
-      "exact": 0.322,
+      "exact": 0.321,
       "withinALetter": 0.566,
       "lettersOff": 0.163,
       "apart90": 0.364

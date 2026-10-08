@@ -54,9 +54,43 @@ function lineUp(arabic: string[], latin: string[]): string[] | null {
   return ways.length === 1 ? ways[0]! : null;
 }
 
+const MARK = /['’‘`ʿ]/;
+const SPELT_VOWEL = /[aeiouàâäéèêëîïôöûü]/i;
+const BETWEEN_WORDS = /[\s\-–]/;
+
+/**
+ * A source's Latin without the mark GeoNames writes for ع, as French spellings have it:
+ * ’Ali is Ali and Ya’qoub Yaqoub. HCP never starts a word with an apostrophe, so one there goes
+ * too. Kept are a typed apostrophe after a letter, as HCP writes M'hamed and A'yat, the n’ that
+ * joins 2 Tamazight words, and a mark after a consonant where the Arabic has no ع to stand for.
+ */
+export function withoutAyn(latin: string, arabic: string): string {
+  const ayn = arabic.includes("ع");
+  let out = "";
+  for (let i = 0; i < latin.length; i++) {
+    const c = latin[i]!;
+    const before = out.at(-1) ?? "";
+    const start = before === "" || BETWEEN_WORDS.test(before);
+    const particle = /^[nd]$/i.test(before) && (out.length === 1 || BETWEEN_WORDS.test(out.at(-2)!));
+    const drop = MARK.test(c) && (start || (c !== "'" && (SPELT_VOWEL.test(before) || (ayn && !particle))));
+    if (!drop) {
+      out += c;
+      continue;
+    }
+    // Al’Askar is one word once the mark goes, so its second capital does too.
+    const next = latin[i + 1] ?? "";
+    if (!start && /\p{Lu}/u.test(next)) {
+      out += next.toLowerCase();
+      i++;
+    }
+  }
+  return out;
+}
+
 /**
  * Pairs of names as pairs of words: only where the words line up and each word's keys meet
  * its partner's, so a translated name (Banlieue Nord for أحواز ... الشمالية) gives none.
+ * The Latin is withoutAyn, so ’Ali and Ali count as one spelling.
  */
 export function wordPairs(pairs: readonly { fr: string; ar: string }[]): [arabic: string, latin: string][] {
   const out: [string, string][] = [];
@@ -68,7 +102,7 @@ export function wordPairs(pairs: readonly { fr: string; ar: string }[]): [arabic
       // A number is written the same in both scripts, so it teaches nothing, and lined up
       // against a word it teaches something wrong: 1 had become Hay.
       if (/\d/.test(word) || /\d/.test(f[i]!)) return;
-      if (keysMeet(arabicKeys(word), latinKeys(f[i]!))) out.push([word, f[i]!]);
+      if (keysMeet(arabicKeys(word), latinKeys(f[i]!))) out.push([word, withoutAyn(f[i]!, word)]);
     });
   }
   return out;

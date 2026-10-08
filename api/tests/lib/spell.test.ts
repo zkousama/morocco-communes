@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { learnGaps, toArabic, toLatin } from "../../src/lib/spell.ts";
-import { buildWordTable, type WordTable } from "../../src/lib/translitWords.ts";
+import { buildWordTable, withoutAyn, type WordTable } from "../../src/lib/translitWords.ts";
 
 const table = JSON.parse(readFileSync("api/generated/translit-words.json", "utf8")) as WordTable;
 const none: WordTable = { toLatin: {}, toArabic: {} };
@@ -65,6 +65,34 @@ describe("a word that's translated, not spelt", () => {
     // ثكنة is barracks, but HCP writes the commune Tekna so, and its fractions after it.
     expect(toLatin("ثكنة", table)).toBe("Tekna");
     expect(toLatin("ثكنة الشمارخ", table)).toMatch(/^Tekna /);
+  });
+});
+
+describe("the mark a source writes for ع", () => {
+  it("is taken out, as French spellings leave it out", () => {
+    expect(withoutAyn("’Ali", "علي")).toBe("Ali");
+    expect(withoutAyn("Oulad Mohand Ou ’Ali", "اولاد محند اوعلي")).toBe("Oulad Mohand Ou Ali");
+    expect(withoutAyn("Ya’qoub", "يعقوب")).toBe("Yaqoub");
+    expect(withoutAyn("Bel’arb", "بلعربي")).toBe("Belarb");
+    expect(withoutAyn("Al’Askar", "العسكر")).toBe("Alaskar");
+    expect(withoutAyn("'Ain Bou 'Issa", "عين بوعسة")).toBe("Ain Bou Issa");
+  });
+
+  it("leaves an apostrophe that isn't one: the n' joining 2 words, M'hamed, and HCP's A'yat", () => {
+    expect(withoutAyn("Imi n’Tizgui", "ايمي نتزكي")).toBe("Imi n’Tizgui");
+    expect(withoutAyn("M’achou", "اوماشو")).toBe("M’achou");
+    expect(withoutAyn("M'hamed", "امحمد")).toBe("M'hamed");
+    expect(withoutAyn("A'yat", "أعيات")).toBe("A'yat");
+  });
+
+  it("doesn't split a word's spellings in the table, so a name learned with it comes out without", () => {
+    const built = buildWordTable([
+      { fr: "Oulad ’Ali", ar: "اولاد علي" },
+      { fr: "Oulad ’Ali", ar: "اولاد علي" },
+      { fr: "Oulad Ali", ar: "اولاد علي" },
+    ]);
+    expect(built.toLatin["علي"]).toBe("Ali");
+    expect(toLatin("زاوية سيدي عبد الحق", table)).not.toMatch(/['’]/);
   });
 });
 

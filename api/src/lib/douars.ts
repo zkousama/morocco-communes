@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { normalise } from "./normalise.ts";
+import { withoutAyn } from "./translitWords.ts";
 import { DOUAR_FIELDS } from "../../../pipeline/src/sources/douarFields.ts";
 import type { Topics } from "./indicators.ts";
 
@@ -70,10 +71,11 @@ export function readDouarSources(dir = "api/data"): Map<string, { place?: DouarP
   return out;
 }
 
-/** A douar with its point and Latin name, where it has them. */
+/** A douar with its point and Latin name, where it has them, the name withoutAyn. */
 export function withSources(d: DouarRecord, sources: Map<string, { place?: DouarPlace; latin?: DouarLatin }>): DouarRecord {
   const found = sources.get(d.code);
-  return found ? { ...d, ...found } : d;
+  if (!found) return d;
+  return { ...d, ...found, ...(found.latin ? { latin: { ...found.latin, name: withoutAyn(found.latin.name, d.name.ar) } } : {}) };
 }
 
 /** One fraction, the level between a rural commune and its douars. */
