@@ -21,7 +21,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { normalise } from "../src/lib/normalise.ts";
 import { arabicKeys, keysMeet, latinKeys, lettersApart, shareApart } from "../src/lib/translit.ts";
 import { buildWordTable, wordPairs, type WordTable } from "../src/lib/translitWords.ts";
-import { modelArabic, modelLatin, toArabic, toLatin, type Models } from "../src/lib/spell.ts";
+import { learnGaps, modelArabic, modelLatin, toArabic, toLatin, type Models } from "../src/lib/spell.ts";
 import { train } from "../src/lib/graphones.ts";
 
 const TABLE = "api/generated/translit-words.json";
@@ -63,6 +63,9 @@ const douars = (): Pair[] => {
 /** The pairs to learn from: HCP's weighted over the rest. */
 const teaching = (hcp: Pair[], matched = douars()) => [...Array.from({ length: HCP_WEIGHT }, () => hcp).flat(), ...neighbourhoods(), ...matched];
 
+/** The word table from pairs of names, with the vowels their words put between consonants. */
+const tableOf = (pairs: Pair[]): WordTable => ({ ...buildWordTable(pairs), gaps: learnGaps(wordPairs(pairs)) });
+
 function trainModels(pairs: Pair[]): Models {
   const words = wordPairs(pairs);
   const toLatin = train(words.map(([a, l]) => [modelArabic(a), modelLatin(l)] as [string, string]).filter(([a, l]) => a && l), ORDER);
@@ -84,7 +87,7 @@ function evaluate(): void {
   // A fifth of the matched douars held back too: their names are the ones the site spells.
   const matched = shuffle(douars());
   const heldDouars = matched.slice(0, Math.floor(matched.length / 5));
-  const table = buildWordTable(teaching(kept, matched.slice(heldDouars.length)));
+  const table = tableOf(teaching(kept, matched.slice(heldDouars.length)));
   console.log("training on what's left once a fifth of HCP's names and of the matched douars are held back...");
   const models = trainModels(teaching(kept, matched.slice(heldDouars.length)));
 
@@ -137,9 +140,9 @@ function evaluate(): void {
 
 const args = process.argv.slice(2);
 if (args[0] === "--table") {
-  const table = buildWordTable(teaching(units()));
+  const table = tableOf(teaching(units()));
   writeFileSync(TABLE, `${JSON.stringify(table)}\n`);
-  console.log(`translit: ${Object.keys(table.toLatin).length} Arabic words and ${Object.keys(table.toArabic).length} Latin ones, to ${TABLE}`);
+  console.log(`translit: ${Object.keys(table.toLatin).length} Arabic words, ${Object.keys(table.toArabic).length} Latin ones and ${Object.keys(table.gaps!).length} gaps, to ${TABLE}`);
 } else if (args[0] === "--model") {
   const models = trainModels(teaching(units()));
   writeFileSync(MODELS, `${JSON.stringify(models)}\n`);

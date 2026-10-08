@@ -1,14 +1,14 @@
 {
-  "day": "2026-10-07",
+  "day": "2026-10-08",
   "keysMeet": 0.983,
   "names": 1852,
   "scores": {
     "Arabic to Latin, table and rules": {
       "names": 370,
-      "exact": 0.465,
-      "withinALetter": 0.697,
-      "lettersOff": 0.12,
-      "apart90": 0.3
+      "exact": 0.486,
+      "withinALetter": 0.708,
+      "lettersOff": 0.116,
+      "apart90": 0.286
     },
     "Arabic to Latin, table and model": {
       "names": 370,
@@ -33,9 +33,9 @@
     },
     "Douars to Latin, table and rules": {
       "names": 3102,
-      "exact": 0.326,
-      "withinALetter": 0.601,
-      "lettersOff": 0.149,
+      "exact": 0.337,
+      "withinALetter": 0.607,
+      "lettersOff": 0.146,
       "apart90": 0.333
     },
     "Douars to Latin, table and model": {

@@ -5,13 +5,14 @@
  *
  * Each word the table knows comes out as HCP writes it. Any other is spelt by the model
  * (graphones.ts) where there is one, and letter by letter by rule where there isn't, and
- * either is a guess: Arabic leaves out short vowels, which Latin has to put in, and Latin
- * can't tell س from ص or ت from ط. `pnpm translit --eval` gives how often each way comes
+ * either is a guess: Arabic leaves out short vowels, which Latin has to put in, and the rules
+ * put in only the ones sources mostly agree on (learnGaps); and Latin can't tell س from ص
+ * or ت from ط. `pnpm translit --eval` gives how often each way comes
  * out exactly as HCP writes a name it was kept from learning.
  */
 import { normalise } from "./normalise.ts";
 import { spell, type Model } from "./graphones.ts";
-import { arabicWords, latinWords, openingOf, type WordTable } from "./translitWords.ts";
+import { arabicWords, latinWords, type WordTable } from "./translitWords.ts";
 
 /** The 2 models, one for each direction, trained by `pnpm translit --model`. */
 export interface Models {
@@ -35,8 +36,34 @@ const VOWELS = new Set(["ا", "أ", "إ", "آ", "و", "ي", "ى", "ة", "ؤ", "�
 
 const capital = (word: string) => word.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
-/** One Arabic word, letter by letter. `construct` is a ta marbuta said as t, before another word. */
-function latinWord(word: string, construct: boolean, openings: Record<string, string> = {}): string {
+/** One letter of an Arabic word in Latin, by the letters either side of it. */
+function latinLetter(letters: readonly string[], i: number, construct: boolean): string {
+  const ch = letters[i]!;
+  const prev = letters[i - 1];
+  const next = letters[i + 1];
+  if (ch === "ا" || ch === "أ" || ch === "آ") return "a";
+  if (ch === "إ") return "i";
+  if (ch === "ع") return next === "ا" ? "a" : i === 0 || (prev && !VOWELS.has(prev)) ? "a" : "";
+  if (ch === "و" || ch === "ؤ") return "ou";
+  if (ch === "ى") return "a";
+  // ي is a y at the start, after a vowel or before ا, and an i otherwise, as before the
+  // final ة of Zaouia, though it follows the و.
+  // and a final ين is -ine for 8 words in 10, after a vowel too: Talouine.
+  if (ch === "ي" || ch === "ئ") {
+    const finalIn = next === "ن" && i === letters.length - 2;
+    return next === "ة" || finalIn ? "i" : i === 0 || (prev && VOWELS.has(prev)) || next === "ا" ? "y" : "i";
+  }
+  if (ch === "ة") return construct ? "at" : "a";
+  let letter = LATIN[ch] ?? "";
+  // French doubles an s between vowels to keep it an s: Assilah, Essaouira.
+  if ((ch === "س" || ch === "ص") && prev && VOWELS.has(prev) && next && VOWELS.has(next)) letter = "ss";
+  // and writes a hard g as gu before an i: Guercif.
+  if (letter === "g" && (next === "ي" || next === "ى")) letter = "gu";
+  return letter;
+}
+
+/** A word's article in Latin, and the rest of it letter by letter, each as the rules spell it. */
+function lettersOf(word: string, construct: boolean): { article: string; letters: string[]; spelt: string[] } {
   let w = word;
   let article = "";
   if (w.startsWith("ال") && w.length > 3) {
@@ -45,47 +72,104 @@ function latinWord(word: string, construct: boolean, openings: Record<string, st
     article = SUN.has(first) ? `e${(LATIN[first] ?? "").charAt(0)}` : "el ";
   }
   const letters = [...w];
-  let out = "";
-  letters.forEach((ch, i) => {
-    const prev = letters[i - 1];
-    const next = letters[i + 1];
-    if (ch === "ا" || ch === "أ" || ch === "آ") out += "a";
-    else if (ch === "إ") out += "i";
-    else if (ch === "ع") out += next === "ا" ? "a" : i === 0 || (prev && !VOWELS.has(prev)) ? "a" : "";
-    else if (ch === "و" || ch === "ؤ") out += "ou";
-    else if (ch === "ى") out += "a";
-    // ي is a y at the start, after a vowel or before ا, and an i otherwise, as before the
-    // final ة of Zaouia, though it follows the و.
-    // and a final ين is -ine for 8 words in 10, after a vowel too: Talouine.
-    else if (ch === "ي" || ch === "ئ") {
-      const finalIn = next === "ن" && i === letters.length - 2;
-      out += next === "ة" || finalIn ? "i" : i === 0 || (prev && VOWELS.has(prev)) || next === "ا" ? "y" : "i";
-    }
-    else if (ch === "ة") out += construct ? "at" : "a";
-    else {
-      let letter = LATIN[ch] ?? "";
-      // French doubles an s between vowels to keep it an s: Assilah, Essaouira.
-      if ((ch === "س" || ch === "ص") && prev && VOWELS.has(prev) && next && VOWELS.has(next)) letter = "ss";
-      // and writes a hard g as gu before an i: Guercif.
-      if (letter === "g" && (next === "ي" || next === "ى")) letter = "gu";
-      out += letter;
-    }
-  });
+  return { article, letters, spelt: letters.map((_, i) => latinLetter(letters, i, construct)) };
+}
+
+/**
+ * The keys of the gap after letter i, where it and the next are consonants the rules spell
+ * side by side, the closer first: the 2 letters, with ^ before them at the start of a word,
+ * and C, V or # after them for the consonant, vowel or end of the word that follows; then
+ * the 2 letters alone. Null for any other gap, and for the start of a word of under 4
+ * letters, or one starting with ت, which the Ta- rule spells.
+ */
+function gapKeys(letters: readonly string[], spelt: readonly string[], i: number): string[] | null {
+  const consonant = (j: number) => !!spelt[j] && !VOWELS.has(letters[j]!) && letters[j] !== "ع";
+  if (!consonant(i) || !consonant(i + 1)) return null;
+  if (i === 0 && (letters[0] === "ت" || letters.length < 4)) return null;
+  const after = i + 2 === letters.length ? "#" : consonant(i + 2) ? "C" : "V";
+  const pair = `${i === 0 ? "^" : ""}${normalise(letters[i]!)}${normalise(letters[i + 1]!)}`;
+  return [pair + after, pair];
+}
+
+/** One Arabic word, letter by letter. `construct` is a ta marbuta said as t, before another word. */
+function latinWord(word: string, construct: boolean, gaps: Record<string, string> = {}): string {
+  const { article, letters, spelt } = lettersOf(word, construct);
+  // The vowel sources put between 2 consonants, where gaps has one for them: Issafen, not Issafn.
+  let out = spelt
+    .map((s, i) => {
+      const key = gapKeys(letters, spelt, i)?.find((k) => gaps[k] !== undefined);
+      return key ? s + gaps[key] : s;
+    })
+    .join("");
   out = out.replace(/a{3,}/g, "aa");
   // A Tamazight name starting with t and a consonant starts Ta- in Latin: Tagmout, Tamezguida.
   // Sources write it so for 6 words in 10, and 8 in 10 with a final t as well.
+  const w = letters.join("");
   if (/^ت[^اأإآويىةعؤئ]/.test(w) && w.length > 2 && out.startsWith("t") && !/^t[aeiou]/.test(out)) out = `ta${out.slice(1)}`;
-  // The vowel sources put between the 2 consonants a word starts with, where they agree on one.
-  const opening = openingOf(w);
-  const vowel = opening ? openings[opening] : undefined;
-  if (vowel) {
-    const first = (LATIN[opening![0]!] ?? "").length;
-    if (first > 0 && !/^[aeiou]/.test(out.slice(first))) out = out.slice(0, first) + vowel + out.slice(first);
-  }
   // A long a, i or ou before a final n takes a silent e: Taliouine, Naamane. Before a final t
   // sources mostly leave it off: Tagmout rather than Tagmoute.
   if (/(a|i|ou)n$/.test(out) && /[اوي]ن$/.test(w)) out += "e";
   return capital(article + out);
+}
+
+/** A gap is learned from this many words, and where one way of writing it has this share. */
+const GAP_SEEN = 4;
+const GAP_SHARE = 0.4;
+
+/** For each place in a, the letters an alignment with b puts there: what b adds to a. */
+function added(a: string, b: string): string[] {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) d[i]![j] = Math.min(d[i - 1]![j]! + 1, d[i]![j - 1]! + 1, d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
+  }
+  const out = Array.from({ length: a.length + 1 }, () => "");
+  let i = a.length;
+  let j = b.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && d[i]![j] === d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1)) {
+      i--;
+      j--;
+    } else if (j > 0 && d[i]![j] === d[i]![j - 1]! + 1) {
+      out[i] = b[j - 1] + out[i]!;
+      j--;
+    } else i--;
+  }
+  return out;
+}
+
+/**
+ * The vowel sources put in each gap between 2 consonants, from pairs of words: each Arabic
+ * word spelt by rule and lined up with the Latin a source writes for it, and the vowel the
+ * source has between 2 consonants the rules leave side by side counted under that gap's keys.
+ * None is learned too, where sources mostly put none, so that a gap's closer key keeps out
+ * what its 2 letters take elsewhere: مرزوك is Marzouk, but مريزيك, with a vowel after مر,
+ * is Mrizik.
+ */
+export function learnGaps(words: readonly [arabic: string, latin: string][]): Record<string, string> {
+  const seen = new Map<string, Map<string, number>>();
+  for (const [arabic, latin] of words) {
+    if (arabic.includes(" ")) continue;
+    const { article, letters, spelt } = lettersOf(arabic, false);
+    const plain = (s: string) => modelLatin(s).replace(/ /g, "");
+    const extra = added(plain(article) + spelt.join(""), plain(latin));
+    let at = plain(article).length;
+    spelt.forEach((s, i) => {
+      at += s.length;
+      const vowel = extra[at]!.replace(/[^aeiou]/g, "");
+      for (const key of gapKeys(letters, spelt, i) ?? []) {
+        const counts = seen.get(key) ?? new Map<string, number>();
+        counts.set(vowel, (counts.get(vowel) ?? 0) + 1);
+        seen.set(key, counts);
+      }
+    });
+  }
+  const out: Record<string, string> = {};
+  for (const [key, counts] of [...seen].sort(([a], [b]) => (a < b ? -1 : 1))) {
+    const total = [...counts.values()].reduce((a, b) => a + b, 0);
+    const [vowel, n] = [...counts].reduce((top, entry) => (entry[1] > top[1] ? entry : top));
+    if (total >= GAP_SEEN && n / total >= GAP_SHARE) out[key] = vowel;
+  }
+  return out;
 }
 
 /** An Arabic name in Latin: HCP's spelling of each word the table knows, the model's or the rules' for the rest. */
@@ -169,7 +253,7 @@ function spellWords(name: string, table: WordTable, models?: Models): string {
       if (guess) return capital(guess);
       // A ta marbuta before a word without the article is said as t: Zaouiat Sidi, not Zaouia Sidi.
       const construct = word.endsWith("ة") && i < words.length - 1 && !words[i + 1]!.startsWith("ال");
-      return latinWord(word, construct, table.openings);
+      return latinWord(word, construct, table.gaps);
     })
     .join(" ");
 }

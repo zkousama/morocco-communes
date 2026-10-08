@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { toArabic, toLatin } from "../../src/lib/spell.ts";
+import { learnGaps, toArabic, toLatin } from "../../src/lib/spell.ts";
 import { buildWordTable, type WordTable } from "../../src/lib/translitWords.ts";
 
 const table = JSON.parse(readFileSync("api/generated/translit-words.json", "utf8")) as WordTable;
@@ -103,15 +103,29 @@ describe("a Latin name in Arabic", () => {
   });
 });
 
-describe("the opening of a word", () => {
-  it("takes the vowel sources put between its first 2 consonants, where they agree", () => {
-    const learned = buildWordTable([
-      ...Array.from({ length: 8 }, () => ({ fr: "Belkadi", ar: "بلقاضي" })),
-      ...Array.from({ length: 8 }, () => ({ fr: "Mrizig", ar: "مريزيك" })),
-    ]);
-    expect(learned.openings).toMatchObject({ "بل": "e" });
-    expect(toLatin("بلحسن", { ...none, openings: learned.openings })).toBe("Belhsn");
-    expect(toLatin("مرزوك", { ...none, openings: { "مر": "" } })).toBe("Mrzouk");
+describe("the vowel between 2 consonants", () => {
+  const times = (n: number, pair: [string, string]) => Array.from({ length: n }, () => pair);
+
+  it("is the one sources put there, by the 2 letters, where they are and what follows them", () => {
+    const gaps = learnGaps([...times(4, ["إسافن", "Issafen"]), ...times(4, ["بلقاضي", "Belkadi"])]);
+    expect(gaps).toMatchObject({ "فن#": "e", "^بلC": "e" });
+    expect(toLatin("أزافن", { ...none, gaps })).toBe("Azafen");
+    expect(toLatin("بلحسن", { ...none, gaps })).toBe("Belhsn");
+  });
+
+  it("is none where sources mostly put none, which stands over what the 2 letters alone take", () => {
+    const gaps = { "^مرC": "", "^مر": "e" };
+    expect(toLatin("مرزوك", { ...none, gaps })).toBe("Mrzouk");
+    expect(toLatin("مريم", { ...none, gaps })).toBe("Merim");
+  });
+
+  it("is learned only where seen 4 times, and where one way has 2 in 5", () => {
+    expect(learnGaps(times(3, ["إسافن", "Issafen"]))).toEqual({});
+    expect(learnGaps([...times(2, ["إسافن", "Issafen"]), ...times(2, ["إسافن", "Issafan"]), ...times(2, ["إسافن", "Issafin"])])).toEqual({});
+  });
+
+  it("is left to the Ta- rule at the start of a word with ت", () => {
+    expect(toLatin("تكموت", { ...none, gaps: { "^تكC": "i", "^تك": "i" } })).toBe("Takmout");
   });
 });
 
@@ -122,7 +136,6 @@ describe("the word table", () => {
       { fr: "Banlieue Nord", ar: "أحواز الشمالية" },
     ]);
     expect(built.toLatin).toEqual({ "سيدي": "Sidi", "قاسم": "Kacem" });
-    expect(built.openings).toEqual({});
     expect(built.toArabic).toEqual({ sidi: "سيدي", kacem: "قاسم" });
   });
 
