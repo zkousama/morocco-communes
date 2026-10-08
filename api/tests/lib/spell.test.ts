@@ -63,10 +63,25 @@ describe("a word that's translated, not spelt", () => {
     expect(toLatin("مزرعة ديبوا", none)).toMatch(/^Ferme /);
     expect(toLatin("منطقة المرداني", none)).toMatch(/^Zone /);
     expect(toLatin("مدرسة تالمست", none)).toMatch(/^École /);
-    expect(toLatin("ألاثنين المدرسة العتيقة", none)).toMatch(/ École traditionnelle$/);
     expect(toLatin("قرية معمل السكر", none)).toBe("Village de la sucrerie");
     expect(toLatin("ثكنة مخزن موبيل الثامنة", none)).toMatch(/^Caserne Makhzen Mobile /);
     expect(toLatin("أيت عيسى (موبيل)", none)).toMatch(/ \(Mobile\)$/);
+  });
+
+  it("comes first where it ends the Arabic, as French names a place for what it is first", () => {
+    expect(toLatin("ريفر بالم تجزئة", none)).toMatch(/^Lotissement /);
+    expect(toLatin("التوير التعاونية", none)).toMatch(/^Coopérative /);
+    expect(toLatin("أولاد بن العوني المدرسة", table)).toMatch(/^École Oulad /);
+    expect(toLatin("ألاثنين المدرسة العتيقة", none)).toMatch(/^École traditionnelle /);
+  });
+
+  it("stays last where it's a centre, as Moroccan French has it, or a douar, which can be the douar's", () => {
+    expect(toLatin("فيفي المركز", none)).toMatch(/ Centre$/);
+    expect(toLatin("بير الدوار", table)).toMatch(/ Douar$/);
+  });
+
+  it("stays last where the name starts with a translation, in French order already", () => {
+    expect(toLatin("مركز التعاونية", none)).toBe("Centre Coopérative");
   });
 
   it("is translated together where a phrase runs to more words than 2", () => {

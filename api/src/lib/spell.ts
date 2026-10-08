@@ -206,6 +206,13 @@ const TRANSLATED: Record<string, string> = Object.fromEntries(
   }).map(([arabic, french]) => [normalise(arabic), french]),
 );
 
+/**
+ * Translations that keep their place where they end a name. The rest come first, as French
+ * names a place for what it is first: ريفر بالم تجزئة is Lotissement Rifer Balem. A centre
+ * comes last in Moroccan French, as in Tamrout Centre.
+ */
+const KEEP_PLACE = new Set(["Centre", "Douar", "ex", "Km", "Mobile", "Mohammed V"]);
+
 /** The most words TRANSLATED takes together. */
 const LONGEST = Math.max(...Object.keys(TRANSLATED).map((key) => key.split(" ").length));
 
@@ -256,23 +263,27 @@ export function toLatin(name: string, table: WordTable, models?: Models): string
 
 function spellWords(name: string, table: WordTable, models?: Models): string {
   const words = phrases(arabicWords(name), table);
-  return words
-    .map((word, i) => {
-      // A number stays a number: أولاد كثير 1 is Oulad Ktir 1.
-      if (/^[0-9٠-٩]+$/.test(word)) return westernDigits(word);
-      const translated = TRANSLATED[normalise(word)];
-      if (translated) return translated;
-      // Sources write some words in lower case (mloulne, el Berd); a name's words start with a capital,
-      // all but the n' that joins 2 Tamazight words.
-      const known = table.toLatin[normalise(word)]?.replace(/’/g, "'");
-      if (known) return /^[nd]'/.test(known) ? known : capital(known);
-      const guess = models && spell(models.toLatin, modelArabic(word))[0]?.text;
-      if (guess) return capital(guess);
-      // A ta marbuta before a word without the article is said as t: Zaouiat Sidi, not Zaouia Sidi.
-      const construct = word.endsWith("ة") && i < words.length - 1 && !words[i + 1]!.startsWith("ال");
-      return latinWord(word, construct, table.gaps);
-    })
-    .join(" ");
+  const latin = words.map((word, i) => {
+    // A number stays a number: أولاد كثير 1 is Oulad Ktir 1.
+    if (/^[0-9٠-٩]+$/.test(word)) return westernDigits(word);
+    const translated = TRANSLATED[normalise(word)];
+    if (translated) return translated;
+    // Sources write some words in lower case (mloulne, el Berd); a name's words start with a capital,
+    // all but the n' that joins 2 Tamazight words.
+    const known = table.toLatin[normalise(word)]?.replace(/’/g, "'");
+    if (known) return /^[nd]'/.test(known) ? known : capital(known);
+    const guess = models && spell(models.toLatin, modelArabic(word))[0]?.text;
+    if (guess) return capital(guess);
+    // A ta marbuta before a word without the article is said as t: Zaouiat Sidi, not Zaouia Sidi.
+    const construct = word.endsWith("ة") && i < words.length - 1 && !words[i + 1]!.startsWith("ال");
+    return latinWord(word, construct, table.gaps);
+  });
+  // A name that starts with a translation is in French order already: مركز التعاونية is the
+  // cooperative's centre, Centre Coopérative.
+  const last = TRANSLATED[normalise(words.at(-1) ?? "")];
+  const first = TRANSLATED[normalise(words[0] ?? "")];
+  if (words.length > 1 && last && !first && /^\p{Lu}/u.test(last) && !KEEP_PLACE.has(last)) latin.unshift(latin.pop()!);
+  return latin.join(" ");
 }
 
 const ARABIC: Record<string, string> = {
