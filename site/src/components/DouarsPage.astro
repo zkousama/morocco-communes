@@ -52,7 +52,7 @@ const farthest = [...byCommune]
       <div class="finder" hidden data-base={path(locale, "communes/")} data-lang={locale} data-intl={INTL[locale]}
         data-none={copy.douarsFindNone} data-more={copy.douarsFindMore} data-people={copy.douarsPeople}>
         <label for="douar-query">{copy.douarsFind}</label>
-        <input id="douar-query" type="search" dir="auto" autocomplete="off" spellcheck="false" placeholder={copy.douarsFindPlaceholder} aria-describedby="find-hint find-status" />
+        <input id="douar-query" type="search" dir={locale === "ar" ? "rtl" : "auto"} autocomplete="off" spellcheck="false" placeholder={copy.douarsFindPlaceholder} aria-describedby="find-hint find-status" />
         <p id="find-hint" class="hint">{copy.douarsFindBody} <a href={path(locale, "docs/names/")}>{copy.douarsNamed}</a></p>
         <p id="find-status" class="find-status" aria-live="polite"></p>
         <ul class="hits"></ul>
