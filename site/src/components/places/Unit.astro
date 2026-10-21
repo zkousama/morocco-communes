@@ -122,7 +122,7 @@ const standouts = [
     code: unit.code,
     parent: province ? { name: nameIn(locale, region.name), href: path(locale, `regions/${region.slug}/`) } : undefined,
   })}
-  documentTitle={documentTitle}
+  documentTitle={fill(p.censusTitle, { name: documentTitle })}
   description={description}
   beside={nameBeside(locale, unit.name)}
   lede={lede}

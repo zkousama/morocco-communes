@@ -189,7 +189,7 @@ getCommune("${c.slug}");`;
     osm: c.osm,
     centroid: c.centroid,
   })}
-  documentTitle={sharedNames.has(c.name.fr) ? `${name}${comma}${nameIn(locale, province.name)}` : undefined}
+  documentTitle={fill(p.censusTitle, { name: sharedNames.has(c.name.fr) ? `${name}${comma}${nameIn(locale, province.name)}` : name })}
   description={description}
   beside={nameBeside(locale, c.name)}
   lede={lede}
