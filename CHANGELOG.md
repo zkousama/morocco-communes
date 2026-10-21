@@ -15,7 +15,8 @@ change a shape something already reads.
 - HCP withholds those figures for the 10,560 douars under 30 households, which get null
   rather than a guess.
 - `/api/communes/{code}/douars.json` serves a commune's fractions and douars, and
-  `get_douars` is the twelfth MCP tool.
+  `get_douars` is the twelfth MCP tool. `/api/douars/search` finds a douar by name, in
+  Arabic or Latin letters, across the country, and `search_douars` is the thirteenth.
 - A douar's name in Latin letters, `latin`, where a source writes one: the Ministry of
   National Education's lists of public schools, OpenStreetMap or GeoNames, matched to HCP's
   Arabic names by spelling within the commune. 14,710 douars have one. Where GeoNames or

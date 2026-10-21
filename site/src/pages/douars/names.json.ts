@@ -1,32 +1,15 @@
 import type { APIRoute } from "astro";
-import { allDouars, latinOf } from "../../lib/douars";
+import { douarNames } from "../../lib/douars";
 import { communes } from "../../lib/places";
-import { arabicKeys, lookupKey } from "../../../../api/src/lib/translit.ts";
 
 
 /**
- * Every douar's name, for the douars page to find one in the browser. A douar is its name,
- * its commune's place in `communes`, the rest of its code past the commune's, its people, its
- * Latin name, 1 where that's spelt from the Arabic, and the keys a Latin query is matched on; a
- * commune is its slug, its French name, the start of its douars' codes and its Arabic name.
- * Every language loads this one file, the first time someone types.
+ * Every douar's name (douarNames in lib/douars.ts), for the douars page to find one in the
+ * browser and for /api/douars/search and the MCP server's search_douars. Every language
+ * loads this one file, the first time someone types.
  */
 
 export const GET: APIRoute = () => {
-  const withDouars = new Set(allDouars.map((d) => d.communeCode));
-  const listed = communes.filter((c) => withDouars.has(c.code));
-  const index = new Map(listed.map((c, i) => [c.code, i]));
-  const body = {
-    communes: listed.map((c) => [c.slug, c.name.fr, c.codeDigits.slice(2), c.name.ar]),
-    douars: allDouars.map((d) => [
-      d.name.ar,
-      index.get(d.communeCode)!,
-      d.code.slice(7),
-      d.population,
-      latinOf(d).name,
-      latinOf(d).spelt ? 1 : 0,
-      [...new Set(arabicKeys(d.name.ar).map(lookupKey))].join("|"),
-    ]),
-  };
+  const body = douarNames(communes);
   return new Response(JSON.stringify(body), { headers: { "content-type": "application/json; charset=utf-8" } });
 };

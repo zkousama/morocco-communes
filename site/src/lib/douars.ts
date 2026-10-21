@@ -6,6 +6,8 @@ import { readFileSync } from "node:fs";
 import { readDouarSources, withCommuneNames, withFractionNames, withSources, type DouarRecord, type FractionRecord } from "../../../api/src/lib/douars.ts";
 import { toLatin } from "../../../api/src/lib/spell.ts";
 import type { WordTable } from "../../../api/src/lib/translitWords.ts";
+import { arabicKeys, lookupKey } from "../../../api/src/lib/translit.ts";
+import type { DouarNames } from "../../../api/src/lib/douarSearch.ts";
 
 export type { DouarRecord, FractionRecord };
 
@@ -62,6 +64,31 @@ const table = JSON.parse(readFileSync("api/generated/translit-words.json", "utf8
  */
 export const latinOf = (d: DouarRecord): { name: string; spelt: boolean; source?: string } =>
   d.latin ? { name: d.latin.name, spelt: false, source: d.latin.source } : { name: toLatin(d.name.ar, table), spelt: true };
+
+/**
+ * Every douar's name, in the shape /douars/names.json serves and the douar search reads
+ * (api/src/lib/douarSearch.ts): a douar is its name, its commune's place in `communes`, the
+ * rest of its code past the commune's, its people, its Latin name, 1 where that's spelt from
+ * the Arabic, and the keys a Latin query is matched on; a commune is its slug, its French
+ * name, the start of its douars' codes and its Arabic name.
+ */
+export function douarNames(communes: readonly { code: string; slug: string; codeDigits: string; name: { fr: string; ar: string } }[]): DouarNames {
+  const withDouars = new Set(allDouars.map((d) => d.communeCode));
+  const listed = communes.filter((c) => withDouars.has(c.code));
+  const index = new Map(listed.map((c, i) => [c.code, i]));
+  return {
+    communes: listed.map((c) => [c.slug, c.name.fr, c.codeDigits.slice(2), c.name.ar]),
+    douars: allDouars.map((d) => [
+      d.name.ar,
+      index.get(d.communeCode)!,
+      d.code.slice(7),
+      d.population,
+      latinOf(d).name,
+      latinOf(d).spelt ? 1 : 0,
+      [...new Set(arabicKeys(d.name.ar).map(lookupKey))].join("|"),
+    ]),
+  };
+}
 
 /** A fraction's name in Latin, as latinOf gives a douar's; a label has none, its page translates it. */
 export const fractionLatinOf = (f: FractionRecord): { name: string; spelt: boolean } | null =>

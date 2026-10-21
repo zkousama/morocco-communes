@@ -78,6 +78,7 @@ GET /api/communes/tanger/indicators          GET /api/communes/tiznit/economy
 
 ```
 GET /api/search?q=tanger&levels=commune&limit=10
+GET /api/douars/search?q=tachdirt
 GET /api/communes/near?lat=33.5731&lng=-7.5898&radius=15
 GET /api/communes/at?lat=35.786&lng=-5.8125
 GET /api/communes?province=01.511&type=urban
@@ -97,7 +98,8 @@ type anyway. It matches names spelt another way by their consonants, so `titwan`
 Tétouan and `jdida` El Jadida. `01.511.01.0`, `001511010`, `1511010` and `tanger` all
 address one commune, and 18 exonyms are listed by hand because no amount of character folding gets from `Fez`
 to Fès or from `Port Lyautey` to Kénitra. A neighbourhood's name finds the commune or
-arrondissement it's in, and so does a 5-digit postcode.
+arrondissement it's in, and so does a 5-digit postcode. Douars have a search of their own,
+in Arabic or Latin letters: `tachdirt` and `tashdirt` both find تشديرت.
 
 **What's counted.** The alias and computed routes and the MCP server count their own use
 in Workers Analytics Engine: the route with its codes taken out, or an MCP message's tool
@@ -132,9 +134,9 @@ Full reference: [`api/README.md`](api/README.md).
   the ones enforced. Most agent frameworks turn it into tools directly.
 - **`/llms.txt`**: a short markdown map of the API and the dataset, in the llmstxt.org
   shape, for an LLM reading the site.
-- **`/mcp`**: an MCP server with 12 read-only tools (`search`, `get_commune`, `get_unit`,
+- **`/mcp`**: an MCP server with 13 read-only tools (`search`, `get_commune`, `get_unit`,
   `communes_near`, `commune_at`, `list_communes`, `get_indicators`, `get_economy`,
-  `get_housing`, `get_insights`, `get_neighbourhoods`, `get_douars`), so
+  `get_housing`, `get_insights`, `get_neighbourhoods`, `get_douars`, `search_douars`), so
   Claude, Claude Code and other MCP clients can query the data directly, census figures
   included. The site's `/docs/mcp/` page has the setup for each client.
 

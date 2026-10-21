@@ -15,6 +15,15 @@ export const SPEC_FR: Record<string, string> = {
   "searchUnits.param.limit": `Nombre de résultats, jusqu’à ${LIMIT.max}.`,
   "searchUnits.200": "Les résultats, du meilleur au moins bon.",
   "searchUnits.400": "q manque ou est trop long, ou un paramètre sort de ses bornes.",
+  "searchDouars.summary": "Trouver un douar par son nom",
+  "searchDouars.description":
+    "Cherche parmi les douars que liste le recensement 2024 du HCP, les villages et hameaux des communes rurales, en arabe ou en lettres latines. " +
+    "Une requête latine est comparée sur les consonnes que les deux écritures partagent, si bien que Tachdirt et Tashdirt trouvent تشديرت ; seules les graphies proches de ce qui a été tapé sont gardées. " +
+    "Le nom latin d’un douar est celui d’une source quand l’une l’écrit, et sinon il est épelé depuis l’arabe, ce que `spelt` signale.",
+  "searchDouars.param.q": `Le nom du douar, jusqu’à ${QUERY.maxLength} caractères.`,
+  "searchDouars.param.limit": `Nombre de résultats, jusqu’à ${LIMIT.max}.`,
+  "searchDouars.200": "Les résultats, les graphies les plus proches d’abord, puis les plus gros douars.",
+  "searchDouars.400": "q manque ou est trop long, ou limit sort de ses bornes.",
 
   "communeAt.summary": "La commune qui contient un point",
   "communeAt.description":
@@ -166,6 +175,15 @@ export const SPEC_AR: Record<string, string> = {
   "searchUnits.param.limit": `عدد النتائج، ${LIMIT.max} على الأكثر.`,
   "searchUnits.200": "النتائج، من الأفضل إلى الأقل تطابقا.",
   "searchUnits.400": "الـparameter المسمى q غائب أو طويل جدا، أو أحد الـparameters خارج المجال المسموح.",
+  "searchDouars.summary": "البحث عن دوار باسمه",
+  "searchDouars.description":
+    "يبحث في الدواوير التي يوردها إحصاء 2024 للمندوبية السامية للتخطيط، أي قرى ومداشر الجماعات القروية، بالحروف العربية أو اللاتينية. " +
+    "يقارن البحث بالحروف اللاتينية الحروف الساكنة المشتركة بين الكتابتين، فيجد Tachdirt وTashdirt الدوار تشديرت، ولا يحتفظ إلا بالكتابات القريبة مما كتب. " +
+    "الاسم اللاتيني للدوار هو الذي يكتبه أحد المصادر إن وجد، وإلا فهو مكتوب انطلاقا من العربية، ويشير إلى ذلك `spelt`.",
+  "searchDouars.param.q": `اسم الدوار، ${QUERY.maxLength} حرف على الأكثر.`,
+  "searchDouars.param.limit": `عدد النتائج، ${LIMIT.max} على الأكثر.`,
+  "searchDouars.200": "النتائج، الكتابات الأقرب أولا، ثم الدواوير الأكبر.",
+  "searchDouars.400": "الـparameter المسمى q غائب أو طويل جدا، أو limit خارج المجال المسموح.",
 
   "communeAt.summary": "الجماعة التي تضم نقطة",
   "communeAt.description":

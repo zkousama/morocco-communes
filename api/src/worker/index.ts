@@ -218,6 +218,16 @@ app.get("/api/search", (c) => {
  * /douars/names.json, read through the asset binding once in a worker's life and kept.
  */
 let douarIndex: Promise<PreparedNames | null> | null = null;
+/** The douars' names, read once; a failed read is forgotten, so the next request tries again. */
+const douarNamesFrom = (env: Env, url: URL): Promise<PreparedNames | null> =>
+  (douarIndex ??= env.ASSETS.fetch(new Request(new URL("/douars/names.json", url)))
+    .then(async (r) => (r.ok ? prepare((await r.json()) as DouarNames) : null))
+    .catch(() => null)
+    .then((index) => {
+      if (!index) douarIndex = null;
+      return index;
+    }));
+
 app.get("/api/douars/search", async (c) => {
   const url = new URL(c.req.url);
   const q = url.searchParams.get("q");
@@ -227,18 +237,12 @@ app.get("/api/douars/search", async (c) => {
   if (q.length > QUERY.maxLength) {
     return fail(url, "invalid-query", `q is at most ${QUERY.maxLength} characters`, url.pathname + url.search);
   }
-  const limit = intParam(url.searchParams.get("limit") ?? undefined, 5, LIMIT.max);
+  const limit = intParam(url.searchParams.get("limit") ?? undefined, LIMIT.default, LIMIT.max);
   if (limit === null) {
     return fail(url, "invalid-query", `limit must be a whole number between 1 and ${LIMIT.max}`, url.pathname + url.search);
   }
-  douarIndex ??= c.env.ASSETS.fetch(new Request(new URL("/douars/names.json", url)))
-    .then(async (r) => (r.ok ? prepare((await r.json()) as DouarNames) : null))
-    .catch(() => null);
-  const index = await douarIndex;
-  if (!index) {
-    douarIndex = null;
-    return new Response(null, { status: 503 });
-  }
+  const index = await douarNamesFrom(c.env, url);
+  if (!index) return new Response(null, { status: 503 });
   const hits = closeDouars(index, q, limit);
   return json(envelope(hits, { self: url.pathname + url.search }, { total: hits.length }), "computed");
 });
@@ -558,6 +562,7 @@ app.all("/mcp", async (c) => {
     communes,
     indicators,
     fetchJson: fetchJsonFrom(c.env, new URL(c.req.url)),
+    douarNames: () => douarNamesFrom(c.env, new URL(c.req.url)),
   });
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,

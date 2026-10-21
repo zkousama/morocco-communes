@@ -76,6 +76,24 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
           },
         },
       },
+      "/api/douars/search": {
+        get: {
+          operationId: "searchDouars",
+          summary: "Find a douar by name",
+          description:
+            "Matches the douars HCP's 2024 census lists, the villages and hamlets of the rural communes, in Arabic or in Latin letters. " +
+            "A Latin query is matched on the consonants both scripts share, so Tachdirt and Tashdirt find تشديرت; only the spellings close to what was typed are kept. " +
+            "Each douar's Latin name is a source's where one writes it, and otherwise spelt from the Arabic, which `spelt` marks.",
+          parameters: [
+            { name: "q", in: "query", required: true, description: `The douar's name, up to ${QUERY.maxLength} characters.`, schema: { type: "string", minLength: 1, maxLength: QUERY.maxLength }, example: "tachdirt" },
+            limit,
+          ],
+          responses: {
+            "200": ok("Matches, best first: the closest spellings, then the biggest douars.", { type: "array", items: ref("DouarHit") }),
+            "400": problem("q is missing or too long, or limit is out of range."),
+          },
+        },
+      },
       "/api/communes/at": {
         get: {
           operationId: "communeAt",
@@ -484,6 +502,29 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               ...ref("Name"),
               description:
                 "The neighbourhood the query named, when the unit was found through one: its names in OpenStreetMap, which the unit holds. HCP publishes no figures for a neighbourhood.",
+            },
+          },
+        },
+        DouarHit: {
+          type: "object",
+          required: ["code", "name", "spelt", "people", "commune"],
+          properties: {
+            code: { type: "string", description: "HCP's code for the douar: its commune's code without dots, then its fraction and its own number." },
+            name: {
+              type: "object",
+              required: ["ar", "latin"],
+              properties: { ar: { type: "string" }, latin: { type: "string" } },
+            },
+            spelt: { type: "boolean", description: "True when the Latin name is spelt from the Arabic, since no source writes one." },
+            people: { type: "integer", description: "The douar's population in 2024." },
+            commune: {
+              type: "object",
+              required: ["slug", "name"],
+              properties: {
+                slug: { type: "string" },
+                name: { type: "string", description: "The commune's French name." },
+                ar: { type: "string", description: "The commune's Arabic name." },
+              },
             },
           },
         },

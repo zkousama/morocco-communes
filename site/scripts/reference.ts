@@ -21,6 +21,8 @@ import { envelope, PROBLEMS, problem, type Envelope } from "../../api/src/lib/en
 import { listCommunes, parseFilter } from "../../api/src/lib/list.ts";
 import { buildLookup } from "../../api/src/lib/resolve.ts";
 import { near, search } from "../../api/src/lib/search.ts";
+import { closeDouars, prepare } from "../../api/src/lib/douarSearch.ts";
+import { douarNames } from "../src/lib/douars.ts";
 import type { Dataset } from "../../api/src/lib/dataset.ts";
 import { createMcpServer } from "../../api/src/mcp/server.ts";
 import { buildOpenApi } from "../../api/src/openapi.ts";
@@ -158,8 +160,15 @@ const listed = async (request: string, input: Parameters<typeof parseFilter>[0])
   return envelope(result.rows, { self: request, prev: null, next }, result.meta) as Envelope<unknown>;
 };
 
+// The douars' names as /douars/names.json serves them, which the Worker's douar search reads.
+const douarIndex = prepare(douarNames(dataset.communes as never[]));
+
 const examples: Record<string, Example> = {
   searchUnits: { request: "/api/search?q=fez&limit=2", body: computed("/api/search?q=fez&limit=2", search(index, "fez", { limit: 2 })) },
+  searchDouars: {
+    request: "/api/douars/search?q=tachdirt&limit=2",
+    body: computed("/api/douars/search?q=tachdirt&limit=2", closeDouars(douarIndex, "tachdirt", 2)),
+  },
   communeAt: (() => {
     // The Worker's answer: the commune's record, and the arrondissement the point is in.
     const [lat, lng] = [35.786, -5.8125];
@@ -277,7 +286,15 @@ const errors = Object.fromEntries(
 const errorExample = problem("not-found", "no unit has code 99.999", "/api/communes/99.999", "https://<host>");
 
 // The tools as a client lists them, from a server connected the way the Worker connects it.
-const server = createMcpServer({ index, lookup, fetchJson, tiles: tileIndex, communes: dataset.communes as never[], indicators });
+const server = createMcpServer({
+  index,
+  lookup,
+  fetchJson,
+  tiles: tileIndex,
+  communes: dataset.communes as never[],
+  indicators,
+  douarNames: async () => douarIndex,
+});
 const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
 await server.connect(serverSide);
 const client = new Client({ name: "docs", version });

@@ -3,6 +3,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMcpServer, TOOL_NAMES } from "../src/mcp/server.ts";
+import { prepare } from "../src/lib/douarSearch.ts";
+import { douarNames } from "../../site/src/lib/douars.ts";
 import { buildIndex } from "../src/emit/searchIndex.ts";
 import { emitDouars, emitEconomy, emitHousing, emitIndicators, emitInsights, emitNeighbourhoods, emitTree } from "../src/emit/static.ts";
 import { readDouars } from "../src/emit/douars.ts";
@@ -88,6 +90,7 @@ beforeAll(async () => {
       indicatorRecords.filter((r) => r.level === "commune"),
       economyRecords.filter((r) => r.level === "commune"),
     ),
+    douarNames: async () => prepare(douarNames(dataset.communes as never[])),
   });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await server.connect(serverSide);
@@ -101,10 +104,10 @@ const call = (name: string, args: Record<string, unknown>) =>
 const text = (r: Result) => r.content.map((c) => c.text ?? "").join("");
 
 describe("the MCP server, through a real client", () => {
-  it("offers 12 read-only tools", async () => {
+  it("offers 13 read-only tools", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      "commune_at", "communes_near", "get_commune", "get_douars", "get_economy", "get_housing", "get_indicators", "get_insights", "get_neighbourhoods", "get_unit", "list_communes", "search",
+      "commune_at", "communes_near", "get_commune", "get_douars", "get_economy", "get_housing", "get_indicators", "get_insights", "get_neighbourhoods", "get_unit", "list_communes", "search", "search_douars",
     ]);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
@@ -685,5 +688,22 @@ describe("the MCP Registry entry", () => {
     expect(entry.description.length).toBeLessThanOrEqual(100);
     expect(entry.name).toMatch(/^io\.github\.zkousama\/[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$/);
     expect(entry.remotes).toEqual([{ type: "streamable-http", url: "https://example.workers.dev/mcp" }]);
+  });
+});
+
+describe("search_douars", () => {
+  it("finds a douar by its Arabic or a Latin spelling, with its commune", async () => {
+    for (const query of ["تشديرت", "Tachdirt"]) {
+      const r = await call("search_douars", { query, limit: 3 });
+      expect(r.isError, query).toBeFalsy();
+      const results = (r.structuredContent as { results: { name_ar: string; commune_slug: string; spelt: boolean }[] }).results;
+      // 3 douars carry the name; Asni's is among them.
+      expect(results.find((d) => d.commune_slug === "asni"), query).toMatchObject({ name_ar: "تشديرت" });
+    }
+  });
+
+  it("finds nothing for a name no douar is close to", async () => {
+    const r = await call("search_douars", { query: "Marrakech" });
+    expect((r.structuredContent as { results: unknown[] }).results).toEqual([]);
   });
 });

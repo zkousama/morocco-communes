@@ -9,6 +9,7 @@ import { LIMIT, PAGE, POPULATION, QUERY, RADIUS_KM } from "../lib/params.ts";
 import { resolve, withArticle, type Lookup } from "../lib/resolve.ts";
 import { near, search, type Level, type SearchIndex } from "../lib/search.ts";
 import { communeIn, featureContaining, tileAt, tilePath, type PreparedIndex, type Tile } from "../lib/locate.ts";
+import { closeDouars, type PreparedNames } from "../lib/douarSearch.ts";
 
 export interface McpDeps {
   index: SearchIndex;
@@ -21,6 +22,8 @@ export interface McpDeps {
   communes: readonly ListedCommune[];
   /** Each commune's census figures and establishment counts, for lists sorted by one. */
   indicators: IndicatorTable;
+  /** Every douar's name, read when a douar is first looked for; null when it can't be read. */
+  douarNames: () => Promise<PreparedNames | null>;
 }
 
 const LEVELS = ["commune", "arrondissement", "province", "region", "cercle"] as const satisfies readonly Level[];
@@ -42,6 +45,7 @@ export const TOOL_NAMES: ReadonlySet<string> = new Set([
   "get_insights",
   "get_neighbourhoods",
   "get_douars",
+  "search_douars",
 ]);
 
 /** Read-only, closed-world and repeatable, which lets a client call these without asking. */
@@ -64,6 +68,7 @@ const INSTRUCTIONS =
   "A census figure in a commune of 2,000 households or more is marked sampled. " +
   "get_neighbourhoods gives a commune's named neighbourhoods and its postcodes, and get_douars a rural commune's fractions and douars, " +
   "with each douar's people and households and, for one of 30 households or more, how far it is from a road, a school and a health centre. " +
+  "search_douars finds a douar by name, in Arabic or Latin letters, anywhere in Morocco. " +
   "No language model writes or judges any of it.";
 
 /** Where each level's files live. */
@@ -132,7 +137,7 @@ const communeShape = z.object({
  * concurrent requests an isolate can take would mix up their JSON-RPC ids.
  */
 export function createMcpServer(deps: McpDeps): McpServer {
-  const { index, lookup, fetchJson, tiles, communes, indicators } = deps;
+  const { index, lookup, fetchJson, tiles, communes, indicators, douarNames } = deps;
 
   // Parent codes are named from the search index, which already holds every unit, so a
   // model can say which province a commune is in without a second call.
@@ -165,6 +170,60 @@ export function createMcpServer(deps: McpDeps): McpServer {
   const server = new McpServer(
     { name: "morocco-communes", version: index.datasetVersion },
     { instructions: INSTRUCTIONS, jsonSchemaValidator: new CfWorkerJsonSchemaValidator() },
+  );
+
+  server.registerTool(
+    "search_douars",
+    {
+      title: "Search Moroccan douars",
+      description:
+        "Find douars, the villages and hamlets of Morocco's rural communes as HCP's 2024 census lists them, by name, in Arabic or in Latin letters: " +
+        "تشديرت and Tachdirt both find the douar of Asni. HCP names douars in Arabic only; the Latin name comes from a source where one writes it, " +
+        "and is otherwise spelt from the Arabic, which spelt marks. Returns each douar's code, its 2024 population and its commune; " +
+        "pass the commune's slug to get_douars for the douar's households and distances.",
+      inputSchema: {
+        query: z.string().min(1).max(QUERY.maxLength).describe("The douar's name, in Arabic or Latin letters."),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(LIMIT.max)
+          .optional()
+          .describe(`How many results. ${LIMIT.default} when left out, at most ${LIMIT.max}.`),
+      },
+      outputSchema: {
+        results: z.array(
+          z.object({
+            code: z.string(),
+            name_ar: z.string(),
+            name_latin: z.string(),
+            spelt: z.boolean().describe("True when the Latin name is spelt from the Arabic rather than taken from a source."),
+            population_2024: z.number(),
+            commune_slug: z.string(),
+            commune_name_fr: z.string(),
+            commune_name_ar: z.string().optional(),
+          }),
+        ),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ query, limit }) => {
+      const names = await douarNames();
+      if (!names) return fail("The douars' names couldn't be read just now. Try again in a moment.");
+      const hits = closeDouars(names, query, limit ?? LIMIT.default);
+      return ok({
+        results: hits.map((h) => ({
+          code: h.code,
+          name_ar: h.name.ar,
+          name_latin: h.name.latin,
+          spelt: h.spelt,
+          population_2024: h.people,
+          commune_slug: h.commune.slug,
+          commune_name_fr: h.commune.name,
+          ...(h.commune.ar ? { commune_name_ar: h.commune.ar } : {}),
+        })),
+      });
+    },
   );
 
   server.registerTool(

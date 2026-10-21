@@ -99,6 +99,75 @@ export const reference = {
           }
         }
       },
+      "/api/douars/search": {
+        "get": {
+          "operationId": "searchDouars",
+          "summary": "Find a douar by name",
+          "description": "Matches the douars HCP's 2024 census lists, the villages and hamlets of the rural communes, in Arabic or in Latin letters. A Latin query is matched on the consonants both scripts share, so Tachdirt and Tashdirt find تشديرت; only the spellings close to what was typed are kept. Each douar's Latin name is a source's where one writes it, and otherwise spelt from the Arabic, which `spelt` marks.",
+          "parameters": [
+            {
+              "name": "q",
+              "in": "query",
+              "required": true,
+              "description": "The douar's name, up to 100 characters.",
+              "schema": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "example": "tachdirt"
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "description": "How many results to return, up to 50.",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 50,
+                "default": 10
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Matches, best first: the closest spellings, then the biggest douars.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Envelope"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "data": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/DouarHit"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "q is missing or too long, or limit is out of range.",
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Problem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/communes/at": {
         "get": {
           "operationId": "communeAt",
@@ -1488,6 +1557,65 @@ export const reference = {
             }
           }
         },
+        "DouarHit": {
+          "type": "object",
+          "required": [
+            "code",
+            "name",
+            "spelt",
+            "people",
+            "commune"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "HCP's code for the douar: its commune's code without dots, then its fraction and its own number."
+            },
+            "name": {
+              "type": "object",
+              "required": [
+                "ar",
+                "latin"
+              ],
+              "properties": {
+                "ar": {
+                  "type": "string"
+                },
+                "latin": {
+                  "type": "string"
+                }
+              }
+            },
+            "spelt": {
+              "type": "boolean",
+              "description": "True when the Latin name is spelt from the Arabic, since no source writes one."
+            },
+            "people": {
+              "type": "integer",
+              "description": "The douar's population in 2024."
+            },
+            "commune": {
+              "type": "object",
+              "required": [
+                "slug",
+                "name"
+              ],
+              "properties": {
+                "slug": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The commune's French name."
+                },
+                "ar": {
+                  "type": "string",
+                  "description": "The commune's Arabic name."
+                }
+              }
+            }
+          }
+        },
         "Neighbourhood": {
           "type": "object",
           "required": [
@@ -2149,6 +2277,77 @@ export const reference = {
           },
           "400": {
             "description": "q is missing or too long, or a parameter is out of range.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/api/douars/search",
+      "method": "get",
+      "op": {
+        "operationId": "searchDouars",
+        "summary": "Find a douar by name",
+        "description": "Matches the douars HCP's 2024 census lists, the villages and hamlets of the rural communes, in Arabic or in Latin letters. A Latin query is matched on the consonants both scripts share, so Tachdirt and Tashdirt find تشديرت; only the spellings close to what was typed are kept. Each douar's Latin name is a source's where one writes it, and otherwise spelt from the Arabic, which `spelt` marks.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "The douar's name, up to 100 characters.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "example": "tachdirt"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many results to return, up to 50.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matches, best first: the closest spellings, then the biggest douars.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/DouarHit"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "q is missing or too long, or limit is out of range.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3428,6 +3627,50 @@ export const reference = {
         },
         "links": {
           "self": "/api/search?q=fez&limit=2",
+          "prev": null,
+          "next": null
+        }
+      }
+    },
+    "searchDouars": {
+      "request": "/api/douars/search?q=tachdirt&limit=2",
+      "body": {
+        "data": [
+          {
+            "code": "0410703203002",
+            "name": {
+              "ar": "تشديرت",
+              "latin": "Tachdirt"
+            },
+            "spelt": false,
+            "people": 559,
+            "commune": {
+              "slug": "asni",
+              "name": "Asni",
+              "ar": "اسني"
+            }
+          },
+          {
+            "code": "5410461201010",
+            "name": {
+              "ar": "تشديرت",
+              "latin": "Tachddirt"
+            },
+            "spelt": false,
+            "people": 233,
+            "commune": {
+              "slug": "tinzart",
+              "name": "Tinzart",
+              "ar": "تنزرت"
+            }
+          }
+        ],
+        "meta": {
+          "datasetVersion": "1.10.0",
+          "total": 2
+        },
+        "links": {
+          "self": "/api/douars/search?q=tachdirt&limit=2",
           "prev": null,
           "next": null
         }
