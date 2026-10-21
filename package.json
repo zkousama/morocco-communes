@@ -41,7 +41,8 @@
     "insights:pilot:spot": "node --experimental-strip-types insights/src/pilot/spot.ts",
     "insights:pilot:jury": "node --experimental-strip-types insights/src/pilot/jury.ts",
     "stats": "node --experimental-strip-types scripts/stats.ts",
-    "demand": "node --experimental-strip-types scripts/demand.ts"
+    "demand": "node --experimental-strip-types scripts/demand.ts",
+    "indexnow": "node --experimental-strip-types scripts/indexnow.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
