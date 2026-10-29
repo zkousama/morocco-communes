@@ -18,17 +18,18 @@ change a shape something already reads.
   `get_douars` is the twelfth MCP tool. `/api/douars/search` finds a douar by name, in
   Arabic or Latin letters, across the country, and `search_douars` is the thirteenth.
 - A douar's name in Latin letters, `latin`, where a source writes one: the Ministry of
-  National Education's lists of public schools, OpenStreetMap or GeoNames, matched to HCP's
-  Arabic names by spelling within the commune. 14,710 douars have one. Where GeoNames or
-  OpenStreetMap maps the douar, `place` gives its point. Visitors can suggest a spelling on
-  the site for a douar none names, and one 2 visitors suggest that the spelling engine
-  passes overnight is added as `visitors`.
+  National Education's lists of public schools, OpenStreetMap, GeoNames or another file of
+  places (`other`), matched to HCP's Arabic names by spelling within the commune, or HCP's
+  own Latin name for the commune a douar is named like (`hcp`). 23,047 douars have one.
+  Where OpenStreetMap, GeoNames or the other file maps the douar, `place` gives its point:
+  23,474 douars. Visitors can suggest a spelling on the site for a douar none names, and one
+  2 visitors suggest that the spelling engine passes overnight is added as `visitors`.
 - A town's villages and hamlets: the 440 OpenStreetMap maps inside urban communes, as
   neighbourhoods whose `source` is `village`. Search finds them, and a town's page lists
   them. A rural commune's are its douars.
 - A fraction's name in Latin letters, `latin`, where a douar of its commune has the same
-  name and a source writes it: 711 fractions. The 139 HCP lists as a fraction outside the
-  commune or a notional one get `label` instead.
+  name and a source writes it, or HCP's for the commune it's named like: 1,110 fractions.
+  The 139 HCP lists as a fraction outside the commune or a notional one get `label` instead.
 - The standout figures' sentences in Arabic: `line.ar` beside `line.en` and `line.fr`, and
   an Arabic `label` on each part of a `breakdown`. A percentage in one has a left-to-right
   mark (U+200E) on each side of its sign, as `Intl` writes it for `ar-MA`, so it draws in
