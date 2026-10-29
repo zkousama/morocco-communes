@@ -1,8 +1,11 @@
 name: check
 
 on:
+  # Branches only: a version tag runs these through release.yml, before it publishes.
   push:
+    branches: ["**"]
   pull_request:
+  workflow_call:
 
 jobs:
   check:

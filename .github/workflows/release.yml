@@ -1,0 +1,75 @@
+name: release
+
+# A version tag publishes both packages: git tag v1.10.1 && git push origin v1.10.1.
+# npm and PyPI trust this workflow by its file name (trusted publishing), so no token is
+# stored anywhere. Run from the Actions tab instead, it rehearses every step but the uploads.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # The packages take the dataset's version and their builds refuse any other, so the
+      # tag has to say it too, and so does the citation.
+      - if: github.ref_type == 'tag'
+        run: |
+          dataset=$(node -p 'require("./data/v1/sources.json").datasetVersion')
+          cited=$(sed -n 's/^version: //p' CITATION.cff)
+          for v in "$dataset" "$cited"; do
+            if [ "v$v" != "$GITHUB_REF_NAME" ]; then
+              echo "the tag is $GITHUB_REF_NAME, but data/v1/sources.json says $dataset and CITATION.cff $cited"
+              exit 1
+            fi
+          done
+
+  check:
+    needs: version
+    uses: ./.github/workflows/check.yml
+
+  npm:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - run: npm install -g npm@11.8.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm npm:build
+      - run: npm pack --dry-run
+        working-directory: packages/morocco-communes
+      - if: github.ref_type == 'tag'
+        run: npm publish
+        working-directory: packages/morocco-communes
+
+  pypi:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: python3 packages/morocco-communes-py/build_data.py
+      # The check job skips these, as its runner has no pandas.
+      - run: uv run --no-project --with pandas python -m unittest discover -s packages/morocco-communes-py/tests
+      - run: uv build
+        working-directory: packages/morocco-communes-py
+      - if: github.ref_type == 'tag'
+        run: uv publish
+        working-directory: packages/morocco-communes-py

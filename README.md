@@ -287,6 +287,13 @@ that way; use `pnpm api:dev` to see both.
 
 Node 22 or newer. Deploying needs a Cloudflare account; see `api/README.md`.
 
+A release of the two packages is a tag. Set the new version in
+`pipeline/src/sources/registry.ts` and rebuild `data/v1`, give both packages and
+`CITATION.cff` the same number, head the changelog with it, and push it as a tag, `v1.10.1`
+for 1.10.1. `.github/workflows/release.yml` runs the checks, then publishes to npm and PyPI,
+which trust that workflow by name, so no token is kept anywhere. Run from the Actions tab,
+it rehearses everything but the uploads.
+
 ## How the data was assembled
 
 HCP publishes the census as Excel, where the code column is stored numerically and has
