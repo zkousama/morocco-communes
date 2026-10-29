@@ -224,7 +224,7 @@ const stationPath = network.stations.map((station) => {
   const [x, y] = fine.project(station);
   return `M${x} ${y}h0`;
 }).join("");
-// Every douar GeoNames or OpenStreetMap places, a dot each, drawn the way the stations are.
+// Every douar a map places, a dot each, drawn the way the stations are.
 const placed = allDouars.filter((d) => d.place);
 const douarPath = placed.map((d) => {
   const [x, y] = fine.project([d.place!.lng, d.place!.lat]);

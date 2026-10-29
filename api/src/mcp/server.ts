@@ -1077,7 +1077,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
       description:
         "The douars of a rural commune from HCP's 2024 census, the villages and hamlets it's made of, grouped in its fractions (mashyakha), named in Arabic only. " +
         "Each has its kind (grouped, split into sub-douars, or dispersed), its households and its people. " +
-        "A douar has its name in Latin where a source writes one, and its point where GeoNames or OpenStreetMap maps it. " +
+        "A douar has its name in Latin where a source writes one, and its point where a map places it. " +
         "With figures, a douar of 30 households or more also has the nationality, sex, age, civil registration and marital status of its people, " +
         "the kind of dwelling its households live in, and the average distance in km from its dwellings to a paved road, an unpaved road a car can drive on, " +
         "a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, and says null. " +
@@ -1098,7 +1098,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
             households: z.number(),
             population: z.number(),
             name_latin: z
-              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames", "visitors", "hcp"]) })
+              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames", "other", "visitors", "hcp"]) })
               .optional()
               .describe("Where one of its douars has the same name and a source spells it, or, as hcp, where it's named like its commune: HCP's Latin name for the commune."),
             label: z.enum(["outside", "notional"]).optional().describe("HCP's label in place of a name: a fraction outside the commune, or a notional one."),
@@ -1114,13 +1114,13 @@ export function createMcpServer(deps: McpDeps): McpServer {
             population: z.number(),
             figures: z.record(z.string(), z.record(z.string(), z.number().nullable())).nullable().optional().describe("Null where HCP withholds them."),
             name_latin: z
-              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames", "visitors", "hcp"]) })
+              .object({ name: z.string(), source: z.enum(["education", "osm", "geonames", "other", "visitors", "hcp"]) })
               .optional()
               .describe("Its name in Latin letters where a source writes one: the Ministry of National Education's school lists, OpenStreetMap, GeoNames, 2 visitors who suggested it on the site, or, as hcp, for a douar named like its commune, HCP's Latin name for the commune. HCP names douars in Arabic only."),
             place: z
-              .object({ source: z.enum(["geonames", "osm"]), lat: z.number(), lng: z.number() })
+              .object({ source: z.enum(["geonames", "osm", "other"]), lat: z.number(), lng: z.number() })
               .optional()
-              .describe("Its point, where GeoNames or OpenStreetMap maps it in the same commune. Matched by name."),
+              .describe("Its point, where a map places it in the same commune. Matched by name."),
           }),
         ),
         message: z.string().optional().describe("Present when the commune has no douars."),
@@ -1141,7 +1141,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
           douars: number;
           households: number;
           population: number;
-          latin?: { name: string; source: "education" | "osm" | "geonames" | "visitors" | "hcp" };
+          latin?: { name: string; source: "education" | "osm" | "geonames" | "other" | "visitors" | "hcp" };
           label?: "outside" | "notional";
         }[];
         douars: {
@@ -1152,8 +1152,8 @@ export function createMcpServer(deps: McpDeps): McpServer {
           households: number;
           population: number;
           topics: Record<string, Record<string, number | null>> | null;
-          place?: { source: "geonames" | "osm"; lat: number; lng: number };
-          latin?: { name: string; source: "education" | "osm" | "geonames" | "visitors" | "hcp" };
+          place?: { source: "geonames" | "osm" | "other"; lat: number; lng: number };
+          latin?: { name: string; source: "education" | "osm" | "geonames" | "other" | "visitors" | "hcp" };
         }[];
       };
       if (fraction && !data.fractions.some((f) => f.code === fraction)) {

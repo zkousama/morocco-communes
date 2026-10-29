@@ -36,6 +36,7 @@ const sources = [
   { key: "education", value: naming.education, tone: "s5" },
   { key: "osm", value: naming.osm, tone: "s3" },
   { key: "geonames", value: naming.geonames, tone: "s1" },
+  { key: "other", value: naming.other, tone: "s2" },
   { key: "visitors", value: naming.visitors, tone: "brass" },
   { key: "hcp", value: naming.hcp, tone: "s0" },
   { key: "spelt", value: naming.spelt, tone: "none" },
@@ -45,6 +46,8 @@ const chance = [
   { key: "schools", value: naming.chance.schools },
   { key: "places", value: naming.chance.places },
   { key: "near", value: naming.chance.near },
+  { key: "other", value: naming.chance.other },
+  { key: "otherNear", value: naming.chance.otherNear },
 ];
 // The scale runs past the line, so the line sits inside the chart.
 const chanceTop = naming.chance.most * 1.25;
@@ -197,6 +200,7 @@ const typed = fill(c.typed, { link: `<a href="${path(locale, "douars/")}">${c.ty
 
   .s5 { background: var(--seq-5); }
   .s3 { background: var(--seq-3); }
+  .s2 { background: var(--seq-2); }
   .s1 { background: var(--seq-1); }
   .s0 { background: var(--seq-0); }
   .brass { background: var(--brass); }

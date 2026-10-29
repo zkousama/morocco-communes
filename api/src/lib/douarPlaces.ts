@@ -22,7 +22,7 @@
 import { normalise } from "./normalise.ts";
 import { arabicKeys, keysMeet, latinKeys } from "./translit.ts";
 
-export type PlaceSource = "osm" | "geonames";
+export type PlaceSource = "osm" | "geonames" | "other";
 
 export interface Place {
   source: PlaceSource;
@@ -128,10 +128,29 @@ function latinFor(place: Place, keys: string[]): string {
   return "";
 }
 
-/** The best way a place names a douar, or null where it doesn't. */
-export function score(douar: Douar, place: Place, keys = arabicKeys(douar.name.ar), minClose = MIN_CLOSE): { name: string; score: number } | null {
+/**
+ * The best way a place names a douar, or null where it doesn't. `allowExact` is off when
+ * two douars in the commune share the spelling, so the point isn't handed to whichever
+ * came first.
+ */
+export function score(
+  douar: Douar,
+  place: Place,
+  keys = arabicKeys(douar.name.ar),
+  minClose = MIN_CLOSE,
+  allowExact = true,
+): { name: string; score: number } | null {
   const arabic = normalise(douar.name.ar);
   if (place.arabic.some((a) => normalise(a) === arabic)) return { name: latinFor(place, keys), score: 2 };
+  // The place wrote the spelling by rule itself. The consonant key misses that when the
+  // name is short, the l's aside, and when the Latin is a French word: Centre and مركز
+  // are the same word and share no consonant.
+  if (allowExact && douar.spelt) {
+    for (const latin of place.latin) {
+      const clean = cleanLatin(latin);
+      if (clean && normalise(clean) === normalise(douar.spelt)) return { name: clean, score: 2 };
+    }
+  }
   const long = keys.filter((k) => k.replace(/l/g, "").length >= MIN_KEY);
   if (long.length === 0) return null;
   let best: { name: string; score: number } | null = null;
@@ -145,17 +164,43 @@ export function score(douar: Douar, place: Place, keys = arabicKeys(douar.name.a
   return best;
 }
 
+/** The census name without a bracket it uses to tell two douars apart: Oulad Slama (Sidi Ayach). */
+const bareSpelling = (spelt: string) => spelt.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+
+/**
+ * The douars as the match should see them. A bracket is dropped when that leaves a spelling
+ * only one douar in the commune has, so Oulad Slama (Sidi Ayach) can meet Oulad Slama.
+ * A spelling two douars share doesn't match on the letters alone.
+ */
+function scoringDouars(list: readonly Douar[]): { douar: Douar; allowExact: boolean }[] {
+  const count = new Map<string, number>();
+  for (const douar of list) {
+    const key = normalise(bareSpelling(douar.spelt));
+    count.set(key, (count.get(key) ?? 0) + 1);
+  }
+  return list.map((douar) => {
+    const bare = bareSpelling(douar.spelt);
+    const shared = (count.get(normalise(bare)) ?? 0) > 1;
+    if (!shared && bare !== douar.spelt) return { douar: { ...douar, spelt: bare }, allowExact: true };
+    return { douar, allowExact: !shared };
+  });
+}
+
 /**
  * Each commune's douars matched to the places in it, each to its best partner where the two
  * are each other's best. `communeOf` places a point in a commune; `decoy`, when given,
  * swaps a commune for another, so a match there is chance.
  */
+
 export function matchDouars(
   douarsIn: Map<string, Douar[]>,
   places: readonly Place[],
   communeOf: (place: Place) => string | null,
   decoy?: (commune: string) => string,
   minClose = MIN_CLOSE,
+  // The purchased file only. On the open maps it pulled short names into the first pass and
+  // the second pass, the one near a fraction, then came out more than 5% chance.
+  exact = false,
 ): Match[] {
   const keys = new Map<string, string[]>();
   for (const list of douarsIn.values()) for (const d of list) keys.set(d.code, arabicKeys(d.name.ar));
@@ -163,8 +208,9 @@ export function matchDouars(
   for (const place of places) {
     const commune = communeOf(place);
     if (!commune) continue;
-    for (const douar of douarsIn.get(decoy ? decoy(commune) : commune) ?? []) {
-      const found = score(douar, place, keys.get(douar.code), minClose);
+    const list = douarsIn.get(decoy ? decoy(commune) : commune) ?? [];
+    for (const { douar, allowExact } of exact ? scoringDouars(list) : list.map((douar) => ({ douar, allowExact: false }))) {
+      const found = score(douar, place, keys.get(douar.code), minClose, allowExact);
       if (found) candidates.push({ douar: douar.code, place, ...found });
     }
   }

@@ -237,11 +237,12 @@ kind of dwelling its households live in, and how far its homes are from a paved 
 primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which gets null.
 
 A douar's Latin name comes from a source that writes one: the Ministry of National
-Education's lists of public schools, OpenStreetMap or GeoNames, matched to HCP's Arabic
-among the douars of its own commune. 14,710 douars have one. Each matching pass runs a
-second time against the wrong commune, and what it still finds there is how many of its
-matches are chance: 1.0% for the school lists, 1.7% and 4.1% for the 2 map passes. A pass
-over 5% writes nothing.
+Education's lists of public schools, OpenStreetMap, GeoNames or another file of places,
+matched to HCP's Arabic among the douars of its own commune. 23,047 douars have one.
+Where that source maps the douar, the match also gives its point, and 23,474 douars have
+one. Each matching pass runs a second time against the wrong commune, and what it still
+finds there is how many of its matches are chance: 1.0% for the school lists, 1.7% and
+4.0% for the open maps, 0.9% and 3.0% for the other file. A pass over 5% writes nothing.
 
 The site spells the other douars from the Arabic, in `api/src/lib/spell.ts`: a table of
 words learned from names written in both scripts, and rules for the way French writes

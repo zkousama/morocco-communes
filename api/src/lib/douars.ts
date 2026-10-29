@@ -15,7 +15,7 @@ export interface DouarRecord {
   population: number;
   /** Null where HCP withholds them, for a douar of fewer than 30 households. */
   topics: Topics | null;
-  /** Where GeoNames or OpenStreetMap maps it, matched by name in the same commune. */
+  /** Where a map places it, matched by name in the same commune. */
   place?: DouarPlace;
   /** Its name in Latin letters, where a source writes one. HCP names douars in Arabic only. */
   latin?: DouarLatin;
@@ -23,7 +23,7 @@ export interface DouarRecord {
 
 /** A douar's point, from the place matched to it (api/data/douar-places.json). */
 export interface DouarPlace {
-  source: "osm" | "geonames";
+  source: "osm" | "geonames" | "other";
   lat: number;
   lng: number;
 }
@@ -32,10 +32,10 @@ export interface DouarPlace {
 export interface DouarLatin {
   name: string;
   /**
-   * The Ministry of National Education's school lists, OpenStreetMap, GeoNames, 2 visitors
-   * who suggested it, or HCP, which writes the commune it's named like in Latin.
+   * The Ministry of National Education's school lists, OpenStreetMap, GeoNames, another file
+   * of places, 2 visitors who suggested it, or HCP, which writes the commune it's named like in Latin.
    */
-  source: "education" | "osm" | "geonames" | "visitors" | "hcp";
+  source: "education" | "osm" | "geonames" | "other" | "visitors" | "hcp";
 }
 
 /**
@@ -50,7 +50,7 @@ export function readDouarSources(dir = "api/data"): Map<string, { place?: DouarP
   const out = new Map<string, { place?: DouarPlace; latin?: DouarLatin }>();
   const places = `${dir}/douar-places.json`;
   if (existsSync(places)) {
-    const rows = (JSON.parse(readFileSync(places, "utf8")) as { places: [string, string, "osm" | "geonames", number, number, ...unknown[]][] }).places;
+    const rows = (JSON.parse(readFileSync(places, "utf8")) as { places: [string, string, "osm" | "geonames" | "other", number, number, ...unknown[]][] }).places;
     for (const [code, name, source, lat, lng] of rows) {
       out.set(code, { place: { source, lat, lng }, ...(name ? { latin: { name, source } } : {}) });
     }

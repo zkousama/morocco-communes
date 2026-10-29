@@ -1,12 +1,16 @@
 /**
- * Matches HCP's douars to the places GeoNames and OpenStreetMap map in their commune, and
- * writes each match to api/data/douar-places.json: the douar's code, a Latin name for it
- * someone wrote down, where it came from, and the point. `pnpm api:douar-places`.
+ * Matches HCP's douars to the places GeoNames, OpenStreetMap and a purchased file of
+ * douar points map in their commune, and writes each match to api/data/douar-places.json:
+ * the douar's code, a Latin name for it someone wrote down, where it came from, and the
+ * point. `pnpm api:douar-places`.
  *
  * GeoNames' populated places come from its Morocco file, pinned by digest in the output.
  * OpenStreetMap's come from .cache/osm/morocco-features.json, which `pnpm api:osm-features`
  * reads out of Geofabrik's extract: every place, and the schools, mosques and other features
  * named after a douar, whose name is taken without the word saying what they are.
+ * The purchased file is .cache/douar-file/douar-points.geojson, douar points in the Merchich
+ * grid. It only fills in a douar the other two left unplaced, and it is not named in the
+ * credit: the file was bought.
  *
  * Before writing, the matching runs again with every commune's places put against another
  * commune's douars. A match there is chance, so their count over the real count is how
@@ -19,7 +23,9 @@ import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { readBoundaries } from "../src/emit/boundaries.ts";
 import { inside } from "../src/lib/neighbourhoods.ts";
-import { douarNameOf, matchDouars, matchNearFractions, MAX_CHANCE, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
+import { communeFor, indexCommunes, placeName, placedCommune } from "../src/lib/douarFile.ts";
+import { merchichToWgs } from "../src/lib/merchich.ts";
+import { douarNameOf, matchDouars, matchNearFractions, MAX_CHANCE, MIN_CLOSE, type Douar, type Match, type Place } from "../src/lib/douarPlaces.ts";
 import { arabicKeys, lettersApart } from "../src/lib/translit.ts";
 import { normalise } from "../src/lib/normalise.ts";
 import { toLatin } from "../src/lib/spell.ts";
@@ -30,6 +36,7 @@ import { fetchFile } from "./fetchFile.ts";
 const OUT = "api/data/douar-places.json";
 const GEONAMES = "https://download.geonames.org/export/dump/MA.zip";
 const FEATURES = ".cache/osm/morocco-features.json";
+const FILE = ".cache/douar-file/douar-points.geojson";
 
 const arabicScript = /\p{Script=Arabic}/u;
 const read = async <T>(path: string) => JSON.parse(await readFile(path, "utf8")) as T;
@@ -46,7 +53,7 @@ for (let r = 1; r <= 12; r++) {
 }
 
 // Each commune's boundary with its box, so most are passed over without a ring test.
-const communes = await read<{ code: string; codeDigits: string }[]>("data/v1/attributes/communes.json");
+const communes = await read<{ code: string; codeDigits: string; name: { fr: string }; bbox: [number, number, number, number] }[]>("data/v1/attributes/communes.json");
 const codeOf = new Map(communes.map((c) => [c.codeDigits, c.code]));
 const shapes = (await readBoundaries("data/v1/geometry")).flatMap((r) => r.boundaries).map((b) => {
   const points = b.polygons.flat(2) as unknown as [number, number][];
@@ -162,9 +169,73 @@ console.log(
 );
 if (nearChance > MAX_CHANCE) throw new Error(`more than ${MAX_CHANCE * 100}% of the second pass would be chance; nothing written`);
 
+// The purchased file, after the open maps, and only where those left a douar unplaced.
+// Git ignores .cache, so a run without the file stops rather than quietly dropping the
+// points a previous run wrote.
+if (!existsSync(FILE)) throw new Error(`no ${FILE}: put the purchased douar file there`);
+const purchased = await read<{
+  crs?: { properties?: { name?: string } };
+  features: { properties: { X?: number; Y?: number; NOM?: string; communeFr?: string } }[];
+}>(FILE);
+if (!purchased.crs?.properties?.name?.includes("26191")) throw new Error(`${FILE} is not in EPSG:26191`);
+const communeIndex = indexCommunes(communes.map((c) => ({ code: c.code, name: c.name.fr, bbox: c.bbox })));
+const filePlaces: Place[] = [];
+const fileCommune = new Map<Place, string>();
+let fileSkipped = 0;
+for (const [i, feature] of purchased.features.entries()) {
+  const props = feature.properties;
+  const x = props.X;
+  const y = props.Y;
+  const nom = placeName(props.NOM ?? "");
+  if (!nom || x === undefined || y === undefined) {
+    fileSkipped++;
+    continue;
+  }
+  const wgs = merchichToWgs(x, y);
+  const place: Place = { source: "other", id: String(i), lat: wgs.lat, lng: wgs.lng, latin: [nom], arabic: [] };
+  const at = communeAt(place);
+  // The label only fills a gap in the boundary. Where the two disagree, the boundary is
+  // the 2024 commune and the label is an older name for it, so the point was being dropped.
+  const named = at ? null : communeFor(communeIndex, props.communeFr ?? "", wgs);
+  const code = placedCommune(named, at);
+  if (!code) {
+    fileSkipped++;
+    continue;
+  }
+  filePlaces.push(place);
+  fileCommune.set(place, code);
+}
+const fileAt = (place: Place) => fileCommune.get(place) ?? null;
+// Exact spelling stays on this pass. A short name, and a French word such as Centre, is
+// the same name as the census and the consonant key never sees it.
+const fileAll = matchDouars(douarsIn, filePlaces, fileAt, undefined, MIN_CLOSE, true);
+const fileDecoys = matchDouars(douarsIn, filePlaces, fileAt, (code) => swap.get(code) ?? code, MIN_CLOSE, true);
+const fileChance = fileDecoys.length / Math.max(fileAll.length, 1);
+console.log(
+  `douar-places: purchased file ${filePlaces.length} points in a commune (${fileSkipped} skipped), ` +
+    `${fileAll.length} matched; ${fileDecoys.length} against the wrong commune, so about ${(fileChance * 100).toFixed(1)}% of them are chance`,
+);
+if (fileChance > MAX_CHANCE) throw new Error(`more than ${MAX_CHANCE * 100}% of the purchased file's matches would be chance; nothing written`);
+const taken = new Set([...matches, ...near].map((m) => m.douar));
+const fileNew = fileAll.filter((m) => !taken.has(m.douar));
+const fileAnchors = [...matches, ...near, ...fileNew];
+const fileNear = matchNearFractions(douarsIn, filePlaces, fileAt, fileAnchors);
+const fileNearDecoys = matchNearFractions(douarsIn, filePlaces, fileAt, fileAnchors, (d) => borrowed.get(d.code)!);
+const fileNearChance = fileNearDecoys.length / Math.max(fileNear.length, 1);
+console.log(
+  `douar-places: purchased file ${fileNew.length} new by name, ${fileNear.length} more near a placed douar; ` +
+    `${fileNearDecoys.length} with a borrowed name, so about ${(fileNearChance * 100).toFixed(1)}% of those are chance`,
+);
+if (fileNear.length > 0 && fileNearChance > MAX_CHANCE) throw new Error(`more than ${MAX_CHANCE * 100}% of the purchased file's second pass would be chance; nothing written`);
+
 const round = (v: number) => Math.round(v * 1e5) / 1e5;
 // Each row says how it was matched: by its name alone, or by its name near its fraction.
-const rows = [...matches.map((m) => ({ m, how: "name" })), ...near.map((m) => ({ m, how: "near" }))]
+const rows = [
+  ...matches.map((m) => ({ m, how: "name" })),
+  ...near.map((m) => ({ m, how: "near" })),
+  ...fileNew.map((m) => ({ m, how: "name" })),
+  ...fileNear.map((m) => ({ m, how: "near" })),
+]
   .sort((a, b) => (a.m.douar < b.m.douar ? -1 : 1))
   .map(({ m, how }) => [m.douar, m.name, m.place.source, round(m.place.lat), round(m.place.lng), m.place.id, how]);
 await writeFile(
@@ -176,6 +247,8 @@ await writeFile(
       `each matched to an HCP douar in the commune whose boundary holds it`,
     chance: Math.round(chance * 1000) / 1000,
     nearChance: Math.round(nearChance * 1000) / 1000,
+    otherChance: Math.round(fileChance * 1000) / 1000,
+    otherNearChance: Math.round(fileNearChance * 1000) / 1000,
     places: rows,
   })}\n`,
 );

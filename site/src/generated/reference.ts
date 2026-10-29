@@ -1074,7 +1074,7 @@ export const reference = {
         "get": {
           "operationId": "listDouars",
           "summary": "A rural commune's fractions and douars",
-          "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where GeoNames or OpenStreetMap maps it. A fraction has `latin` where a douar of its commune has the same name and a source writes it, and `label` where HCP lists it under a label rather than a name. A commune with no rural part has no file.",
+          "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where a map places it. A fraction has `latin` where a douar of its commune has the same name and a source writes it, and `label` where HCP lists it under a label rather than a name. A commune with no rural part has no file.",
           "parameters": [
             {
               "name": "code",
@@ -1743,6 +1743,7 @@ export const reference = {
                     "education",
                     "osm",
                     "geonames",
+                    "other",
                     "visitors",
                     "hcp"
                   ]
@@ -1829,6 +1830,7 @@ export const reference = {
                     "education",
                     "osm",
                     "geonames",
+                    "other",
                     "visitors",
                     "hcp"
                   ]
@@ -1842,13 +1844,14 @@ export const reference = {
                 "lat",
                 "lng"
               ],
-              "description": "Its point, where GeoNames or OpenStreetMap maps it in the same commune under its name.",
+              "description": "Its point, where a map places it in the same commune under its name.",
               "properties": {
                 "source": {
                   "type": "string",
                   "enum": [
                     "geonames",
-                    "osm"
+                    "osm",
+                    "other"
                   ]
                 },
                 "lat": {
@@ -3291,7 +3294,7 @@ export const reference = {
       "op": {
         "operationId": "listDouars",
         "summary": "A rural commune's fractions and douars",
-        "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where GeoNames or OpenStreetMap maps it. A fraction has `latin` where a douar of its commune has the same name and a source writes it, and `label` where HCP lists it under a label rather than a name. A commune with no rural part has no file.",
+        "description": "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where a map places it. A fraction has `latin` where a douar of its commune has the same name and a source writes it, and `label` where HCP lists it under a label rather than a name. A commune with no rural part has no file.",
         "parameters": [
           {
             "name": "code",

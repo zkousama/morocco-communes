@@ -363,7 +363,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
             "The douars of a commune from HCP's 2024 census, the villages and hamlets of its rural part, with the fractions (mashyakha) they're grouped in. " +
             "Each douar has its kind, its households and its people, and, for one of 30 households or more, the nationality, sex, age, civil registration and marital status of its people, " +
             "the kind of dwelling its households live in, and the average distance from its dwellings to a paved road, an unpaved road a car can drive on, a primary school, a collège, a lycée and a health centre. " +
-            "HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where GeoNames or OpenStreetMap maps it. A fraction has `latin` where a douar of its commune has the same name and a source writes it, and `label` where HCP lists it under a label rather than a name. A commune with no rural part has no file.",
+            "HCP withholds those for a smaller douar, which has null topics. HCP names douars in Arabic only; `latin` is a douar's name in Latin letters where a source writes one, and `place` its point where a map places it. A fraction has `latin` where a douar of its commune has the same name and a source writes it, and `label` where HCP lists it under a label rather than a name. A commune with no rural part has no file.",
           parameters: [code("A dotted code, padded or unpadded digits, or a slug.", "imi-mqourn")],
           responses: {
             "200": ok("The commune's fractions and douars.", ref("Douars")),
@@ -562,7 +562,7 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               type: "object",
               required: ["name", "source"],
               description: "Its name in Latin letters, where one of its commune's douars has the same name and a source spells it, the douar's source carrying over; or hcp, where it's named like its commune: HCP's Latin name for the commune.",
-              properties: { name: { type: "string" }, source: { type: "string", enum: ["education", "osm", "geonames", "visitors", "hcp"] } },
+              properties: { name: { type: "string" }, source: { type: "string", enum: ["education", "osm", "geonames", "other", "visitors", "hcp"] } },
             },
             label: {
               type: "string",
@@ -591,15 +591,15 @@ export function buildOpenApi(opts: { version: string; serverUrl?: string }) {
               description: "Its name in Latin letters, where a source writes one: the Ministry of National Education's lists of public schools (ODbL), OpenStreetMap (ODbL) or GeoNames (CC BY 4.0), in that order, or visitors, for a douar none names: a spelling 2 visitors suggested on the site that the spelling engine passed overnight. Matched by name, not by HCP: a small share may belong to another place of the same name. Last, hcp, for a douar named like its commune: HCP's Latin name for the commune.",
               properties: {
                 name: { type: "string" },
-                source: { type: "string", enum: ["education", "osm", "geonames", "visitors", "hcp"] },
+                source: { type: "string", enum: ["education", "osm", "geonames", "other", "visitors", "hcp"] },
               },
             },
             place: {
               type: "object",
               required: ["source", "lat", "lng"],
-              description: "Its point, where GeoNames or OpenStreetMap maps it in the same commune under its name.",
+              description: "Its point, where a map places it in the same commune under its name.",
               properties: {
-                source: { type: "string", enum: ["geonames", "osm"] },
+                source: { type: "string", enum: ["geonames", "osm", "other"] },
                 lat: { type: "number" },
                 lng: { type: "number" },
               },

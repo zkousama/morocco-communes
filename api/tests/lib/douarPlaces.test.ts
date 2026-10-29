@@ -19,6 +19,11 @@ describe("a place naming a douar", () => {
     expect(score(douar("1", "تامة", "Tama"), place("a", ["Toumi"]))).toBeNull();
   });
 
+  it("does on a short name when the place wrote the spelling by rule, and on a French word the key can't see", () => {
+    expect(score(douar("1", "اولاد اعݣيل", "Oulad Aguil"), place("a", ["Oulad Aguil"]))?.name).toBe("Oulad Aguil");
+    expect(score(douar("1", "مركز تاكونيت", "Centre Tagounite"), place("a", ["Centre Tagounite"]))?.name).toBe("Centre Tagounite");
+  });
+
   it("doesn't on a short key spelt only half alike: Tatrarat isn't تاوريرت, though both come to T·R·T", () => {
     expect(score(douar("1", "تاوريرت", "Taourirt"), place("a", ["Tatrarat"]))).toBeNull();
     expect(score(douar("1", "تاوريرت", "Taourirt"), place("a", ["Taourirt"]))?.name).toBe("Taourirt");
@@ -47,6 +52,18 @@ describe("matching a commune's douars to its places", () => {
   it("finds nothing once the commune is swapped for another, which is how chance is measured", () => {
     const places = [place("a", ["Tigraou"])];
     expect(matchDouars(douars, places, () => "c1", () => "c2")).toEqual([]);
+  });
+
+  it("matches the name outside a bracket when one douar carries it", () => {
+    const named = new Map([["c1", [douar("1", "أولاد سلامة (سيدي عياش)", "Oulad Slama (Sidi Ayach)")]]]);
+    expect(matchDouars(named, [place("a", ["Oulad Slama"])], () => "c1", undefined, undefined, true).map((m) => m.douar)).toEqual(["1"]);
+  });
+
+  it("gives neither douar a point the census split between them with a number", () => {
+    const split = new Map([
+      ["c1", [douar("1", "علوانة (1)", "Alouana (1)"), douar("2", "علوانة (2)", "Alouana (2)")]],
+    ]);
+    expect(matchDouars(split, [place("a", ["Alouana"])], () => "c1", undefined, undefined, true)).toEqual([]);
   });
 });
 

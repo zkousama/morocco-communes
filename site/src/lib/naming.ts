@@ -27,7 +27,13 @@ const score = (label: string) => {
   return found;
 };
 
-const places = json<{ chance: number; nearChance: number; places: [string, string, ...unknown[]][] }>("api/data/douar-places.json");
+const places = json<{
+  chance: number;
+  nearChance: number;
+  otherChance: number;
+  otherNearChance: number;
+  places: [string, string, ...unknown[]][];
+}>("api/data/douar-places.json");
 const named = json<{ chance: number; names: [string, string][] }>("api/data/douar-names.json");
 const table = json<WordTable>("api/generated/translit-words.json");
 
@@ -46,10 +52,18 @@ export const naming = {
   education: bySource("education"),
   osm: bySource("osm"),
   geonames: bySource("geonames"),
+  other: bySource("other"),
   visitors: bySource("visitors"),
   hcp: bySource("hcp"),
   /** The share each pass still finds with every commune swapped for another. */
-  chance: { schools: named.chance, places: places.chance, near: places.nearChance, most: MAX_CHANCE },
+  chance: {
+    schools: named.chance,
+    places: places.chance,
+    near: places.nearChance,
+    other: places.otherChance,
+    otherNear: places.otherNearChance,
+    most: MAX_CHANCE,
+  },
   /** The douars the Ministry and a map both name, and the share where the 2 spell it alike. */
   agree: { douars: both.length, exact: both.filter((n) => n === 0).length / both.length },
   keysMeet: scores.keysMeet,
