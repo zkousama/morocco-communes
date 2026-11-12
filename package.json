@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@astrojs/solid-js": "^7.0.2",
+    "@astrojs/solid-js": "^7.1.2",
     "@cloudflare/workers-types": "^5.20260917.1",
     "@types/node": "^22.10.0",
     "@types/polylabel": "^2.0.0",
