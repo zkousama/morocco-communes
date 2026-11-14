@@ -51,7 +51,7 @@
     "@types/node": "^22.10.0",
     "@types/polylabel": "^2.0.0",
     "@types/topojson-server": "^3.0.4",
-    "astro": "^7.3.3",
+    "astro": "^7.4.7",
     "polygon-clipping": "~0.15.7",
     "shiki": "^3.23.0",
     "solid-js": "^1.9.15",
